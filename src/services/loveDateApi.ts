@@ -28,9 +28,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Live gigs', 'Beach runs', 'Street food'],
     palette: ['#ff7a59', '#ff3d77'],
     photos: [
-      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Leo',
   },
@@ -44,9 +44,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Design museums', 'Vinyl', 'Late brunch'],
     palette: ['#2f80ed', '#56ccf2'],
     photos: [
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Taurus',
   },
@@ -60,9 +60,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Mini golf', 'Comedy nights', 'Tapas'],
     palette: ['#8e2de2', '#4a00e0'],
     photos: [
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1525134479668-1bee5c7c6845?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1525134479668-1bee5c7c6845?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Gemini',
   },
@@ -76,9 +76,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Cycling', 'Canal walks', 'Film photos'],
     palette: ['#f2994a', '#f2c94c'],
     photos: [
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1541534401786-2077eed87a72?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1541534401786-2077eed87a72?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Cancer',
   },
@@ -92,9 +92,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Board games', 'Travel maps', 'Ceramics'],
     palette: ['#11998e', '#38ef7d'],
     photos: [
-      'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Virgo',
   },
@@ -108,9 +108,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Architecture', 'Running', 'Specialty coffee'],
     palette: ['#ff9a8b', '#fad0c4'],
     photos: [
-      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Capricorn',
   },
@@ -124,9 +124,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Illustration', 'Ramen', 'Bookstores'],
     palette: ['#f953c6', '#b91d73'],
     photos: [
-      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Pisces',
   },
@@ -140,9 +140,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Climbing', 'Guitar', 'Road trips'],
     palette: ['#36d1dc', '#5b86e5'],
     photos: [
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1541534401786-2077eed87a72?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1541534401786-2077eed87a72?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Sagittarius',
   },
@@ -156,9 +156,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Art galleries', 'Poetry', 'Vintage'],
     palette: ['#f6d365', '#fda085'],
     photos: [
-      'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Libra',
   },
@@ -172,9 +172,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Cooking', 'Farmers markets', 'Cycling'],
     palette: ['#ff9966', '#ff5e62'],
     photos: [
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Aries',
   },
@@ -188,9 +188,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Dance', 'Podcasts', 'Cafes'],
     palette: ['#a18cd1', '#fbc2eb'],
     photos: [
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1525134479668-1bee5c7c6845?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1525134479668-1bee5c7c6845?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Aquarius',
   },
@@ -204,9 +204,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Board games', 'Sauna', 'Nordic design'],
     palette: ['#4facfe', '#00f2fe'],
     photos: [
-      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Scorpio',
   },
@@ -220,9 +220,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Fashion', 'Rooftops', 'City breaks'],
     palette: ['#f857a6', '#ff5858'],
     photos: [
-      'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Gemini',
   },
@@ -236,9 +236,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Vinyl', 'Baking', 'Museums'],
     palette: ['#43cea2', '#185a9d'],
     photos: [
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1541534401786-2077eed87a72?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1541534401786-2077eed87a72?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Cancer',
   },
@@ -252,9 +252,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Diving', 'Street food', 'Salsa'],
     palette: ['#30cfd0', '#330867'],
     photos: [
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1525134479668-1bee5c7c6845?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1525134479668-1bee5c7c6845?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Pisces',
   },
@@ -268,9 +268,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Cycling', 'History walks', 'Cooking'],
     palette: ['#eecda3', '#ef629f'],
     photos: [
-      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Leo',
   },
@@ -284,9 +284,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Hiking', 'Piano', 'Photography'],
     palette: ['#667eea', '#764ba2'],
     photos: [
-      'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Sagittarius',
   },
@@ -300,9 +300,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Comedy clubs', 'Dumplings', 'Football'],
     palette: ['#f7971e', '#ffd200'],
     photos: [
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Aries',
   },
@@ -316,9 +316,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Travel journals', 'Hot springs', 'Film'],
     palette: ['#89f7fe', '#66a6ff'],
     photos: [
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Virgo',
   },
@@ -332,9 +332,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Skiing', 'Podcasts', 'Trail runs'],
     palette: ['#0fd850', '#f9f047'],
     photos: [
-      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Capricorn',
   },
@@ -348,9 +348,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Frontend', 'Pottery', 'Tea'],
     palette: ['#ffafbd', '#ffc3a0'],
     photos: [
-      'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Libra',
   },
@@ -364,9 +364,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Bikepacking', 'Sci-fi', 'Craft beer'],
     palette: ['#00cdac', '#8ddad5'],
     photos: [
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1541534401786-2077eed87a72?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1541534401786-2077eed87a72?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Taurus',
   },
@@ -380,9 +380,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Photography', 'Vinyl', 'Seafood'],
     palette: ['#7f7fd5', '#86a8e7'],
     photos: [
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Scorpio',
   },
@@ -396,9 +396,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Design', 'Skate', 'Documentaries'],
     palette: ['#f77062', '#fe5196'],
     photos: [
-      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Aquarius',
   },
@@ -412,9 +412,9 @@ const PROFILE_FIXTURE: SeedProfile[] = [
     interests: ['Events', 'Volleyball', 'Books'],
     palette: ['#f6d365', '#fda085'],
     photos: [
-      'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     ],
     zodiac: 'Capricorn',
   },
@@ -446,66 +446,6 @@ const toHighResPhoto = (url: string): string => {
   }
 }
 
-const WOMAN_PHOTO_POOL = [
-  'https://randomuser.me/api/portraits/women/12.jpg',
-  'https://randomuser.me/api/portraits/women/23.jpg',
-  'https://randomuser.me/api/portraits/women/31.jpg',
-  'https://randomuser.me/api/portraits/women/38.jpg',
-  'https://randomuser.me/api/portraits/women/44.jpg',
-  'https://randomuser.me/api/portraits/women/52.jpg',
-  'https://randomuser.me/api/portraits/women/61.jpg',
-  'https://randomuser.me/api/portraits/women/73.jpg',
-]
-
-const MAN_PHOTO_POOL = [
-  'https://randomuser.me/api/portraits/men/11.jpg',
-  'https://randomuser.me/api/portraits/men/19.jpg',
-  'https://randomuser.me/api/portraits/men/27.jpg',
-  'https://randomuser.me/api/portraits/men/33.jpg',
-  'https://randomuser.me/api/portraits/men/45.jpg',
-  'https://randomuser.me/api/portraits/men/58.jpg',
-  'https://randomuser.me/api/portraits/men/67.jpg',
-  'https://randomuser.me/api/portraits/men/79.jpg',
-]
-
-const NON_BINARY_PHOTO_POOL = [
-  'https://api.dicebear.com/9.x/adventurer/png?seed=Sky&size=1024',
-  'https://api.dicebear.com/9.x/adventurer/png?seed=Nova&size=1024',
-  'https://api.dicebear.com/9.x/adventurer/png?seed=River&size=1024',
-  'https://api.dicebear.com/9.x/adventurer/png?seed=Quinn&size=1024',
-  'https://api.dicebear.com/9.x/adventurer/png?seed=Zen&size=1024',
-  'https://api.dicebear.com/9.x/adventurer/png?seed=Echo&size=1024',
-]
-
-const pickGenderPhotos = (gender: Profile['gender'], index: number): string[] => {
-  const pool =
-    gender === 'Woman'
-      ? WOMAN_PHOTO_POOL
-      : gender === 'Man'
-        ? MAN_PHOTO_POOL
-        : NON_BINARY_PHOTO_POOL
-
-  return [
-    pool[index % pool.length],
-    pool[(index + 2) % pool.length],
-    pool[(index + 4) % pool.length],
-  ]
-}
-
-const enforceGenderPhotoConsistency = (profile: Profile, index: number): Profile => {
-  const canonicalPhotos = pickGenderPhotos(profile.gender, index).map(toHighResPhoto)
-  const incomingPhotos = Array.isArray(profile.photos) ? profile.photos.slice(0, 3).map(toHighResPhoto) : []
-
-  // Strict guard: if incoming set differs from the canonical gender pool, auto-correct it.
-  const hasMismatch =
-    incomingPhotos.length !== 3 || incomingPhotos.some((photo, slot) => photo !== canonicalPhotos[slot])
-
-  return {
-    ...profile,
-    photos: hasMismatch ? canonicalPhotos : incomingPhotos,
-  }
-}
-
 const ENRICHED_PROFILES: Profile[] = PROFILE_FIXTURE.map((profile, index) => {
   const gender: Profile['gender'] = NON_BINARY_IDS.has(profile.id)
     ? 'Non-binary'
@@ -515,7 +455,7 @@ const ENRICHED_PROFILES: Profile[] = PROFILE_FIXTURE.map((profile, index) => {
 
   return {
     ...profile,
-    photos: pickGenderPhotos(gender, index).map(toHighResPhoto),
+    photos: profile.photos.map(toHighResPhoto),
     gender,
     distanceKm: 2 + ((index * 7) % 58),
     verified: index % 4 !== 0,
@@ -532,10 +472,11 @@ const wait = (ms: number): Promise<void> =>
 
 export const getProfiles = async (): Promise<Profile[]> => {
   await wait(220)
-  return ENRICHED_PROFILES.map((profile, index) => enforceGenderPhotoConsistency(profile, index))
+  return ENRICHED_PROFILES
 }
 
 export const resolveMatch = async (profileId: number): Promise<boolean> => {
   await wait(180)
   return MATCHABLE_IDS.has(profileId)
 }
+

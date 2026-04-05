@@ -1,4 +1,4 @@
-﻿// Zodiac emoji mapping (creative alternative)
+// Zodiac emoji mapping (creative alternative)
 const ZODIAC_EMOJI: Record<string, string> = {
   Aries: '\u2648\uFE0F',
   Taurus: '\u2649\uFE0F',
@@ -187,6 +187,30 @@ const HISTORY_STORAGE_KEY = 'lovedate:swipe-history'
 const AUTH_STORAGE_KEY = 'lovedate:auth-session'
 const SELF_PROFILE_STORAGE_KEY = 'lovedate:self-profile'
 
+const buildHighResImageUrl = (url: string, width = 2400, dpr = 2): string => {
+  try {
+    const parsed = new URL(url)
+    const host = parsed.hostname.toLowerCase()
+    if (!host.includes('images.unsplash.com')) {
+      return url
+    }
+    parsed.searchParams.set('auto', 'format')
+    parsed.searchParams.set('fit', 'crop')
+    parsed.searchParams.set('fm', 'webp')
+    parsed.searchParams.set('w', String(width))
+    parsed.searchParams.set('q', '95')
+    parsed.searchParams.set('dpr', String(dpr))
+    return parsed.toString()
+  } catch {
+    return url
+  }
+}
+
+const normalizeProfilePhotos = (profile: Profile): Profile => ({
+  ...profile,
+  photos: profile.photos.map((photo) => buildHighResImageUrl(photo, 2400, 2)),
+})
+
 const initialFilters: Filters = {
   minAge: 18,
   maxAge: 60,
@@ -249,8 +273,8 @@ const DEFAULT_SELF_PROFILE: SelfProfile = {
   anthem: 'Midnight City - M83',
   travelMode: false,
   photos: [
-    'https://images.unsplash.com/photo-1521119989659-a83eee488004?auto=format&fit=crop&w=900&q=80',
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=900&q=80',
+    'https://images.unsplash.com/photo-1521119989659-a83eee488004?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
   ],
 }
 
@@ -1133,7 +1157,7 @@ function App() {
     try {
       setLoadingProfiles(true)
       const incoming = await getProfiles()
-      setAllProfiles(incoming)
+      setAllProfiles(incoming.map(normalizeProfilePhotos))
       setLoadError(null)
     } catch {
       setLoadError('Could not load profiles. Please retry.')
@@ -2292,12 +2316,12 @@ function App() {
 
   const getDiscoverCardBackground = (_profile: Profile, tone: 'front' | 'back' = 'front'): string => {
     const veil = tone === 'back'
-      ? 'linear-gradient(155deg, rgba(58, 42, 28, 0.82), rgba(88, 62, 36, 0.72))'
-      : 'linear-gradient(155deg, rgba(86, 63, 41, 0.76), rgba(128, 90, 52, 0.66))'
+      ? 'linear-gradient(155deg, rgba(20, 25, 55, 0.88), rgba(15, 20, 46, 0.84))'
+      : 'linear-gradient(155deg, rgba(20, 25, 55, 0.84), rgba(37, 45, 92, 0.74))'
     const bloom = tone === 'back'
-      ? 'radial-gradient(circle at 84% 14%, rgba(231, 205, 154, 0.16), transparent 52%)'
-      : 'radial-gradient(circle at 84% 14%, rgba(248, 224, 171, 0.32), transparent 52%)'
-    const base = 'linear-gradient(135deg, #9a7549, #6f5335)'
+      ? 'radial-gradient(circle at 84% 14%, rgba(0, 229, 255, 0.12), transparent 52%)'
+      : 'radial-gradient(circle at 84% 14%, rgba(167, 139, 250, 0.24), transparent 52%)'
+    const base = 'linear-gradient(135deg, #141937, #252d5c)'
     return `${veil}, ${bloom}, ${base}`
   }
 
@@ -2306,10 +2330,13 @@ function App() {
       <div className="grain" aria-hidden="true" />
       <header className="top-bar">
         <div>
-          <p className="brand">LoveDate</p>
-          <p className="city">Signed in as {userEmail}</p>
+          <p className="brand">
+            <span className="brand-mark" aria-hidden="true">
+              &#10084;
+            </span>
+            <span className="brand-text">LOVEDATE</span>
+          </p>
         </div>
-        <p className="top-hint">Discover, match, chat, and manage your account.</p>
       </header>
       <nav className="bottom-nav" aria-label="Primary navigation">
         {navItems.map((item) => (
@@ -2476,39 +2503,55 @@ function App() {
                       <div className="badge nope" style={{ opacity: leftBadgeOpacity }}>
                         NOPE
                       </div>
-                      {topProfile.photos[0] && (
+                      {topProfile.photos[0] ? (
                         <div className="card-photo-wrap">
-                          <img src={topProfile.photos[0]} alt={`${topProfile.name} profile`} className="card-photo" />
-                        </div>
-                      )}
-                      <div className="profile-head">
-                        <p className="mini-label">{topProfile.city}</p>
-                        <h1>
-                          {topProfile.name}, {topProfile.age}
-                        </h1>
-                        <p className="compatibility-score">Compatibility {getCompatibilityScore(topProfile)}%</p>
-                        {topProfile.zodiac && (
-                          <div className="zodiac-row">
-                            <span className="zodiac-label">{topProfile.zodiac}</span>
-                            <span className="zodiac-emoji">{ZODIAC_EMOJI[topProfile.zodiac] || ''}</span>
+                          <img
+                            src={buildHighResImageUrl(topProfile.photos[0], 2400, 2)}
+                            srcSet={`${buildHighResImageUrl(topProfile.photos[0], 1800, 1)} 1x, ${buildHighResImageUrl(topProfile.photos[0], 3200, 2)} 2x`}
+                            sizes="(min-width: 1200px) 1024px, (min-width: 768px) 88vw, 96vw"
+                            alt={`${topProfile.name} profile`}
+                            className="card-photo"
+                            loading="eager"
+                            decoding="async"
+                            fetchPriority="high"
+                          />
+                          <div className="card-photo-overlay">
+                            <div className="profile-head">
+                              <h1 className="discover-card-name">
+                                {topProfile.name}, {topProfile.age}
+                              </h1>
+                              <p className="discover-location-line">
+                                {'\u{1F4CD}'} {topProfile.city} {'\u2022'} {topProfile.distanceKm} miles away
+                              </p>
+                              <p className="mini-label discover-spotlight-pill">{topProfile.vibe}</p>
+                              <p className="vibe">{topProfile.vibe}</p>
+                              <div className="discover-interest-chips">
+                                {topProfile.interests.slice(0, 3).map((interest) => (
+                                  <span key={`${topProfile.id}-${interest}`}>{interest}</span>
+                                ))}
+                              </div>
+                            </div>
                           </div>
-                        )}
-                        <p className="vibe">{topProfile.vibe}</p>
-                        <p className="vibe">
-                          {topProfile.gender} {'\u2022'} {topProfile.distanceKm} km {'\u2022'} {topProfile.relationshipGoal}
-                          {topProfile.verified ? ` ${'\u2022'} Verified` : ''}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        className="details-link"
-                        onPointerDown={(event) => {
-                          event.stopPropagation()
-                        }}
-                        onClick={() => openProfileDetail(topProfile.id, 'discover')}
-                      >
-                        View full profile
-                      </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="profile-head">
+                            <h1 className="discover-card-name">
+                              {topProfile.name}, {topProfile.age}
+                            </h1>
+                            <p className="discover-location-line">
+                              {'\u{1F4CD}'} {topProfile.city} {'\u2022'} {topProfile.distanceKm} miles away
+                            </p>
+                            <p className="mini-label discover-spotlight-pill">{topProfile.vibe}</p>
+                            <p className="vibe">{topProfile.vibe}</p>
+                            <div className="discover-interest-chips">
+                              {topProfile.interests.slice(0, 3).map((interest) => (
+                                <span key={`${topProfile.id}-${interest}`}>{interest}</span>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </article>
                   </section>
 
@@ -2715,7 +2758,7 @@ function App() {
                         ) : null}
                         <span>
                           {formatShortTime(message.createdAt)}
-                          {message.sender === 'me' ? ` Â· ${message.status ?? 'sent'}` : ''}
+                          {message.sender === 'me' ? ` · ${message.status ?? 'sent'}` : ''}
                         </span>
                       </p>
                     ))}
@@ -3672,7 +3715,7 @@ function App() {
             <p>
               {callState.status === 'ringing'
                 ? 'Ringing...'
-                : `Connected Â· ${formatShortTime(callState.startedAt)}`}
+                : `Connected · ${formatShortTime(callState.startedAt)}`}
             </p>
             <div className="match-actions">
               <button
@@ -3740,4 +3783,5 @@ function App() {
 }
 
 export default App
+
 

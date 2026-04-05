@@ -14,9 +14,9 @@ body {
   min-height: 100vh;
   font-family: 'Trebuchet MS', 'Lucida Sans', 'Gill Sans', sans-serif;
   background:
-    radial-gradient(circle at 18% 20%, rgba(235, 194, 124, 0.16), transparent 34%),
-    radial-gradient(circle at 84% 78%, rgba(184, 138, 78, 0.11), transparent 38%),
-    linear-gradient(128deg, #090909 0%, #14110e 42%, #1b1611 68%, #080808 100%);
+    radial-gradient(circle at 14% 18%, rgba(0, 229, 255, 0.14), transparent 34%),
+    radial-gradient(circle at 82% 74%, rgba(167, 139, 250, 0.14), transparent 38%),
+    linear-gradient(132deg, #0a0e27 0%, #141937 52%, #0b1230 100%);
 }
 
 #root {
