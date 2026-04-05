@@ -16,7 +16,6 @@ const ZODIAC_EMOJI: Record<string, string> = {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import { getProfiles, resolveMatch, type Profile } from './services/loveDateApi'
-import { TodosPanel } from './components/TodosPanel'
 import { FilterScreen } from './components/FilterScreen'
 import {
   backendGuestLogin,
@@ -193,7 +192,7 @@ const initialFilters: Filters = {
   maxAge: 60,
   city: '',
   interest: '',
-  gender: 'any',
+  gender: 'woman',
   relationshipGoal: 'any',
   maxDistanceKm: 60,
   verifiedOnly: false,
@@ -2646,7 +2645,6 @@ function App() {
                 </ul>
               )}
             </article>
-            <TodosPanel />
           </section>
         )}
         {screen === 'chats' && (
