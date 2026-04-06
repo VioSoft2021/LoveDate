@@ -446,6 +446,54 @@ const toHighResPhoto = (url: string): string => {
   }
 }
 
+const WOMAN_PHOTO_POOL = [
+  'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1525134479668-1bee5c7c6845?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+]
+
+const MAN_PHOTO_POOL = [
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1541534401786-2077eed87a72?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+  'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
+]
+
+const NON_BINARY_PHOTO_POOL = [
+  'https://api.dicebear.com/9.x/adventurer/png?seed=Sky&size=1024',
+  'https://api.dicebear.com/9.x/adventurer/png?seed=Nova&size=1024',
+  'https://api.dicebear.com/9.x/adventurer/png?seed=River&size=1024',
+  'https://api.dicebear.com/9.x/adventurer/png?seed=Quinn&size=1024',
+  'https://api.dicebear.com/9.x/adventurer/png?seed=Zen&size=1024',
+  'https://api.dicebear.com/9.x/adventurer/png?seed=Echo&size=1024',
+]
+
+const pickGenderPhotos = (gender: Profile['gender'], index: number): string[] => {
+  const pool =
+    gender === 'Woman'
+      ? WOMAN_PHOTO_POOL
+      : gender === 'Man'
+        ? MAN_PHOTO_POOL
+        : NON_BINARY_PHOTO_POOL
+
+  return [
+    pool[index % pool.length],
+    pool[(index + 2) % pool.length],
+    pool[(index + 4) % pool.length],
+  ].map(toHighResPhoto)
+}
+
 const ENRICHED_PROFILES: Profile[] = PROFILE_FIXTURE.map((profile, index) => {
   const gender: Profile['gender'] = NON_BINARY_IDS.has(profile.id)
     ? 'Non-binary'
@@ -455,7 +503,7 @@ const ENRICHED_PROFILES: Profile[] = PROFILE_FIXTURE.map((profile, index) => {
 
   return {
     ...profile,
-    photos: profile.photos.map(toHighResPhoto),
+    photos: pickGenderPhotos(gender, index),
     gender,
     distanceKm: 2 + ((index * 7) % 58),
     verified: index % 4 !== 0,

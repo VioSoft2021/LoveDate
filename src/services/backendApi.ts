@@ -1,0 +1,181 @@
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+
+export type SettingsPayload = {
+  pushNotifications: boolean
+  emailNotifications: boolean
+  privateMode: boolean
+}
+
+export type BackendChatReply = {
+  text: string
+  createdAt: number
+}
+
+type BackendMode = 'supabase' | 'local-fallback'
+
+const LOCAL_SETTINGS_KEY = 'lovedate:settings'
+const LOCAL_PREFERENCES_KEY = 'lovedate:preferences'
+
+const supabaseUrl =
+  (import.meta.env.VITE_SUPABASE_URL as string | undefined) ??
+  (import.meta.env.NEXT_PUBLIC_SUPABASE_URL as string | undefined)
+const supabaseAnonKey =
+  (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ??
+  (import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY as string | undefined)
+
+const supabase: SupabaseClient | null =
+  supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null
+
+const wait = (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    window.setTimeout(resolve, ms)
+  })
+
+const persistLocal = <T>(key: string, payload: T): void => {
+  window.localStorage.setItem(key, JSON.stringify(payload))
+}
+
+const getCurrentUserId = async (): Promise<string | null> => {
+  if (!supabase) {
+    return null
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  return user?.id ?? null
+}
+
+export const getBackendMode = (): BackendMode => {
+  return supabase ? 'supabase' : 'local-fallback'
+}
+
+export const backendLogin = async (email: string, password: string): Promise<{ email: string }> => {
+  if (supabase) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return { email: data.user?.email ?? email }
+  }
+
+  await wait(280)
+  if (!email.includes('@') || password.length < 6) {
+    throw new Error('Invalid credentials')
+  }
+
+  return { email }
+}
+
+export const backendGuestLogin = async (): Promise<{ email: string }> => {
+  if (supabase) {
+    const { data, error } = await supabase.auth.signInAnonymously()
+
+    if (!error) {
+      return {
+        email: data.user?.email ?? 'guest@lovedate.app',
+      }
+    }
+  }
+
+  await wait(180)
+  return { email: 'guest@lovedate.app' }
+}
+
+export const backendSignOut = async (): Promise<void> => {
+  if (supabase) {
+    await supabase.auth.signOut()
+  }
+}
+
+export const backendSaveSettings = async (settings: SettingsPayload): Promise<void> => {
+  persistLocal(LOCAL_SETTINGS_KEY, settings)
+
+  if (!supabase) {
+    await wait(220)
+    return
+  }
+
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return
+  }
+
+  const { error } = await supabase.from('user_settings').upsert({
+    user_id: userId,
+    push_notifications: settings.pushNotifications,
+    email_notifications: settings.emailNotifications,
+    private_mode: settings.privateMode,
+    updated_at: new Date().toISOString(),
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
+export const backendSavePreferences = async (payload: {
+  minAge: number
+  maxAge: number
+  city: string
+  interest: string
+  includeReviewed: boolean
+}): Promise<void> => {
+  persistLocal(LOCAL_PREFERENCES_KEY, payload)
+
+  if (!supabase) {
+    await wait(180)
+    return
+  }
+
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return
+  }
+
+  const { error } = await supabase.from('user_preferences').upsert({
+    user_id: userId,
+    min_age: payload.minAge,
+    max_age: payload.maxAge,
+    city: payload.city,
+    interest: payload.interest,
+    include_reviewed: payload.includeReviewed,
+    updated_at: new Date().toISOString(),
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
+export const backendSendChatReply = async (name: string, message: string): Promise<BackendChatReply> => {
+  const reply: BackendChatReply = {
+    text: `${name} liked that: "${message.slice(0, 40)}". Want to pick a time this week?`,
+    createdAt: Date.now(),
+  }
+
+  if (!supabase) {
+    await wait(650)
+    return reply
+  }
+
+  const userId = await getCurrentUserId()
+  if (userId) {
+    await supabase.from('chat_events').insert({
+      user_id: userId,
+      match_name: name,
+      outgoing_text: message,
+      generated_reply: reply.text,
+      created_at: new Date().toISOString(),
+    })
+  }
+
+  await wait(500)
+  return reply
+}

@@ -1,0 +1,41 @@
+.filter-screen {
+  max-width: 32rem;
+  margin: 2.5rem auto;
+  padding: 2rem 1.5rem;
+  background: rgba(18, 14, 27, 0.92);
+  border-radius: 1.5rem;
+  box-shadow: 0 12px 32px rgba(6, 3, 2, 0.22);
+}
+.filter-screen h1 {
+  font-size: 2.1rem;
+  margin-bottom: 1.2rem;
+  text-align: center;
+}
+.filter-screen .filters {
+  display: grid;
+  gap: 1.1rem;
+}
+.filter-screen label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #ffe6b0;
+}
+.filter-screen input[type="number"],
+.filter-screen input[type="text"],
+.filter-screen select {
+  margin-top: 0.3rem;
+  font-size: 1.1rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ffe6b0;
+  background: #1a1422;
+  color: #fff4ea;
+}
+.filter-screen input[type="range"] {
+  width: 100%;
+}
+.filter-screen .toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
