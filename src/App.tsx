@@ -1999,6 +1999,23 @@ function App() {
     setProfileSaveStatus('idle')
   }
 
+  const setPrimaryDraftPhoto = (photoIndex: number) => {
+    setProfileDraft((current) => {
+      if (photoIndex <= 0 || photoIndex >= current.photos.length) {
+        return current
+      }
+
+      const selectedPhoto = current.photos[photoIndex]
+      const remainingPhotos = current.photos.filter((_, index) => index !== photoIndex)
+
+      return {
+        ...current,
+        photos: [selectedPhoto, ...remainingPhotos],
+      }
+    })
+    setProfileSaveStatus('idle')
+  }
+
   const resetPhotoStudioControls = () => {
     setPhotoStudioControls({
       cropAspect: 'free',
@@ -2378,32 +2395,28 @@ function App() {
           <section className="discover-main-only discover-redesign" aria-label="Discover cards and actions">
             <section className="discover-metrics" aria-label="Discover summary">
               <div className="discover-kpis">
-                <p>
-                  Deck: <strong>{filteredProfiles.length}</strong>
-                </p>
-                <p>
-                  Matches: <strong>{matchedProfiles.length}</strong>
-                </p>
-                <p>
-                  Likes left:{' '}
-                  <strong>
+                <div className="discover-kpi">
+                  <strong className="discover-kpi-value">{filteredProfiles.length}</strong>
+                  <span className="discover-kpi-label">In Deck</span>
+                </div>
+                <div className="discover-kpi">
+                  <strong className="discover-kpi-value">{matchedProfiles.length}</strong>
+                  <span className="discover-kpi-label">Matches</span>
+                </div>
+                <div className="discover-kpi">
+                  <strong className="discover-kpi-value">
                     {likeUsage.limit === null || likeUsage.limit === Infinity
-                      ? 'Unlimited'
+                      ? '∞'
                       : Math.max(0, likeUsage.limit - likeUsage.used)}
                   </strong>
-                </p>
-                <p>
-                  Super Likes left:{' '}
-                  <strong>
-                    {superLikeUsage.limit === Infinity ? 'Unlimited' : Math.max(0, superLikeUsage.limit - superLikeUsage.used)}
+                  <span className="discover-kpi-label">Likes Left</span>
+                </div>
+                <div className="discover-kpi">
+                  <strong className="discover-kpi-value">
+                    {superLikeUsage.limit === Infinity ? '∞' : Math.max(0, superLikeUsage.limit - superLikeUsage.used)}
                   </strong>
-                </p>
-                <p>
-                  Rewinds left: <strong>{rewindsLeft}</strong>
-                </p>
-                <p>
-                  Boosts left: <strong>{boostsLeft}</strong>
-                </p>
+                  <span className="discover-kpi-label">Super Likes</span>
+                </div>
               </div>
               <div className="discover-metric-controls">
                 <button type="button" className="discover-metric-btn" onClick={() => navigate('filters')}>
@@ -2520,6 +2533,10 @@ function App() {
                               <h1 className="discover-card-name">
                                 {topProfile.name}, {topProfile.age}
                               </h1>
+                              <p className="discover-presence-line">
+                                <span className="discover-status-dot" aria-hidden="true" />
+                                Active now
+                              </p>
                               <p className="discover-location-line">
                                 {'\u{1F4CD}'} {topProfile.city} {'\u2022'} {topProfile.distanceKm} miles away
                               </p>
@@ -2539,6 +2556,10 @@ function App() {
                             <h1 className="discover-card-name">
                               {topProfile.name}, {topProfile.age}
                             </h1>
+                            <p className="discover-presence-line">
+                              <span className="discover-status-dot" aria-hidden="true" />
+                              Active now
+                            </p>
                             <p className="discover-location-line">
                               {'\u{1F4CD}'} {topProfile.city} {'\u2022'} {topProfile.distanceKm} miles away
                             </p>
@@ -2558,11 +2579,11 @@ function App() {
                   <section className="actions discover-action-cluster discover-primary-actions" aria-label="Swipe actions">
                     <button
                       type="button"
-                      className="solid like-action"
-                      onClick={() => swipeCard('right')}
-                      disabled={!topProfile || isResolvingSwipe || likeLimitReached}
+                      className="ghost pass-action"
+                      onClick={() => swipeCard('left')}
+                      disabled={!topProfile || isResolvingSwipe}
                     >
-                      Like {'\u2665'}
+                      Pass
                     </button>
                     <button
                       type="button"
@@ -2570,19 +2591,24 @@ function App() {
                       onClick={() => swipeCard('right', 'super-like')}
                       disabled={!topProfile || isResolvingSwipe || likeLimitReached || superLikeLimitReached}
                     >
-                      Super Like {'\u2605'}
+                      Super Like
                     </button>
                     <button
                       type="button"
-                      className="ghost pass-action"
-                      onClick={() => swipeCard('left')}
-                      disabled={!topProfile || isResolvingSwipe}
+                      className="solid like-action"
+                      onClick={() => swipeCard('right')}
+                      disabled={!topProfile || isResolvingSwipe || likeLimitReached}
                     >
-                      Pass
+                      Like
                     </button>
                   </section>
                   <footer className="hint discover-hint">
-                    <p>Keyboard: Left, Right, Up (super like), U (undo), Esc (close match).</p>
+                    <div className="discover-keymap" aria-label="Keyboard shortcuts">
+                      <span><b>←</b> Pass</span>
+                      <span><b>↑</b> Super Like</span>
+                      <span><b>→</b> Like</span>
+                    </div>
+                    <p>U (undo), Esc (close match).</p>
                     {likeLimitReached && <p className="result">Like limit reached for your current plan.</p>}
                     {superLikeLimitReached && <p className="result">Super Like limit reached for this week.</p>}
                     {isResolvingSwipe && <p className="result">Checking for a match...</p>}
@@ -2621,57 +2647,35 @@ function App() {
         )}
         {screen === 'activity' && (
           <section className="activity-layout">
-            <article className="list-panel">
-              <h2>Liked</h2>
-              {likedProfiles.length === 0 ? (
-                <p className="soft">No likes yet.</p>
-              ) : (
-                <ul>
-                  {likedProfiles.map((profile) => (
-                    <li key={profile.id}>
-                      <div>
-                        <strong>{profile.name}</strong>
-                        <span>{profile.city}</span>
-                      </div>
-                      <button type="button" className="mini-btn" onClick={() => openProfileDetail(profile.id, 'activity')}>
-                        View
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </article>
-            <article className="list-panel">
-              <h2>Passed</h2>
-              {passedProfiles.length === 0 ? (
-                <p className="soft">No passes yet.</p>
-              ) : (
-                <ul>
-                  {passedProfiles.map((profile) => (
-                    <li key={profile.id}>
-                      <div>
-                        <strong>{profile.name}</strong>
-                        <span>{profile.city}</span>
-                      </div>
-                      <button type="button" className="mini-btn" onClick={() => openProfileDetail(profile.id, 'activity')}>
-                        View
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </article>
-            <article className="list-panel">
+            <section className="activity-overview" aria-label="Activity overview">
+              <p>
+                Liked <strong>{likedProfiles.length}</strong>
+              </p>
+              <p>
+                Passed <strong>{passedProfiles.length}</strong>
+              </p>
+              <p>
+                Matches <strong>{matchedProfiles.length}</strong>
+              </p>
+            </section>
+
+            <article className="list-panel activity-panel activity-panel--matches">
               <h2>Matches</h2>
               {matchedProfiles.length === 0 ? (
                 <p className="soft">No matches yet.</p>
               ) : (
                 <ul>
                   {matchedProfiles.map((profile) => (
-                    <li key={profile.id}>
-                      <div>
-                        <strong>{profile.name}</strong>
-                        <span>{profile.relationshipGoal}</span>
+                    <li key={profile.id} className="activity-item">
+                      <div className="activity-item-main">
+                        <div className="activity-avatar-wrap">
+                          <img className="activity-avatar" src={profile.photos[0]} alt={`${profile.name} avatar`} />
+                          <span className="activity-status-dot activity-status-dot--match" aria-hidden="true" />
+                        </div>
+                        <div className="activity-item-meta">
+                          <strong>{profile.name}</strong>
+                          <span>{profile.relationshipGoal}</span>
+                        </div>
                       </div>
                       <button
                         type="button"
@@ -2688,16 +2692,69 @@ function App() {
                 </ul>
               )}
             </article>
+
+            <article className="list-panel activity-panel">
+              <h2>Liked</h2>
+              {likedProfiles.length === 0 ? (
+                <p className="soft">No likes yet.</p>
+              ) : (
+                <ul>
+                  {likedProfiles.map((profile) => (
+                    <li key={profile.id} className="activity-item">
+                      <div className="activity-item-main">
+                        <div className="activity-avatar-wrap">
+                          <img className="activity-avatar" src={profile.photos[0]} alt={`${profile.name} avatar`} />
+                          <span className="activity-status-dot activity-status-dot--liked" aria-hidden="true" />
+                        </div>
+                        <div className="activity-item-meta">
+                          <strong>{profile.name}</strong>
+                          <span>{profile.city}</span>
+                        </div>
+                      </div>
+                      <button type="button" className="mini-btn" onClick={() => openProfileDetail(profile.id, 'activity')}>
+                        View
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </article>
+
+            <article className="list-panel activity-panel">
+              <h2>Passed</h2>
+              {passedProfiles.length === 0 ? (
+                <p className="soft">No passes yet.</p>
+              ) : (
+                <ul>
+                  {passedProfiles.map((profile) => (
+                    <li key={profile.id} className="activity-item">
+                      <div className="activity-item-main">
+                        <div className="activity-avatar-wrap">
+                          <img className="activity-avatar" src={profile.photos[0]} alt={`${profile.name} avatar`} />
+                          <span className="activity-status-dot activity-status-dot--passed" aria-hidden="true" />
+                        </div>
+                        <div className="activity-item-meta">
+                          <strong>{profile.name}</strong>
+                          <span>{profile.city}</span>
+                        </div>
+                      </div>
+                      <button type="button" className="mini-btn" onClick={() => openProfileDetail(profile.id, 'activity')}>
+                        View
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </article>
           </section>
         )}
         {screen === 'chats' && (
           <section className="chats-layout">
             <article className="chat-list">
-              <h2>Messages</h2>
               <div className="chat-tools">
                 <input
                   type="text"
-                  placeholder="Search chats..."
+                  placeholder="Search conversations..."
                   value={chatSearch}
                   onChange={(event) => setChatSearch(event.target.value)}
                 />
@@ -2709,13 +2766,19 @@ function App() {
                   className={`chat-item ${activeChatId === preview.profile.id ? 'active' : ''}`}
                   onClick={() => setActiveChatId(preview.profile.id)}
                 >
-                  <div className="chat-meta">
-                    <strong>{preview.profile.name}</strong>
-                    <span>{preview.lastText}</span>
+                  <div className="chat-avatar-wrap">
+                    <img className="chat-avatar" src={preview.profile.photos[0]} alt={preview.profile.name} />
+                    <span className="chat-online-dot" aria-hidden="true" />
                   </div>
-                  <div className="chat-status">
-                    {preview.unread > 0 ? <span className="badge-count">{preview.unread}</span> : null}
-                    <small>{preview.lastTime}</small>
+                  <div className="chat-item-body">
+                    <div className="chat-meta">
+                      <strong>{preview.profile.name}</strong>
+                      <span>{preview.lastText}</span>
+                    </div>
+                    <div className="chat-status">
+                      <small>{preview.lastTime}</small>
+                      {preview.unread > 0 ? <span className="badge-count">{preview.unread}</span> : null}
+                    </div>
                   </div>
                 </button>
               ))}
@@ -2724,22 +2787,40 @@ function App() {
               {selectedChatProfile ? (
                 <>
                   <header>
-                    <h2>{selectedChatProfile.name}</h2>
+                    <div className="chat-header-profile">
+                      <div className="chat-avatar-wrap">
+                        <img className="chat-avatar" src={selectedChatProfile.photos[0]} alt={selectedChatProfile.name} />
+                        <span className="chat-online-dot" aria-hidden="true" />
+                      </div>
+                      <div>
+                        <h2>{selectedChatProfile.name}</h2>
+                        <p className="chat-presence">Online</p>
+                      </div>
+                    </div>
                     <div className="chat-header-actions">
-                      <button type="button" className="mini-btn" onClick={() => startCall('audio')}>
-                        Audio Call
+                      <button type="button" className="chat-icon-btn" aria-label="Audio call" onClick={() => startCall('audio')}>
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M22 16.8v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 11.2 19a19.3 19.3 0 0 1-6-6A19.8 19.8 0 0 1 2.2 4.2 2 2 0 0 1 4.2 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.7.6 2.5a2 2 0 0 1-.5 2l-1.2 1.2a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2-.5c.8.3 1.6.5 2.5.6A2 2 0 0 1 22 16.8z" />
+                        </svg>
                       </button>
-                      <button type="button" className="mini-btn" onClick={() => startCall('video')}>
-                        Video Call
+                      <button type="button" className="chat-icon-btn" aria-label="Video call" onClick={() => startCall('video')}>
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <rect x="3" y="6" width="14" height="12" rx="2" ry="2" />
+                          <path d="M17 10l4-2v8l-4-2z" />
+                        </svg>
                       </button>
-                      <button type="button" className="mini-btn" onClick={() => openProfileDetail(selectedChatProfile.id, 'chats')}>
-                        View Profile
-                      </button>
-                      <button type="button" className="mini-btn" onClick={() => reportProfile(selectedChatProfile)}>
-                        Report
-                      </button>
-                      <button type="button" className="mini-btn danger" onClick={() => blockProfile(selectedChatProfile)}>
-                        Block
+                      <button
+                        type="button"
+                        className="chat-icon-btn"
+                        aria-label="More options"
+                        onClick={() => openProfileDetail(selectedChatProfile.id, 'chats')}
+                        title="Open profile"
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <circle cx="12" cy="5" r="1.8" />
+                          <circle cx="12" cy="12" r="1.8" />
+                          <circle cx="12" cy="19" r="1.8" />
+                        </svg>
                       </button>
                     </div>
                   </header>
@@ -2758,7 +2839,7 @@ function App() {
                         ) : null}
                         <span>
                           {formatShortTime(message.createdAt)}
-                          {message.sender === 'me' ? ` · ${message.status ?? 'sent'}` : ''}
+                          {message.sender === 'me' ? ` | ${message.status ?? 'sent'}` : ''}
                         </span>
                       </p>
                     ))}
@@ -2780,18 +2861,41 @@ function App() {
                   >
                     <input
                       type="text"
-                      placeholder={`Message ${selectedChatProfile.name}...`}
+                      placeholder="Type a message..."
                       value={chatDraft}
                       onChange={(event) => setChatDraft(event.target.value)}
                     />
                     <input ref={attachmentInputRef} type="file" accept="image/*,video/*" hidden onChange={handleAttachmentPick} />
-                    <button type="button" onClick={() => attachmentInputRef.current?.click()}>
-                      Photo/Video
+                    <button type="button" className="chat-icon-btn" aria-label="Attach media" onClick={() => attachmentInputRef.current?.click()}>
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M21.4 11.2l-8.9 8.9a5 5 0 0 1-7.1-7.1l9.5-9.5a3.5 3.5 0 1 1 5 5l-9.8 9.8a2 2 0 1 1-2.8-2.8l8.8-8.8" />
+                      </svg>
                     </button>
-                    <button type="button" className={isRecordingVoice ? 'danger' : ''} onClick={() => void startVoiceRecording()}>
-                      {isRecordingVoice ? 'Stop Rec' : 'Voice'}
+                    <button
+                      type="button"
+                      className={`chat-icon-btn ${isRecordingVoice ? 'danger' : ''}`}
+                      aria-label={isRecordingVoice ? 'Stop recording' : 'Record voice'}
+                      onClick={() => void startVoiceRecording()}
+                    >
+                      {isRecordingVoice ? (
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <rect x="7" y="7" width="10" height="10" rx="1.8" ry="1.8" />
+                        </svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <rect x="9" y="3" width="6" height="12" rx="3" ry="3" />
+                          <path d="M5 11a7 7 0 0 0 14 0" />
+                          <path d="M12 18v3" />
+                          <path d="M8 21h8" />
+                        </svg>
+                      )}
                     </button>
-                    <button type="submit">Send</button>
+                    <button type="submit" className="chat-send-btn" aria-label="Send">
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M22 2L11 13" />
+                        <path d="M22 2L15 22l-4-9-9-4z" />
+                      </svg>
+                    </button>
                   </form>
                 </>
               ) : (
@@ -2805,153 +2909,161 @@ function App() {
         )}
         {screen === 'profile' && (
           <section className="profile-screen" aria-label="Profile screen">
-            <article className="profile-summary">
-              <h2>
-                {selfProfile.name}, {selfProfile.age}
-              </h2>
-              <p className="vibe">{selfProfile.vibe}</p>
-              <p>{selfProfile.city}</p>
-              <p>{selfProfile.bio}</p>
-              <div className="chips">
-                {selfProfile.interests.map((interest) => (
-                  <span key={interest}>{interest}</span>
-                ))}
-              </div>
-              {selfProfile.photos.length > 0 && (
-                <div className="self-photos-grid">
-                  {selfProfile.photos.slice(0, 6).map((photo, index) => (
-                    <img key={`${photo}-${index}`} src={photo} alt={`Your profile ${index + 1}`} />
+            <aside className="profile-left-column" aria-label="Profile overview">
+              <article className="profile-summary profile-summary-card">
+                {selfProfile.photos.length > 0 && (
+                  <div className="profile-summary-hero">
+                    <img
+                      src={selfProfile.photos[0]}
+                      alt={`${selfProfile.name} primary profile`}
+                    />
+                  </div>
+                )}
+                {selfProfile.photos.length > 1 && (
+                  <div className="profile-summary-thumbs">
+                    {selfProfile.photos.slice(1, 3).map((photo, index) => (
+                      <img
+                        key={`${photo}-${index}`}
+                        src={photo}
+                        alt={`${selfProfile.name} gallery ${index + 2}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </article>
+
+              <article className="profile-summary profile-about-card">
+                <h3>About Me</h3>
+                <p>{selfProfile.bio}</p>
+              </article>
+
+              <article className="profile-summary profile-interests-card">
+                <h3>Interests</h3>
+                <div className="chips profile-interest-chips">
+                  {selfProfile.interests.map((interest) => (
+                    <span key={interest}>{interest}</span>
                   ))}
                 </div>
-              )}
-              <p>{selfProfile.lookingFor}</p>
-              <p>
-                {selfProfile.jobTitle} at {selfProfile.company}
-              </p>
-              <p>
-                {selfProfile.heightCm} cm {'\u2022'} {selfProfile.orientation} {'\u2022'} {selfProfile.pronouns}
-              </p>
-              <p>Languages: {selfProfile.languages.join(', ')}</p>
-              <p className="status-line">Profile save state: {profileSaveStatus}</p>
-            </article>
+              </article>
+            </aside>
 
             <article className="profile-settings profile-editor">
               <h2>Edit My Profile</h2>
               <form onSubmit={saveMyProfile}>
                 <h3>Identity</h3>
                 <div className="profile-editor-grid">
-                  <label>
-                    Name
-                    <input
-                      type="text"
-                      value={profileDraft.name}
-                      onChange={(event) => handleProfileDraftChange('name', event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Age
-                    <input
-                      type="number"
-                      min={18}
-                      max={99}
-                      value={profileDraft.age}
-                      onChange={(event) => handleProfileDraftChange('age', event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Pronouns
-                    <input
-                      type="text"
-                      value={profileDraft.pronouns}
-                      onChange={(event) => handleProfileDraftChange('pronouns', event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Gender
-                    <input
-                      type="text"
-                      value={profileDraft.gender}
-                      onChange={(event) => handleProfileDraftChange('gender', event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Orientation
-                    <input
-                      type="text"
-                      value={profileDraft.orientation}
-                      onChange={(event) => handleProfileDraftChange('orientation', event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Height (cm)
-                    <input
-                      type="number"
-                      min={130}
-                      max={230}
-                      value={profileDraft.heightCm}
-                      onChange={(event) => handleProfileDraftChange('heightCm', event.target.value)}
-                    />
-                  </label>
+                    <label>
+                      Name
+                      <input
+                        type="text"
+                        value={profileDraft.name}
+                        onChange={(event) => handleProfileDraftChange('name', event.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Age
+                      <input
+                        type="number"
+                        min={18}
+                        max={99}
+                        value={profileDraft.age}
+                        onChange={(event) => handleProfileDraftChange('age', event.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Pronouns
+                      <input
+                        type="text"
+                        value={profileDraft.pronouns}
+                        onChange={(event) => handleProfileDraftChange('pronouns', event.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Gender
+                      <input
+                        type="text"
+                        value={profileDraft.gender}
+                        onChange={(event) => handleProfileDraftChange('gender', event.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Orientation
+                      <input
+                        type="text"
+                        value={profileDraft.orientation}
+                        onChange={(event) => handleProfileDraftChange('orientation', event.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Height (cm)
+                      <input
+                        type="number"
+                        min={130}
+                        max={230}
+                        value={profileDraft.heightCm}
+                        onChange={(event) => handleProfileDraftChange('heightCm', event.target.value)}
+                      />
+                    </label>
                 </div>
 
                 <h3>Profile Details</h3>
                 <div className="profile-editor-grid">
-                  <label>
-                    City
-                    <input
-                      type="text"
-                      value={profileDraft.city}
-                      onChange={(event) => handleProfileDraftChange('city', event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Hometown
-                    <input
-                      type="text"
-                      value={profileDraft.hometown}
-                      onChange={(event) => handleProfileDraftChange('hometown', event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Vibe
-                    <input
-                      type="text"
-                      value={profileDraft.vibe}
-                      onChange={(event) => handleProfileDraftChange('vibe', event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Looking For
-                    <input
-                      type="text"
-                      value={profileDraft.lookingFor}
-                      onChange={(event) => handleProfileDraftChange('lookingFor', event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Relationship Intent
-                    <input
-                      type="text"
-                      value={profileDraft.relationshipIntent}
-                      onChange={(event) => handleProfileDraftChange('relationshipIntent', event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Interests (comma separated)
-                    <input
-                      type="text"
-                      value={profileDraft.interests}
-                      onChange={(event) => handleProfileDraftChange('interests', event.target.value)}
-                    />
-                  </label>
-                  <label className="full-width">
-                    Bio
-                    <textarea
-                      rows={3}
-                      value={profileDraft.bio}
-                      onChange={(event) => handleProfileDraftChange('bio', event.target.value)}
-                    />
-                  </label>
+                    <label>
+                      City
+                      <input
+                        type="text"
+                        value={profileDraft.city}
+                        onChange={(event) => handleProfileDraftChange('city', event.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Hometown
+                      <input
+                        type="text"
+                        value={profileDraft.hometown}
+                        onChange={(event) => handleProfileDraftChange('hometown', event.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Vibe
+                      <input
+                        type="text"
+                        value={profileDraft.vibe}
+                        onChange={(event) => handleProfileDraftChange('vibe', event.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Looking For
+                      <input
+                        type="text"
+                        value={profileDraft.lookingFor}
+                        onChange={(event) => handleProfileDraftChange('lookingFor', event.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Relationship Intent
+                      <input
+                        type="text"
+                        value={profileDraft.relationshipIntent}
+                        onChange={(event) => handleProfileDraftChange('relationshipIntent', event.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Interests (comma separated)
+                      <input
+                        type="text"
+                        value={profileDraft.interests}
+                        onChange={(event) => handleProfileDraftChange('interests', event.target.value)}
+                      />
+                    </label>
+                    <label className="full-width">
+                      Bio
+                      <textarea
+                        rows={3}
+                        value={profileDraft.bio}
+                        onChange={(event) => handleProfileDraftChange('bio', event.target.value)}
+                      />
+                    </label>
                 </div>
 
                 <h3>Career And Lifestyle</h3>
@@ -3116,28 +3228,41 @@ function App() {
 
                 <h3>Photos</h3>
                 <div className="photo-input-row">
-                  <input
-                    type="url"
-                    placeholder="Paste photo URL"
-                    value={photoUrlInput}
-                    onChange={(event) => setPhotoUrlInput(event.target.value)}
-                  />
-                  <button type="button" className="ghost" onClick={addPhotoFromUrl}>
-                    Add URL
-                  </button>
-                </div>
-                <label className="upload-field">
-                  Upload photo (opens editor)
-                  <input type="file" accept="image/*" onChange={handlePhotoUpload} />
-                </label>
+                    <input
+                      type="url"
+                      placeholder="Paste photo URL"
+                      value={photoUrlInput}
+                      onChange={(event) => setPhotoUrlInput(event.target.value)}
+                    />
+                    <button type="button" className="ghost" onClick={addPhotoFromUrl}>
+                      Add URL
+                    </button>
+                  </div>
+                  <label className="upload-field">
+                    Upload photo (opens editor)
+                    <input type="file" accept="image/*" onChange={handlePhotoUpload} />
+                  </label>
 
                 <div className="draft-photo-grid">
                   {profileDraft.photos.map((photo, index) => (
                     <div key={`${photo}-${index}`} className="draft-photo-item">
                       <img src={photo} alt={`Draft profile ${index + 1}`} />
-                      <button type="button" className="mini-btn" onClick={() => removeDraftPhoto(photo)}>
-                        Remove
-                      </button>
+                      <div className="draft-photo-actions">
+                        {index === 0 ? (
+                          <span className="draft-photo-primary-badge">Primary</span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="mini-btn ghost"
+                            onClick={() => setPrimaryDraftPhoto(index)}
+                          >
+                            Set as Primary
+                          </button>
+                        )}
+                        <button type="button" className="mini-btn" onClick={() => removeDraftPhoto(photo)}>
+                          Remove
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -3715,7 +3840,7 @@ function App() {
             <p>
               {callState.status === 'ringing'
                 ? 'Ringing...'
-                : `Connected · ${formatShortTime(callState.startedAt)}`}
+                : `Connected | ${formatShortTime(callState.startedAt)}`}
             </p>
             <div className="match-actions">
               <button

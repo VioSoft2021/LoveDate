@@ -2,5 +2,6 @@
     "nextflow.telemetry.enabled": false,
     "cSpell.words": [
         "lovedate"
-    ]
+    ],
+    "figma.autocompleteProperties": false
 }
