@@ -3626,6 +3626,16 @@ button:disabled {
   gap: 0.7rem;
 }
 
+.ld-logo-main--stacked-text {
+  align-items: flex-start;
+}
+
+.ld-logo-title-block {
+  display: inline-grid;
+  gap: 0.12rem;
+  align-items: start;
+}
+
 .ld-logo-mark {
   display: inline-grid;
   place-items: center;
@@ -3673,7 +3683,7 @@ button:disabled {
 
 .ld-logo-slogan {
   display: block;
-  margin-top: 0.2rem;
+  margin-top: 0.04rem;
   color: rgba(246, 225, 185, 0.86);
   font-size: 0.88rem;
   letter-spacing: 0.02em;
@@ -3681,8 +3691,8 @@ button:disabled {
 
 .ld-logo--hero,
 .ld-logo--full {
-  display: inline-grid;
-  gap: 0.12rem;
+  display: inline-flex;
+  align-items: flex-start;
 }
 
 .ld-logo--icon-only .ld-logo-text,

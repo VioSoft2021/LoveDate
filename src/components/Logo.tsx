@@ -46,11 +46,13 @@ export function Logo({
   if (variant === 'hero') {
     return (
       <span className={rootClass}>
-        <span className="ld-logo-main">
+        <span className="ld-logo-main ld-logo-main--stacked-text">
           {icon}
-          {wordmark}
+          <span className="ld-logo-title-block">
+            {wordmark}
+            {showSlogan ? <span className="ld-logo-slogan">{slogan}</span> : null}
+          </span>
         </span>
-        {showSlogan ? <span className="ld-logo-slogan">{slogan}</span> : null}
       </span>
     )
   }
@@ -58,11 +60,13 @@ export function Logo({
   if (variant === 'full') {
     return (
       <span className={rootClass}>
-        <span className="ld-logo-main">
+        <span className="ld-logo-main ld-logo-main--stacked-text">
           {icon}
-          {wordmark}
+          <span className="ld-logo-title-block">
+            {wordmark}
+            {showSlogan ? <span className="ld-logo-slogan">{slogan}</span> : null}
+          </span>
         </span>
-        {showSlogan ? <span className="ld-logo-slogan">{slogan}</span> : null}
       </span>
     )
   }
@@ -75,4 +79,3 @@ export function Logo({
     </span>
   )
 }
-
