@@ -1,13 +1,21 @@
 {
   "name": "lovedate",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.2",
+  "description": "LoveDate premium dating app",
+  "author": "LoveDate",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "release": "npm run build && npm run package:release",
+    "package:release": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/package-release.ps1",
+    "desktop:dev": "npm run build && electron ./electron/main.cjs",
+    "dist:desktop": "npm run build && electron-builder --win nsis",
+    "dist:desktop:portable": "npm run build && electron-builder --win portable"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.101.1",
@@ -24,8 +32,43 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "electron": "^37.5.0",
+    "electron-builder": "^26.0.12",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.57.0",
     "vite": "^8.0.1"
+  },
+  "build": {
+    "appId": "com.lovedate.app",
+    "productName": "LoveDate",
+    "directories": {
+      "buildResources": "build",
+      "output": "desktop-dist"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "artifactName": "LoveDate-Setup-${version}.${ext}",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "installerIcon": "icon.ico",
+      "uninstallerIcon": "icon.ico"
+    }
   }
 }

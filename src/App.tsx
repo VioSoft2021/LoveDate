@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import { getProfiles, resolveMatch, type Profile } from './services/loveDateApi'
 import { FilterScreen } from './components/FilterScreen'
+import { Logo } from './components/Logo'
 import {
   backendGuestLogin,
   backendLogin,
@@ -329,6 +330,17 @@ const buildPath = (screen: AppScreen, profileId: number | null): string => {
   return `/${screen}`
 }
 
+const readRouteFromWindow = (): { screen: AppScreen; profileId: number | null } => {
+  const isFileProtocol = window.location.protocol === 'file:'
+  if (isFileProtocol) {
+    const rawHash = window.location.hash.replace(/^#/, '')
+    const hashPath = rawHash.length > 0 ? (rawHash.startsWith('/') ? rawHash : `/${rawHash}`) : '/login'
+    return parseRoute(hashPath)
+  }
+
+  return parseRoute(window.location.pathname)
+}
+
 const readAuth = (): { isAuthenticated: boolean; email: string } => {
   try {
     const raw = window.localStorage.getItem(AUTH_STORAGE_KEY)
@@ -610,7 +622,7 @@ const seedChat = (selfName: string): ChatMessage[] => [
 ]
 
 function App() {
-  const initialRoute = parseRoute(window.location.pathname)
+  const initialRoute = readRouteFromWindow()
   const initialAuth = readAuth()
   const initialSelfProfile = readSelfProfile()
 
@@ -1112,6 +1124,16 @@ function App() {
 
       const nextPath = buildPath(nextScreen, nextScreen === 'profile-detail' ? profileId : null)
       const navMethod = options?.replace ? window.history.replaceState : window.history.pushState
+      const isFileProtocol = window.location.protocol === 'file:'
+
+      if (isFileProtocol) {
+        const nextHash = `#${nextPath}`
+        if (window.location.hash !== nextHash) {
+          navMethod.call(window.history, null, '', nextHash)
+        }
+        return
+      }
+
       if (window.location.pathname !== nextPath) {
         navMethod.call(window.history, null, '', nextPath)
       }
@@ -1121,14 +1143,22 @@ function App() {
 
   useEffect(() => {
     const onPopState = () => {
-      const route = parseRoute(window.location.pathname)
+      const route = readRouteFromWindow()
+      setScreen(route.screen)
+      setSelectedProfileId(route.profileId)
+    }
+
+    const onHashChange = () => {
+      const route = readRouteFromWindow()
       setScreen(route.screen)
       setSelectedProfileId(route.profileId)
     }
 
     window.addEventListener('popstate', onPopState)
+    window.addEventListener('hashchange', onHashChange)
     return () => {
       window.removeEventListener('popstate', onPopState)
+      window.removeEventListener('hashchange', onHashChange)
     }
   }, [])
 
@@ -2292,6 +2322,7 @@ function App() {
       <main className="login-shell">
         <div className="grain" aria-hidden="true" />
         <article className="login-card">
+          <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
           <p className="pill">Welcome</p>
           <h1>Sign in to LoveDate</h1>
           <p>Continue with your account or start a guest session.</p>
@@ -2341,18 +2372,12 @@ function App() {
     const base = 'linear-gradient(135deg, #141937, #252d5c)'
     return `${veil}, ${bloom}, ${base}`
   }
-
   return (
     <main className={`app-shell app-shell--${screen}`}>
       <div className="grain" aria-hidden="true" />
       <header className="top-bar">
         <div>
-          <p className="brand">
-            <span className="brand-mark" aria-hidden="true">
-              &#10084;
-            </span>
-            <span className="brand-text">LOVEDATE</span>
-          </p>
+          <Logo variant="compact" size="md" />
         </div>
       </header>
       <nav className="bottom-nav" aria-label="Primary navigation">
@@ -2917,17 +2942,14 @@ function App() {
                       src={selfProfile.photos[0]}
                       alt={`${selfProfile.name} primary profile`}
                     />
-                  </div>
-                )}
-                {selfProfile.photos.length > 1 && (
-                  <div className="profile-summary-thumbs">
-                    {selfProfile.photos.slice(1, 3).map((photo, index) => (
-                      <img
-                        key={`${photo}-${index}`}
-                        src={photo}
-                        alt={`${selfProfile.name} gallery ${index + 2}`}
-                      />
-                    ))}
+                    <div className="profile-summary-overlay">
+                      <h3>
+                        {selfProfile.name}, {selfProfile.age}
+                      </h3>
+                      <p>
+                        {selfProfile.city} {'\u2022'} {selfProfile.vibe}
+                      </p>
+                    </div>
                   </div>
                 )}
               </article>
@@ -2935,6 +2957,9 @@ function App() {
               <article className="profile-summary profile-about-card">
                 <h3>About Me</h3>
                 <p>{selfProfile.bio}</p>
+                <p className="profile-about-meta">
+                  {selfProfile.jobTitle} at {selfProfile.company} {'\u2022'} {selfProfile.lookingFor}
+                </p>
               </article>
 
               <article className="profile-summary profile-interests-card">

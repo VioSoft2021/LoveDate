@@ -3253,6 +3253,95 @@ button:disabled {
   color: #f4e9cb;
 }
 
+/* Luxury Gold brand lockup */
+.brand {
+  gap: 0.72rem;
+  align-items: center;
+}
+
+.brand-mark {
+  position: relative;
+  width: 2.9rem;
+  height: 2.9rem;
+  border-radius: 0.95rem;
+  background:
+    radial-gradient(circle at 28% 24%, rgba(255, 238, 194, 0.92), rgba(255, 238, 194, 0) 48%),
+    linear-gradient(140deg, #b88b3f 0%, #e5c275 48%, #f6ddb0 64%, #b9873c 100%);
+  border: 1px solid rgba(232, 200, 129, 0.65);
+  box-shadow:
+    0 0 0 1px rgba(158, 113, 41, 0.24),
+    0 10px 22px rgba(166, 116, 43, 0.28),
+    inset 0 1px 1px rgba(255, 245, 214, 0.6);
+  color: #1f1508;
+}
+
+.brand-mark-svg {
+  width: 1.55rem;
+  height: 1.55rem;
+  display: block;
+}
+
+.brand-heart-shape {
+  fill: currentColor;
+}
+
+.brand-spark {
+  fill: #fff1cb;
+  opacity: 0.92;
+}
+
+.brand-text {
+  font-family: 'Cinzel', 'Cormorant Garamond', 'Palatino Linotype', serif;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: linear-gradient(98deg, #b7873e 0%, #e5bf6f 44%, #fff2c2 58%, #c99646 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 22px rgba(213, 167, 74, 0.28);
+}
+
+.brand--royal .brand-mark {
+  box-shadow:
+    0 0 0 1px rgba(158, 113, 41, 0.24),
+    0 10px 22px rgba(166, 116, 43, 0.28),
+    0 0 24px rgba(215, 170, 81, 0.22),
+    inset 0 1px 1px rgba(255, 245, 214, 0.6);
+}
+
+.brand--royal .brand-text {
+  text-shadow: 0 0 24px rgba(213, 167, 74, 0.32);
+}
+
+.brand--minimal .brand-mark {
+  width: 2.65rem;
+  height: 2.65rem;
+  border-radius: 0.82rem;
+  background: linear-gradient(138deg, #b88a40 0%, #e4be70 55%, #f0d49e 100%);
+  border-color: rgba(225, 191, 115, 0.52);
+  box-shadow: 0 7px 16px rgba(150, 106, 35, 0.2), inset 0 1px 0 rgba(255, 243, 209, 0.48);
+}
+
+.brand--minimal .brand-mark-svg {
+  width: 1.38rem;
+  height: 1.38rem;
+}
+
+.brand--minimal .brand-spark {
+  display: none;
+}
+
+.brand--minimal .brand-text {
+  font-size: clamp(1.6rem, 1.95vw, 2.05rem);
+  letter-spacing: 0.065em;
+  background: linear-gradient(95deg, #b88941 0%, #ddb86b 54%, #f2d79f 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+}
+
 /* Profile left column redesign */
 .profile-left-column {
   display: grid;
@@ -3266,36 +3355,42 @@ button:disabled {
 }
 
 .profile-summary-hero {
+  position: relative;
   width: 100%;
-  min-height: 30rem;
-  max-height: 36rem;
+  min-height: 34rem;
+  max-height: 40rem;
   overflow: hidden;
-  border-bottom: 1px solid rgba(201, 169, 97, 0.25);
 }
 
 .profile-summary-hero img {
   width: 100%;
   height: 100%;
-  min-height: 30rem;
+  min-height: 34rem;
   object-fit: cover;
   object-position: center 26%;
   display: block;
 }
 
-.profile-summary-thumbs {
+.profile-summary-overlay {
+  position: absolute;
+  inset: auto 0 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.6rem;
-  padding: 0.9rem;
+  gap: 0.22rem;
+  padding: 1rem 1rem 0.95rem;
+  background: linear-gradient(180deg, rgba(8, 12, 30, 0.04), rgba(8, 12, 30, 0.82) 48%, rgba(8, 12, 30, 0.96));
 }
 
-.profile-summary-thumbs img {
-  width: 100%;
-  height: 7rem;
-  border-radius: 0.85rem;
-  border: 1px solid rgba(201, 169, 97, 0.28);
-  object-fit: cover;
-  display: block;
+.profile-summary-overlay h3 {
+  margin: 0;
+  font-size: clamp(2.05rem, 2.8vw, 2.55rem);
+  letter-spacing: 0.02em;
+}
+
+.profile-summary-overlay p {
+  margin: 0;
+  color: rgba(232, 242, 255, 0.92);
+  font-size: 1rem;
+  letter-spacing: 0.01em;
 }
 
 .profile-about-card,
@@ -3317,6 +3412,13 @@ button:disabled {
   font-size: 1.02rem;
 }
 
+.profile-about-card .profile-about-meta {
+  margin-top: 0.72rem;
+  color: rgba(244, 220, 168, 0.9);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
 .profile-interest-chips {
   gap: 0.5rem;
 }
@@ -3333,7 +3435,7 @@ button:disabled {
 @media (max-width: 1024px) {
   .profile-summary-hero,
   .profile-summary-hero img {
-    min-height: 22rem;
+    min-height: 24rem;
   }
 }
 
@@ -3364,6 +3466,272 @@ button:disabled {
 .settings-screen .notification-item span,
 .settings-screen .notification-item small {
   color: rgba(235, 244, 255, 0.88);
+}
+
+/* Adaptive layout pass */
+.app-shell {
+  min-height: 100dvh;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  overflow: auto;
+}
+
+.screen-panel {
+  min-height: 0;
+  overflow: auto;
+}
+
+.app-shell--discover {
+  height: auto;
+  min-height: 100dvh;
+  overflow: auto;
+}
+
+.app-shell--discover .screen-panel--discover {
+  overflow: auto;
+}
+
+.discover-redesign,
+.discover-stage,
+.discover-deck-column {
+  height: auto;
+  min-height: 0;
+}
+
+.discover-deck {
+  height: clamp(22rem, calc(100dvh - 24rem), 38rem);
+  max-height: none;
+}
+
+.chats-layout {
+  min-height: clamp(30rem, calc(100dvh - 13.2rem), 60rem);
+}
+
+.profile-screen,
+.settings-screen,
+.profile-detail {
+  grid-template-columns: minmax(18rem, 0.95fr) minmax(0, 1.35fr);
+}
+
+.bottom-nav {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1200px) {
+  .discover-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-screen,
+  .settings-screen,
+  .profile-detail {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 860px) {
+  .app-shell {
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.65rem;
+  }
+
+  .bottom-nav button {
+    height: 2.6rem;
+    min-width: 6rem;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.92rem;
+  }
+
+  .discover-deck {
+    height: clamp(19rem, calc(100dvh - 21rem), 30rem);
+  }
+
+  .discover-primary-actions.actions button {
+    height: 2.35rem;
+  }
+
+  .chats-layout {
+    min-height: clamp(24rem, calc(100dvh - 11rem), 42rem);
+  }
+}
+
+@media (max-width: 760px) {
+  .bottom-nav {
+    justify-content: center;
+  }
+
+  .discover-kpis {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* LoveDate logo system */
+.ld-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: inherit;
+}
+
+.ld-logo-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.ld-logo-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.9rem;
+  background:
+    radial-gradient(circle at 28% 24%, rgba(255, 238, 194, 0.92), rgba(255, 238, 194, 0) 48%),
+    linear-gradient(140deg, #b88b3f 0%, #e5c275 48%, #f6ddb0 64%, #b9873c 100%);
+  border: 1px solid rgba(232, 200, 129, 0.65);
+  box-shadow:
+    0 0 0 1px rgba(158, 113, 41, 0.24),
+    0 10px 22px rgba(166, 116, 43, 0.28),
+    0 0 24px rgba(215, 170, 81, 0.2),
+    inset 0 1px 1px rgba(255, 245, 214, 0.6);
+  color: #1f1508;
+}
+
+.ld-logo-mark-svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: block;
+}
+
+.ld-logo-heart-shape {
+  fill: currentColor;
+}
+
+.ld-logo-spark {
+  fill: #fff1cb;
+  opacity: 0.92;
+}
+
+.ld-logo-text {
+  font-family: 'Cinzel', 'Cormorant Garamond', 'Palatino Linotype', serif;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: linear-gradient(98deg, #b7873e 0%, #e5bf6f 44%, #fff2c2 58%, #c99646 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 22px rgba(213, 167, 74, 0.28);
+}
+
+.ld-logo-slogan {
+  display: block;
+  margin-top: 0.2rem;
+  color: rgba(246, 225, 185, 0.86);
+  font-size: 0.88rem;
+  letter-spacing: 0.02em;
+}
+
+.ld-logo--hero,
+.ld-logo--full {
+  display: inline-grid;
+  gap: 0.12rem;
+}
+
+.ld-logo--icon-only .ld-logo-text,
+.ld-logo--icon-only .ld-logo-slogan {
+  display: none;
+}
+
+.ld-logo--sm .ld-logo-mark { width: 2rem; height: 2rem; border-radius: 0.7rem; }
+.ld-logo--sm .ld-logo-mark-svg { width: 1.08rem; height: 1.08rem; }
+.ld-logo--sm .ld-logo-text { font-size: 1rem; }
+.ld-logo--sm .ld-logo-slogan { font-size: 0.72rem; }
+
+.ld-logo--md .ld-logo-mark { width: 2.35rem; height: 2.35rem; border-radius: 0.78rem; }
+.ld-logo--md .ld-logo-mark-svg { width: 1.28rem; height: 1.28rem; }
+.ld-logo--md .ld-logo-text { font-size: 1.3rem; }
+
+.ld-logo--lg .ld-logo-mark { width: 2.8rem; height: 2.8rem; border-radius: 0.92rem; }
+.ld-logo--lg .ld-logo-mark-svg { width: 1.52rem; height: 1.52rem; }
+.ld-logo--lg .ld-logo-text { font-size: 1.7rem; }
+
+.ld-logo--xl .ld-logo-mark { width: 3.25rem; height: 3.25rem; border-radius: 1.02rem; }
+.ld-logo--xl .ld-logo-mark-svg { width: 1.8rem; height: 1.8rem; }
+.ld-logo--xl .ld-logo-text { font-size: 2.1rem; letter-spacing: 0.09em; }
+.ld-logo--xl .ld-logo-slogan { font-size: 0.94rem; }
+
+.login-hero-logo {
+  margin-bottom: 0.25rem;
+}
+
+.logo-system-panel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.logo-screen {
+  width: min(100%, 68rem);
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+}
+
+.logo-system-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.logo-card {
+  border-radius: 0.85rem;
+  border: 1px solid rgba(201, 169, 97, 0.28);
+  background: rgba(21, 29, 69, 0.54);
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.logo-card strong {
+  font-size: 0.95rem;
+  color: rgba(248, 231, 193, 0.94);
+}
+
+.logo-card small {
+  color: rgba(221, 234, 252, 0.84);
+}
+
+.logo-size-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.logo-code-block {
+  margin: 0;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(201, 169, 97, 0.3);
+  background: rgba(11, 16, 43, 0.86);
+  color: rgba(232, 241, 255, 0.94);
+  padding: 0.7rem 0.78rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  overflow: auto;
+}
+
+.logo-usage-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.45rem;
+  color: rgba(231, 240, 255, 0.9);
+}
+
+@media (max-width: 900px) {
+  .logo-system-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .settings-screen .danger {
