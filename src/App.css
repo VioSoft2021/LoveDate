@@ -3734,6 +3734,52 @@ button:disabled {
   }
 }
 
+@media (max-width: 760px) {
+  .grain {
+    background-image:
+      radial-gradient(circle at 20% 22%, rgba(0, 229, 255, 0.07) 0 16%, transparent 34%),
+      radial-gradient(circle at 78% 76%, rgba(167, 139, 250, 0.08) 0 14%, transparent 34%);
+  }
+
+  .top-bar,
+  .bottom-nav,
+  .login-card,
+  .state-box,
+  .match-summary,
+  .profile-summary,
+  .profile-settings,
+  .list-panel,
+  .chat-list,
+  .chat-thread {
+    box-shadow: 0 10px 20px rgba(3, 8, 24, 0.25);
+  }
+
+  .chat-tools input,
+  .chat-input input {
+    font-size: 16px;
+  }
+
+  .chat-item {
+    padding: 0.75rem 0.6rem;
+  }
+
+  .chat-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 .settings-screen .danger {
   border: 1px solid rgba(224, 137, 104, 0.55);
   background: linear-gradient(110deg, #b86d4b, #db8a62);

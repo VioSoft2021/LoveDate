@@ -1,3 +1,5 @@
+import { createSupabaseClient } from './supabaseClient'
+
 export type Profile = {
   id: number
   name: string
@@ -520,6 +522,71 @@ const wait = (ms: number): Promise<void> =>
 
 export const getProfiles = async (): Promise<Profile[]> => {
   await wait(220)
+  const supabase = createSupabaseClient()
+  if (supabase) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select(
+        'id, name, age, city, vibe, bio, interests, palette, photos, gender, distance_km, verified, relationship_goal, zodiac, is_active',
+      )
+      .eq('is_active', true)
+      .limit(200)
+
+    if (!error && Array.isArray(data) && data.length > 0) {
+      const mapped = data
+        .map((row) => {
+          const genderRaw = String(row.gender ?? 'Woman')
+          const relationshipRaw = String(row.relationship_goal ?? 'Long-term')
+          const gender: Profile['gender'] =
+            genderRaw === 'Man' || genderRaw === 'Non-binary' ? genderRaw : 'Woman'
+          const relationshipGoal: Profile['relationshipGoal'] =
+            relationshipRaw === 'Short-term' ||
+            relationshipRaw === 'Friends' ||
+            relationshipRaw === 'Figuring it out'
+              ? relationshipRaw
+              : 'Long-term'
+
+          const photos = Array.isArray(row.photos)
+            ? row.photos
+                .filter((value): value is string => typeof value === 'string' && value.length > 0)
+                .slice(0, 9)
+                .map(toHighResPhoto)
+            : []
+
+          const interests = Array.isArray(row.interests)
+            ? row.interests.filter((value): value is string => typeof value === 'string').slice(0, 6)
+            : []
+
+          const palette: [string, string] =
+            Array.isArray(row.palette) && row.palette.length >= 2
+              ? [String(row.palette[0]), String(row.palette[1])]
+              : ['#141937', '#252d5c']
+
+          return {
+            id: Number(row.id),
+            name: String(row.name ?? 'Unknown'),
+            age: Number(row.age ?? 25),
+            city: String(row.city ?? 'City'),
+            vibe: String(row.vibe ?? 'Good energy'),
+            bio: String(row.bio ?? ''),
+            interests: interests.length > 0 ? interests : ['Coffee', 'Music', 'Travel'],
+            palette,
+            photos: photos.length > 0 ? photos : pickGenderPhotos(gender, Number(row.id) || 0),
+            gender,
+            distanceKm: Math.max(1, Number(row.distance_km ?? 10)),
+            verified: Boolean(row.verified),
+            relationshipGoal,
+            zodiac: String(row.zodiac ?? 'Libra'),
+          } satisfies Profile
+        })
+        .filter((profile) => Number.isFinite(profile.id))
+
+      if (mapped.length > 0) {
+        return mapped
+      }
+    }
+  }
+
   return ENRICHED_PROFILES
 }
 

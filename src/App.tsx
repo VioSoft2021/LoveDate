@@ -25,6 +25,7 @@ import {
   backendSaveSettings,
   backendSendChatReply,
   backendSignOut,
+  backendValidateInviteCode,
   getBackendMode,
   type SettingsPayload,
 } from './services/backendApi'
@@ -187,6 +188,7 @@ type CropHandle = 'nw' | 'ne' | 'sw' | 'se'
 const HISTORY_STORAGE_KEY = 'lovedate:swipe-history'
 const AUTH_STORAGE_KEY = 'lovedate:auth-session'
 const SELF_PROFILE_STORAGE_KEY = 'lovedate:self-profile'
+const CHAT_THREADS_STORAGE_KEY = 'lovedate:chat-threads'
 
 const buildHighResImageUrl = (url: string, width = 2400, dpr = 2): string => {
   try {
@@ -452,6 +454,52 @@ const readSelfProfile = (): SelfProfile => {
   }
 }
 
+const readChatThreads = (): Record<number, ChatMessage[]> => {
+  try {
+    const raw = window.localStorage.getItem(CHAT_THREADS_STORAGE_KEY)
+    if (!raw) {
+      return {}
+    }
+
+    const parsed = JSON.parse(raw) as Record<string, ChatMessage[]>
+    const next: Record<number, ChatMessage[]> = {}
+
+    for (const [key, thread] of Object.entries(parsed)) {
+      const numericId = Number(key)
+      if (!Number.isInteger(numericId) || !Array.isArray(thread)) {
+        continue
+      }
+
+      next[numericId] = thread
+        .filter((message) => message && typeof message === 'object')
+        .map((message, index) => ({
+          id: Number.isFinite(message.id) ? Number(message.id) : Date.now() + index,
+          sender: message.sender === 'them' ? 'them' : 'me',
+          text: typeof message.text === 'string' ? message.text : '',
+          createdAt: Number.isFinite(message.createdAt) ? Number(message.createdAt) : Date.now(),
+          attachment:
+            message.attachment &&
+            typeof message.attachment.url === 'string' &&
+            !message.attachment.url.startsWith('blob:')
+              ? {
+                  kind: message.attachment.kind,
+                  url: message.attachment.url,
+                  name: message.attachment.name,
+                }
+              : undefined,
+          status:
+            message.status === 'sending' || message.status === 'sent' || message.status === 'read'
+              ? message.status
+              : undefined,
+        }))
+    }
+
+    return next
+  } catch {
+    return {}
+  }
+}
+
 const formatShortTime = (timestamp: number): string =>
   new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
@@ -635,6 +683,7 @@ function App() {
   const [loginEmail, setLoginEmail] = useState(initialAuth.email)
   const [loginPassword, setLoginPassword] = useState('')
   const [loginError, setLoginError] = useState<string | null>(null)
+  const [inviteCode, setInviteCode] = useState('')
   const [loggingIn, setLoggingIn] = useState(false)
   const [selfProfile, setSelfProfile] = useState<SelfProfile>(initialSelfProfile)
   const [profileDraft, setProfileDraft] = useState(() => ({
@@ -709,7 +758,7 @@ function App() {
   const [activeMatch, setActiveMatch] = useState<Profile | null>(null)
   const [swipeLog, setSwipeLog] = useState<SwipeLog[]>([])
 
-  const [chatThreads, setChatThreads] = useState<Record<number, ChatMessage[]>>({})
+  const [chatThreads, setChatThreads] = useState<Record<number, ChatMessage[]>>(() => readChatThreads())
   const [activeChatId, setActiveChatId] = useState<number | null>(null)
   const [chatDraft, setChatDraft] = useState('')
   const [chatSearch, setChatSearch] = useState('')
@@ -1182,6 +1231,10 @@ function App() {
       JSON.stringify({ isAuthenticated, email: userEmail }),
     )
   }, [isAuthenticated, userEmail])
+
+  useEffect(() => {
+    window.localStorage.setItem(CHAT_THREADS_STORAGE_KEY, JSON.stringify(chatThreads))
+  }, [chatThreads])
 
   const loadProfiles = useCallback(async () => {
     try {
@@ -1906,7 +1959,8 @@ function App() {
     setLoggingIn(true)
     setLoginError(null)
 
-    void backendLogin(loginEmail.trim(), loginPassword)
+    void backendValidateInviteCode(inviteCode.trim())
+      .then(() => backendLogin(loginEmail.trim(), loginPassword))
       .then((result) => {
         setIsAuthenticated(true)
         setUserEmail(result.email)
@@ -1914,8 +1968,8 @@ function App() {
         pushToast('Signed in successfully.', 'success')
       })
       .catch(() => {
-        setLoginError('Invalid login. Use a valid email and 6+ character password.')
-        pushToast('Login failed. Check your credentials.', 'error')
+        setLoginError('Invite or login invalid. Use a valid invite code, email, and 6+ character password.')
+        pushToast('Login failed. Check invite code and credentials.', 'error')
       })
       .finally(() => {
         setLoggingIn(false)
@@ -1926,7 +1980,8 @@ function App() {
     setLoggingIn(true)
     setLoginError(null)
 
-    void backendGuestLogin()
+    void backendValidateInviteCode(inviteCode.trim())
+      .then(() => backendGuestLogin())
       .then((result) => {
         setIsAuthenticated(true)
         setUserEmail(result.email)
@@ -1935,7 +1990,7 @@ function App() {
         pushToast('Guest session started.', 'info')
       })
       .catch(() => {
-        setLoginError('Guest login failed. Try again.')
+        setLoginError('Guest login failed. Use a valid invite code and try again.')
         pushToast('Guest login failed.', 'error')
       })
       .finally(() => {
@@ -2325,8 +2380,19 @@ function App() {
           <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
           <p className="pill">Welcome</p>
           <h1>Sign in to LoveDate</h1>
-          <p>Continue with your account or start a guest session.</p>
+          <p>Enter your beta invite code, then continue with your account or guest session.</p>
           <form className="login-form" onSubmit={handleLoginSubmit}>
+            <label>
+              Beta Invite Code
+              <input
+                type="text"
+                autoComplete="one-time-code"
+                value={inviteCode}
+                onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
+                placeholder="LOVE-BETA-001"
+                required
+              />
+            </label>
             <label>
               Email
               <input

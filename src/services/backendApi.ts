@@ -15,6 +15,7 @@ type BackendMode = 'supabase' | 'local-fallback'
 
 const LOCAL_SETTINGS_KEY = 'lovedate:settings'
 const LOCAL_PREFERENCES_KEY = 'lovedate:preferences'
+const LOCAL_INVITE_PASS_KEY = 'lovedate:invite-pass'
 
 const supabaseUrl =
   (import.meta.env.VITE_SUPABASE_URL as string | undefined) ??
@@ -92,6 +93,66 @@ export const backendSignOut = async (): Promise<void> => {
   if (supabase) {
     await supabase.auth.signOut()
   }
+}
+
+const normalizeInvite = (code: string): string => code.trim().toUpperCase()
+
+const getEnvInviteCodes = (): Set<string> => {
+  const raw =
+    (import.meta.env.VITE_BETA_INVITE_CODES as string | undefined) ??
+    (import.meta.env.NEXT_PUBLIC_BETA_INVITE_CODES as string | undefined) ??
+    ''
+  return new Set(
+    raw
+      .split(',')
+      .map((item) => normalizeInvite(item))
+      .filter((item) => item.length > 0),
+  )
+}
+
+const isInviteAlreadyValidated = (inviteCode: string): boolean => {
+  const stored = window.localStorage.getItem(LOCAL_INVITE_PASS_KEY)
+  return stored === normalizeInvite(inviteCode)
+}
+
+const rememberValidatedInvite = (inviteCode: string): void => {
+  window.localStorage.setItem(LOCAL_INVITE_PASS_KEY, normalizeInvite(inviteCode))
+}
+
+export const backendValidateInviteCode = async (inviteCode: string): Promise<void> => {
+  const normalized = normalizeInvite(inviteCode)
+  if (normalized.length < 4) {
+    throw new Error('Invite code too short')
+  }
+
+  if (isInviteAlreadyValidated(normalized)) {
+    return
+  }
+
+  const envCodes = getEnvInviteCodes()
+  if (envCodes.has(normalized)) {
+    rememberValidatedInvite(normalized)
+    return
+  }
+
+  if (supabase) {
+    const { data, error } = await supabase
+      .from('beta_invites')
+      .select('code, active, expires_at')
+      .eq('code', normalized)
+      .limit(1)
+      .maybeSingle()
+
+    if (!error && data && data.active !== false) {
+      if (data.expires_at && Date.parse(data.expires_at) < Date.now()) {
+        throw new Error('Invite expired')
+      }
+      rememberValidatedInvite(normalized)
+      return
+    }
+  }
+
+  throw new Error('Invite code not valid')
 }
 
 export const backendSaveSettings = async (settings: SettingsPayload): Promise<void> => {
