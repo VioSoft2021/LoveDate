@@ -29,6 +29,7 @@ import {
   getBackendMode,
   type SettingsPayload,
 } from './services/backendApi'
+import { runtimeConfig } from './services/runtimeConfig'
 import {
   canLikeNow,
   canSuperLikeNow,
@@ -1959,7 +1960,11 @@ function App() {
     setLoggingIn(true)
     setLoginError(null)
 
-    void backendValidateInviteCode(inviteCode.trim())
+    const inviteValidation = runtimeConfig.auth.requireInviteCode
+      ? backendValidateInviteCode(inviteCode.trim())
+      : Promise.resolve()
+
+    void inviteValidation
       .then(() => backendLogin(loginEmail.trim(), loginPassword))
       .then((result) => {
         setIsAuthenticated(true)
@@ -1967,8 +1972,9 @@ function App() {
         navigate('discover', { replace: true })
         pushToast('Signed in successfully.', 'success')
       })
-      .catch(() => {
-        setLoginError('Invite or login invalid. Use a valid invite code, email, and 6+ character password.')
+      .catch((error: unknown) => {
+        const detail = error instanceof Error ? error.message : 'Login failed'
+        setLoginError(detail)
         pushToast('Login failed. Check invite code and credentials.', 'error')
       })
       .finally(() => {
@@ -1980,7 +1986,11 @@ function App() {
     setLoggingIn(true)
     setLoginError(null)
 
-    void backendValidateInviteCode(inviteCode.trim())
+    const inviteValidation = runtimeConfig.auth.requireInviteCode
+      ? backendValidateInviteCode(inviteCode.trim())
+      : Promise.resolve()
+
+    void inviteValidation
       .then(() => backendGuestLogin())
       .then((result) => {
         setIsAuthenticated(true)
@@ -1989,8 +1999,9 @@ function App() {
         navigate('discover', { replace: true })
         pushToast('Guest session started.', 'info')
       })
-      .catch(() => {
-        setLoginError('Guest login failed. Use a valid invite code and try again.')
+      .catch((error: unknown) => {
+        const detail = error instanceof Error ? error.message : 'Guest login failed'
+        setLoginError(detail)
         pushToast('Guest login failed.', 'error')
       })
       .finally(() => {
@@ -2380,19 +2391,25 @@ function App() {
           <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
           <p className="pill">Welcome</p>
           <h1>Sign in to LoveDate</h1>
-          <p>Enter your beta invite code, then continue with your account or guest session.</p>
+          <p>
+            {runtimeConfig.auth.requireInviteCode
+              ? 'Enter your beta invite code, then continue with your account or guest session.'
+              : 'Sign in with your account to continue.'}
+          </p>
           <form className="login-form" onSubmit={handleLoginSubmit}>
-            <label>
-              Beta Invite Code
-              <input
-                type="text"
-                autoComplete="one-time-code"
-                value={inviteCode}
-                onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
-                placeholder="LOVE-BETA-001"
-                required
-              />
-            </label>
+            {runtimeConfig.auth.requireInviteCode ? (
+              <label>
+                Beta Invite Code
+                <input
+                  type="text"
+                  autoComplete="one-time-code"
+                  value={inviteCode}
+                  onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
+                  placeholder="LOVE-BETA-001"
+                  required
+                />
+              </label>
+            ) : null}
             <label>
               Email
               <input
@@ -2418,9 +2435,11 @@ function App() {
               <button type="submit" disabled={loggingIn}>
                 {loggingIn ? 'Signing in...' : 'Sign In'}
               </button>
-              <button type="button" className="ghost" onClick={handleGuestLogin} disabled={loggingIn}>
-                Continue as Guest
-              </button>
+              {runtimeConfig.auth.allowGuestLogin ? (
+                <button type="button" className="ghost" onClick={handleGuestLogin} disabled={loggingIn}>
+                  Continue as Guest
+                </button>
+              ) : null}
             </div>
           </form>
         </article>

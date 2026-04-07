@@ -15,7 +15,8 @@
     "package:release": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/package-release.ps1",
     "desktop:dev": "npm run build && electron ./electron/main.cjs",
     "dist:desktop": "npm run build && electron-builder --win nsis",
-    "dist:desktop:portable": "npm run build && electron-builder --win portable"
+    "dist:desktop:portable": "npm run build && electron-builder --win portable",
+    "dist:desktop:all": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/build-desktop.ps1"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.101.1",
@@ -69,6 +70,9 @@
       "createStartMenuShortcut": true,
       "installerIcon": "icon.ico",
       "uninstallerIcon": "icon.ico"
+    },
+    "portable": {
+      "artifactName": "LoveDate-Portable-${version}.${ext}"
     }
   }
 }

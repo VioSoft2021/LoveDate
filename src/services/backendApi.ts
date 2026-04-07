@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { isAllowedEmailDomain, runtimeConfig } from './runtimeConfig'
 
 export type SettingsPayload = {
   pushNotifications: boolean
@@ -16,6 +17,7 @@ type BackendMode = 'supabase' | 'local-fallback'
 const LOCAL_SETTINGS_KEY = 'lovedate:settings'
 const LOCAL_PREFERENCES_KEY = 'lovedate:preferences'
 const LOCAL_INVITE_PASS_KEY = 'lovedate:invite-pass'
+const LOCAL_INVITE_ATTEMPTS_KEY = 'lovedate:invite-attempts'
 
 const supabaseUrl =
   (import.meta.env.VITE_SUPABASE_URL as string | undefined) ??
@@ -49,10 +51,18 @@ const getCurrentUserId = async (): Promise<string | null> => {
 }
 
 export const getBackendMode = (): BackendMode => {
+  if (!supabase && import.meta.env.PROD && !runtimeConfig.backend.allowLocalFallbackInProduction) {
+    throw new Error('Backend not configured for production. Add Supabase environment variables.')
+  }
+
   return supabase ? 'supabase' : 'local-fallback'
 }
 
 export const backendLogin = async (email: string, password: string): Promise<{ email: string }> => {
+  if (!isAllowedEmailDomain(email)) {
+    throw new Error('Email domain not allowed for this beta.')
+  }
+
   if (supabase) {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -75,6 +85,10 @@ export const backendLogin = async (email: string, password: string): Promise<{ e
 }
 
 export const backendGuestLogin = async (): Promise<{ email: string }> => {
+  if (!runtimeConfig.auth.allowGuestLogin) {
+    throw new Error('Guest login disabled')
+  }
+
   if (supabase) {
     const { data, error } = await supabase.auth.signInAnonymously()
 
@@ -119,7 +133,49 @@ const rememberValidatedInvite = (inviteCode: string): void => {
   window.localStorage.setItem(LOCAL_INVITE_PASS_KEY, normalizeInvite(inviteCode))
 }
 
+const getRecentInviteAttempts = (): number[] => {
+  const raw = window.localStorage.getItem(LOCAL_INVITE_ATTEMPTS_KEY)
+  if (!raw) {
+    return []
+  }
+
+  try {
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+    return parsed.filter((value): value is number => typeof value === 'number' && Number.isFinite(value))
+  } catch {
+    return []
+  }
+}
+
+const recordInviteAttempt = (): void => {
+  const now = Date.now()
+  const cutoff = now - 15 * 60 * 1000
+  const kept = getRecentInviteAttempts().filter((value) => value >= cutoff)
+  kept.push(now)
+  window.localStorage.setItem(LOCAL_INVITE_ATTEMPTS_KEY, JSON.stringify(kept))
+}
+
+const assertInviteAttemptLimit = (): void => {
+  const maxAttempts = Math.max(3, runtimeConfig.limits.inviteAttemptsPer15Min)
+  const now = Date.now()
+  const cutoff = now - 15 * 60 * 1000
+  const attempts = getRecentInviteAttempts().filter((value) => value >= cutoff)
+  if (attempts.length >= maxAttempts) {
+    throw new Error('Too many invite attempts. Please wait and retry.')
+  }
+}
+
 export const backendValidateInviteCode = async (inviteCode: string): Promise<void> => {
+  if (!runtimeConfig.auth.requireInviteCode) {
+    return
+  }
+
+  assertInviteAttemptLimit()
+  recordInviteAttempt()
+
   const normalized = normalizeInvite(inviteCode)
   if (normalized.length < 4) {
     throw new Error('Invite code too short')

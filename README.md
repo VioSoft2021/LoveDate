@@ -49,7 +49,9 @@ A Tinder-style swipe interface built with React, TypeScript, and Vite.
 1. Create a free project at Supabase.
 2. Copy .env.example to .env.
 3. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.
-4. Restart the dev server.
+4. Run scripts/supabase_beta_setup.sql in Supabase SQL editor.
+5. Set VITE_REQUIRE_INVITE_CODE=true and VITE_ALLOW_GUEST_LOGIN=false for beta.
+6. Restart the dev server.
 
 Without env values, the app uses a local fallback mode.
 
@@ -59,6 +61,7 @@ Without env values, the app uses a local fallback mode.
 - Data service abstraction lives in src/services/loveDateApi.ts
 - Supabase-ready backend endpoints live in src/services/backendApi.ts
 - Supabase client factory lives in src/services/supabaseClient.ts
+- Runtime feature flags live in src/services/runtimeConfig.ts
 - Tinder-equivalent app configuration lives in src/spec/lovedateConfig.ts
 - Typed API contracts live in src/spec/apiContracts.ts
 - Plan and feature gate helpers live in src/services/planGate.ts
