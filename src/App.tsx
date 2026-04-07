@@ -21,7 +21,9 @@ import { Logo } from './components/Logo'
 import {
   backendGuestLogin,
   backendLogin,
+  backendReadSelfProfile,
   backendRegister,
+  backendSaveSelfProfile,
   backendSavePreferences,
   backendSaveSettings,
   backendSendChatReply,
@@ -387,14 +389,12 @@ const readHistory = (): SwipeHistory => {
   }
 }
 
-const readSelfProfile = (): SelfProfile => {
+const readSelfProfile = (email = ''): SelfProfile => {
   try {
-    const raw = window.localStorage.getItem(SELF_PROFILE_STORAGE_KEY)
-    if (!raw) {
+    const parsed = backendReadSelfProfile(email) as Partial<SelfProfile> | null
+    if (!parsed) {
       return DEFAULT_SELF_PROFILE
     }
-
-    const parsed = JSON.parse(raw) as Partial<SelfProfile>
     const safeInterests = Array.isArray(parsed.interests)
       ? parsed.interests.filter((value): value is string => typeof value === 'string').slice(0, 6)
       : DEFAULT_SELF_PROFILE.interests
@@ -455,6 +455,42 @@ const readSelfProfile = (): SelfProfile => {
     return DEFAULT_SELF_PROFILE
   }
 }
+
+const toProfileDraft = (profile: SelfProfile) => ({
+  name: profile.name,
+  age: String(profile.age),
+  city: profile.city,
+  vibe: profile.vibe,
+  bio: profile.bio,
+  interests: profile.interests.join(', '),
+  pronouns: profile.pronouns,
+  gender: profile.gender,
+  orientation: profile.orientation,
+  lookingFor: profile.lookingFor,
+  relationshipIntent: profile.relationshipIntent,
+  heightCm: String(profile.heightCm),
+  jobTitle: profile.jobTitle,
+  company: profile.company,
+  education: profile.education,
+  hometown: profile.hometown,
+  languages: profile.languages.join(', '),
+  drinking: profile.drinking,
+  smoking: profile.smoking,
+  workout: profile.workout,
+  religion: profile.religion,
+  politics: profile.politics,
+  zodiac: profile.zodiac,
+  childrenPlan: profile.childrenPlan,
+  pets: profile.pets,
+  promptOne: profile.promptOne,
+  promptTwo: profile.promptTwo,
+  promptThree: profile.promptThree,
+  dealbreakers: profile.dealbreakers.join(', '),
+  instagram: profile.instagram,
+  anthem: profile.anthem,
+  travelMode: profile.travelMode,
+  photos: profile.photos,
+})
 
 const readChatThreads = (): Record<number, ChatMessage[]> => {
   try {
@@ -674,7 +710,7 @@ const seedChat = (selfName: string): ChatMessage[] => [
 function App() {
   const initialRoute = readRouteFromWindow()
   const initialAuth = readAuth()
-  const initialSelfProfile = readSelfProfile()
+  const initialSelfProfile = readSelfProfile(initialAuth.email)
 
   const [screen, setScreen] = useState<AppScreen>(initialRoute.screen)
   const [selectedProfileId, setSelectedProfileId] = useState<number | null>(initialRoute.profileId)
@@ -691,41 +727,7 @@ function App() {
   const [inviteCode, setInviteCode] = useState('')
   const [loggingIn, setLoggingIn] = useState(false)
   const [selfProfile, setSelfProfile] = useState<SelfProfile>(initialSelfProfile)
-  const [profileDraft, setProfileDraft] = useState(() => ({
-    name: initialSelfProfile.name,
-    age: String(initialSelfProfile.age),
-    city: initialSelfProfile.city,
-    vibe: initialSelfProfile.vibe,
-    bio: initialSelfProfile.bio,
-    interests: initialSelfProfile.interests.join(', '),
-    pronouns: initialSelfProfile.pronouns,
-    gender: initialSelfProfile.gender,
-    orientation: initialSelfProfile.orientation,
-    lookingFor: initialSelfProfile.lookingFor,
-    relationshipIntent: initialSelfProfile.relationshipIntent,
-    heightCm: String(initialSelfProfile.heightCm),
-    jobTitle: initialSelfProfile.jobTitle,
-    company: initialSelfProfile.company,
-    education: initialSelfProfile.education,
-    hometown: initialSelfProfile.hometown,
-    languages: initialSelfProfile.languages.join(', '),
-    drinking: initialSelfProfile.drinking,
-    smoking: initialSelfProfile.smoking,
-    workout: initialSelfProfile.workout,
-    religion: initialSelfProfile.religion,
-    politics: initialSelfProfile.politics,
-    zodiac: initialSelfProfile.zodiac,
-    childrenPlan: initialSelfProfile.childrenPlan,
-    pets: initialSelfProfile.pets,
-    promptOne: initialSelfProfile.promptOne,
-    promptTwo: initialSelfProfile.promptTwo,
-    promptThree: initialSelfProfile.promptThree,
-    dealbreakers: initialSelfProfile.dealbreakers.join(', '),
-    instagram: initialSelfProfile.instagram,
-    anthem: initialSelfProfile.anthem,
-    travelMode: initialSelfProfile.travelMode,
-    photos: initialSelfProfile.photos,
-  }))
+  const [profileDraft, setProfileDraft] = useState(() => toProfileDraft(initialSelfProfile))
   const [profileSaveStatus, setProfileSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle')
   const [photoUrlInput, setPhotoUrlInput] = useState('')
   const [photoStudioSource, setPhotoStudioSource] = useState<string | null>(null)
@@ -1240,6 +1242,16 @@ function App() {
   useEffect(() => {
     window.localStorage.setItem(CHAT_THREADS_STORAGE_KEY, JSON.stringify(chatThreads))
   }, [chatThreads])
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return
+    }
+
+    const loaded = readSelfProfile(userEmail)
+    setSelfProfile(loaded)
+    setProfileDraft(toProfileDraft(loaded))
+  }, [isAuthenticated, userEmail])
 
   const loadProfiles = useCallback(async () => {
     try {
@@ -2298,42 +2310,11 @@ function App() {
     }
 
     setSelfProfile(nextProfile)
-    window.localStorage.setItem(SELF_PROFILE_STORAGE_KEY, JSON.stringify(nextProfile))
-    setProfileDraft({
-      name: nextProfile.name,
-      age: String(nextProfile.age),
-      city: nextProfile.city,
-      vibe: nextProfile.vibe,
-      bio: nextProfile.bio,
-      interests: nextProfile.interests.join(', '),
-      pronouns: nextProfile.pronouns,
-      gender: nextProfile.gender,
-      orientation: nextProfile.orientation,
-      lookingFor: nextProfile.lookingFor,
-      relationshipIntent: nextProfile.relationshipIntent,
-      heightCm: String(nextProfile.heightCm),
-      jobTitle: nextProfile.jobTitle,
-      company: nextProfile.company,
-      education: nextProfile.education,
-      hometown: nextProfile.hometown,
-      languages: nextProfile.languages.join(', '),
-      drinking: nextProfile.drinking,
-      smoking: nextProfile.smoking,
-      workout: nextProfile.workout,
-      religion: nextProfile.religion,
-      politics: nextProfile.politics,
-      zodiac: nextProfile.zodiac,
-      childrenPlan: nextProfile.childrenPlan,
-      pets: nextProfile.pets,
-      promptOne: nextProfile.promptOne,
-      promptTwo: nextProfile.promptTwo,
-      promptThree: nextProfile.promptThree,
-      dealbreakers: nextProfile.dealbreakers.join(', '),
-      instagram: nextProfile.instagram,
-      anthem: nextProfile.anthem,
-      travelMode: nextProfile.travelMode,
-      photos: nextProfile.photos,
+    void backendSaveSelfProfile(userEmail, nextProfile as unknown as Record<string, unknown>).catch(() => {
+      pushToast('Saved locally, but cloud sync failed for profile.', 'error')
     })
+    window.localStorage.setItem(SELF_PROFILE_STORAGE_KEY, JSON.stringify(nextProfile))
+    setProfileDraft(toProfileDraft(nextProfile))
     setProfileSaveStatus('saved')
     pushToast('Profile updated.', 'success')
   }

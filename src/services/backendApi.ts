@@ -18,6 +18,7 @@ const LOCAL_SETTINGS_KEY = 'lovedate:settings'
 const LOCAL_PREFERENCES_KEY = 'lovedate:preferences'
 const LOCAL_INVITE_PASS_KEY = 'lovedate:invite-pass'
 const LOCAL_INVITE_ATTEMPTS_KEY = 'lovedate:invite-attempts'
+const LOCAL_SELF_PROFILE_KEY = 'lovedate:self-profile'
 
 const supabaseUrl =
   (import.meta.env.VITE_SUPABASE_URL as string | undefined) ??
@@ -36,6 +37,11 @@ const wait = (ms: number): Promise<void> =>
 
 const persistLocal = <T>(key: string, payload: T): void => {
   window.localStorage.setItem(key, JSON.stringify(payload))
+}
+
+const profileKeyForEmail = (email: string): string => {
+  const safe = email.trim().toLowerCase()
+  return safe.length > 0 ? `${LOCAL_SELF_PROFILE_KEY}:${safe}` : `${LOCAL_SELF_PROFILE_KEY}:guest`
 }
 
 const getCurrentUserId = async (): Promise<string | null> => {
@@ -247,6 +253,54 @@ export const backendValidateInviteCode = async (inviteCode: string): Promise<voi
   }
 
   throw new Error('Invite code not valid')
+}
+
+export const backendReadSelfProfile = (email: string): Record<string, unknown> | null => {
+  const candidates = [profileKeyForEmail(email), LOCAL_SELF_PROFILE_KEY]
+
+  for (const key of candidates) {
+    const raw = window.localStorage.getItem(key)
+    if (!raw) {
+      continue
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as Record<string, unknown>
+      if (parsed && typeof parsed === 'object') {
+        return parsed
+      }
+    } catch {
+      // Ignore malformed local cache entries.
+    }
+  }
+
+  return null
+}
+
+export const backendSaveSelfProfile = async (
+  email: string,
+  profile: Record<string, unknown>,
+): Promise<void> => {
+  persistLocal(profileKeyForEmail(email), profile)
+  persistLocal(LOCAL_SELF_PROFILE_KEY, profile)
+
+  if (!supabase) {
+    return
+  }
+
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return
+  }
+
+  const { error } = await supabase
+    .from('user_profiles')
+    .upsert({ user_id: userId, profile_data: profile, updated_at: new Date().toISOString() })
+
+  // If table is not provisioned yet, keep local-only persistence without blocking UX.
+  if (error && !error.message.toLowerCase().includes('relation') && !error.message.toLowerCase().includes('does not exist')) {
+    throw new Error(error.message)
+  }
 }
 
 export const backendSaveSettings = async (settings: SettingsPayload): Promise<void> => {
