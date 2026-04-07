@@ -2443,7 +2443,7 @@ function App() {
                   autoComplete="one-time-code"
                   value={inviteCode}
                   onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
-                  placeholder="LOVE-BETA-001"
+                  placeholder="Enter your invite code"
                   required
                 />
               </label>
