@@ -1,0 +1,19 @@
+.git
+.github
+.vscode
+node_modules
+desktop-dist
+releases
+build
+bookmarks
+Figma export
+New Figma exports
+Logos
+utils
+public
+devserver.log
+*.psd
+*.zip
+*.exe
+*.msi
+*.blockmap
