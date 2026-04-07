@@ -2427,13 +2427,7 @@ function App() {
         <div className="grain" aria-hidden="true" />
         <article className="login-card">
           <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
-          <p className="pill">Welcome</p>
           <h1>{authMode === 'register' ? 'Create your LoveDate account' : 'Sign in to LoveDate'}</h1>
-          <p>
-            {runtimeConfig.auth.requireInviteCode
-              ? 'Enter your beta invite code, then continue with your account or guest session.'
-              : 'Sign in with your account to continue.'}
-          </p>
           <form className="login-form" onSubmit={handleLoginSubmit}>
             {runtimeConfig.auth.requireInviteCode ? (
               <label>
