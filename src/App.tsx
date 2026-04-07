@@ -21,6 +21,7 @@ import { Logo } from './components/Logo'
 import {
   backendGuestLogin,
   backendLogin,
+  backendRegister,
   backendSavePreferences,
   backendSaveSettings,
   backendSendChatReply,
@@ -683,7 +684,10 @@ function App() {
   const [userEmail, setUserEmail] = useState(initialAuth.email)
   const [loginEmail, setLoginEmail] = useState(initialAuth.email)
   const [loginPassword, setLoginPassword] = useState('')
+  const [registerPasswordConfirm, setRegisterPasswordConfirm] = useState('')
   const [loginError, setLoginError] = useState<string | null>(null)
+  const [loginNotice, setLoginNotice] = useState<string | null>(null)
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
   const [inviteCode, setInviteCode] = useState('')
   const [loggingIn, setLoggingIn] = useState(false)
   const [selfProfile, setSelfProfile] = useState<SelfProfile>(initialSelfProfile)
@@ -1959,23 +1963,56 @@ function App() {
     event.preventDefault()
     setLoggingIn(true)
     setLoginError(null)
+    setLoginNotice(null)
+
+    if (authMode === 'register' && loginPassword !== registerPasswordConfirm) {
+      setLoginError('Passwords do not match.')
+      setLoggingIn(false)
+      return
+    }
 
     const inviteValidation = runtimeConfig.auth.requireInviteCode
       ? backendValidateInviteCode(inviteCode.trim())
       : Promise.resolve()
 
     void inviteValidation
-      .then(() => backendLogin(loginEmail.trim(), loginPassword))
+      .then(() =>
+        authMode === 'register'
+          ? backendRegister(loginEmail.trim(), loginPassword).then((result) => {
+              if (result.signedIn) {
+                return { email: result.email, signedIn: true, registered: true, needsEmailConfirmation: false }
+              }
+              return {
+                email: result.email,
+                signedIn: false,
+                registered: true,
+                needsEmailConfirmation: result.needsEmailConfirmation,
+              }
+            })
+          : backendLogin(loginEmail.trim(), loginPassword).then((result) => ({
+              email: result.email,
+              signedIn: true,
+              registered: false,
+              needsEmailConfirmation: false,
+            })),
+      )
       .then((result) => {
+        if (!result.signedIn && result.registered && result.needsEmailConfirmation) {
+          setAuthMode('login')
+          setLoginNotice('Account created. Confirm your email, then sign in.')
+          pushToast('Account created. Please confirm your email.', 'info')
+          return
+        }
+
         setIsAuthenticated(true)
         setUserEmail(result.email)
         navigate('discover', { replace: true })
-        pushToast('Signed in successfully.', 'success')
+        pushToast(authMode === 'register' ? 'Account created successfully.' : 'Signed in successfully.', 'success')
       })
       .catch((error: unknown) => {
         const detail = error instanceof Error ? error.message : 'Login failed'
         setLoginError(detail)
-        pushToast('Login failed. Check invite code and credentials.', 'error')
+        pushToast(authMode === 'register' ? 'Account creation failed.' : 'Login failed. Check invite code and credentials.', 'error')
       })
       .finally(() => {
         setLoggingIn(false)
@@ -1985,6 +2022,7 @@ function App() {
   const handleGuestLogin = () => {
     setLoggingIn(true)
     setLoginError(null)
+    setLoginNotice(null)
 
     const inviteValidation = runtimeConfig.auth.requireInviteCode
       ? backendValidateInviteCode(inviteCode.trim())
@@ -2390,7 +2428,7 @@ function App() {
         <article className="login-card">
           <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
           <p className="pill">Welcome</p>
-          <h1>Sign in to LoveDate</h1>
+          <h1>{authMode === 'register' ? 'Create your LoveDate account' : 'Sign in to LoveDate'}</h1>
           <p>
             {runtimeConfig.auth.requireInviteCode
               ? 'Enter your beta invite code, then continue with your account or guest session.'
@@ -2424,22 +2462,48 @@ function App() {
               Password
               <input
                 type="password"
-                autoComplete="current-password"
+                autoComplete={authMode === 'register' ? 'new-password' : 'current-password'}
                 value={loginPassword}
                 onChange={(event) => setLoginPassword(event.target.value)}
                 required
               />
             </label>
+            {authMode === 'register' ? (
+              <label>
+                Confirm Password
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={registerPasswordConfirm}
+                  onChange={(event) => setRegisterPasswordConfirm(event.target.value)}
+                  required
+                />
+              </label>
+            ) : null}
             {loginError ? <p className="error-text">{loginError}</p> : null}
+            {loginNotice ? <p className="info-text">{loginNotice}</p> : null}
             <div className="login-actions">
               <button type="submit" disabled={loggingIn}>
-                {loggingIn ? 'Signing in...' : 'Sign In'}
+                {loggingIn ? 'Please wait...' : authMode === 'register' ? 'Create Account' : 'Sign In'}
               </button>
-              {runtimeConfig.auth.allowGuestLogin ? (
+              {runtimeConfig.auth.allowGuestLogin && authMode === 'login' ? (
                 <button type="button" className="ghost" onClick={handleGuestLogin} disabled={loggingIn}>
                   Continue as Guest
                 </button>
               ) : null}
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => {
+                  setLoginError(null)
+                  setLoginNotice(null)
+                  setRegisterPasswordConfirm('')
+                  setAuthMode((current) => (current === 'login' ? 'register' : 'login'))
+                }}
+                disabled={loggingIn}
+              >
+                {authMode === 'login' ? 'Create account' : 'I already have an account'}
+              </button>
             </div>
           </form>
         </article>

@@ -84,6 +84,44 @@ export const backendLogin = async (email: string, password: string): Promise<{ e
   return { email }
 }
 
+export const backendRegister = async (
+  email: string,
+  password: string,
+): Promise<{ email: string; signedIn: boolean; needsEmailConfirmation: boolean }> => {
+  if (!isAllowedEmailDomain(email)) {
+    throw new Error('Email domain not allowed for this beta.')
+  }
+
+  if (password.length < 6) {
+    throw new Error('Password must have at least 6 characters.')
+  }
+
+  if (supabase) {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    })
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    const signedIn = Boolean(data.session)
+    return {
+      email: data.user?.email ?? email,
+      signedIn,
+      needsEmailConfirmation: !signedIn,
+    }
+  }
+
+  await wait(320)
+  return {
+    email,
+    signedIn: true,
+    needsEmailConfirmation: false,
+  }
+}
+
 export const backendGuestLogin = async (): Promise<{ email: string }> => {
   if (!runtimeConfig.auth.allowGuestLogin) {
     throw new Error('Guest login disabled')

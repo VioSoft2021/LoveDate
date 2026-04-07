@@ -172,6 +172,12 @@
   font-size: 0.85rem;
 }
 
+.info-text {
+  margin: 0;
+  color: #d3ebff;
+  font-size: 0.85rem;
+}
+
 .top-bar {
   display: flex;
   justify-content: flex-start;
