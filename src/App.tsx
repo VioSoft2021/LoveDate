@@ -2522,20 +2522,20 @@ function App() {
         <div>
           <Logo variant="compact" size="md" />
         </div>
+        <nav className="bottom-nav" aria-label="Primary navigation">
+          {navItems.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={screen === item.key ? 'active' : ''}
+              onClick={() => navigate(item.key)}
+            >
+              {item.label}
+              {item.badge && item.badge > 0 ? <span className="badge-count">{item.badge}</span> : null}
+            </button>
+          ))}
+        </nav>
       </header>
-      <nav className="bottom-nav" aria-label="Primary navigation">
-        {navItems.map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            className={screen === item.key ? 'active' : ''}
-            onClick={() => navigate(item.key)}
-          >
-            {item.label}
-            {item.badge && item.badge > 0 ? <span className="badge-count">{item.badge}</span> : null}
-          </button>
-        ))}
-      </nav>
       <section className={`screen-panel ${screen === 'discover' ? 'screen-panel--discover' : ''}`} aria-live="polite">
         {screen === 'filters' && (
           <section className="filter-screen-wrap">
