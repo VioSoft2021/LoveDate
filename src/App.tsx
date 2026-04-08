@@ -1989,6 +1989,19 @@ function App() {
       return
     }
 
+    const tapThreshold = 14
+    if (
+      Math.abs(dragX) < tapThreshold &&
+      Math.abs(dragY) < tapThreshold &&
+      topProfile &&
+      !isResolvingSwipe &&
+      !exitDirection
+    ) {
+      resetDrag()
+      openProfileDetail(topProfile.id, 'discover')
+      return
+    }
+
     const threshold = 110
     if (dragX >= threshold) {
       swipeCard('right')
@@ -2759,6 +2772,15 @@ function App() {
                         background: getDiscoverCardBackground(topProfile, 'front'),
                         ...getCardStyle(),
                       }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Open ${topProfile.name} full profile`}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          openProfileDetail(topProfile.id, 'discover')
+                        }
+                      }}
                       onPointerDown={handlePointerDown}
                       onPointerMove={handlePointerMove}
                       onPointerUp={handlePointerUp}
@@ -2833,6 +2855,16 @@ function App() {
                           </div>
                         </>
                       )}
+                      <button
+                        type="button"
+                        className="details-link"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          openProfileDetail(topProfile.id, 'discover')
+                        }}
+                      >
+                        View full profile
+                      </button>
                     </article>
                   </section>
 
