@@ -73,6 +73,7 @@ type AppScreen =
   | 'chats'
   | 'profile'
   | 'settings'
+  | 'moderation'
   | 'profile-detail'
   | 'filters'
 
@@ -324,6 +325,10 @@ const parseRoute = (path: string): { screen: AppScreen; profileId: number | null
     return { screen: 'settings', profileId: null }
   }
 
+  if (path === '/moderation') {
+    return { screen: 'moderation', profileId: null }
+  }
+
   if (path === '/filters') {
     return { screen: 'filters', profileId: null }
   }
@@ -345,6 +350,10 @@ const buildPath = (screen: AppScreen, profileId: number | null): string => {
 
   if (screen === 'filters') {
     return '/filters'
+  }
+
+  if (screen === 'moderation') {
+    return '/moderation'
   }
 
   return `/${screen}`
@@ -803,6 +812,7 @@ function App() {
   })
   const [blockedProfileIds, setBlockedProfileIds] = useState<number[]>(() => readBlockedProfileIds())
   const [safetyReports, setSafetyReports] = useState<SafetyReport[]>(() => readModerationQueue())
+  const [activeModerationReportId, setActiveModerationReportId] = useState<string | null>(null)
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [boostsLeft, setBoostsLeft] = useState(3)
   const [incognitoMode, setIncognitoMode] = useState(false)
@@ -1263,7 +1273,11 @@ function App() {
     if (isAuthenticated && screen === 'login') {
       navigate('discover', { replace: true })
     }
-  }, [isAuthenticated, screen, navigate])
+
+    if (screen === 'moderation' && !isModerationAdmin) {
+      navigate('settings', { replace: true })
+    }
+  }, [isAuthenticated, screen, isModerationAdmin, navigate])
 
   useEffect(() => {
     window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history))
@@ -1287,6 +1301,17 @@ function App() {
   useEffect(() => {
     saveModerationQueue(safetyReports)
   }, [safetyReports])
+
+  useEffect(() => {
+    if (safetyReports.length === 0) {
+      setActiveModerationReportId(null)
+      return
+    }
+    if (!activeModerationReportId || !safetyReports.some((item) => item.id === activeModerationReportId)) {
+      const first = safetyReports.slice().sort((a, b) => b.createdAt - a.createdAt)[0]
+      setActiveModerationReportId(first?.id ?? null)
+    }
+  }, [safetyReports, activeModerationReportId])
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -2524,6 +2549,27 @@ function App() {
     { key: 'profile', label: 'Profile' },
     { key: 'settings', label: 'Settings', badge: unreadNotificationCount },
   ]
+  if (isModerationAdmin) {
+    navItems.splice(4, 0, {
+      key: 'moderation',
+      label: 'Moderation',
+      badge: safetyReports.filter((report) => report.status === 'open').length,
+    })
+  }
+
+  const moderationReportsSorted = useMemo(
+    () => safetyReports.slice().sort((a, b) => b.createdAt - a.createdAt),
+    [safetyReports],
+  )
+  const selectedModerationReport = useMemo(() => {
+    if (moderationReportsSorted.length === 0) {
+      return null
+    }
+    if (!activeModerationReportId) {
+      return moderationReportsSorted[0]
+    }
+    return moderationReportsSorted.find((report) => report.id === activeModerationReportId) ?? moderationReportsSorted[0]
+  }, [activeModerationReportId, moderationReportsSorted])
 
   const selfPersonalityCode = useMemo(
     () => personalityCodeFromAnswers(selfProfile.personalityAnswers),
@@ -4032,6 +4078,7 @@ function App() {
               <h2>Safety</h2>
               <p>Blocked profiles: {blockedProfileIds.length}</p>
               <p>Reports submitted: {safetyReports.length}</p>
+              <p>Open reports: {safetyReports.filter((report) => report.status === 'open').length}</p>
               {safetyReports.length > 0 ? (
                 <ul>
                   {safetyReports.slice(-4).map((report, idx) => {
@@ -4047,38 +4094,99 @@ function App() {
                 <p className="soft">No safety reports yet.</p>
               )}
               {isModerationAdmin ? (
+                <button type="button" className="ghost" onClick={() => navigate('moderation')}>
+                  Open Moderation Center
+                </button>
+              ) : null}
+            </article>
+          </section>
+        )}
+        {screen === 'moderation' && (
+          <section className="settings-screen moderation-screen">
+            <article className="profile-settings moderation-list">
+              <h2>Moderation Queue</h2>
+              <p className="soft">Separate review workspace for user reports.</p>
+              {moderationReportsSorted.length === 0 ? (
+                <p className="soft">No reports yet.</p>
+              ) : (
                 <div className="notification-list">
-                  <p className="soft">Moderation queue (admin only)</p>
-                  {safetyReports.slice(0, 8).map((report) => (
-                    <p key={report.id} className="notification-item">
-                      <strong>
-                        {report.profileName} {'\u2022'} {report.category}
-                      </strong>
-                      <span>
-                        Status: {report.status}
-                        {report.details ? ` \u2022 ${report.details}` : ''}
-                      </span>
-                      <small>
-                        Reporter: {report.reporterEmail} {'\u2022'} {formatShortTime(report.createdAt)}
-                      </small>
-                      <span className="summary-actions">
-                        <button type="button" className="ghost" onClick={() => updateReportStatus(report.id, 'reviewing')}>
-                          Reviewing
-                        </button>
-                        <button type="button" className="ghost" onClick={() => updateReportStatus(report.id, 'resolved')}>
-                          Resolve
-                        </button>
-                        <button type="button" className="danger" onClick={() => resolveAndBlockReport(report)}>
-                          Resolve + Block
-                        </button>
-                        <button type="button" className="danger" onClick={() => updateReportStatus(report.id, 'dismissed')}>
-                          Dismiss
-                        </button>
-                      </span>
-                    </p>
+                  {moderationReportsSorted.map((report) => (
+                    <button
+                      key={report.id}
+                      type="button"
+                      className={`chat-item ${selectedModerationReport?.id === report.id ? 'active' : ''}`}
+                      onClick={() => setActiveModerationReportId(report.id)}
+                    >
+                      <div className="chat-item-body">
+                        <div className="chat-meta">
+                          <strong>{report.profileName}</strong>
+                          <span>{report.category}</span>
+                        </div>
+                        <div className="chat-status">
+                          <small>{report.status}</small>
+                        </div>
+                      </div>
+                    </button>
                   ))}
                 </div>
-              ) : null}
+              )}
+            </article>
+
+            <article className="profile-settings moderation-detail">
+              <h2>Report Details</h2>
+              {selectedModerationReport ? (
+                <>
+                  {selectedModerationReport.profileSnapshot.photoUrl ? (
+                    <img
+                      className="chat-avatar"
+                      style={{ width: '5.2rem', height: '5.2rem', borderRadius: '1rem', marginBottom: '0.8rem' }}
+                      src={selectedModerationReport.profileSnapshot.photoUrl}
+                      alt={`${selectedModerationReport.profileName} snapshot`}
+                    />
+                  ) : null}
+                  <p>
+                    <strong>User:</strong> {selectedModerationReport.profileName}, {selectedModerationReport.profileSnapshot.age}
+                  </p>
+                  <p>
+                    <strong>Context:</strong> {selectedModerationReport.profileSnapshot.city} {'\u2022'}{' '}
+                    {selectedModerationReport.profileSnapshot.relationshipGoal}
+                  </p>
+                  <p>
+                    <strong>Vibe:</strong> {selectedModerationReport.profileSnapshot.vibe}
+                  </p>
+                  <p>
+                    <strong>Bio snapshot:</strong> {selectedModerationReport.profileSnapshot.bio}
+                  </p>
+                  <p>
+                    <strong>Category:</strong> {selectedModerationReport.category}
+                  </p>
+                  <p>
+                    <strong>Reporter:</strong> {selectedModerationReport.reporterEmail}
+                  </p>
+                  <p>
+                    <strong>Details:</strong> {selectedModerationReport.details || 'No extra details provided.'}
+                  </p>
+                  <p>
+                    <strong>Status:</strong> {selectedModerationReport.status}
+                  </p>
+                  <div className="summary-actions">
+                    <button type="button" className="ghost" onClick={() => updateReportStatus(selectedModerationReport.id, 'reviewing')}>
+                      Reviewing
+                    </button>
+                    <button type="button" className="ghost" onClick={() => updateReportStatus(selectedModerationReport.id, 'resolved')}>
+                      Resolve
+                    </button>
+                    <button type="button" className="danger" onClick={() => resolveAndBlockReport(selectedModerationReport)}>
+                      Resolve + Block
+                    </button>
+                    <button type="button" className="danger" onClick={() => updateReportStatus(selectedModerationReport.id, 'dismissed')}>
+                      Dismiss
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="soft">Select a report from the queue.</p>
+              )}
             </article>
           </section>
         )}

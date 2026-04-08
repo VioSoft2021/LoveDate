@@ -16,6 +16,14 @@ export type SafetyReport = {
   id: string
   profileId: number
   profileName: string
+  profileSnapshot: {
+    age: number
+    city: string
+    vibe: string
+    bio: string
+    relationshipGoal: string
+    photoUrl: string
+  }
   category: SafetyCategory
   details: string
   reporterEmail: string
@@ -86,6 +94,16 @@ export const readModerationQueue = (): SafetyReport[] => {
           id: String(item.id ?? ''),
           profileId: Number(item.profileId ?? 0),
           profileName: String(item.profileName ?? 'Unknown'),
+          profileSnapshot: {
+            age: Number((item.profileSnapshot as Record<string, unknown> | undefined)?.age ?? 0),
+            city: String((item.profileSnapshot as Record<string, unknown> | undefined)?.city ?? ''),
+            vibe: String((item.profileSnapshot as Record<string, unknown> | undefined)?.vibe ?? ''),
+            bio: String((item.profileSnapshot as Record<string, unknown> | undefined)?.bio ?? ''),
+            relationshipGoal: String(
+              (item.profileSnapshot as Record<string, unknown> | undefined)?.relationshipGoal ?? '',
+            ),
+            photoUrl: String((item.profileSnapshot as Record<string, unknown> | undefined)?.photoUrl ?? ''),
+          },
           category: isCategory(categoryRaw) ? categoryRaw : 'other',
           details: String(item.details ?? ''),
           reporterEmail: String(item.reporterEmail ?? 'unknown@lovedate.app'),
@@ -115,6 +133,14 @@ export const createSafetyReport = (input: {
     id: `rpt_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
     profileId: input.profile.id,
     profileName: input.profile.name,
+    profileSnapshot: {
+      age: input.profile.age,
+      city: input.profile.city,
+      vibe: input.profile.vibe,
+      bio: input.profile.bio,
+      relationshipGoal: input.profile.relationshipGoal,
+      photoUrl: input.profile.photos[0] ?? '',
+    },
     category: input.category,
     details: input.details,
     reporterEmail: input.reporterEmail,
