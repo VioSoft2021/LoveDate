@@ -51,6 +51,17 @@ import {
   sanitizeAnswers,
   type PersonalityAnswer,
 } from './services/compatibility'
+import {
+  SAFETY_CATEGORIES,
+  createSafetyReport,
+  readBlockedProfileIds,
+  readModerationQueue,
+  saveBlockedProfileIds,
+  saveModerationQueue,
+  type ModerationStatus,
+  type SafetyCategory,
+  type SafetyReport,
+} from './services/moderation'
 import { PLAN_OPTIONS, type PlanTier } from './spec/lovedateConfig'
 
 type SwipeDirection = 'left' | 'right'
@@ -127,12 +138,6 @@ type CallState = {
   targetProfileId: number | null
   muted: boolean
   cameraOff: boolean
-}
-
-type SafetyReport = {
-  profileId: number
-  reason: string
-  createdAt: number
 }
 
 type SelfProfile = {
@@ -796,8 +801,8 @@ function App() {
     muted: false,
     cameraOff: false,
   })
-  const [blockedProfileIds, setBlockedProfileIds] = useState<number[]>([])
-  const [safetyReports, setSafetyReports] = useState<SafetyReport[]>([])
+  const [blockedProfileIds, setBlockedProfileIds] = useState<number[]>(() => readBlockedProfileIds())
+  const [safetyReports, setSafetyReports] = useState<SafetyReport[]>(() => readModerationQueue())
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [boostsLeft, setBoostsLeft] = useState(3)
   const [incognitoMode, setIncognitoMode] = useState(false)
@@ -818,6 +823,17 @@ function App() {
   const [activePlan, setActivePlan] = useState<PlanTier>(() => getActivePlan())
   const [likeUsage, setLikeUsage] = useState(() => getLikeUsage(activePlan))
   const [superLikeUsage, setSuperLikeUsage] = useState(() => getSuperLikeUsage(activePlan))
+  const moderationAdminEmails = useMemo(() => {
+    const raw = (import.meta.env.VITE_MODERATION_ADMIN_EMAILS as string | undefined) ?? ''
+    return raw
+      .split(',')
+      .map((item) => item.trim().toLowerCase())
+      .filter((item) => item.length > 0)
+  }, [])
+  const isModerationAdmin = useMemo(
+    () => moderationAdminEmails.includes(userEmail.trim().toLowerCase()),
+    [moderationAdminEmails, userEmail],
+  )
 
   const dragStart = useRef<{ x: number; y: number } | null>(null)
   const attachmentInputRef = useRef<HTMLInputElement | null>(null)
@@ -1263,6 +1279,14 @@ function App() {
   useEffect(() => {
     window.localStorage.setItem(CHAT_THREADS_STORAGE_KEY, JSON.stringify(chatThreads))
   }, [chatThreads])
+
+  useEffect(() => {
+    saveBlockedProfileIds(blockedProfileIds)
+  }, [blockedProfileIds])
+
+  useEffect(() => {
+    saveModerationQueue(safetyReports)
+  }, [safetyReports])
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -1868,14 +1892,48 @@ function App() {
   }
 
   const reportProfile = (profile: Profile) => {
-    const reason = window.prompt('Report reason (spam, scam, abuse, fake profile):', 'spam')?.trim() || 'unspecified'
-    setSafetyReports((current) => [...current, { profileId: profile.id, reason, createdAt: Date.now() }])
+    const categoryInput = window
+      .prompt(
+        `Report category (${SAFETY_CATEGORIES.join(', ')}):`,
+        'spam',
+      )
+      ?.trim()
+      .toLowerCase()
+    const category: SafetyCategory = SAFETY_CATEGORIES.includes(categoryInput as SafetyCategory)
+      ? (categoryInput as SafetyCategory)
+      : 'other'
+    const details =
+      window.prompt('Optional details for moderation team:', '')?.trim() ?? ''
+    const report = createSafetyReport({
+      profile,
+      category,
+      details,
+      reporterEmail: userEmail || 'guest@lovedate.app',
+    })
+    setSafetyReports((current) => [report, ...current].slice(0, 200))
     pushNotification({
       title: `Report submitted for ${profile.name}`,
-      body: `Reason: ${reason}`,
+      body: `Category: ${category}`,
       category: 'safety',
     })
     pushToast(`Report submitted for ${profile.name}.`, 'success')
+  }
+
+  const updateReportStatus = (reportId: string, status: ModerationStatus) => {
+    setSafetyReports((current) =>
+      current.map((item) => {
+        if (item.id !== reportId) {
+          return item
+        }
+        return {
+          ...item,
+          status,
+          reviewedAt: status === 'open' ? null : Date.now(),
+          reviewerEmail: status === 'open' ? null : userEmail,
+        }
+      }),
+    )
+    pushToast(`Report moved to ${status}.`, 'info')
   }
 
   const blockProfile = (profile: Profile) => {
@@ -3931,10 +3989,10 @@ function App() {
               {safetyReports.length > 0 ? (
                 <ul>
                   {safetyReports.slice(-4).map((report, idx) => {
-                    const profileName = profileById.get(report.profileId)?.name ?? `#${report.profileId}`
+                    const profileName = profileById.get(report.profileId)?.name ?? report.profileName
                     return (
-                      <li key={`${report.profileId}-${report.createdAt}-${idx}`}>
-                        {profileName}: {report.reason}
+                      <li key={`${report.id}-${idx}`}>
+                        {profileName}: {report.category} ({report.status})
                       </li>
                     )
                   })}
@@ -3942,6 +4000,36 @@ function App() {
               ) : (
                 <p className="soft">No safety reports yet.</p>
               )}
+              {isModerationAdmin ? (
+                <div className="notification-list">
+                  <p className="soft">Moderation queue (admin only)</p>
+                  {safetyReports.slice(0, 8).map((report) => (
+                    <p key={report.id} className="notification-item">
+                      <strong>
+                        {report.profileName} {'\u2022'} {report.category}
+                      </strong>
+                      <span>
+                        Status: {report.status}
+                        {report.details ? ` \u2022 ${report.details}` : ''}
+                      </span>
+                      <small>
+                        Reporter: {report.reporterEmail} {'\u2022'} {formatShortTime(report.createdAt)}
+                      </small>
+                      <span className="summary-actions">
+                        <button type="button" className="ghost" onClick={() => updateReportStatus(report.id, 'reviewing')}>
+                          Reviewing
+                        </button>
+                        <button type="button" className="ghost" onClick={() => updateReportStatus(report.id, 'resolved')}>
+                          Resolve
+                        </button>
+                        <button type="button" className="danger" onClick={() => updateReportStatus(report.id, 'dismissed')}>
+                          Dismiss
+                        </button>
+                      </span>
+                    </p>
+                  ))}
+                </div>
+              ) : null}
             </article>
           </section>
         )}
