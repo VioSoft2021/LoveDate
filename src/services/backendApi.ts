@@ -324,8 +324,9 @@ export const backendSaveSettings = async (settings: SettingsPayload): Promise<vo
     updated_at: new Date().toISOString(),
   })
 
+  // Beta mode: local save is the source of truth if remote sync is unavailable.
   if (error) {
-    throw new Error(error.message)
+    return
   }
 }
 
@@ -358,8 +359,9 @@ export const backendSavePreferences = async (payload: {
     updated_at: new Date().toISOString(),
   })
 
+  // Beta mode: keep UX smooth even when remote table/policies are not fully provisioned.
   if (error) {
-    throw new Error(error.message)
+    return
   }
 }
 
