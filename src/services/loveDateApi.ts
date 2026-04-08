@@ -1,4 +1,5 @@
 import { createSupabaseClient } from './supabaseClient'
+import { generateAnswersFromSeed, sanitizeAnswers, type PersonalityAnswer } from './compatibility'
 
 export type Profile = {
   id: number
@@ -15,9 +16,13 @@ export type Profile = {
   verified: boolean
   relationshipGoal: 'Long-term' | 'Short-term' | 'Friends' | 'Figuring it out'
   zodiac: string
+  personalityAnswers: PersonalityAnswer[]
 }
 
-type SeedProfile = Omit<Profile, 'gender' | 'distanceKm' | 'verified' | 'relationshipGoal'>
+type SeedProfile = Omit<
+  Profile,
+  'gender' | 'distanceKm' | 'verified' | 'relationshipGoal' | 'personalityAnswers'
+>
 
 const PROFILE_FIXTURE: SeedProfile[] = [
   {
@@ -510,6 +515,7 @@ const ENRICHED_PROFILES: Profile[] = PROFILE_FIXTURE.map((profile, index) => {
     distanceKm: 2 + ((index * 7) % 58),
     verified: index % 4 !== 0,
     relationshipGoal: RELATIONSHIP_GOALS[index % RELATIONSHIP_GOALS.length],
+    personalityAnswers: generateAnswersFromSeed(profile.id * 17 + index),
   }
 })
 
@@ -527,7 +533,7 @@ export const getProfiles = async (): Promise<Profile[]> => {
     const { data, error } = await supabase
       .from('profiles')
       .select(
-        'id, name, age, city, vibe, bio, interests, palette, photos, gender, distance_km, verified, relationship_goal, zodiac, is_active',
+        'id, name, age, city, vibe, bio, interests, palette, photos, gender, distance_km, verified, relationship_goal, zodiac, personality_answers, is_active',
       )
       .eq('is_active', true)
       .limit(200)
@@ -561,6 +567,7 @@ export const getProfiles = async (): Promise<Profile[]> => {
             Array.isArray(row.palette) && row.palette.length >= 2
               ? [String(row.palette[0]), String(row.palette[1])]
               : ['#141937', '#252d5c']
+          const personalityAnswers = sanitizeAnswers(row.personality_answers)
 
           return {
             id: Number(row.id),
@@ -577,6 +584,10 @@ export const getProfiles = async (): Promise<Profile[]> => {
             verified: Boolean(row.verified),
             relationshipGoal,
             zodiac: String(row.zodiac ?? 'Libra'),
+            personalityAnswers:
+              personalityAnswers.length === 8
+                ? personalityAnswers
+                : generateAnswersFromSeed(Number(row.id) || 0),
           } satisfies Profile
         })
         .filter((profile) => Number.isFinite(profile.id))

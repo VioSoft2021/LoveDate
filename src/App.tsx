@@ -44,6 +44,13 @@ import {
   rollbackLastSuperLikeEvent,
 } from './services/engagementLimits'
 import { canUsePassport, getActivePlan, setActivePlan as persistActivePlan } from './services/planGate'
+import {
+  PERSONALITY_QUESTIONS,
+  compatibilityFromAnswers,
+  personalityCodeFromAnswers,
+  sanitizeAnswers,
+  type PersonalityAnswer,
+} from './services/compatibility'
 import { PLAN_OPTIONS, type PlanTier } from './spec/lovedateConfig'
 
 type SwipeDirection = 'left' | 'right'
@@ -162,6 +169,7 @@ type SelfProfile = {
   anthem: string
   travelMode: boolean
   photos: string[]
+  personalityAnswers: PersonalityAnswer[]
 }
 
 type PhotoStudioControls = {
@@ -283,6 +291,7 @@ const DEFAULT_SELF_PROFILE: SelfProfile = {
     'https://images.unsplash.com/photo-1521119989659-a83eee488004?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
   ],
+  personalityAnswers: ['B', 'A', 'A', 'A', 'A', 'A', 'A', 'A'],
 }
 
 const parseRoute = (path: string): { screen: AppScreen; profileId: number | null } => {
@@ -450,6 +459,10 @@ const readSelfProfile = (email = ''): SelfProfile => {
       anthem: safeString(parsed.anthem, DEFAULT_SELF_PROFILE.anthem),
       travelMode: typeof parsed.travelMode === 'boolean' ? parsed.travelMode : DEFAULT_SELF_PROFILE.travelMode,
       photos: safePhotos.length > 0 ? safePhotos : DEFAULT_SELF_PROFILE.photos,
+      personalityAnswers:
+        sanitizeAnswers(parsed.personalityAnswers).length === PERSONALITY_QUESTIONS.length
+          ? (sanitizeAnswers(parsed.personalityAnswers) as PersonalityAnswer[])
+          : DEFAULT_SELF_PROFILE.personalityAnswers,
     }
   } catch {
     return DEFAULT_SELF_PROFILE
@@ -490,6 +503,7 @@ const toProfileDraft = (profile: SelfProfile) => ({
   anthem: profile.anthem,
   travelMode: profile.travelMode,
   photos: profile.photos,
+  personalityAnswers: profile.personalityAnswers,
 })
 
 const readChatThreads = (): Record<number, ChatMessage[]> => {
@@ -886,6 +900,12 @@ function App() {
         score += 8
       }
 
+      const personalityScore = compatibilityFromAnswers(
+        selfProfile.personalityAnswers,
+        profile.personalityAnswers,
+      )
+      score += Math.round(personalityScore * 0.28)
+
       return Math.max(1, Math.min(99, Math.round(score)))
     },
     [selfProfile],
@@ -903,6 +923,7 @@ function App() {
       selfProfile.photos.length >= 3,
       selfProfile.jobTitle.trim().length > 1,
       selfProfile.languages.length >= 1,
+      selfProfile.personalityAnswers.length === PERSONALITY_QUESTIONS.length,
     ]
     const completed = checks.filter(Boolean).length
     return Math.round((completed / checks.length) * 100)
@@ -2117,6 +2138,18 @@ function App() {
     setProfileSaveStatus('idle')
   }
 
+  const handlePersonalityAnswerChange = (questionIndex: number, answer: PersonalityAnswer) => {
+    setProfileDraft((current) => {
+      const nextAnswers = [...current.personalityAnswers]
+      nextAnswers[questionIndex] = answer
+      return {
+        ...current,
+        personalityAnswers: nextAnswers,
+      }
+    })
+    setProfileSaveStatus('idle')
+  }
+
   const addPhotoFromUrl = () => {
     const nextUrl = photoUrlInput.trim()
     if (!nextUrl) {
@@ -2262,6 +2295,10 @@ function App() {
       .filter((value) => value.length > 0)
       .slice(0, 8)
     const photos = profileDraft.photos.filter((value) => value.trim().length > 0).slice(0, 9)
+    const personalityAnswers =
+      sanitizeAnswers(profileDraft.personalityAnswers).length === PERSONALITY_QUESTIONS.length
+        ? (sanitizeAnswers(profileDraft.personalityAnswers) as PersonalityAnswer[])
+        : DEFAULT_SELF_PROFILE.personalityAnswers
 
     if (
       profileDraft.name.trim().length < 2 ||
@@ -2307,6 +2344,7 @@ function App() {
       anthem: profileDraft.anthem.trim() || DEFAULT_SELF_PROFILE.anthem,
       travelMode: profileDraft.travelMode,
       photos: photos.length > 0 ? photos : DEFAULT_SELF_PROFILE.photos,
+      personalityAnswers,
     }
 
     setSelfProfile(nextProfile)
@@ -2401,6 +2439,15 @@ function App() {
     { key: 'profile', label: 'Profile' },
     { key: 'settings', label: 'Settings', badge: unreadNotificationCount },
   ]
+
+  const selfPersonalityCode = useMemo(
+    () => personalityCodeFromAnswers(selfProfile.personalityAnswers),
+    [selfProfile.personalityAnswers],
+  )
+  const draftPersonalityCode = useMemo(
+    () => personalityCodeFromAnswers(profileDraft.personalityAnswers),
+    [profileDraft.personalityAnswers],
+  )
 
   if (screen === 'login') {
     return (
@@ -2682,6 +2729,9 @@ function App() {
                               <h1 className="discover-card-name">
                                 {topProfile.name}, {topProfile.age}
                               </h1>
+                              <p className="compatibility-score">
+                                Personality match: {compatibilityFromAnswers(selfProfile.personalityAnswers, topProfile.personalityAnswers)}%
+                              </p>
                               <p className="discover-presence-line">
                                 <span className="discover-status-dot" aria-hidden="true" />
                                 Active now
@@ -2705,6 +2755,9 @@ function App() {
                             <h1 className="discover-card-name">
                               {topProfile.name}, {topProfile.age}
                             </h1>
+                            <p className="compatibility-score">
+                              Personality match: {compatibilityFromAnswers(selfProfile.personalityAnswers, topProfile.personalityAnswers)}%
+                            </p>
                             <p className="discover-presence-line">
                               <span className="discover-status-dot" aria-hidden="true" />
                               Active now
@@ -3084,6 +3137,7 @@ function App() {
                 <p className="profile-about-meta">
                   {selfProfile.jobTitle} at {selfProfile.company} {'\u2022'} {selfProfile.lookingFor}
                 </p>
+                <p className="compatibility-score">Personality code: {selfPersonalityCode}</p>
               </article>
 
               <article className="profile-summary profile-interests-card">
@@ -3213,6 +3267,30 @@ function App() {
                         onChange={(event) => handleProfileDraftChange('bio', event.target.value)}
                       />
                     </label>
+                </div>
+
+                <h3>Personality Quiz</h3>
+                <div className="profile-editor-grid">
+                  <p className="soft full-width">
+                    Compatibility code: <strong>{draftPersonalityCode}</strong>. Pick the option that fits you best.
+                  </p>
+                  {PERSONALITY_QUESTIONS.map((question, index) => (
+                    <label key={question.id} className="full-width">
+                      {question.prompt}
+                      <select
+                        value={profileDraft.personalityAnswers[index] ?? 'A'}
+                        onChange={(event) =>
+                          handlePersonalityAnswerChange(
+                            index,
+                            event.target.value === 'B' ? 'B' : 'A',
+                          )
+                        }
+                      >
+                        <option value="A">A) {question.optionA}</option>
+                        <option value="B">B) {question.optionB}</option>
+                      </select>
+                    </label>
+                  ))}
                 </div>
 
                 <h3>Career And Lifestyle</h3>
@@ -3742,41 +3820,7 @@ function App() {
                   <button
                     type="button"
                     className="ghost"
-                    onClick={() => setProfileDraft({
-                      name: selfProfile.name,
-                      age: String(selfProfile.age),
-                      city: selfProfile.city,
-                      vibe: selfProfile.vibe,
-                      bio: selfProfile.bio,
-                      interests: selfProfile.interests.join(', '),
-                      pronouns: selfProfile.pronouns,
-                      gender: selfProfile.gender,
-                      orientation: selfProfile.orientation,
-                      lookingFor: selfProfile.lookingFor,
-                      relationshipIntent: selfProfile.relationshipIntent,
-                      heightCm: String(selfProfile.heightCm),
-                      jobTitle: selfProfile.jobTitle,
-                      company: selfProfile.company,
-                      education: selfProfile.education,
-                      hometown: selfProfile.hometown,
-                      languages: selfProfile.languages.join(', '),
-                      drinking: selfProfile.drinking,
-                      smoking: selfProfile.smoking,
-                      workout: selfProfile.workout,
-                      religion: selfProfile.religion,
-                      politics: selfProfile.politics,
-                      zodiac: selfProfile.zodiac,
-                      childrenPlan: selfProfile.childrenPlan,
-                      pets: selfProfile.pets,
-                      promptOne: selfProfile.promptOne,
-                      promptTwo: selfProfile.promptTwo,
-                      promptThree: selfProfile.promptThree,
-                      dealbreakers: selfProfile.dealbreakers.join(', '),
-                      instagram: selfProfile.instagram,
-                      anthem: selfProfile.anthem,
-                      travelMode: selfProfile.travelMode,
-                      photos: selfProfile.photos,
-                    })}
+                    onClick={() => setProfileDraft(toProfileDraft(selfProfile))}
                   >
                     Reset Draft
                   </button>
