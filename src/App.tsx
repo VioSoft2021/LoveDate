@@ -1936,27 +1936,41 @@ function App() {
     pushToast(`Report moved to ${status}.`, 'info')
   }
 
-  const blockProfile = (profile: Profile) => {
-    setBlockedProfileIds((current) => (current.includes(profile.id) ? current : [...current, profile.id]))
+  const blockProfileById = (profileId: number, profileName = 'Profile') => {
+    setBlockedProfileIds((current) => (current.includes(profileId) ? current : [...current, profileId]))
     setChatThreads((current) => {
       const clone = { ...current }
-      delete clone[profile.id]
+      delete clone[profileId]
       return clone
     })
     setUnreadChats((current) => {
       const clone = { ...current }
-      delete clone[profile.id]
+      delete clone[profileId]
       return clone
     })
     setHistory((current) => ({
-      likedIds: current.likedIds.filter((id) => id !== profile.id),
-      passedIds: current.passedIds.filter((id) => id !== profile.id),
-      matchIds: current.matchIds.filter((id) => id !== profile.id),
+      likedIds: current.likedIds.filter((id) => id !== profileId),
+      passedIds: current.passedIds.filter((id) => id !== profileId),
+      matchIds: current.matchIds.filter((id) => id !== profileId),
     }))
-    if (activeChatId === profile.id) {
+    if (activeChatId === profileId) {
       setActiveChatId(null)
     }
-    pushToast(`${profile.name} blocked.`, 'info')
+    pushToast(`${profileName} blocked.`, 'info')
+  }
+
+  const blockProfile = (profile: Profile) => {
+    blockProfileById(profile.id, profile.name)
+  }
+
+  const resolveAndBlockReport = (report: SafetyReport) => {
+    updateReportStatus(report.id, 'resolved')
+    blockProfileById(report.profileId, report.profileName)
+    pushNotification({
+      title: `Resolved report for ${report.profileName}`,
+      body: 'Profile blocked and report marked as resolved.',
+      category: 'safety',
+    })
   }
 
   const handlePointerDown = (event: React.PointerEvent<HTMLElement>) => {
@@ -4053,6 +4067,9 @@ function App() {
                         </button>
                         <button type="button" className="ghost" onClick={() => updateReportStatus(report.id, 'resolved')}>
                           Resolve
+                        </button>
+                        <button type="button" className="danger" onClick={() => resolveAndBlockReport(report)}>
+                          Resolve + Block
                         </button>
                         <button type="button" className="danger" onClick={() => updateReportStatus(report.id, 'dismissed')}>
                           Dismiss
