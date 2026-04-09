@@ -1,0 +1,55 @@
+LOVEDATE - BEAT BOO ROADMAP (v1)
+Saved: 2026-04-08
+
+Goal
+Build a personality-first dating + community app that can outperform Boo for your target audience.
+
+Phase 1 - Personality Core (Now)
+1. Upgrade matching engine with weighted personality signals, intent alignment, distance, shared interests, and trust signals.
+2. Show "Why you match" explanations on Discover cards.
+3. Show detailed compatibility breakdown in Full Profile.
+4. Keep scoring transparent and human-readable (not black box).
+
+Phase 2 - Community Layer
+1. Interest Groups/Circles (Design, Travel, Coffee, etc.).
+2. Group discovery and join/leave flows.
+3. Group feed + pinned topics + lightweight moderation tools.
+4. Group events (online and local meetups).
+
+Phase 3 - Social Graph
+1. Follow/friend model beyond romantic matches.
+2. Graph recommendations from shared interests + group overlap.
+3. "People like you" and "Friends of your circles" rails.
+4. Relationship pathways: Date / Friends / Community.
+
+Phase 4 - Trust and Safety Leadership
+1. Dedicated moderation center (already started).
+2. Report evidence attachments + admin notes + decision audit trail.
+3. Escalation actions: warning, temporary restrict, block, ban.
+4. Safety reputation score and repeat-offender detection.
+
+Phase 5 - Retention and Quality
+1. Daily prompts and community challenges.
+2. Better onboarding and profile completion guidance.
+3. Real-time chat reliability and sync across devices.
+4. Push/email lifecycle notifications and re-engagement loops.
+
+Phase 6 - Scale and Distribution
+1. KPI dashboard: signup -> profile complete -> match -> chat reply -> day-7 retention.
+2. Feature flags + staged rollouts + rollback checkpoints.
+3. Mobile performance hardening.
+4. Compliance baseline (privacy, terms, consent, account deletion/export).
+
+Execution order
+1) Personality Core
+2) Community Layer
+3) Social Graph
+4) Trust and Safety
+5) Retention and Quality
+6) Scale and Distribution
+
+Definition of success
+- Users understand why they match.
+- Community activity grows without lowering safety.
+- Retention improves week over week.
+- Moderation decisions are fast, clear, and auditable.

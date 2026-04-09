@@ -1,0 +1,31 @@
+High-impact AI features:
+
+Smart profile writer
+Turns rough user notes into high-quality bio/prompts in their tone.
+
+AI photo quality coach
+Scores profile photos (clarity, framing, vibe) and suggests better primary photo.
+
+Conversation sentiment + pacing assistant
+Detects when chat is cooling down and suggests recovery prompts.
+
+Date planner AI
+Generates personalized first-date ideas from interests, location, time, budget.
+
+Safety AI triage
+Auto-prioritizes reports (harassment/scam risk) and summarizes evidence for admin.
+
+Match explainability engine
+Shows deeper “why this match” breakdown with dynamic tips to improve compatibility.
+
+Re-engagement AI
+Creates personalized nudges for inactive matches (“best next message” per thread).
+
+AI moderation for circles
+Flags toxic/spam posts and suggests soft/hard moderation actions.
+
+Profile-to-profile question generator
+Creates unique, context-aware icebreakers between two specific users.
+
+Compatibility forecast
+Predicts likely friction points and gives proactive communication advice.
