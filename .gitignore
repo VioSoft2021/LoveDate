@@ -31,3 +31,5 @@ Thumbs.db
 Figma export/
 
 .vercel
+.env.prod.check
+backups/
