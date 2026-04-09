@@ -70,8 +70,10 @@ type AppScreen =
   | 'login'
   | 'discover'
   | 'activity'
+  | 'circles'
   | 'chats'
   | 'profile'
+  | 'personality-guide'
   | 'settings'
   | 'moderation'
   | 'profile-detail'
@@ -116,6 +118,16 @@ type ChatMessage = {
   status?: 'sending' | 'sent' | 'read'
 }
 
+type DatePlan = {
+  id: string
+  title: string
+  placeType: string
+  budget: '$' | '$$' | '$$$'
+  duration: string
+  pitch: string
+  message: string
+}
+
 type Toast = {
   id: number
   message: string
@@ -131,15 +143,71 @@ type NotificationItem = {
   category: 'match' | 'message' | 'system' | 'safety'
 }
 
+type MatchAnalysis = {
+  score: number
+  personalityScore: number
+  sharedInterests: string[]
+  intentAligned: boolean
+  zodiacAligned: boolean
+  ageGap: number
+  reasons: string[]
+  caution: string | null
+  pairCode: string
+}
+
+type ChemistryInsights = {
+  chemistryScore: number
+  cognitiveOverlapScore: number
+  zodiacAligned: boolean
+  summary: string
+}
+
+type ModerationFilter = 'all' | ModerationStatus
+
 type CallState = {
   active: boolean
   type: 'audio' | 'video' | null
-  status: 'ringing' | 'connected'
+  status: 'inviting' | 'in-room'
   startedAt: number
   targetProfileId: number | null
   muted: boolean
   cameraOff: boolean
+  roomId: string | null
+  roomUrl: string | null
 }
+
+type Circle = {
+  id: string
+  name: string
+  theme: string
+  description: string
+  tags: string[]
+  memberCount: number
+  hero: string
+  events: Array<{
+    id: string
+    title: string
+    when: string
+    where: string
+  }>
+}
+
+type CirclePost = {
+  id: string
+  circleId: string
+  author: string
+  text: string
+  createdAt: number
+}
+
+type SocialPlatform = 'x' | 'instagram' | 'facebook' | 'linkedin' | 'tiktok'
+
+type SocialConnection = {
+  connected: boolean
+  handle: string
+}
+
+type SocialConnections = Record<SocialPlatform, SocialConnection>
 
 type SelfProfile = {
   name: string
@@ -173,6 +241,8 @@ type SelfProfile = {
   dealbreakers: string[]
   instagram: string
   anthem: string
+  socialConnections: SocialConnections
+  socialPromotionOptIn: boolean
   travelMode: boolean
   photos: string[]
   personalityAnswers: PersonalityAnswer[]
@@ -207,6 +277,86 @@ const HISTORY_STORAGE_KEY = 'lovedate:swipe-history'
 const AUTH_STORAGE_KEY = 'lovedate:auth-session'
 const SELF_PROFILE_STORAGE_KEY = 'lovedate:self-profile'
 const CHAT_THREADS_STORAGE_KEY = 'lovedate:chat-threads'
+const CIRCLES_JOINED_STORAGE_KEY = 'lovedate:circles-joined'
+const CIRCLES_POSTS_STORAGE_KEY = 'lovedate:circles-posts'
+const CIRCLES_RSVP_STORAGE_KEY = 'lovedate:circles-rsvp'
+const CHAT_RENDER_WINDOW = 120
+const APP_BOOT_TS = Date.now()
+
+const CIRCLE_SEED: Circle[] = [
+  {
+    id: 'design-lounge',
+    name: 'Design Lounge',
+    theme: 'Creative critiques and inspiration',
+    description: 'For product, UX, and visual people who love deep craft conversations and portfolio energy.',
+    tags: ['Design', 'UX', 'Creativity'],
+    memberCount: 182,
+    hero:
+      'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=2000&q=90',
+    events: [
+      { id: 'dl-event-1', title: 'UX Coffee Jam', when: 'Thu 19:00', where: 'Online room' },
+      { id: 'dl-event-2', title: 'Portfolio Roast Night', when: 'Sat 21:00', where: 'Community Live' },
+    ],
+  },
+  {
+    id: 'travel-circle',
+    name: 'Travel Circle',
+    theme: 'Trips, city guides, and adventure plans',
+    description: 'Share routes, hidden spots, and spontaneous weekend plans with fellow explorers.',
+    tags: ['Travel', 'City breaks', 'Adventure'],
+    memberCount: 246,
+    hero:
+      'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=2000&q=90',
+    events: [
+      { id: 'tr-event-1', title: '48h Escape Planning', when: 'Fri 18:30', where: 'Online room' },
+      { id: 'tr-event-2', title: 'Budget Europe Hacks', when: 'Sun 20:00', where: 'Audio circle' },
+    ],
+  },
+  {
+    id: 'coffee-club',
+    name: 'Coffee Club',
+    theme: 'Beans, cafes, and cozy date spots',
+    description: 'From espresso rituals to best date-friendly cafes in every city.',
+    tags: ['Coffee', 'Brunch', 'Cafes'],
+    memberCount: 139,
+    hero:
+      'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=2000&q=90',
+    events: [
+      { id: 'cf-event-1', title: 'Home Brew Workshop', when: 'Wed 20:30', where: 'Live stream' },
+      { id: 'cf-event-2', title: 'Best First-Date Cafes', when: 'Sat 17:00', where: 'Group chat' },
+    ],
+  },
+  {
+    id: 'music-vinyl',
+    name: 'Music & Vinyl',
+    theme: 'Playlists, vinyl finds, and concerts',
+    description: 'Share sounds, discover artists, and plan live-gig meetups.',
+    tags: ['Music', 'Vinyl', 'Concerts'],
+    memberCount: 167,
+    hero:
+      'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=2000&q=90',
+    events: [
+      { id: 'mv-event-1', title: 'Friday Playlist Battle', when: 'Fri 22:00', where: 'Live room' },
+      { id: 'mv-event-2', title: 'Album Listening Party', when: 'Sun 21:00', where: 'Audio circle' },
+    ],
+  },
+]
+
+const SOCIAL_PLATFORM_META: Array<{ id: SocialPlatform; label: string; shortLabel: string }> = [
+  { id: 'x', label: 'X (Twitter)', shortLabel: 'X' },
+  { id: 'instagram', label: 'Instagram', shortLabel: 'IG' },
+  { id: 'facebook', label: 'Facebook', shortLabel: 'FB' },
+  { id: 'linkedin', label: 'LinkedIn', shortLabel: 'LI' },
+  { id: 'tiktok', label: 'TikTok', shortLabel: 'TT' },
+]
+
+const DEFAULT_SOCIAL_CONNECTIONS: SocialConnections = {
+  x: { connected: false, handle: '' },
+  instagram: { connected: false, handle: '' },
+  facebook: { connected: false, handle: '' },
+  linkedin: { connected: false, handle: '' },
+  tiktok: { connected: false, handle: '' },
+}
 
 const buildHighResImageUrl = (url: string, width = 2400, dpr = 2): string => {
   try {
@@ -225,6 +375,40 @@ const buildHighResImageUrl = (url: string, width = 2400, dpr = 2): string => {
   } catch {
     return url
   }
+}
+
+const toDataUrl = (blob: Blob): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result
+      if (typeof result === 'string') {
+        resolve(result)
+      } else {
+        reject(new Error('Could not read media file.'))
+      }
+    }
+    reader.onerror = () => reject(reader.error ?? new Error('Could not read media file.'))
+    reader.readAsDataURL(blob)
+  })
+
+const getStrongPasswordError = (password: string): string | null => {
+  if (password.length < 10) {
+    return 'Password must be at least 10 characters.'
+  }
+  if (!/[A-Z]/.test(password)) {
+    return 'Password must include at least one uppercase letter.'
+  }
+  if (!/[a-z]/.test(password)) {
+    return 'Password must include at least one lowercase letter.'
+  }
+  if (!/[0-9]/.test(password)) {
+    return 'Password must include at least one number.'
+  }
+  if (!/[^A-Za-z0-9]/.test(password)) {
+    return 'Password must include at least one symbol.'
+  }
+  return null
 }
 
 const normalizeProfilePhotos = (profile: Profile): Profile => ({
@@ -292,12 +476,399 @@ const DEFAULT_SELF_PROFILE: SelfProfile = {
   dealbreakers: ['Rudeness', 'Dishonesty'],
   instagram: '@you',
   anthem: 'Midnight City - M83',
+  socialConnections: DEFAULT_SOCIAL_CONNECTIONS,
+  socialPromotionOptIn: true,
   travelMode: false,
   photos: [
     'https://images.unsplash.com/photo-1521119989659-a83eee488004?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
   ],
   personalityAnswers: ['B', 'A', 'A', 'A', 'A', 'A', 'A', 'A'],
+}
+
+const PERSONALITY_DIMENSIONS: Array<{
+  letter: string
+  title: string
+  meaning: string
+  opposite: string
+}> = [
+  {
+    letter: 'D',
+    title: 'Dynamic',
+    meaning: 'High energy, action-first, proactive in social and romantic momentum.',
+    opposite: 'C (Calm)',
+  },
+  {
+    letter: 'C',
+    title: 'Calm',
+    meaning: 'Grounded energy, reflective style, prefers steadier pace and emotional depth.',
+    opposite: 'D (Dynamic)',
+  },
+  {
+    letter: 'S',
+    title: 'Spontaneous',
+    meaning: 'Enjoys flexible plans, novelty, and in-the-moment decisions.',
+    opposite: 'M (Measured)',
+  },
+  {
+    letter: 'M',
+    title: 'Measured',
+    meaning: 'Likes deliberate pacing, clarity, and thoughtful progression.',
+    opposite: 'S (Spontaneous)',
+  },
+  {
+    letter: 'O',
+    title: 'Outgoing',
+    meaning: 'Socially expressive, gains energy from people and active interaction.',
+    opposite: 'F (Focused)',
+  },
+  {
+    letter: 'F',
+    title: 'Focused',
+    meaning: 'Selective with social energy, prefers fewer but deeper connections.',
+    opposite: 'O (Outgoing)',
+  },
+  {
+    letter: 'A',
+    title: 'Adaptive',
+    meaning: 'Comfortable with uncertainty, adjusts quickly when plans shift.',
+    opposite: 'R (Reliable)',
+  },
+  {
+    letter: 'R',
+    title: 'Reliable',
+    meaning: 'Values structure, consistency, and predictable emotional safety.',
+    opposite: 'A (Adaptive)',
+  },
+]
+
+const PERSONALITY_TYPE_GUIDE: Array<{
+  code: string
+  label: string
+  summary: string
+}> = [
+  { code: 'DSOA', label: 'Spark Explorer', summary: 'Fast-moving, social, and flexible. Thrives on novelty and momentum.' },
+  { code: 'DSOR', label: 'Social Trailblazer', summary: 'Bold and outgoing, but with a dependable backbone in relationships.' },
+  { code: 'DSFA', label: 'Focused Adventurer', summary: 'Energetic and spontaneous with a selective, depth-first social style.' },
+  { code: 'DSFR', label: 'Intentional Firestarter', summary: 'High-energy and direct, yet loyal to structure where it matters.' },
+  { code: 'DMOA', label: 'Vision Catalyst', summary: 'Driven and social with thoughtful pacing and adaptable execution.' },
+  { code: 'DMOR', label: 'Strategic Charmer', summary: 'People-oriented and confident, blending planning with charisma.' },
+  { code: 'DMFA', label: 'Calibrated Maverick', summary: 'Purposeful intensity, private depth, and flexible life navigation.' },
+  { code: 'DMFR', label: 'Architect Heart', summary: 'Ambitious, intentional, and loyal. Builds relationships with depth and structure.' },
+  { code: 'CSOA', label: 'Warm Voyager', summary: 'Gentle energy with social spontaneity and openness to change.' },
+  { code: 'CSOR', label: 'Steady Connector', summary: 'Calm and social with a dependable, grounding relationship style.' },
+  { code: 'CSFA', label: 'Quiet Wanderer', summary: 'Reflective and selective, but playful and open to surprises.' },
+  { code: 'CSFR', label: 'Grounded Romantic', summary: 'Soft-spoken and intentional, values trust, consistency, and emotional depth.' },
+  { code: 'CMOA', label: 'Balanced Diplomat', summary: 'Thoughtful and social, prefers quality pacing with adaptive mindset.' },
+  { code: 'CMOR', label: 'Harmony Builder', summary: 'Reliable, people-centered, and emotionally steady in long-term dynamics.' },
+  { code: 'CMFA', label: 'Reflective Creator', summary: 'Calm, inward-focused, and flexible. Builds strong one-to-one bonds.' },
+  { code: 'CMFR', label: 'Deep Anchor', summary: 'Reserved, consistent, and deeply loyal. Strong foundation for stable love.' },
+]
+
+const PERSONALITY_COGNITIVE_FUNCTIONS: Record<
+  string,
+  { primary: string; support: string; tertiary: string; shadow: string }
+> = {
+  DSOA: {
+    primary: 'Se Vision: Acts quickly on chemistry and real-world momentum.',
+    support: 'Fe Sync: Reads social energy and adapts to group dynamics.',
+    tertiary: 'Ne Spark: Generates new date ideas and playful possibilities.',
+    shadow: 'Ti Check: Can skip reflection when moving too fast.',
+  },
+  DSOR: {
+    primary: 'Se Vision: Confident action and direct romantic initiative.',
+    support: 'Te Structuring: Turns attraction into clear plans.',
+    tertiary: 'Fe Warmth: Social ease and expressive connection style.',
+    shadow: 'Ni Overfocus: May lock on outcomes too early.',
+  },
+  DSFA: {
+    primary: 'Se Vision: Loves immediate chemistry and shared experiences.',
+    support: 'Fi Depth: Strong private values and emotional authenticity.',
+    tertiary: 'Ne Spark: Creative twists and spontaneous exploration.',
+    shadow: 'Te Rigidity: Can resist external structure.',
+  },
+  DSFR: {
+    primary: 'Se Vision: Action-led and physically present in connection.',
+    support: 'Si Loyalty: Builds trust through consistency and routines.',
+    tertiary: 'Fi Depth: Selective emotional openness.',
+    shadow: 'Ne Drift: May feel stretched by too many options.',
+  },
+  DMOA: {
+    primary: 'Te Structuring: Goal-oriented, clear, and execution-focused.',
+    support: 'Ne Spark: Expands options and sees future opportunities.',
+    tertiary: 'Fe Warmth: Engages socially with confidence.',
+    shadow: 'Fi Doubt: Can postpone vulnerable emotional expression.',
+  },
+  DMOR: {
+    primary: 'Te Structuring: Organizes relationships with clarity and intent.',
+    support: 'Si Loyalty: Reliable follow-through and practical care.',
+    tertiary: 'Fe Warmth: Social confidence with emotional steadiness.',
+    shadow: 'Ne Drift: May over-control uncertainty.',
+  },
+  DMFA: {
+    primary: 'Ni Patterning: Strategic thinker who sees deeper direction.',
+    support: 'Te Structuring: Turns insight into real action.',
+    tertiary: 'Fi Depth: Protective inner values and selective intimacy.',
+    shadow: 'Se Overload: Can feel drained by chaotic environments.',
+  },
+  DMFR: {
+    primary: 'Ni Patterning: Reads long-term compatibility and relational trajectory.',
+    support: 'Te Structuring: Creates secure, practical relationship systems.',
+    tertiary: 'Fi Depth: Values loyalty, integrity, and emotional truth.',
+    shadow: 'Se Overload: May underplay present-moment spontaneity.',
+  },
+  CSOA: {
+    primary: 'Fe Sync: Nurtures social harmony and emotional inclusion.',
+    support: 'Ne Spark: Curious, playful, and idea-open in dating.',
+    tertiary: 'Si Loyalty: Warm consistency over time.',
+    shadow: 'Ti Detach: Can delay hard boundaries.',
+  },
+  CSOR: {
+    primary: 'Fe Sync: Relationship-centered and emotionally attentive.',
+    support: 'Si Loyalty: Reliable care and steady relational rituals.',
+    tertiary: 'Ne Spark: Open to shared adventures when trust is high.',
+    shadow: 'Ti Detach: May over-prioritize peace over clarity.',
+  },
+  CSFA: {
+    primary: 'Fi Depth: Values emotional authenticity and one-to-one truth.',
+    support: 'Ne Spark: Creative romantic expression.',
+    tertiary: 'Si Loyalty: Stable, memory-rich attachment style.',
+    shadow: 'Te Push: Can avoid direct confrontation.',
+  },
+  CSFR: {
+    primary: 'Fi Depth: Deeply values sincerity and emotional safety.',
+    support: 'Si Loyalty: Grounded, nurturing, and dependable presence.',
+    tertiary: 'Ne Spark: Gentle curiosity in connection.',
+    shadow: 'Te Push: May need time before decisive action.',
+  },
+  CMOA: {
+    primary: 'Ti Check: Reflective analysis before commitment.',
+    support: 'Ne Spark: Enjoys idea-rich conversations and novelty.',
+    tertiary: 'Fe Sync: Warms gradually through shared understanding.',
+    shadow: 'Si Stuck: Can over-reference past patterns.',
+  },
+  CMOR: {
+    primary: 'Si Loyalty: Stability-first and trust-building over time.',
+    support: 'Te Structuring: Clear standards and practical consistency.',
+    tertiary: 'Fe Warmth: Gentle care with social reliability.',
+    shadow: 'Ne Drift: May resist rapid change.',
+  },
+  CMFA: {
+    primary: 'Fi Depth: Inner-value led and emotionally nuanced.',
+    support: 'Ni Patterning: Sees meaning and long-range dynamics.',
+    tertiary: 'Se Presence: Expresses through lived moments.',
+    shadow: 'Te Push: Can under-communicate concrete needs.',
+  },
+  CMFR: {
+    primary: 'Si Loyalty: Consistent, grounded, and emotionally dependable.',
+    support: 'Fi Depth: Quiet but profound emotional sincerity.',
+    tertiary: 'Te Structuring: Practical support and long-term reliability.',
+    shadow: 'Ne Drift: Hesitates with ambiguous or rapidly changing dynamics.',
+  },
+}
+
+const ZODIAC_DESCRIPTIONS: Record<
+  string,
+  {
+    overview: string
+    loveStyle: string
+    communication: string
+    greenFlags: string
+    growthEdge: string
+    bestMatches: string
+  }
+> = {
+  Aries: {
+    overview: 'Bold initiator with passionate momentum. Aries moves fast when chemistry feels real.',
+    loveStyle: 'Direct, playful, and action-oriented. Loves dates that feel alive and adventurous.',
+    communication: 'Honest and immediate. Prefers clarity over mixed signals.',
+    greenFlags: 'Courage, loyalty in conflict, and willingness to show up quickly.',
+    growthEdge: 'Can rush emotional pacing before deeper alignment is established.',
+    bestMatches: 'Leo, Sagittarius, Gemini, Aquarius, Libra',
+  },
+  Taurus: {
+    overview: 'Steady sensualist who builds love through consistency, touch, and trust.',
+    loveStyle: 'Slow-burn and devoted. Invests deeply once safety is established.',
+    communication: 'Grounded and practical. Values reliability in words and actions.',
+    greenFlags: 'Emotional stability, patience, and dependable follow-through.',
+    growthEdge: 'May resist change or hold on to comfort too long.',
+    bestMatches: 'Virgo, Capricorn, Cancer, Pisces',
+  },
+  Gemini: {
+    overview: 'Curious connector who bonds through ideas, humor, and mental spark.',
+    loveStyle: 'Playful, social, and novelty-seeking. Thrives in dynamic conversations.',
+    communication: 'Fast, expressive, and witty. Loves responsive dialogue.',
+    greenFlags: 'Open-mindedness, adaptability, and social intelligence.',
+    growthEdge: 'Can struggle with emotional consistency when bored.',
+    bestMatches: 'Libra, Aquarius, Aries, Leo',
+  },
+  Cancer: {
+    overview: 'Protective heart with strong emotional intuition and care instincts.',
+    loveStyle: 'Nurturing, attachment-oriented, and deeply sentimental.',
+    communication: 'Emotion-first and subtle. Reads tone and intention carefully.',
+    greenFlags: 'Loyalty, compassion, and relationship dedication.',
+    growthEdge: 'May withdraw or become defensive when feeling unsafe.',
+    bestMatches: 'Scorpio, Pisces, Taurus, Virgo',
+  },
+  Leo: {
+    overview: 'Warm spotlight giver who loves expressive romance and confident connection.',
+    loveStyle: 'Generous, loyal, and affectionate. Enjoys visible appreciation.',
+    communication: 'Open and charismatic. Responds well to sincere admiration.',
+    greenFlags: 'Big-hearted devotion, protective instinct, and consistency in affection.',
+    growthEdge: 'Can over-index on validation when feeling unseen.',
+    bestMatches: 'Aries, Sagittarius, Gemini, Libra',
+  },
+  Virgo: {
+    overview: 'Intentional partner who expresses love through care, precision, and effort.',
+    loveStyle: 'Practical devotion. Builds trust through meaningful details.',
+    communication: 'Clear, thoughtful, and solution-oriented.',
+    greenFlags: 'Reliability, emotional responsibility, and strong standards.',
+    growthEdge: 'May overanalyze or become too self-critical.',
+    bestMatches: 'Taurus, Capricorn, Cancer, Scorpio',
+  },
+  Libra: {
+    overview: 'Harmony seeker who values emotional balance, aesthetics, and mutuality.',
+    loveStyle: 'Romantic, socially graceful, and partnership-focused.',
+    communication: 'Diplomatic and relational. Prefers collaborative tone.',
+    greenFlags: 'Fairness, charm, and commitment to mutual respect.',
+    growthEdge: 'Can delay hard decisions to avoid conflict.',
+    bestMatches: 'Gemini, Aquarius, Leo, Sagittarius',
+  },
+  Scorpio: {
+    overview: 'Intensity and depth sign. Bonds through trust, loyalty, and emotional truth.',
+    loveStyle: 'All-in attachment with strong protective and transformative energy.',
+    communication: 'Private but piercingly honest when trust is built.',
+    greenFlags: 'Emotional courage, loyalty, and deep commitment.',
+    growthEdge: 'Can become guarded or controlling under uncertainty.',
+    bestMatches: 'Cancer, Pisces, Virgo, Capricorn',
+  },
+  Sagittarius: {
+    overview: 'Freedom-loving explorer with optimistic, curious dating energy.',
+    loveStyle: 'Adventure-forward and honest. Needs space and shared growth.',
+    communication: 'Straightforward, candid, and future-oriented.',
+    greenFlags: 'Authenticity, positivity, and openness to exploration.',
+    growthEdge: 'May avoid emotional heaviness if pace feels restrictive.',
+    bestMatches: 'Aries, Leo, Libra, Aquarius',
+  },
+  Capricorn: {
+    overview: 'Grounded builder who takes commitment seriously and plans long-term.',
+    loveStyle: 'Stable, intentional, and loyalty-centered.',
+    communication: 'Measured and practical. Prefers substance over drama.',
+    greenFlags: 'Reliability, ambition, and strong relational accountability.',
+    growthEdge: 'Can appear emotionally reserved during early stages.',
+    bestMatches: 'Taurus, Virgo, Scorpio, Pisces',
+  },
+  Aquarius: {
+    overview: 'Independent visionary who seeks authenticity, ideas, and mutual freedom.',
+    loveStyle: 'Friendship-led intimacy with strong individuality.',
+    communication: 'Conceptual, open-minded, and future-facing.',
+    greenFlags: 'Respect for boundaries, originality, and intellectual honesty.',
+    growthEdge: 'Can intellectualize emotions instead of feeling them fully.',
+    bestMatches: 'Gemini, Libra, Sagittarius, Aries',
+  },
+  Pisces: {
+    overview: 'Empathic dreamer with rich intuition and romantic imagination.',
+    loveStyle: 'Tender, soulful, and emotionally immersive.',
+    communication: 'Sensitive and symbolic. Needs emotional safety.',
+    greenFlags: 'Compassion, creativity, and emotional attunement.',
+    growthEdge: 'May blur boundaries when idealizing connection.',
+    bestMatches: 'Cancer, Scorpio, Taurus, Capricorn',
+  },
+}
+
+const ZODIAC_DEEP_DIVE: Record<
+  string,
+  {
+    emotionalNeeds: string
+    intimacyStyle: string
+    conflictStyle: string
+    idealDateEnergy: string
+  }
+> = {
+  Aries: {
+    emotionalNeeds: 'Respect, momentum, and a partner who meets intensity with honesty.',
+    intimacyStyle: 'Passionate and direct. Attraction grows through shared action and challenge.',
+    conflictStyle: 'Fast and fiery, then ready to reset when clarity is reached.',
+    idealDateEnergy: 'Active, bold, and spontaneous.',
+  },
+  Taurus: {
+    emotionalNeeds: 'Safety, consistency, and trustworthy routines.',
+    intimacyStyle: 'Sensual, loyal, and gradually deepening through reliability.',
+    conflictStyle: 'Patient, but stubborn when boundaries or values are pushed.',
+    idealDateEnergy: 'Cozy, tactile, and grounded.',
+  },
+  Gemini: {
+    emotionalNeeds: 'Mental stimulation, playfulness, and freedom to explore ideas.',
+    intimacyStyle: 'Curious and conversational. Attraction grows through shared wit and novelty.',
+    conflictStyle: 'Talks things out quickly, but may shift topics when emotions get heavy.',
+    idealDateEnergy: 'Light, social, and intellectually fun.',
+  },
+  Cancer: {
+    emotionalNeeds: 'Emotional safety, reassurance, and genuine care.',
+    intimacyStyle: 'Deep bonding, nurturing gestures, and trust-first vulnerability.',
+    conflictStyle: 'Protective and sensitive. Needs warmth and patience to reopen.',
+    idealDateEnergy: 'Tender, private, and heartfelt.',
+  },
+  Leo: {
+    emotionalNeeds: 'Appreciation, loyalty, and emotional admiration.',
+    intimacyStyle: 'Warm, affectionate, and expressive with generous romantic effort.',
+    conflictStyle: 'Proud but sincere. Resolves best through respectful acknowledgment.',
+    idealDateEnergy: 'Playful, glamorous, and celebratory.',
+  },
+  Virgo: {
+    emotionalNeeds: 'Reliability, practical care, and emotional sincerity.',
+    intimacyStyle: 'Detail-driven devotion. Love is shown through thoughtful consistency.',
+    conflictStyle: 'Analytical and solution-focused; prefers constructive, calm repair.',
+    idealDateEnergy: 'Intentional, quality-focused, and meaningful.',
+  },
+  Libra: {
+    emotionalNeeds: 'Mutual respect, emotional harmony, and balanced partnership.',
+    intimacyStyle: 'Romantic, attentive, and aesthetically minded connection.',
+    conflictStyle: 'Diplomatic, but can delay tension if tone feels harsh.',
+    idealDateEnergy: 'Elegant, social, and emotionally balanced.',
+  },
+  Scorpio: {
+    emotionalNeeds: 'Trust, loyalty, and emotional depth without games.',
+    intimacyStyle: 'Intense and transformative. Bonds through honesty and total presence.',
+    conflictStyle: 'All-or-nothing when trust is threatened; repairs through truth and accountability.',
+    idealDateEnergy: 'Private, magnetic, and emotionally deep.',
+  },
+  Sagittarius: {
+    emotionalNeeds: 'Freedom, honesty, and shared growth.',
+    intimacyStyle: 'Adventure-led bonding with authentic, unfiltered connection.',
+    conflictStyle: 'Direct and blunt; needs room plus perspective to reconnect.',
+    idealDateEnergy: 'Exploratory, optimistic, and expansive.',
+  },
+  Capricorn: {
+    emotionalNeeds: 'Respect, long-term alignment, and proven reliability.',
+    intimacyStyle: 'Steady commitment that deepens through earned trust.',
+    conflictStyle: 'Controlled and pragmatic; prefers solutions and accountability.',
+    idealDateEnergy: 'Structured, quality-driven, and purposeful.',
+  },
+  Aquarius: {
+    emotionalNeeds: 'Authenticity, space, and intellectual equality.',
+    intimacyStyle: 'Friendship-first intimacy with strong individuality.',
+    conflictStyle: 'Detached at first; re-engages through logic and fairness.',
+    idealDateEnergy: 'Original, unconventional, and idea-rich.',
+  },
+  Pisces: {
+    emotionalNeeds: 'Emotional tenderness, empathy, and gentle clarity.',
+    intimacyStyle: 'Soulful and imaginative. Love flows through emotional resonance.',
+    conflictStyle: 'Avoidant under pressure, but deeply receptive to soft honesty.',
+    idealDateEnergy: 'Dreamy, creative, and emotionally safe.',
+  },
+}
+
+const cognitiveFunctionTokens = (stack: {
+  primary: string
+  support: string
+  tertiary: string
+  shadow: string
+}): string[] => {
+  const toToken = (value: string) => value.trim().split(/\s+/)[0] ?? ''
+  return [toToken(stack.primary), toToken(stack.support), toToken(stack.tertiary), toToken(stack.shadow)].filter(
+    (item) => item.length > 0,
+  )
 }
 
 const parseRoute = (path: string): { screen: AppScreen; profileId: number | null } => {
@@ -313,12 +884,20 @@ const parseRoute = (path: string): { screen: AppScreen; profileId: number | null
     return { screen: 'activity', profileId: null }
   }
 
+  if (path === '/circles') {
+    return { screen: 'circles', profileId: null }
+  }
+
   if (path === '/chats') {
     return { screen: 'chats', profileId: null }
   }
 
   if (path === '/profile') {
     return { screen: 'profile', profileId: null }
+  }
+
+  if (path === '/personality-guide') {
+    return { screen: 'personality-guide', profileId: null }
   }
 
   if (path === '/settings') {
@@ -354,6 +933,14 @@ const buildPath = (screen: AppScreen, profileId: number | null): string => {
 
   if (screen === 'moderation') {
     return '/moderation'
+  }
+
+  if (screen === 'personality-guide') {
+    return '/personality-guide'
+  }
+
+  if (screen === 'circles') {
+    return '/circles'
   }
 
   return `/${screen}`
@@ -434,6 +1021,25 @@ const readSelfProfile = (email = ''): SelfProfile => {
     const safeString = (value: unknown, fallback: string): string => {
       return typeof value === 'string' && value.trim().length > 0 ? value : fallback
     }
+    const parsedSocialRaw = parsed.socialConnections
+    const parsedSocialObject =
+      parsedSocialRaw && typeof parsedSocialRaw === 'object'
+        ? (parsedSocialRaw as Partial<Record<SocialPlatform, Partial<SocialConnection>>>)
+        : {}
+    const safeSocialConnections = SOCIAL_PLATFORM_META.reduce((accumulator, platform) => {
+      const next = parsedSocialObject[platform.id]
+      accumulator[platform.id] = {
+        connected:
+          typeof next?.connected === 'boolean'
+            ? next.connected
+            : DEFAULT_SOCIAL_CONNECTIONS[platform.id].connected,
+        handle:
+          typeof next?.handle === 'string'
+            ? next.handle.slice(0, 60)
+            : DEFAULT_SOCIAL_CONNECTIONS[platform.id].handle,
+      }
+      return accumulator
+    }, {} as SocialConnections)
 
     return {
       name: safeString(parsed.name, DEFAULT_SELF_PROFILE.name),
@@ -471,6 +1077,11 @@ const readSelfProfile = (email = ''): SelfProfile => {
       dealbreakers: safeDealbreakers.length > 0 ? safeDealbreakers : DEFAULT_SELF_PROFILE.dealbreakers,
       instagram: safeString(parsed.instagram, DEFAULT_SELF_PROFILE.instagram),
       anthem: safeString(parsed.anthem, DEFAULT_SELF_PROFILE.anthem),
+      socialConnections: safeSocialConnections,
+      socialPromotionOptIn:
+        typeof parsed.socialPromotionOptIn === 'boolean'
+          ? parsed.socialPromotionOptIn
+          : DEFAULT_SELF_PROFILE.socialPromotionOptIn,
       travelMode: typeof parsed.travelMode === 'boolean' ? parsed.travelMode : DEFAULT_SELF_PROFILE.travelMode,
       photos: safePhotos.length > 0 ? safePhotos : DEFAULT_SELF_PROFILE.photos,
       personalityAnswers:
@@ -515,6 +1126,7 @@ const toProfileDraft = (profile: SelfProfile) => ({
   dealbreakers: profile.dealbreakers.join(', '),
   instagram: profile.instagram,
   anthem: profile.anthem,
+  socialPromotionOptIn: profile.socialPromotionOptIn,
   travelMode: profile.travelMode,
   photos: profile.photos,
   personalityAnswers: profile.personalityAnswers,
@@ -566,8 +1178,98 @@ const readChatThreads = (): Record<number, ChatMessage[]> => {
   }
 }
 
+const readJoinedCircles = (): string[] => {
+  try {
+    const raw = window.localStorage.getItem(CIRCLES_JOINED_STORAGE_KEY)
+    if (!raw) {
+      return ['design-lounge', 'coffee-club']
+    }
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) {
+      return ['design-lounge', 'coffee-club']
+    }
+    return parsed.filter((item): item is string => typeof item === 'string' && item.length > 0)
+  } catch {
+    return ['design-lounge', 'coffee-club']
+  }
+}
+
+const readCirclePosts = (): CirclePost[] => {
+  try {
+    const raw = window.localStorage.getItem(CIRCLES_POSTS_STORAGE_KEY)
+    if (!raw) {
+      return [
+        {
+          id: 'seed-post-1',
+          circleId: 'design-lounge',
+          author: 'Sofia',
+          text: 'Hot take: the best first-date question is “what are you building for yourself this year?”',
+          createdAt: Date.now() - 1000 * 60 * 43,
+        },
+        {
+          id: 'seed-post-2',
+          circleId: 'coffee-club',
+          author: 'Noah',
+          text: 'Anyone in Berlin wants to test 3 specialty cafes this weekend?',
+          createdAt: Date.now() - 1000 * 60 * 120,
+        },
+      ]
+    }
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+    return parsed
+      .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+      .map((item, index) => ({
+        id: typeof item.id === 'string' ? item.id : `post_${Date.now()}_${index}`,
+        circleId: typeof item.circleId === 'string' ? item.circleId : '',
+        author: typeof item.author === 'string' ? item.author : 'Member',
+        text: typeof item.text === 'string' ? item.text : '',
+        createdAt: Number.isFinite(item.createdAt) ? Number(item.createdAt) : Date.now(),
+      }))
+      .filter((item) => item.circleId.length > 0 && item.text.trim().length > 0)
+  } catch {
+    return []
+  }
+}
+
+const readCircleRsvps = (): Record<string, boolean> => {
+  try {
+    const raw = window.localStorage.getItem(CIRCLES_RSVP_STORAGE_KEY)
+    if (!raw) {
+      return {}
+    }
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object') {
+      return {}
+    }
+    const next: Record<string, boolean> = {}
+    for (const [key, value] of Object.entries(parsed)) {
+      if (typeof value === 'boolean') {
+        next[key] = value
+      }
+    }
+    return next
+  } catch {
+    return {}
+  }
+}
+
 const formatShortTime = (timestamp: number): string =>
   new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+const sanitizeRoomPart = (value: string): string => {
+  const cleaned = value.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+  const normalized = cleaned.replace(/-+/g, '-').replace(/^-+|-+$/g, '')
+  return normalized.slice(0, 24) || 'guest'
+}
+
+const buildCallRoom = (userEmail: string, profileId: number, type: 'audio' | 'video'): string => {
+  const owner = sanitizeRoomPart(userEmail.split('@')[0] ?? 'guest')
+  const stamp = Date.now().toString(36)
+  return `lovedate-${type}-${owner}-${profileId}-${stamp}`
+}
 
 const getProfilePhotos = (profile: Profile): string[] => profile.photos
 
@@ -728,10 +1430,10 @@ const renderEditedPhoto = async (source: string, controls: PhotoStudioControls):
 
 const seedChat = (selfName: string): ChatMessage[] => [
   {
-    id: Date.now(),
+    id: APP_BOOT_TS,
     sender: 'them',
     text: `Hey! Nice to match with you. Up for a chat, ${selfName}?`,
-    createdAt: Date.now(),
+    createdAt: APP_BOOT_TS,
   },
 ]
 
@@ -797,22 +1499,37 @@ function App() {
   const [activeChatId, setActiveChatId] = useState<number | null>(null)
   const [chatDraft, setChatDraft] = useState('')
   const [chatSearch, setChatSearch] = useState('')
+  const [aiCoachSuggestions, setAiCoachSuggestions] = useState<string[]>([])
+  const [aiCoachLoading, setAiCoachLoading] = useState(false)
+  const [aiDatePlans, setAiDatePlans] = useState<DatePlan[]>([])
+  const [aiDatePlannerLoading, setAiDatePlannerLoading] = useState(false)
+  const [circleSearch, setCircleSearch] = useState('')
+  const [joinedCircleIds, setJoinedCircleIds] = useState<string[]>(() => readJoinedCircles())
+  const [circlePosts, setCirclePosts] = useState<CirclePost[]>(() => readCirclePosts())
+  const [circlePostDraft, setCirclePostDraft] = useState('')
+  const [selectedCircleId, setSelectedCircleId] = useState<string>('design-lounge')
+  const [circleRsvps, setCircleRsvps] = useState<Record<string, boolean>>(() => readCircleRsvps())
   const [unreadChats, setUnreadChats] = useState<Record<number, number>>({})
   const [matchQueueIds, setMatchQueueIds] = useState<number[]>([])
   const [chatAttachmentDraft, setChatAttachmentDraft] = useState<ChatMessage['attachment'] | null>(null)
+  const [showFullChatHistory, setShowFullChatHistory] = useState(false)
   const [isRecordingVoice, setIsRecordingVoice] = useState(false)
   const [callState, setCallState] = useState<CallState>({
     active: false,
     type: null,
-    status: 'ringing',
+    status: 'inviting',
     startedAt: 0,
     targetProfileId: null,
     muted: false,
     cameraOff: false,
+    roomId: null,
+    roomUrl: null,
   })
   const [blockedProfileIds, setBlockedProfileIds] = useState<number[]>(() => readBlockedProfileIds())
   const [safetyReports, setSafetyReports] = useState<SafetyReport[]>(() => readModerationQueue())
   const [activeModerationReportId, setActiveModerationReportId] = useState<string | null>(null)
+  const [moderationStatusFilter, setModerationStatusFilter] = useState<ModerationFilter>('open')
+  const [moderationSearchQuery, setModerationSearchQuery] = useState('')
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [boostsLeft, setBoostsLeft] = useState(3)
   const [incognitoMode, setIncognitoMode] = useState(false)
@@ -849,6 +1566,9 @@ function App() {
   const attachmentInputRef = useRef<HTMLInputElement | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const recordedChunksRef = useRef<Blob[]>([])
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null)
+  const preserveScrollOnExpandRef = useRef<{ top: number; height: number } | null>(null)
+  const shouldStickToBottomRef = useRef(true)
   const studioFrameRef = useRef<HTMLDivElement | null>(null)
   const cropDragStartRef = useRef<{ x: number; y: number } | null>(null)
   const cropResizeStartRef = useRef<{
@@ -895,46 +1615,128 @@ function App() {
     setNotifications((current) => current.map((item) => ({ ...item, read: true })))
   }, [])
 
-  const getCompatibilityScore = useCallback(
-    (profile: Profile): number => {
-      let score = 45
+  const getMatchAnalysis = useCallback(
+    (profile: Profile): MatchAnalysis => {
       const myInterests = selfProfile.interests.map((interest) => interest.toLowerCase())
       const sharedInterests = profile.interests.filter((interest) =>
         myInterests.some((mine) => mine.includes(interest.toLowerCase()) || interest.toLowerCase().includes(mine)),
-      ).length
-      score += Math.min(sharedInterests * 12, 30)
-
-      const ageGap = Math.abs(selfProfile.age - profile.age)
-      score += Math.max(0, 14 - ageGap)
-
-      if (selfProfile.city.toLowerCase() === profile.city.toLowerCase()) {
-        score += 10
-      } else if (profile.distanceKm <= 12) {
-        score += 6
-      }
-
-      const myZodiacCompat = ZODIAC_COMPATIBILITY[selfProfile.zodiac] ?? []
-      if (myZodiacCompat.includes(profile.zodiac)) {
-        score += 8
-      }
-
-      if (profile.verified) {
-        score += 4
-      }
-
-      if (selfProfile.lookingFor.toLowerCase().includes('long') && profile.relationshipGoal === 'Long-term') {
-        score += 8
-      }
-
-      const personalityScore = compatibilityFromAnswers(
-        selfProfile.personalityAnswers,
-        profile.personalityAnswers,
       )
-      score += Math.round(personalityScore * 0.28)
+      const ageGap = Math.abs(selfProfile.age - profile.age)
+      const personalityScore = compatibilityFromAnswers(selfProfile.personalityAnswers, profile.personalityAnswers)
+      const myZodiacCompat = ZODIAC_COMPATIBILITY[selfProfile.zodiac] ?? []
+      const zodiacAligned = myZodiacCompat.includes(profile.zodiac)
+      const intentAligned =
+        selfProfile.lookingFor.toLowerCase().includes('long') && profile.relationshipGoal === 'Long-term'
 
-      return Math.max(1, Math.min(99, Math.round(score)))
+      let score = 34
+      score += Math.round(personalityScore * 0.32)
+      score += Math.min(sharedInterests.length * 6, 18)
+      score += Math.max(0, Math.round(8 - ageGap * 1.2))
+      score += selfProfile.city.toLowerCase() === profile.city.toLowerCase() ? 8 : profile.distanceKm <= 12 ? 6 : profile.distanceKm <= 30 ? 3 : 0
+      score += intentAligned ? 8 : 0
+      score += zodiacAligned ? 5 : 0
+      score += profile.verified ? 3 : 0
+      const finalScore = Math.max(1, Math.min(99, Math.round(score)))
+
+      const myCode = personalityCodeFromAnswers(selfProfile.personalityAnswers)
+      const theirCode = personalityCodeFromAnswers(profile.personalityAnswers)
+      const reasons: string[] = []
+      if (personalityScore >= 82) {
+        reasons.push('Your personality rhythm is strongly aligned.')
+      } else if (personalityScore >= 68) {
+        reasons.push('Your personalities are compatible with a good balance of similarity and contrast.')
+      } else {
+        reasons.push('You have complementary personality differences that can create spark.')
+      }
+      if (sharedInterests.length >= 2) {
+        reasons.push(`Shared interests: ${sharedInterests.slice(0, 2).join(' and ')}.`)
+      }
+      if (intentAligned) {
+        reasons.push('Both of you are clearly oriented toward long-term connection.')
+      }
+      if (selfProfile.city.toLowerCase() === profile.city.toLowerCase()) {
+        reasons.push('You are in the same city, which makes meeting easier.')
+      } else if (profile.distanceKm <= 12) {
+        reasons.push('You are close enough for spontaneous plans.')
+      }
+      if (zodiacAligned) {
+        reasons.push(`Zodiac chemistry: ${selfProfile.zodiac} and ${profile.zodiac}.`)
+      }
+      if (profile.verified) {
+        reasons.push('Verified account adds trust signal.')
+      }
+
+      const caution =
+        !intentAligned && personalityScore < 65
+          ? 'Possible mismatch risk: different relationship pace and intent.'
+          : null
+
+      return {
+        score: finalScore,
+        personalityScore,
+        sharedInterests,
+        intentAligned,
+        zodiacAligned,
+        ageGap,
+        reasons: reasons.slice(0, 4),
+        caution,
+        pairCode: `${myCode} x ${theirCode}`,
+      }
     },
     [selfProfile],
+  )
+
+  const getCompatibilityScore = useCallback(
+    (profile: Profile): number => getMatchAnalysis(profile).score,
+    [getMatchAnalysis],
+  )
+
+  const getChemistryInsights = useCallback(
+    (profile: Profile): ChemistryInsights => {
+      const match = getMatchAnalysis(profile)
+      const myCode = personalityCodeFromAnswers(selfProfile.personalityAnswers)
+      const myStack = PERSONALITY_COGNITIVE_FUNCTIONS[myCode]
+      const theirCode = personalityCodeFromAnswers(profile.personalityAnswers)
+      const theirStack = PERSONALITY_COGNITIVE_FUNCTIONS[theirCode]
+
+      let cognitiveOverlapScore = 48
+      if (myStack && theirStack) {
+        const mine = cognitiveFunctionTokens(myStack)
+        const theirs = cognitiveFunctionTokens(theirStack)
+        const overlapCount = mine.filter((token) => theirs.includes(token)).length
+        const primaryMatch = mine[0] && theirs[0] && mine[0] === theirs[0]
+        const supportMatch = mine[1] && theirs[1] && mine[1] === theirs[1]
+        cognitiveOverlapScore = Math.min(
+          98,
+          36 + overlapCount * 14 + (primaryMatch ? 18 : 0) + (supportMatch ? 8 : 0),
+        )
+      }
+
+      const chemistryScore = Math.max(
+        1,
+        Math.min(
+          99,
+          Math.round(
+            match.score * 0.58 +
+              cognitiveOverlapScore * 0.27 +
+              (match.zodiacAligned ? 12 : 0) +
+              (match.intentAligned ? 3 : 0),
+          ),
+        ),
+      )
+
+      const summary = match.zodiacAligned
+        ? 'Strong chemistry signal from cognitive overlap and zodiac alignment.'
+        : 'Good chemistry driven mostly by cognitive-function overlap and compatibility.'
+
+      return {
+        chemistryScore,
+        cognitiveOverlapScore,
+        zodiacAligned: match.zodiacAligned,
+        summary,
+      }
+    },
+    [getMatchAnalysis, selfProfile.personalityAnswers],
   )
 
   const profileCompletion = useMemo(() => {
@@ -1295,6 +2097,18 @@ function App() {
   }, [chatThreads])
 
   useEffect(() => {
+    window.localStorage.setItem(CIRCLES_JOINED_STORAGE_KEY, JSON.stringify(joinedCircleIds))
+  }, [joinedCircleIds])
+
+  useEffect(() => {
+    window.localStorage.setItem(CIRCLES_POSTS_STORAGE_KEY, JSON.stringify(circlePosts))
+  }, [circlePosts])
+
+  useEffect(() => {
+    window.localStorage.setItem(CIRCLES_RSVP_STORAGE_KEY, JSON.stringify(circleRsvps))
+  }, [circleRsvps])
+
+  useEffect(() => {
     saveBlockedProfileIds(blockedProfileIds)
   }, [blockedProfileIds])
 
@@ -1499,6 +2313,11 @@ function App() {
   }, [screen, activeChatId])
 
   useEffect(() => {
+    setShowFullChatHistory(false)
+    shouldStickToBottomRef.current = true
+  }, [activeChatId])
+
+  useEffect(() => {
     if (screen === 'settings' && notifications.some((item) => !item.read)) {
       markAllNotificationsRead()
     }
@@ -1519,6 +2338,22 @@ function App() {
   }, [selectedProfileId, profileById])
 
   const topProfile = filteredProfiles[index]
+  const topProfileMatchAnalysis = useMemo(
+    () => (topProfile ? getMatchAnalysis(topProfile) : null),
+    [topProfile, getMatchAnalysis],
+  )
+  const topProfileChemistry = useMemo(
+    () => (topProfile ? getChemistryInsights(topProfile) : null),
+    [topProfile, getChemistryInsights],
+  )
+  const selectedDetailMatchAnalysis = useMemo(
+    () => (selectedDetailProfile ? getMatchAnalysis(selectedDetailProfile) : null),
+    [selectedDetailProfile, getMatchAnalysis],
+  )
+  const selectedDetailChemistry = useMemo(
+    () => (selectedDetailProfile ? getChemistryInsights(selectedDetailProfile) : null),
+    [selectedDetailProfile, getChemistryInsights],
+  )
   const upcoming = useMemo(() => filteredProfiles.slice(index + 1, index + 3), [filteredProfiles, index])
 
   const resetDrag = useCallback(() => {
@@ -1728,6 +2563,7 @@ function App() {
     if (!selectedChatProfile || (text.length === 0 && !chatAttachmentDraft)) {
       return
     }
+    shouldStickToBottomRef.current = true
 
     const baseId = Date.now()
     const attachmentLabel =
@@ -1822,7 +2658,120 @@ function App() {
       })
   }
 
-  const handleAttachmentPick = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const generateAiCoachSuggestions = useCallback(() => {
+    if (!selectedChatProfile) {
+      return
+    }
+
+    setAiCoachLoading(true)
+    window.setTimeout(() => {
+      const thread = chatThreads[selectedChatProfile.id] ?? seedChat(selfProfile.name)
+      const lastThem = [...thread].reverse().find((message) => message.sender === 'them')
+      const interest = selectedChatProfile.interests[0] ?? 'coffee'
+      const interestTwo = selectedChatProfile.interests[1] ?? 'music'
+      const chemistry = getChemistryInsights(selectedChatProfile).chemistryScore
+      const localTypeCode = personalityCodeFromAnswers(selectedChatProfile.personalityAnswers)
+      const typeLabel =
+        PERSONALITY_TYPE_GUIDE.find((type) => type.code === localTypeCode)?.label ?? localTypeCode
+      const zodiac = selectedChatProfile.zodiac
+
+      const suggestions: string[] = []
+
+      if (lastThem?.text?.includes('?')) {
+        suggestions.push(
+          `Great question. I’d love to tell you more - and I’m curious about your take too. What’s your favorite ${interest} spot lately?`,
+        )
+      }
+
+      suggestions.push(
+        `You seem like a ${typeLabel.toLowerCase()} and I like that energy. Want to do a quick ${interest} plan this week and see how we vibe live?`,
+      )
+      suggestions.push(
+        `I noticed our chemistry score is around ${chemistry}% - I’m into this connection. What kind of date feels most “you”: ${interest} or ${interestTwo}?`,
+      )
+      suggestions.push(
+        `Okay ${zodiac} energy detected. I vote we keep this fun: one playful question each and the loser plans the first date.`,
+      )
+
+      setAiCoachSuggestions(suggestions.slice(0, 3))
+      setAiCoachLoading(false)
+    }, 450)
+  }, [
+    selectedChatProfile,
+    chatThreads,
+    selfProfile.name,
+    getChemistryInsights,
+  ])
+
+  const generateAiDatePlans = useCallback(() => {
+    if (!selectedChatProfile) {
+      return
+    }
+
+    setAiDatePlannerLoading(true)
+    window.setTimeout(() => {
+      const chemistry = getChemistryInsights(selectedChatProfile).chemistryScore
+      const city = selectedChatProfile.city || selfProfile.city || 'your city'
+      const sharedInterests = selectedChatProfile.interests.filter((interest) =>
+        selfProfile.interests.some(
+          (mine) =>
+            mine.toLowerCase().includes(interest.toLowerCase()) ||
+            interest.toLowerCase().includes(mine.toLowerCase()),
+        ),
+      )
+      const anchorInterest = sharedInterests[0] ?? selectedChatProfile.interests[0] ?? 'coffee'
+      const anchorInterestTwo = sharedInterests[1] ?? selectedChatProfile.interests[1] ?? 'music'
+
+      const vibeTone =
+        chemistry >= 78
+          ? 'playful and flirty'
+          : chemistry >= 62
+            ? 'warm and curious'
+            : 'light and low-pressure'
+
+      const plans: DatePlan[] = [
+        {
+          id: `micro-date-${selectedChatProfile.id}`,
+          title: 'Golden Hour Micro-Date',
+          placeType: `${anchorInterest} + scenic walk`,
+          budget: '$',
+          duration: '60-90 min',
+          pitch: `A ${vibeTone} first meetup: quick ${anchorInterest} stop, then a short walk in ${city}.`,
+          message: `I have an idea: a ${vibeTone} first meetup this week - ${anchorInterest} and a short golden-hour walk in ${city}. 60-90 minutes, easy vibe. What day works for you?`,
+        },
+        {
+          id: `culture-date-${selectedChatProfile.id}`,
+          title: 'Culture + Conversation',
+          placeType: `gallery or museum + ${anchorInterestTwo}`,
+          budget: '$$',
+          duration: '2-3 hours',
+          pitch: `A deeper date with conversation moments and shared taste around ${anchorInterestTwo}.`,
+          message: `Would you be up for a culture date? We could do a gallery/museum stop and then ${anchorInterestTwo} after. I think that would fit our vibe really well.`,
+        },
+        {
+          id: `signature-date-${selectedChatProfile.id}`,
+          title: 'Signature Night Plan',
+          placeType: `${anchorInterest} experience + dinner`,
+          budget: '$$$',
+          duration: '3-4 hours',
+          pitch: `A more curated date flow designed around your chemistry and shared energy.`,
+          message: `I want to plan a proper signature date: start with a ${anchorInterest} experience and continue with dinner. If you like, I can send you two concrete options and you pick your favorite.`,
+        },
+      ]
+
+      setAiDatePlans(plans)
+      setAiDatePlannerLoading(false)
+    }, 520)
+  }, [selectedChatProfile, getChemistryInsights, selfProfile.city, selfProfile.interests])
+
+  useEffect(() => {
+    setAiCoachSuggestions([])
+    setAiCoachLoading(false)
+    setAiDatePlans([])
+    setAiDatePlannerLoading(false)
+  }, [selectedChatProfile?.id])
+
+  const handleAttachmentPick = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) {
       return
@@ -1834,12 +2783,16 @@ function App() {
       return
     }
 
-    const url = URL.createObjectURL(file)
-    setChatAttachmentDraft({
-      kind: isImage ? 'image' : 'video',
-      url,
-      name: file.name,
-    })
+    try {
+      const dataUrl = await toDataUrl(file)
+      setChatAttachmentDraft({
+        kind: isImage ? 'image' : 'video',
+        url: dataUrl,
+        name: file.name,
+      })
+    } catch {
+      pushToast('Could not read this file. Please try another one.', 'error')
+    }
     event.target.value = ''
   }
 
@@ -1860,14 +2813,21 @@ function App() {
       }
       recorder.onstop = () => {
         const blob = new Blob(recordedChunksRef.current, { type: 'audio/webm' })
-        const url = URL.createObjectURL(blob)
-        setChatAttachmentDraft({
-          kind: 'audio',
-          url,
-          name: `voice-note-${new Date().toISOString()}.webm`,
-        })
-        setIsRecordingVoice(false)
-        stream.getTracks().forEach((track) => track.stop())
+        void toDataUrl(blob)
+          .then((dataUrl) => {
+            setChatAttachmentDraft({
+              kind: 'audio',
+              url: dataUrl,
+              name: `voice-note-${new Date().toISOString()}.webm`,
+            })
+          })
+          .catch(() => {
+            pushToast('Could not read voice note. Please try again.', 'error')
+          })
+          .finally(() => {
+            setIsRecordingVoice(false)
+            stream.getTracks().forEach((track) => track.stop())
+          })
       }
       mediaRecorderRef.current = recorder
       recorder.start()
@@ -1881,39 +2841,70 @@ function App() {
     if (!selectedChatProfile) {
       return
     }
+    const roomId = buildCallRoom(userEmail || 'guest@lovedate.app', selectedChatProfile.id, type)
+    const roomUrl = `https://meet.jit.si/${roomId}`
+    const now = Date.now()
     setCallState({
       active: true,
       type,
-      status: 'ringing',
-      startedAt: Date.now(),
+      status: 'in-room',
+      startedAt: now,
       targetProfileId: selectedChatProfile.id,
       muted: false,
       cameraOff: type === 'audio',
+      roomId,
+      roomUrl,
     })
-    window.setTimeout(() => {
-      setCallState((current) => {
-        if (!current.active || current.targetProfileId !== selectedChatProfile.id) {
-          return current
-        }
-        return {
-          ...current,
-          status: 'connected',
-          startedAt: Date.now(),
-        }
-      })
-    }, 1600)
+    setChatThreads((current) => {
+      const currentThread = current[selectedChatProfile.id] ?? []
+      return {
+        ...current,
+        [selectedChatProfile.id]: [
+          ...currentThread,
+          {
+            id: now,
+            sender: 'me',
+            text: `Private ${type} call invite (no phone number): ${roomUrl}`,
+            createdAt: now,
+            status: 'sent',
+          },
+        ],
+      }
+    })
+    pushToast('Private call link created and shared in chat.', 'success')
   }
 
   const endCall = () => {
     setCallState({
       active: false,
       type: null,
-      status: 'ringing',
+      status: 'inviting',
       startedAt: 0,
       targetProfileId: null,
       muted: false,
       cameraOff: false,
+      roomId: null,
+      roomUrl: null,
     })
+  }
+
+  const openCallRoom = () => {
+    if (!callState.roomUrl) {
+      return
+    }
+    window.open(callState.roomUrl, '_blank', 'noopener,noreferrer')
+  }
+
+  const copyCallInvite = async () => {
+    if (!callState.roomUrl) {
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(callState.roomUrl)
+      pushToast('Call invite link copied.', 'success')
+    } catch {
+      pushToast('Copy failed. Please copy the link manually from chat.', 'error')
+    }
   }
 
   const reportProfile = (profile: Profile) => {
@@ -2108,6 +3099,15 @@ function App() {
     setLoginError(null)
     setLoginNotice(null)
 
+    if (authMode === 'register') {
+      const strongPasswordError = getStrongPasswordError(loginPassword)
+      if (strongPasswordError) {
+        setLoginError(strongPasswordError)
+        setLoggingIn(false)
+        return
+      }
+    }
+
     if (authMode === 'register' && loginPassword !== registerPasswordConfirm) {
       setLoginError('Passwords do not match.')
       setLoggingIn(false)
@@ -2223,13 +3223,129 @@ function App() {
         setCallState({
           active: false,
           type: null,
-          status: 'ringing',
+          status: 'inviting',
           startedAt: 0,
           targetProfileId: null,
           muted: false,
           cameraOff: false,
+          roomId: null,
+          roomUrl: null,
         })
       })
+  }
+
+  const socialConnectedCount = useMemo(
+    () => SOCIAL_PLATFORM_META.filter((platform) => selfProfile.socialConnections[platform.id]?.connected).length,
+    [selfProfile.socialConnections],
+  )
+
+  const socialMotivationLine = useMemo(() => {
+    if (socialConnectedCount >= 4) {
+      return 'Ambassador status unlocked: your profile now has maximum social trust signals.'
+    }
+    if (socialConnectedCount >= 2) {
+      return 'Great momentum. Connect one more network to strengthen profile credibility.'
+    }
+    if (socialConnectedCount === 1) {
+      return 'Nice start. Add another social account to improve trust and discoverability.'
+    }
+    return 'Connect social accounts to build trust and help friends discover you faster on LoveDate.'
+  }, [socialConnectedCount])
+
+  const saveSelfProfilePatch = useCallback(
+    (nextProfile: SelfProfile, successMessage?: string) => {
+      setSelfProfile(nextProfile)
+      setProfileDraft(toProfileDraft(nextProfile))
+      window.localStorage.setItem(SELF_PROFILE_STORAGE_KEY, JSON.stringify(nextProfile))
+      void backendSaveSelfProfile(userEmail, nextProfile as unknown as Record<string, unknown>).catch(() => {
+        pushToast('Saved locally, but cloud sync failed for profile.', 'error')
+      })
+      if (successMessage) {
+        pushToast(successMessage, 'success')
+      }
+    },
+    [userEmail, pushToast],
+  )
+
+  const suggestSocialHandle = (platform: SocialPlatform): string => {
+    const baseFromName = selfProfile.name.toLowerCase().replace(/[^a-z0-9]+/g, '')
+    const fallback = baseFromName.length > 0 ? baseFromName : 'lovedateuser'
+    if (platform === 'instagram') {
+      return selfProfile.instagram.replace(/^@+/, '').trim() || fallback
+    }
+    if (platform === 'tiktok') {
+      return `@${fallback}`
+    }
+    if (platform === 'linkedin') {
+      return `in/${fallback}`
+    }
+    return fallback
+  }
+
+  const setSocialConnectionDecision = (platform: SocialPlatform, connect: boolean) => {
+    const currentEntry = selfProfile.socialConnections[platform]
+    const nextHandle = connect
+      ? currentEntry.handle.trim() || suggestSocialHandle(platform)
+      : currentEntry.handle
+    const nextProfile: SelfProfile = {
+      ...selfProfile,
+      socialConnections: {
+        ...selfProfile.socialConnections,
+        [platform]: {
+          connected: connect,
+          handle: nextHandle,
+        },
+      },
+    }
+    saveSelfProfilePatch(
+      nextProfile,
+      connect
+        ? `${SOCIAL_PLATFORM_META.find((item) => item.id === platform)?.label ?? 'Social'} enabled.`
+        : `${SOCIAL_PLATFORM_META.find((item) => item.id === platform)?.label ?? 'Social'} disabled.`,
+    )
+  }
+
+  const toggleSocialPromotionOptIn = (checked: boolean) => {
+    const nextProfile: SelfProfile = {
+      ...selfProfile,
+      socialPromotionOptIn: checked,
+    }
+    saveSelfProfilePatch(nextProfile, checked ? 'Social sharing prompts enabled.' : 'Social sharing prompts paused.')
+  }
+
+  const shareLoveDateOnPlatform = async (platform: SocialPlatform) => {
+    if (!selfProfile.socialPromotionOptIn) {
+      pushToast('Enable social sharing prompts first.', 'info')
+      return
+    }
+
+    const appUrl = 'https://lovedate-beta.vercel.app'
+    const pitch = `I just joined LoveDate. Come find me there.`
+    const encodedPitch = encodeURIComponent(pitch)
+    const encodedUrl = encodeURIComponent(appUrl)
+
+    let shareUrl = ''
+    if (platform === 'x') {
+      shareUrl = `https://twitter.com/intent/tweet?text=${encodedPitch}&url=${encodedUrl}`
+    } else if (platform === 'facebook') {
+      shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedPitch}`
+    } else if (platform === 'linkedin') {
+      shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
+    }
+
+    if (shareUrl) {
+      window.open(shareUrl, '_blank', 'noopener,noreferrer')
+      pushToast('Share window opened.', 'success')
+      return
+    }
+
+    const caption = `${pitch} ${appUrl}`
+    try {
+      await navigator.clipboard.writeText(caption)
+      pushToast('Caption copied. Paste it into your Instagram/TikTok post.', 'success')
+    } catch {
+      pushToast('Copy failed. Please copy and share manually.', 'error')
+    }
   }
 
   const handleProfileDraftChange = (key: keyof typeof profileDraft, value: string) => {
@@ -2452,6 +3568,8 @@ function App() {
       dealbreakers: dealbreakers.length > 0 ? dealbreakers : DEFAULT_SELF_PROFILE.dealbreakers,
       instagram: profileDraft.instagram.trim() || DEFAULT_SELF_PROFILE.instagram,
       anthem: profileDraft.anthem.trim() || DEFAULT_SELF_PROFILE.anthem,
+      socialConnections: selfProfile.socialConnections,
+      socialPromotionOptIn: profileDraft.socialPromotionOptIn,
       travelMode: profileDraft.travelMode,
       photos: photos.length > 0 ? photos : DEFAULT_SELF_PROFILE.photos,
       personalityAnswers,
@@ -2537,6 +3655,128 @@ function App() {
     })
   }, [chatPreviews, chatSearch])
 
+  const selectedChatMessages = useMemo(() => {
+    if (!selectedChatProfile) {
+      return []
+    }
+    const messages = chatThreads[selectedChatProfile.id] ?? seedChat(selfProfile.name)
+    return showFullChatHistory ? messages : messages.slice(-CHAT_RENDER_WINDOW)
+  }, [selectedChatProfile, chatThreads, selfProfile.name, showFullChatHistory])
+
+  const hiddenChatMessageCount = useMemo(() => {
+    if (!selectedChatProfile || showFullChatHistory) {
+      return 0
+    }
+    const messages = chatThreads[selectedChatProfile.id] ?? seedChat(selfProfile.name)
+    return Math.max(0, messages.length - CHAT_RENDER_WINDOW)
+  }, [selectedChatProfile, chatThreads, selfProfile.name, showFullChatHistory])
+
+  useEffect(() => {
+    const container = messagesContainerRef.current
+    if (!container || selectedChatMessages.length === 0) {
+      return
+    }
+
+    if (preserveScrollOnExpandRef.current) {
+      const { top, height } = preserveScrollOnExpandRef.current
+      const delta = container.scrollHeight - height
+      container.scrollTop = top + Math.max(0, delta)
+      preserveScrollOnExpandRef.current = null
+      return
+    }
+
+    if (shouldStickToBottomRef.current) {
+      container.scrollTop = container.scrollHeight
+    }
+  }, [selectedChatMessages])
+
+  const revealOlderMessages = () => {
+    const container = messagesContainerRef.current
+    if (container) {
+      preserveScrollOnExpandRef.current = {
+        top: container.scrollTop,
+        height: container.scrollHeight,
+      }
+    }
+    setShowFullChatHistory(true)
+  }
+
+  const handleMessagesScroll = () => {
+    const container = messagesContainerRef.current
+    if (!container) {
+      return
+    }
+    const distanceFromBottom = container.scrollHeight - (container.scrollTop + container.clientHeight)
+    shouldStickToBottomRef.current = distanceFromBottom < 96
+  }
+
+  const filteredCircles = useMemo(() => {
+    const query = circleSearch.trim().toLowerCase()
+    if (query.length === 0) {
+      return CIRCLE_SEED
+    }
+    return CIRCLE_SEED.filter((circle) => {
+      const searchable = [circle.name, circle.theme, circle.description, ...circle.tags].join(' ').toLowerCase()
+      return searchable.includes(query)
+    })
+  }, [circleSearch])
+
+  useEffect(() => {
+    if (!filteredCircles.some((circle) => circle.id === selectedCircleId) && filteredCircles.length > 0) {
+      setSelectedCircleId(filteredCircles[0].id)
+    }
+  }, [filteredCircles, selectedCircleId])
+
+  const selectedCircle = useMemo(
+    () => CIRCLE_SEED.find((circle) => circle.id === selectedCircleId) ?? filteredCircles[0] ?? null,
+    [selectedCircleId, filteredCircles],
+  )
+
+  const selectedCirclePosts = useMemo(() => {
+    if (!selectedCircle) {
+      return []
+    }
+    return circlePosts
+      .filter((post) => post.circleId === selectedCircle.id)
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 20)
+  }, [circlePosts, selectedCircle])
+
+  const toggleCircleJoin = useCallback((circleId: string) => {
+    setJoinedCircleIds((current) =>
+      current.includes(circleId) ? current.filter((id) => id !== circleId) : [...current, circleId],
+    )
+  }, [])
+
+  const toggleCircleRsvp = useCallback((eventId: string) => {
+    setCircleRsvps((current) => ({ ...current, [eventId]: !current[eventId] }))
+  }, [])
+
+  const publishCirclePost = useCallback(() => {
+    if (!selectedCircle) {
+      return
+    }
+    const text = circlePostDraft.trim()
+    if (text.length < 8) {
+      pushToast('Write at least a short thought before posting.', 'error')
+      return
+    }
+    if (!joinedCircleIds.includes(selectedCircle.id)) {
+      pushToast('Join the circle first to post there.', 'error')
+      return
+    }
+    const nextPost: CirclePost = {
+      id: `circle_post_${Date.now()}`,
+      circleId: selectedCircle.id,
+      author: selfProfile.name,
+      text,
+      createdAt: Date.now(),
+    }
+    setCirclePosts((current) => [nextPost, ...current])
+    setCirclePostDraft('')
+    pushToast('Posted to the circle feed.', 'success')
+  }, [selectedCircle, circlePostDraft, joinedCircleIds, selfProfile.name, pushToast])
+
   const unreadNotificationCount = useMemo(
     () => notifications.reduce((count, item) => count + (item.read ? 0 : 1), 0),
     [notifications],
@@ -2545,6 +3785,7 @@ function App() {
   const navItems: Array<{ key: AppScreen; label: string; badge?: number }> = [
     { key: 'discover', label: 'Discover' },
     { key: 'activity', label: 'Activity' },
+    { key: 'circles', label: 'Circles', badge: joinedCircleIds.length > 0 ? joinedCircleIds.length : undefined },
     { key: 'chats', label: 'Chats', badge: Object.values(unreadChats).reduce((sum, count) => sum + count, 0) },
     { key: 'profile', label: 'Profile' },
     { key: 'settings', label: 'Settings', badge: unreadNotificationCount },
@@ -2561,23 +3802,91 @@ function App() {
     () => safetyReports.slice().sort((a, b) => b.createdAt - a.createdAt),
     [safetyReports],
   )
+  const moderationReportsFiltered = useMemo(() => {
+    const query = moderationSearchQuery.trim().toLowerCase()
+    return moderationReportsSorted.filter((report) => {
+      const statusMatches = moderationStatusFilter === 'all' || report.status === moderationStatusFilter
+      if (!statusMatches) {
+        return false
+      }
+      if (query.length === 0) {
+        return true
+      }
+      const searchableText = [
+        report.profileName,
+        report.profileSnapshot.city,
+        report.profileSnapshot.vibe,
+        report.category,
+        report.details,
+        report.reporterEmail,
+      ]
+        .join(' ')
+        .toLowerCase()
+      return searchableText.includes(query)
+    })
+  }, [moderationReportsSorted, moderationSearchQuery, moderationStatusFilter])
   const selectedModerationReport = useMemo(() => {
-    if (moderationReportsSorted.length === 0) {
+    if (moderationReportsFiltered.length === 0) {
       return null
     }
     if (!activeModerationReportId) {
-      return moderationReportsSorted[0]
+      return moderationReportsFiltered[0]
     }
-    return moderationReportsSorted.find((report) => report.id === activeModerationReportId) ?? moderationReportsSorted[0]
-  }, [activeModerationReportId, moderationReportsSorted])
+    return (
+      moderationReportsFiltered.find((report) => report.id === activeModerationReportId) ??
+      moderationReportsFiltered[0]
+    )
+  }, [activeModerationReportId, moderationReportsFiltered])
 
   const selfPersonalityCode = useMemo(
     () => personalityCodeFromAnswers(selfProfile.personalityAnswers),
     [selfProfile.personalityAnswers],
   )
+  const selfTypeGuide = useMemo(
+    () => PERSONALITY_TYPE_GUIDE.find((type) => type.code === selfPersonalityCode) ?? null,
+    [selfPersonalityCode],
+  )
+  const selfCognitiveFunctions = useMemo(
+    () => PERSONALITY_COGNITIVE_FUNCTIONS[selfPersonalityCode] ?? null,
+    [selfPersonalityCode],
+  )
   const draftPersonalityCode = useMemo(
     () => personalityCodeFromAnswers(profileDraft.personalityAnswers),
     [profileDraft.personalityAnswers],
+  )
+  const selectedDetailPersonalityCode = useMemo(
+    () => (selectedDetailProfile ? personalityCodeFromAnswers(selectedDetailProfile.personalityAnswers) : null),
+    [selectedDetailProfile],
+  )
+  const selectedDetailTypeGuide = useMemo(
+    () =>
+      selectedDetailPersonalityCode
+        ? PERSONALITY_TYPE_GUIDE.find((type) => type.code === selectedDetailPersonalityCode) ?? null
+        : null,
+    [selectedDetailPersonalityCode],
+  )
+  const selectedDetailCognitiveFunctions = useMemo(
+    () => (selectedDetailPersonalityCode ? PERSONALITY_COGNITIVE_FUNCTIONS[selectedDetailPersonalityCode] ?? null : null),
+    [selectedDetailPersonalityCode],
+  )
+  const selectedChatPersonalityCode = useMemo(
+    () => (selectedChatProfile ? personalityCodeFromAnswers(selectedChatProfile.personalityAnswers) : null),
+    [selectedChatProfile],
+  )
+  const selectedChatTypeGuide = useMemo(
+    () =>
+      selectedChatPersonalityCode
+        ? PERSONALITY_TYPE_GUIDE.find((type) => type.code === selectedChatPersonalityCode) ?? null
+        : null,
+    [selectedChatPersonalityCode],
+  )
+  const selectedChatCognitiveFunctions = useMemo(
+    () => (selectedChatPersonalityCode ? PERSONALITY_COGNITIVE_FUNCTIONS[selectedChatPersonalityCode] ?? null : null),
+    [selectedChatPersonalityCode],
+  )
+  const selectedChatChemistry = useMemo(
+    () => (selectedChatProfile ? getChemistryInsights(selectedChatProfile) : null),
+    [selectedChatProfile, getChemistryInsights],
   )
 
   if (screen === 'login') {
@@ -2620,6 +3929,11 @@ function App() {
                 onChange={(event) => setLoginPassword(event.target.value)}
                 required
               />
+              {authMode === 'register' ? (
+                <small className="soft">
+                  Use at least 10 chars with uppercase, lowercase, number, and symbol.
+                </small>
+              ) : null}
             </label>
             {authMode === 'register' ? (
               <label>
@@ -2694,6 +4008,9 @@ function App() {
             </button>
           ))}
         </nav>
+        <button type="button" className="top-exit-btn" onClick={handleSignOut}>
+          Exit to Login
+        </button>
       </header>
       <section className={`screen-panel ${screen === 'discover' ? 'screen-panel--discover' : ''}`} aria-live="polite">
         {screen === 'filters' && (
@@ -2869,9 +4186,6 @@ function App() {
                               <h1 className="discover-card-name">
                                 {topProfile.name}, {topProfile.age}
                               </h1>
-                              <p className="compatibility-score">
-                                Personality match: {compatibilityFromAnswers(selfProfile.personalityAnswers, topProfile.personalityAnswers)}%
-                              </p>
                               <p className="discover-presence-line">
                                 <span className="discover-status-dot" aria-hidden="true" />
                                 Active now
@@ -2879,13 +4193,6 @@ function App() {
                               <p className="discover-location-line">
                                 {'\u{1F4CD}'} {topProfile.city} {'\u2022'} {topProfile.distanceKm} miles away
                               </p>
-                              <p className="mini-label discover-spotlight-pill">{topProfile.vibe}</p>
-                              <p className="vibe">{topProfile.vibe}</p>
-                              <div className="discover-interest-chips">
-                                {topProfile.interests.slice(0, 3).map((interest) => (
-                                  <span key={`${topProfile.id}-${interest}`}>{interest}</span>
-                                ))}
-                              </div>
                             </div>
                           </div>
                         </div>
@@ -2895,9 +4202,6 @@ function App() {
                             <h1 className="discover-card-name">
                               {topProfile.name}, {topProfile.age}
                             </h1>
-                            <p className="compatibility-score">
-                              Personality match: {compatibilityFromAnswers(selfProfile.personalityAnswers, topProfile.personalityAnswers)}%
-                            </p>
                             <p className="discover-presence-line">
                               <span className="discover-status-dot" aria-hidden="true" />
                               Active now
@@ -2905,29 +4209,57 @@ function App() {
                             <p className="discover-location-line">
                               {'\u{1F4CD}'} {topProfile.city} {'\u2022'} {topProfile.distanceKm} miles away
                             </p>
-                            <p className="mini-label discover-spotlight-pill">{topProfile.vibe}</p>
-                            <p className="vibe">{topProfile.vibe}</p>
-                            <div className="discover-interest-chips">
-                              {topProfile.interests.slice(0, 3).map((interest) => (
-                                <span key={`${topProfile.id}-${interest}`}>{interest}</span>
-                              ))}
-                            </div>
                           </div>
                         </>
                       )}
-                      <button
-                        type="button"
-                        className="details-link"
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          openProfileDetail(topProfile.id, 'discover')
-                        }}
-                      >
-                        View full profile
-                      </button>
                     </article>
                   </section>
-
+                </div>
+                <aside className="discover-side-panel" aria-label="Profile insights and actions">
+                  <article className="discover-info-panel">
+                    <h2 className="discover-side-name">
+                      {topProfile.name}, {topProfile.age}
+                    </h2>
+                    <p className="discover-zodiac-line">
+                      Zodiac: {topProfile.zodiac} {ZODIAC_EMOJI[topProfile.zodiac] ?? ''}
+                    </p>
+                    <p className="compatibility-score">
+                      Match score: {topProfileMatchAnalysis?.score ?? getCompatibilityScore(topProfile)}% {'\u2022'} Personality:{' '}
+                      {topProfileMatchAnalysis?.personalityScore ?? compatibilityFromAnswers(selfProfile.personalityAnswers, topProfile.personalityAnswers)}%
+                    </p>
+                    {topProfileChemistry ? (
+                      <p className="compatibility-score">
+                        Chemistry: {topProfileChemistry.chemistryScore}% {'\u2022'} Cognitive overlap:{' '}
+                        {topProfileChemistry.cognitiveOverlapScore}% {'\u2022'} Zodiac:{' '}
+                        {topProfileChemistry.zodiacAligned ? 'Aligned' : 'Neutral'}
+                      </p>
+                    ) : null}
+                    <p className="compatibility-score">{topProfileMatchAnalysis?.pairCode}</p>
+                    {topProfileMatchAnalysis?.reasons?.length ? (
+                      <ul className="discover-reasons-list">
+                        {topProfileMatchAnalysis.reasons.slice(0, 3).map((reason) => (
+                          <li key={reason}>{reason}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    <p className="mini-label discover-spotlight-pill">{topProfile.vibe}</p>
+                    <p className="vibe">{topProfile.vibe}</p>
+                    <div className="discover-interest-chips">
+                      {topProfile.interests.slice(0, 3).map((interest) => (
+                        <span key={`${topProfile.id}-${interest}`}>{interest}</span>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      className="details-link"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        openProfileDetail(topProfile.id, 'discover')
+                      }}
+                    >
+                      View full profile
+                    </button>
+                  </article>
                   <section className="actions discover-action-cluster discover-primary-actions" aria-label="Swipe actions">
                     <button
                       type="button"
@@ -2966,7 +4298,7 @@ function App() {
                     {isResolvingSwipe && <p className="result">Checking for a match...</p>}
                     {lastIntent && <p className="result">Last action: {lastIntent.replace('-', ' ')}</p>}
                   </footer>
-                </div>
+                </aside>
               </section>
             )}
             {showingDeckCompletion && (
@@ -3021,7 +4353,7 @@ function App() {
                     <li key={profile.id} className="activity-item">
                       <div className="activity-item-main">
                         <div className="activity-avatar-wrap">
-                          <img className="activity-avatar" src={profile.photos[0]} alt={`${profile.name} avatar`} />
+                          <img className="activity-avatar" src={profile.photos[0]} alt={`${profile.name} avatar`} loading="lazy" decoding="async" />
                           <span className="activity-status-dot activity-status-dot--match" aria-hidden="true" />
                         </div>
                         <div className="activity-item-meta">
@@ -3055,7 +4387,7 @@ function App() {
                     <li key={profile.id} className="activity-item">
                       <div className="activity-item-main">
                         <div className="activity-avatar-wrap">
-                          <img className="activity-avatar" src={profile.photos[0]} alt={`${profile.name} avatar`} />
+                          <img className="activity-avatar" src={profile.photos[0]} alt={`${profile.name} avatar`} loading="lazy" decoding="async" />
                           <span className="activity-status-dot activity-status-dot--liked" aria-hidden="true" />
                         </div>
                         <div className="activity-item-meta">
@@ -3082,7 +4414,7 @@ function App() {
                     <li key={profile.id} className="activity-item">
                       <div className="activity-item-main">
                         <div className="activity-avatar-wrap">
-                          <img className="activity-avatar" src={profile.photos[0]} alt={`${profile.name} avatar`} />
+                          <img className="activity-avatar" src={profile.photos[0]} alt={`${profile.name} avatar`} loading="lazy" decoding="async" />
                           <span className="activity-status-dot activity-status-dot--passed" aria-hidden="true" />
                         </div>
                         <div className="activity-item-meta">
@@ -3096,6 +4428,114 @@ function App() {
                     </li>
                   ))}
                 </ul>
+              )}
+            </article>
+          </section>
+        )}
+        {screen === 'circles' && (
+          <section className="settings-screen circles-screen" aria-label="Circles community">
+            <article className="profile-settings circles-list-panel">
+              <h2>Circles</h2>
+              <p className="soft">Join communities around interests and personality vibes.</p>
+              <label>
+                Search circles
+                <input
+                  type="text"
+                  value={circleSearch}
+                  onChange={(event) => setCircleSearch(event.target.value)}
+                  placeholder="Design, travel, coffee..."
+                />
+              </label>
+              <div className="notification-list circles-list">
+                {filteredCircles.map((circle) => {
+                  const joined = joinedCircleIds.includes(circle.id)
+                  return (
+                    <button
+                      key={circle.id}
+                      type="button"
+                      className={`chat-item ${selectedCircle?.id === circle.id ? 'active' : ''}`}
+                      onClick={() => setSelectedCircleId(circle.id)}
+                    >
+                      <div className="chat-item-body">
+                        <div className="chat-meta">
+                          <strong>{circle.name}</strong>
+                          <span>{circle.memberCount + (joined ? 1 : 0)} members</span>
+                        </div>
+                        <div className="chat-status">
+                          <small>{joined ? 'Joined' : 'Explore'}</small>
+                        </div>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </article>
+            <article className="profile-settings circles-detail-panel">
+              {selectedCircle ? (
+                <>
+                  <div className="circles-hero">
+                    <img src={selectedCircle.hero} alt={`${selectedCircle.name} cover`} loading="lazy" decoding="async" />
+                    <div className="circles-hero-overlay">
+                      <h3>{selectedCircle.name}</h3>
+                      <p>{selectedCircle.theme}</p>
+                    </div>
+                  </div>
+                  <p>{selectedCircle.description}</p>
+                  <div className="chips">
+                    {selectedCircle.tags.map((tag) => (
+                      <span key={tag}>{tag}</span>
+                    ))}
+                  </div>
+                  <div className="summary-actions">
+                    <button type="button" className="ghost" onClick={() => toggleCircleJoin(selectedCircle.id)}>
+                      {joinedCircleIds.includes(selectedCircle.id) ? 'Leave Circle' : 'Join Circle'}
+                    </button>
+                  </div>
+                  <h3>Upcoming Events</h3>
+                  <div className="circles-events">
+                    {selectedCircle.events.map((eventItem) => (
+                      <div key={eventItem.id} className="circles-event-card">
+                        <p>
+                          <strong>{eventItem.title}</strong>
+                        </p>
+                        <p>{eventItem.when} {'\u2022'} {eventItem.where}</p>
+                        <button type="button" className="ghost" onClick={() => toggleCircleRsvp(eventItem.id)}>
+                          {circleRsvps[eventItem.id] ? 'RSVP Saved' : 'RSVP'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <h3>Circle Feed</h3>
+                  <label>
+                    Share something with this circle
+                    <textarea
+                      rows={3}
+                      value={circlePostDraft}
+                      onChange={(event) => setCirclePostDraft(event.target.value)}
+                      placeholder="Post a thought, event idea, or question..."
+                    />
+                  </label>
+                  <div className="summary-actions">
+                    <button type="button" onClick={publishCirclePost}>
+                      Publish Post
+                    </button>
+                  </div>
+                  <div className="notification-list circles-posts">
+                    {selectedCirclePosts.length === 0 ? (
+                      <p className="soft">No posts yet. Be the first to start the conversation.</p>
+                    ) : (
+                      selectedCirclePosts.map((post) => (
+                        <div key={post.id} className="notification-item">
+                          <strong>{post.author}</strong>
+                          <span>{post.text}</span>
+                          <small>{formatShortTime(post.createdAt)}</small>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p className="soft">No circles found for this search.</p>
               )}
             </article>
           </section>
@@ -3119,7 +4559,7 @@ function App() {
                   onClick={() => setActiveChatId(preview.profile.id)}
                 >
                   <div className="chat-avatar-wrap">
-                    <img className="chat-avatar" src={preview.profile.photos[0]} alt={preview.profile.name} />
+                    <img className="chat-avatar" src={preview.profile.photos[0]} alt={preview.profile.name} loading="lazy" decoding="async" />
                     <span className="chat-online-dot" aria-hidden="true" />
                   </div>
                   <div className="chat-item-body">
@@ -3141,7 +4581,7 @@ function App() {
                   <header>
                     <div className="chat-header-profile">
                       <div className="chat-avatar-wrap">
-                        <img className="chat-avatar" src={selectedChatProfile.photos[0]} alt={selectedChatProfile.name} />
+                        <img className="chat-avatar" src={selectedChatProfile.photos[0]} alt={selectedChatProfile.name} decoding="async" fetchPriority="high" />
                         <span className="chat-online-dot" aria-hidden="true" />
                       </div>
                       <div>
@@ -3176,12 +4616,102 @@ function App() {
                       </button>
                     </div>
                   </header>
-                  <div className="messages">
-                    {(chatThreads[selectedChatProfile.id] ?? seedChat(selfProfile.name)).map((message) => (
+                  <section className="chat-compatibility-panel" aria-label="Compatibility snapshot">
+                    <p className="compatibility-score">
+                      Chemistry: {selectedChatChemistry?.chemistryScore ?? 0}% {'\u2022'} Cognitive overlap:{' '}
+                      {selectedChatChemistry?.cognitiveOverlapScore ?? 0}% {'\u2022'} Zodiac:{' '}
+                      {selectedChatChemistry?.zodiacAligned ? 'Aligned' : 'Neutral'}
+                    </p>
+                    <p className="chat-compatibility-line">
+                      <strong>Type:</strong> {selectedChatPersonalityCode ?? 'Unknown'}
+                      {selectedChatTypeGuide ? ` - ${selectedChatTypeGuide.label}` : ''}
+                    </p>
+                    <p className="chat-compatibility-line">
+                      <strong>Zodiac:</strong> {selectedChatProfile.zodiac} {ZODIAC_EMOJI[selectedChatProfile.zodiac] ?? ''} {'\u2022'}{' '}
+                      {ZODIAC_DESCRIPTIONS[selectedChatProfile.zodiac]?.overview ?? 'Unique cosmic signature.'}
+                    </p>
+                    {selectedChatCognitiveFunctions ? (
+                      <p className="chat-compatibility-line">
+                        <strong>Cognitive:</strong> {selectedChatCognitiveFunctions.primary} {'\u2022'} {selectedChatCognitiveFunctions.support}
+                      </p>
+                    ) : null}
+                  </section>
+                  <section className="chat-ai-coach" aria-label="AI Date Coach">
+                    <div className="chat-ai-coach-head">
+                      <p className="compatibility-score">AI Date Coach (Beta)</p>
+                      <button
+                        type="button"
+                        className="ghost"
+                        onClick={generateAiCoachSuggestions}
+                        disabled={aiCoachLoading}
+                      >
+                        {aiCoachLoading ? 'Thinking...' : 'Generate suggestions'}
+                      </button>
+                    </div>
+                    {aiCoachSuggestions.length > 0 ? (
+                      <div className="chat-ai-suggestion-list">
+                        {aiCoachSuggestions.map((suggestion, index) => (
+                          <button
+                            key={`${index}-${suggestion.slice(0, 18)}`}
+                            type="button"
+                            className="chat-ai-suggestion"
+                            onClick={() => setChatDraft(suggestion)}
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="soft">Generate personalized opener ideas based on your chemistry and recent chat context.</p>
+                    )}
+                  </section>
+                  <section className="chat-date-planner" aria-label="AI Date Planner">
+                    <div className="chat-date-planner-head">
+                      <p className="compatibility-score">AI Date Planner (Beta)</p>
+                      <button
+                        type="button"
+                        className="ghost"
+                        onClick={generateAiDatePlans}
+                        disabled={aiDatePlannerLoading}
+                      >
+                        {aiDatePlannerLoading ? 'Planning...' : 'Plan a date'}
+                      </button>
+                    </div>
+                    {aiDatePlans.length > 0 ? (
+                      <div className="chat-date-plan-list">
+                        {aiDatePlans.map((plan) => (
+                          <article key={plan.id} className="chat-date-plan-card">
+                            <div className="chat-date-plan-top">
+                              <strong>{plan.title}</strong>
+                              <span className="chat-date-plan-budget">{plan.budget}</span>
+                            </div>
+                            <p className="chat-date-plan-meta">
+                              {plan.placeType} {'\u2022'} {plan.duration}
+                            </p>
+                            <p className="chat-date-plan-pitch">{plan.pitch}</p>
+                            <button type="button" className="mini-btn" onClick={() => setChatDraft(plan.message)}>
+                              Use this message
+                            </button>
+                          </article>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="soft">Generate 3 personalized date plan options using your shared interests and chemistry.</p>
+                    )}
+                  </section>
+                  {hiddenChatMessageCount > 0 ? (
+                    <div className="messages-toolbar">
+                      <button type="button" className="ghost mini-btn" onClick={revealOlderMessages}>
+                        Show {hiddenChatMessageCount} older messages
+                      </button>
+                    </div>
+                  ) : null}
+                  <div ref={messagesContainerRef} className="messages" onScroll={handleMessagesScroll}>
+                    {selectedChatMessages.map((message) => (
                       <p key={message.id} className={`msg ${message.sender}`}>
                         {message.text}
                         {message.attachment?.kind === 'image' ? (
-                          <img className="msg-media" src={message.attachment.url} alt={message.attachment.name} />
+                          <img className="msg-media" src={message.attachment.url} alt={message.attachment.name} loading="lazy" decoding="async" />
                         ) : null}
                         {message.attachment?.kind === 'video' ? (
                           <video className="msg-media" src={message.attachment.url} controls />
@@ -3268,6 +4798,8 @@ function App() {
                     <img
                       src={selfProfile.photos[0]}
                       alt={`${selfProfile.name} primary profile`}
+                      decoding="async"
+                      fetchPriority="high"
                     />
                     <div className="profile-summary-overlay">
                       <h3>
@@ -3288,6 +4820,21 @@ function App() {
                   {selfProfile.jobTitle} at {selfProfile.company} {'\u2022'} {selfProfile.lookingFor}
                 </p>
                 <p className="compatibility-score">Personality code: {selfPersonalityCode}</p>
+                {selfTypeGuide ? (
+                  <p className="soft">
+                    {selfTypeGuide.label}: {selfTypeGuide.summary}
+                  </p>
+                ) : null}
+                {selfCognitiveFunctions ? (
+                  <ul className="profile-cognitive-list">
+                    <li><strong>Primary:</strong> {selfCognitiveFunctions.primary}</li>
+                    <li><strong>Support:</strong> {selfCognitiveFunctions.support}</li>
+                  </ul>
+                ) : null}
+                <p className="soft">Zodiac note: {ZODIAC_DESCRIPTIONS[selfProfile.zodiac]?.overview ?? 'Unique cosmic signature.'}</p>
+                <button type="button" className="ghost personality-guide-open" onClick={() => navigate('personality-guide')}>
+                  What does this code mean?
+                </button>
               </article>
 
               <article className="profile-summary profile-interests-card">
@@ -3296,6 +4843,21 @@ function App() {
                   {selfProfile.interests.map((interest) => (
                     <span key={interest}>{interest}</span>
                   ))}
+                </div>
+              </article>
+              <article className="profile-summary profile-interests-card">
+                <h3>Social Trust</h3>
+                <p className="soft">
+                  Connected accounts: <strong>{socialConnectedCount}</strong> / {SOCIAL_PLATFORM_META.length}
+                </p>
+                <div className="chips profile-interest-chips">
+                  {SOCIAL_PLATFORM_META.filter((platform) => selfProfile.socialConnections[platform.id].connected).length > 0 ? (
+                    SOCIAL_PLATFORM_META.filter((platform) => selfProfile.socialConnections[platform.id].connected).map((platform) => (
+                      <span key={platform.id}>{platform.label}</span>
+                    ))
+                  ) : (
+                    <span>No social accounts connected yet</span>
+                  )}
                 </div>
               </article>
             </aside>
@@ -3424,6 +4986,9 @@ function App() {
                   <p className="soft full-width">
                     Compatibility code: <strong>{draftPersonalityCode}</strong>. Pick the option that fits you best.
                   </p>
+                  <button type="button" className="ghost full-width personality-guide-open" onClick={() => navigate('personality-guide')}>
+                    Open personality guide
+                  </button>
                   {PERSONALITY_QUESTIONS.map((question, index) => (
                     <label key={question.id} className="full-width">
                       {question.prompt}
@@ -3623,7 +5188,7 @@ function App() {
                 <div className="draft-photo-grid">
                   {profileDraft.photos.map((photo, index) => (
                     <div key={`${photo}-${index}`} className="draft-photo-item">
-                      <img src={photo} alt={`Draft profile ${index + 1}`} />
+                      <img src={photo} alt={`Draft profile ${index + 1}`} loading="lazy" decoding="async" />
                       <div className="draft-photo-actions">
                         {index === 0 ? (
                           <span className="draft-photo-primary-badge">Primary</span>
@@ -3673,6 +5238,7 @@ function App() {
                       <img
                         src={photoStudioSource}
                         alt="Photo studio preview"
+                        decoding="async"
                         style={{
                           transform:
                             photoStudioControls.cropAspect === 'free'
@@ -3983,6 +5549,61 @@ function App() {
           </section>
         )}
 
+        {screen === 'personality-guide' && (
+          <section className="settings-screen personality-guide-screen" aria-label="Personality guide">
+            <article className="profile-settings personality-guide-intro">
+              <p className="pill">Personality Guide</p>
+              <h2>Understanding LoveDate Personality Codes</h2>
+              <p>
+                Your code has 4 letters. Example: <strong>DMFR</strong>. Each letter describes one core axis of your dating style.
+                This helps people quickly understand compatibility and communication rhythm.
+              </p>
+              <p>
+                Your current code: <strong>{selfPersonalityCode}</strong>
+              </p>
+              <button type="button" className="ghost" onClick={() => navigate('profile')}>
+                {'\u2190'} Back to Profile
+              </button>
+            </article>
+
+            <article className="profile-settings personality-dimensions">
+              <h2>Letter Meanings</h2>
+              <div className="personality-dimension-grid">
+                {PERSONALITY_DIMENSIONS.map((item) => (
+                  <div key={item.letter} className="personality-dimension-card">
+                    <p className="compatibility-score">{item.letter}</p>
+                    <h3>{item.title}</h3>
+                    <p>{item.meaning}</p>
+                    <p className="soft">Opposite: {item.opposite}</p>
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <article className="profile-settings personality-types">
+              <h2>All 16 Personality Types</h2>
+              <div className="personality-types-grid">
+                {PERSONALITY_TYPE_GUIDE.map((type) => (
+                  <div key={type.code} className={`personality-type-card ${type.code === selfPersonalityCode ? 'is-user-type' : ''}`}>
+                    <p className="compatibility-score">{type.code}</p>
+                    <h3>{type.label}</h3>
+                    <p>{type.summary}</p>
+                    {PERSONALITY_COGNITIVE_FUNCTIONS[type.code] ? (
+                      <ul className="profile-cognitive-list">
+                        <li><strong>Primary:</strong> {PERSONALITY_COGNITIVE_FUNCTIONS[type.code].primary}</li>
+                        <li><strong>Support:</strong> {PERSONALITY_COGNITIVE_FUNCTIONS[type.code].support}</li>
+                        <li><strong>Tertiary:</strong> {PERSONALITY_COGNITIVE_FUNCTIONS[type.code].tertiary}</li>
+                        <li><strong>Shadow:</strong> {PERSONALITY_COGNITIVE_FUNCTIONS[type.code].shadow}</li>
+                      </ul>
+                    ) : null}
+                    {type.code === selfPersonalityCode ? <p className="soft">This is your current type.</p> : null}
+                  </div>
+                ))}
+              </div>
+            </article>
+          </section>
+        )}
+
         {screen === 'settings' && (
           <section className="settings-screen">
             <article className="profile-settings">
@@ -4022,6 +5643,55 @@ function App() {
                   onChange={(event) => setIncognitoMode(event.target.checked)}
                 />
               </label>
+            </article>
+            <article className="profile-settings">
+              <h2>Social Connect & Share</h2>
+              <p className="soft">{socialMotivationLine}</p>
+              <p>
+                Connected: <strong>{socialConnectedCount}</strong> / {SOCIAL_PLATFORM_META.length}
+              </p>
+              <p className="soft">Simple mode: for each platform, users just pick Yes or No.</p>
+              <label className="setting-row">
+                Prompt me to share LoveDate socially
+                <input
+                  type="checkbox"
+                  checked={selfProfile.socialPromotionOptIn}
+                  onChange={(event) => toggleSocialPromotionOptIn(event.target.checked)}
+                />
+              </label>
+              <div className="social-grid">
+                {SOCIAL_PLATFORM_META.map((platform) => {
+                  const entry = selfProfile.socialConnections[platform.id]
+                  return (
+                    <article key={platform.id} className="social-item-card">
+                      <div className="social-item-head">
+                        <strong>{platform.label}</strong>
+                        <span className={`social-status ${entry.connected ? 'is-connected' : ''}`}>
+                          {entry.connected ? 'Connected' : 'Not connected'}
+                        </span>
+                      </div>
+                      <label className="setting-row">
+                        Connect this account (Yes)
+                        <input
+                          type="checkbox"
+                          checked={entry.connected}
+                          onChange={(event) => setSocialConnectionDecision(platform.id, event.target.checked)}
+                        />
+                      </label>
+                      <div className="summary-actions">
+                        <button
+                          type="button"
+                          className="mini-btn"
+                          onClick={() => void shareLoveDateOnPlatform(platform.id)}
+                          disabled={!entry.connected || !selfProfile.socialPromotionOptIn}
+                        >
+                          Share LoveDate
+                        </button>
+                      </div>
+                    </article>
+                  )
+                })}
+              </div>
             </article>
             <article className="profile-settings">
               <h2>Plan & Session</h2>
@@ -4103,91 +5773,132 @@ function App() {
         )}
         {screen === 'moderation' && (
           <section className="settings-screen moderation-screen">
-            <article className="profile-settings moderation-list">
-              <h2>Moderation Queue</h2>
-              <p className="soft">Separate review workspace for user reports.</p>
-              {moderationReportsSorted.length === 0 ? (
-                <p className="soft">No reports yet.</p>
-              ) : (
-                <div className="notification-list">
-                  {moderationReportsSorted.map((report) => (
-                    <button
-                      key={report.id}
-                      type="button"
-                      className={`chat-item ${selectedModerationReport?.id === report.id ? 'active' : ''}`}
-                      onClick={() => setActiveModerationReportId(report.id)}
-                    >
-                      <div className="chat-item-body">
-                        <div className="chat-meta">
-                          <strong>{report.profileName}</strong>
-                          <span>{report.category}</span>
-                        </div>
-                        <div className="chat-status">
-                          <small>{report.status}</small>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </article>
-
-            <article className="profile-settings moderation-detail">
-              <h2>Report Details</h2>
-              {selectedModerationReport ? (
-                <>
-                  {selectedModerationReport.profileSnapshot.photoUrl ? (
-                    <img
-                      className="chat-avatar"
-                      style={{ width: '5.2rem', height: '5.2rem', borderRadius: '1rem', marginBottom: '0.8rem' }}
-                      src={selectedModerationReport.profileSnapshot.photoUrl}
-                      alt={`${selectedModerationReport.profileName} snapshot`}
-                    />
-                  ) : null}
-                  <p>
-                    <strong>User:</strong> {selectedModerationReport.profileName}, {selectedModerationReport.profileSnapshot.age}
-                  </p>
-                  <p>
-                    <strong>Context:</strong> {selectedModerationReport.profileSnapshot.city} {'\u2022'}{' '}
-                    {selectedModerationReport.profileSnapshot.relationshipGoal}
-                  </p>
-                  <p>
-                    <strong>Vibe:</strong> {selectedModerationReport.profileSnapshot.vibe}
-                  </p>
-                  <p>
-                    <strong>Bio snapshot:</strong> {selectedModerationReport.profileSnapshot.bio}
-                  </p>
-                  <p>
-                    <strong>Category:</strong> {selectedModerationReport.category}
-                  </p>
-                  <p>
-                    <strong>Reporter:</strong> {selectedModerationReport.reporterEmail}
-                  </p>
-                  <p>
-                    <strong>Details:</strong> {selectedModerationReport.details || 'No extra details provided.'}
-                  </p>
-                  <p>
-                    <strong>Status:</strong> {selectedModerationReport.status}
-                  </p>
-                  <div className="summary-actions">
-                    <button type="button" className="ghost" onClick={() => updateReportStatus(selectedModerationReport.id, 'reviewing')}>
-                      Reviewing
-                    </button>
-                    <button type="button" className="ghost" onClick={() => updateReportStatus(selectedModerationReport.id, 'resolved')}>
-                      Resolve
-                    </button>
-                    <button type="button" className="danger" onClick={() => resolveAndBlockReport(selectedModerationReport)}>
-                      Resolve + Block
-                    </button>
-                    <button type="button" className="danger" onClick={() => updateReportStatus(selectedModerationReport.id, 'dismissed')}>
-                      Dismiss
-                    </button>
+            {!isModerationAdmin ? (
+              <article className="profile-settings moderation-detail">
+                <h2>Access Restricted</h2>
+                <p className="soft">Moderation Center is available only for admin accounts.</p>
+                <button type="button" className="ghost" onClick={() => navigate('settings')}>
+                  Back to Settings
+                </button>
+              </article>
+            ) : (
+              <>
+                <article className="profile-settings moderation-list">
+                  <h2>Moderation Queue</h2>
+                  <p className="soft">Separate review workspace for user reports.</p>
+                  <div className="moderation-toolbar">
+                    <label>
+                      Status
+                      <select
+                        value={moderationStatusFilter}
+                        onChange={(event) => setModerationStatusFilter(event.target.value as ModerationFilter)}
+                      >
+                        <option value="open">Open</option>
+                        <option value="reviewing">Reviewing</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="dismissed">Dismissed</option>
+                        <option value="all">All</option>
+                      </select>
+                    </label>
+                    <label className="moderation-search">
+                      Search
+                      <input
+                        type="text"
+                        value={moderationSearchQuery}
+                        onChange={(event) => setModerationSearchQuery(event.target.value)}
+                        placeholder="Name, email, category, details..."
+                      />
+                    </label>
                   </div>
-                </>
-              ) : (
-                <p className="soft">Select a report from the queue.</p>
-              )}
-            </article>
+                  <p className="soft">
+                    Showing {moderationReportsFiltered.length} of {moderationReportsSorted.length} reports.
+                  </p>
+                  {moderationReportsFiltered.length === 0 ? (
+                    <p className="soft">No reports match current filters.</p>
+                  ) : (
+                    <div className="notification-list">
+                      {moderationReportsFiltered.map((report) => (
+                        <button
+                          key={report.id}
+                          type="button"
+                          className={`chat-item ${selectedModerationReport?.id === report.id ? 'active' : ''}`}
+                          onClick={() => setActiveModerationReportId(report.id)}
+                        >
+                          <div className="chat-item-body">
+                            <div className="chat-meta">
+                              <strong>{report.profileName}</strong>
+                              <span>{report.category}</span>
+                            </div>
+                            <div className="chat-status">
+                              <small>{report.status}</small>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </article>
+
+                <article className="profile-settings moderation-detail">
+                  <h2>Report Details</h2>
+                  {selectedModerationReport ? (
+                    <>
+                      {selectedModerationReport.profileSnapshot.photoUrl ? (
+                        <img
+                          className="chat-avatar"
+                          style={{ width: '5.2rem', height: '5.2rem', borderRadius: '1rem', marginBottom: '0.8rem' }}
+                          src={selectedModerationReport.profileSnapshot.photoUrl}
+                          alt={`${selectedModerationReport.profileName} snapshot`}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ) : null}
+                      <p>
+                        <strong>User:</strong> {selectedModerationReport.profileName}, {selectedModerationReport.profileSnapshot.age}
+                      </p>
+                      <p>
+                        <strong>Context:</strong> {selectedModerationReport.profileSnapshot.city} {'\u2022'}{' '}
+                        {selectedModerationReport.profileSnapshot.relationshipGoal}
+                      </p>
+                      <p>
+                        <strong>Vibe:</strong> {selectedModerationReport.profileSnapshot.vibe}
+                      </p>
+                      <p>
+                        <strong>Bio snapshot:</strong> {selectedModerationReport.profileSnapshot.bio}
+                      </p>
+                      <p>
+                        <strong>Category:</strong> {selectedModerationReport.category}
+                      </p>
+                      <p>
+                        <strong>Reporter:</strong> {selectedModerationReport.reporterEmail}
+                      </p>
+                      <p>
+                        <strong>Details:</strong> {selectedModerationReport.details || 'No extra details provided.'}
+                      </p>
+                      <p>
+                        <strong>Status:</strong> {selectedModerationReport.status}
+                      </p>
+                      <div className="summary-actions">
+                        <button type="button" className="ghost" onClick={() => updateReportStatus(selectedModerationReport.id, 'reviewing')}>
+                          Reviewing
+                        </button>
+                        <button type="button" className="ghost" onClick={() => updateReportStatus(selectedModerationReport.id, 'resolved')}>
+                          Resolve
+                        </button>
+                        <button type="button" className="danger" onClick={() => resolveAndBlockReport(selectedModerationReport)}>
+                          Resolve + Block
+                        </button>
+                        <button type="button" className="danger" onClick={() => updateReportStatus(selectedModerationReport.id, 'dismissed')}>
+                          Dismiss
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="soft">Select a report from the queue.</p>
+                  )}
+                </article>
+              </>
+            )}
           </section>
         )}
         {screen === 'profile-detail' && (
@@ -4201,13 +5912,83 @@ function App() {
                   <h2>
                     {selectedDetailProfile.name}, {selectedDetailProfile.age}
                   </h2>
-                  <p>Compatibility score: {getCompatibilityScore(selectedDetailProfile)}%</p>
+                  <p>Compatibility score: {selectedDetailMatchAnalysis?.score ?? getCompatibilityScore(selectedDetailProfile)}%</p>
+                  <p>
+                    Personality fit: {selectedDetailMatchAnalysis?.personalityScore ?? compatibilityFromAnswers(selfProfile.personalityAnswers, selectedDetailProfile.personalityAnswers)}%
+                    {' \u2022 '}Pair: {selectedDetailMatchAnalysis?.pairCode ?? `${selfPersonalityCode} x ${personalityCodeFromAnswers(selectedDetailProfile.personalityAnswers)}`}
+                  </p>
                   <p>{selectedDetailProfile.vibe}</p>
                   <p>{selectedDetailProfile.bio}</p>
                   <p>
                     {selectedDetailProfile.gender} {'\u2022'} {selectedDetailProfile.city} {'\u2022'}{' '}
                     {selectedDetailProfile.distanceKm} km
                   </p>
+                  <p>
+                    Zodiac: {selectedDetailProfile.zodiac} {ZODIAC_EMOJI[selectedDetailProfile.zodiac] ?? ''}
+                  </p>
+                  <p className="soft">{ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac]?.overview ?? 'Unique cosmic signature.'}</p>
+                  {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac] ? (
+                    <section className="match-insights zodiac-reading">
+                      <h3>Zodiac Profile</h3>
+                      <p>
+                        <strong>{selectedDetailProfile.zodiac} overview:</strong>{' '}
+                        {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].overview}
+                      </p>
+                      <ul>
+                        <li><strong>Love style:</strong> {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].loveStyle}</li>
+                        <li><strong>Communication:</strong> {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].communication}</li>
+                        <li><strong>Green flags:</strong> {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].greenFlags}</li>
+                        <li><strong>Growth edge:</strong> {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].growthEdge}</li>
+                        <li><strong>Emotional needs:</strong> {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.emotionalNeeds ?? 'Connection, honesty, and safety.'}</li>
+                        <li><strong>Intimacy style:</strong> {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.intimacyStyle ?? 'Expressive and relational.'}</li>
+                        <li><strong>Conflict style:</strong> {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.conflictStyle ?? 'Seeks resolution with care.'}</li>
+                        <li><strong>Ideal date energy:</strong> {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.idealDateEnergy ?? 'Balanced and authentic.'}</li>
+                        <li><strong>Best matches:</strong> {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].bestMatches}</li>
+                      </ul>
+                      <p className="soft">
+                        Complete reading: This sign tends to feel most fulfilled when relationship pacing, emotional language,
+                        and daily behavior align with these traits, not just attraction.
+                      </p>
+                    </section>
+                  ) : null}
+                  {selectedDetailChemistry ? (
+                    <section className="match-insights">
+                      <h3>Compatibility Chemistry</h3>
+                      <ul>
+                        <li><strong>Total chemistry:</strong> {selectedDetailChemistry.chemistryScore}%</li>
+                        <li><strong>Cognitive overlap:</strong> {selectedDetailChemistry.cognitiveOverlapScore}%</li>
+                        <li><strong>Zodiac:</strong> {selectedDetailChemistry.zodiacAligned ? 'Aligned' : 'Neutral'}</li>
+                      </ul>
+                      <p className="soft">{selectedDetailChemistry.summary}</p>
+                    </section>
+                  ) : null}
+                  {selectedDetailTypeGuide ? (
+                    <p>
+                      <strong>Type:</strong> {selectedDetailPersonalityCode} - {selectedDetailTypeGuide.label}
+                    </p>
+                  ) : null}
+                  {selectedDetailCognitiveFunctions ? (
+                    <section className="match-insights">
+                      <h3>Cognitive Functions</h3>
+                      <ul>
+                        <li><strong>Primary:</strong> {selectedDetailCognitiveFunctions.primary}</li>
+                        <li><strong>Support:</strong> {selectedDetailCognitiveFunctions.support}</li>
+                        <li><strong>Tertiary:</strong> {selectedDetailCognitiveFunctions.tertiary}</li>
+                        <li><strong>Shadow:</strong> {selectedDetailCognitiveFunctions.shadow}</li>
+                      </ul>
+                    </section>
+                  ) : null}
+                  {selectedDetailMatchAnalysis ? (
+                    <section className="match-insights">
+                      <h3>Why you match</h3>
+                      <ul>
+                        {selectedDetailMatchAnalysis.reasons.map((reason) => (
+                          <li key={reason}>{reason}</li>
+                        ))}
+                      </ul>
+                      {selectedDetailMatchAnalysis.caution ? <p className="soft">{selectedDetailMatchAnalysis.caution}</p> : null}
+                    </section>
+                  ) : null}
                   <div className="summary-actions">
                     <button type="button" className="ghost" onClick={() => reportProfile(selectedDetailProfile)}>
                       Report profile
@@ -4226,7 +6007,7 @@ function App() {
                   {getProfilePhotos(selectedDetailProfile).map((photo, idx) => (
                     <div key={`${photo}-${idx}`} className="photo-card">
                       <button type="button" className="photo-button" onClick={() => openLightbox(photo)}>
-                        <img src={photo} alt={`${selectedDetailProfile.name} photo ${idx + 1}`} />
+                        <img src={photo} alt={`${selectedDetailProfile.name} photo ${idx + 1}`} loading="lazy" decoding="async" />
                       </button>
                     </div>
                   ))}
@@ -4276,10 +6057,15 @@ function App() {
               {callState.targetProfileId ? profileById.get(callState.targetProfileId)?.name ?? 'Match' : 'Match'}
             </h2>
             <p>
-              {callState.status === 'ringing'
-                ? 'Ringing...'
-                : `Connected | ${formatShortTime(callState.startedAt)}`}
+              {callState.status === 'inviting'
+                ? 'Preparing private room...'
+                : `In private room | ${formatShortTime(callState.startedAt)}`}
             </p>
+            {callState.roomUrl ? (
+              <p className="call-room-link">
+                Room: <strong>{callState.roomId}</strong>
+              </p>
+            ) : null}
             <div className="match-actions">
               <button
                 type="button"
@@ -4297,6 +6083,12 @@ function App() {
                   {callState.cameraOff ? 'Camera On' : 'Camera Off'}
                 </button>
               ) : null}
+              <button type="button" className="ghost" onClick={openCallRoom} disabled={!callState.roomUrl}>
+                Join Room
+              </button>
+              <button type="button" className="ghost" onClick={() => void copyCallInvite()} disabled={!callState.roomUrl}>
+                Copy Invite
+              </button>
               <button type="button" className="danger" onClick={endCall}>
                 End Call
               </button>
@@ -4327,7 +6119,7 @@ function App() {
               </button>
             </div>
             <div className="photo-lightbox-canvas">
-              <img src={lightboxPhoto} alt="Expanded profile" style={{ transform: `scale(${lightboxZoom})` }} />
+              <img src={lightboxPhoto} alt="Expanded profile" decoding="async" style={{ transform: `scale(${lightboxZoom})` }} />
             </div>
           </article>
         </div>

@@ -3,5 +3,10 @@
     "cSpell.words": [
         "lovedate"
     ],
-    "figma.autocompleteProperties": false
+    "figma.autocompleteProperties": false,
+    "terminal.integrated.defaultProfile.windows": "Command Prompt",
+    "terminal.integrated.automationProfile.windows": {
+        "path": "C:\\Windows\\System32\\cmd.exe"
+    },
+    "task.allowAutomaticTasks": "off"
 }

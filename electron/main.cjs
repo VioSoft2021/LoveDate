@@ -33,7 +33,6 @@ function createWindow() {
 
   window.loadFile(indexPath).catch((error) => {
     // Keep this in stdout for packaging diagnostics.
-    // eslint-disable-next-line no-console
     console.error('Failed to load index.html:', error)
   })
 

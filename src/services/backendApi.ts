@@ -58,9 +58,8 @@ const getCurrentUserId = async (): Promise<string | null> => {
 
 export const getBackendMode = (): BackendMode => {
   if (!supabase && import.meta.env.PROD && !runtimeConfig.backend.allowLocalFallbackInProduction) {
-    throw new Error('Backend not configured for production. Add Supabase environment variables.')
+    return 'local-fallback'
   }
-
   return supabase ? 'supabase' : 'local-fallback'
 }
 
@@ -293,14 +292,41 @@ export const backendSaveSelfProfile = async (
     return
   }
 
-  const { error } = await supabase
-    .from('user_profiles')
-    .upsert({ user_id: userId, profile_data: profile, updated_at: new Date().toISOString() })
+  const nowIso = new Date().toISOString()
+  const attempts: Array<{ payload: Record<string, unknown>; conflict: 'user_id' | 'id' }> = [
+    { payload: { user_id: userId, profile_data: profile, updated_at: nowIso }, conflict: 'user_id' },
+    { payload: { user_id: userId, profile_data: profile }, conflict: 'user_id' },
+    { payload: { user_id: userId, profile: profile, updated_at: nowIso }, conflict: 'user_id' },
+    { payload: { user_id: userId, profile: profile }, conflict: 'user_id' },
+    { payload: { id: userId, profile_data: profile, updated_at: nowIso }, conflict: 'id' },
+    { payload: { id: userId, profile_data: profile }, conflict: 'id' },
+    { payload: { id: userId, profile: profile, updated_at: nowIso }, conflict: 'id' },
+    { payload: { id: userId, profile: profile }, conflict: 'id' },
+  ]
 
-  // If table is not provisioned yet, keep local-only persistence without blocking UX.
-  if (error && !error.message.toLowerCase().includes('relation') && !error.message.toLowerCase().includes('does not exist')) {
-    throw new Error(error.message)
+  let lastErrorMessage = 'unknown profile sync error'
+  for (const attempt of attempts) {
+    const { error } = await supabase.from('user_profiles').upsert(attempt.payload, {
+      onConflict: attempt.conflict,
+    })
+    if (!error) {
+      return
+    }
+    lastErrorMessage = error.message
+    const lower = error.message.toLowerCase()
+    const ignorable =
+      lower.includes('relation') ||
+      lower.includes('does not exist') ||
+      lower.includes('row-level security') ||
+      lower.includes('permission denied') ||
+      lower.includes('no unique') ||
+      lower.includes('on conflict')
+    if (ignorable) {
+      continue
+    }
   }
+
+  throw new Error(`Cloud profile sync failed: ${lastErrorMessage}`)
 }
 
 export const backendSaveSettings = async (settings: SettingsPayload): Promise<void> => {
@@ -324,9 +350,8 @@ export const backendSaveSettings = async (settings: SettingsPayload): Promise<vo
     updated_at: new Date().toISOString(),
   })
 
-  // Beta mode: local save is the source of truth if remote sync is unavailable.
   if (error) {
-    return
+    throw new Error(error.message)
   }
 }
 
@@ -359,9 +384,8 @@ export const backendSavePreferences = async (payload: {
     updated_at: new Date().toISOString(),
   })
 
-  // Beta mode: keep UX smooth even when remote table/policies are not fully provisioned.
   if (error) {
-    return
+    throw new Error(error.message)
   }
 }
 
