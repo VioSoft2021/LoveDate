@@ -33,3 +33,7 @@ Figma export/
 .vercel
 .env.prod.check
 backups/
+# local exports / scratch
+New Figma exports/
+bookmarks/
+*.decoded.html
