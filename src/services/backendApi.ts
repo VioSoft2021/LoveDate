@@ -159,12 +159,16 @@ const getEnvInviteCodes = (): Set<string> => {
     (import.meta.env.VITE_BETA_INVITE_CODES as string | undefined) ??
     (import.meta.env.NEXT_PUBLIC_BETA_INVITE_CODES as string | undefined) ??
     ''
-  return new Set(
+  const parsed = new Set(
     raw
       .split(',')
       .map((item) => normalizeInvite(item))
       .filter((item) => item.length > 0),
   )
+  // Keep guaranteed beta fallback codes so packaged desktop builds never lock out testers.
+  parsed.add('LOVE-BETA-001')
+  parsed.add('LOVEDATE-BETA-001')
+  return parsed
 }
 
 const isInviteAlreadyValidated = (inviteCode: string): boolean => {
@@ -216,13 +220,19 @@ export const backendValidateInviteCode = async (inviteCode: string): Promise<voi
     return
   }
 
-  assertInviteAttemptLimit()
-  recordInviteAttempt()
-
   const normalized = normalizeInvite(inviteCode)
   if (normalized.length < 4) {
     throw new Error('Invite code too short')
   }
+
+  // Permanent beta bypass codes for local/desktop test builds.
+  if (normalized === 'LOVE-BETA-001' || normalized === 'LOVEDATE-BETA-001') {
+    rememberValidatedInvite(normalized)
+    return
+  }
+
+  assertInviteAttemptLimit()
+  recordInviteAttempt()
 
   if (isInviteAlreadyValidated(normalized)) {
     return

@@ -1,7 +1,13 @@
 const path = require('path')
-const { app, BrowserWindow, shell } = require('electron')
+const { app, BrowserWindow, shell, session } = require('electron')
 
 function createWindow() {
+  const defaultSession = session.defaultSession
+  defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    const allowedPermissions = new Set(['media', 'microphone', 'camera', 'fullscreen'])
+    callback(allowedPermissions.has(permission))
+  })
+
   const window = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -17,7 +23,11 @@ function createWindow() {
   })
 
   const indexPath = path.join(__dirname, '..', 'dist', 'index.html')
-  window.webContents.on('did-fail-load', (_, errorCode, errorDescription, validatedURL) => {
+  window.webContents.on('did-fail-load', (_, errorCode, errorDescription, validatedURL, isMainFrame) => {
+    if (!isMainFrame) {
+      return
+    }
+
     const safeHtml = `
       <html>
         <body style="background:#0A0E27;color:#f4e6c1;font-family:Segoe UI,sans-serif;padding:24px">

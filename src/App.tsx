@@ -115,6 +115,12 @@ type ChatMessage = {
     url: string
     name: string
   }
+  callMeta?: {
+    type: 'audio' | 'video'
+    roomId: string
+    roomUrl: string
+    event: 'invite' | 'connected' | 'ended' | 'missed' | 'failed'
+  }
   status?: 'sending' | 'sent' | 'read'
 }
 
@@ -167,13 +173,26 @@ type ModerationFilter = 'all' | ModerationStatus
 type CallState = {
   active: boolean
   type: 'audio' | 'video' | null
-  status: 'inviting' | 'in-room'
+  status: 'connecting' | 'live' | 'error'
   startedAt: number
   targetProfileId: number | null
   muted: boolean
   cameraOff: boolean
   roomId: string | null
   roomUrl: string | null
+}
+
+type CallLogEntry = {
+  id: string
+  profileId: number
+  profileName: string
+  type: 'audio' | 'video'
+  roomId: string
+  roomUrl: string
+  startedAt: number
+  answeredAt: number | null
+  endedAt: number | null
+  outcome: 'initiated' | 'connected' | 'ended' | 'missed' | 'failed'
 }
 
 type Circle = {
@@ -277,6 +296,7 @@ const HISTORY_STORAGE_KEY = 'lovedate:swipe-history'
 const AUTH_STORAGE_KEY = 'lovedate:auth-session'
 const SELF_PROFILE_STORAGE_KEY = 'lovedate:self-profile'
 const CHAT_THREADS_STORAGE_KEY = 'lovedate:chat-threads'
+const CALL_HISTORY_STORAGE_KEY = 'lovedate:call-history'
 const CIRCLES_JOINED_STORAGE_KEY = 'lovedate:circles-joined'
 const CIRCLES_POSTS_STORAGE_KEY = 'lovedate:circles-posts'
 const CIRCLES_RSVP_STORAGE_KEY = 'lovedate:circles-rsvp'
@@ -1178,6 +1198,46 @@ const readChatThreads = (): Record<number, ChatMessage[]> => {
   }
 }
 
+const readCallHistory = (): CallLogEntry[] => {
+  try {
+    const raw = window.localStorage.getItem(CALL_HISTORY_STORAGE_KEY)
+    if (!raw) {
+      return []
+    }
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+    return parsed
+      .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+      .map((item) => {
+        const type: CallLogEntry['type'] = item.type === 'video' ? 'video' : 'audio'
+        const outcome: CallLogEntry['outcome'] =
+          item.outcome === 'connected' ||
+          item.outcome === 'ended' ||
+          item.outcome === 'missed' ||
+          item.outcome === 'failed'
+            ? item.outcome
+            : 'initiated'
+        return {
+          id: String(item.id ?? ''),
+          profileId: Number(item.profileId ?? 0),
+          profileName: String(item.profileName ?? 'Match'),
+          type,
+          roomId: String(item.roomId ?? ''),
+          roomUrl: String(item.roomUrl ?? ''),
+          startedAt: Number(item.startedAt ?? Date.now()),
+          answeredAt: item.answeredAt == null ? null : Number(item.answeredAt),
+          endedAt: item.endedAt == null ? null : Number(item.endedAt),
+          outcome,
+        }
+      })
+      .filter((entry) => entry.id.length > 0 && Number.isFinite(entry.profileId))
+  } catch {
+    return []
+  }
+}
+
 const readJoinedCircles = (): string[] => {
   try {
     const raw = window.localStorage.getItem(CIRCLES_JOINED_STORAGE_KEY)
@@ -1269,6 +1329,29 @@ const buildCallRoom = (userEmail: string, profileId: number, type: 'audio' | 'vi
   const owner = sanitizeRoomPart(userEmail.split('@')[0] ?? 'guest')
   const stamp = Date.now().toString(36)
   return `lovedate-${type}-${owner}-${profileId}-${stamp}`
+}
+
+const getCallOutcomeLabel = (outcome: CallLogEntry['outcome']): string => {
+  switch (outcome) {
+    case 'connected':
+      return 'Connected'
+    case 'ended':
+      return 'Ended'
+    case 'missed':
+      return 'Missed'
+    case 'failed':
+      return 'Failed'
+    default:
+      return 'Calling'
+  }
+}
+
+const getCallDurationLabel = (startedAt: number, endedAt: number | null): string => {
+  const durationMs = Math.max(0, (endedAt ?? Date.now()) - startedAt)
+  const totalSeconds = Math.floor(durationMs / 1000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}m ${seconds.toString().padStart(2, '0')}s`
 }
 
 const getProfilePhotos = (profile: Profile): string[] => profile.photos
@@ -1496,6 +1579,7 @@ function App() {
   const [swipeLog, setSwipeLog] = useState<SwipeLog[]>([])
 
   const [chatThreads, setChatThreads] = useState<Record<number, ChatMessage[]>>(() => readChatThreads())
+  const [callHistory, setCallHistory] = useState<CallLogEntry[]>(() => readCallHistory())
   const [activeChatId, setActiveChatId] = useState<number | null>(null)
   const [chatDraft, setChatDraft] = useState('')
   const [chatSearch, setChatSearch] = useState('')
@@ -1517,7 +1601,7 @@ function App() {
   const [callState, setCallState] = useState<CallState>({
     active: false,
     type: null,
-    status: 'inviting',
+    status: 'connecting',
     startedAt: 0,
     targetProfileId: null,
     muted: false,
@@ -1527,6 +1611,9 @@ function App() {
   })
   const [blockedProfileIds, setBlockedProfileIds] = useState<number[]>(() => readBlockedProfileIds())
   const [safetyReports, setSafetyReports] = useState<SafetyReport[]>(() => readModerationQueue())
+  const [reportDraftProfile, setReportDraftProfile] = useState<Profile | null>(null)
+  const [reportDraftCategory, setReportDraftCategory] = useState<SafetyCategory>('spam')
+  const [reportDraftDetails, setReportDraftDetails] = useState('')
   const [activeModerationReportId, setActiveModerationReportId] = useState<string | null>(null)
   const [moderationStatusFilter, setModerationStatusFilter] = useState<ModerationFilter>('open')
   const [moderationSearchQuery, setModerationSearchQuery] = useState('')
@@ -1551,11 +1638,15 @@ function App() {
   const [likeUsage, setLikeUsage] = useState(() => getLikeUsage(activePlan))
   const [superLikeUsage, setSuperLikeUsage] = useState(() => getSuperLikeUsage(activePlan))
   const moderationAdminEmails = useMemo(() => {
-    const raw = (import.meta.env.VITE_MODERATION_ADMIN_EMAILS as string | undefined) ?? ''
-    return raw
-      .split(',')
-      .map((item) => item.trim().toLowerCase())
-      .filter((item) => item.length > 0)
+    const envRaw = (import.meta.env.VITE_MODERATION_ADMIN_EMAILS as string | undefined) ?? ''
+    const fallbackAdmins = ['viomediere@gmail.com', 'viorelbox1@gmail.com']
+    return Array.from(
+      new Set(
+        [...envRaw.split(','), ...fallbackAdmins]
+          .map((item) => item.trim().toLowerCase())
+          .filter((item) => item.length > 0),
+      ),
+    )
   }, [])
   const isModerationAdmin = useMemo(
     () => moderationAdminEmails.includes(userEmail.trim().toLowerCase()),
@@ -1566,6 +1657,18 @@ function App() {
   const attachmentInputRef = useRef<HTMLInputElement | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const recordedChunksRef = useRef<Blob[]>([])
+  const activeCallLogIdRef = useRef<string | null>(null)
+  const callStateRef = useRef<CallState>({
+    active: false,
+    type: null,
+    status: 'connecting',
+    startedAt: 0,
+    targetProfileId: null,
+    muted: false,
+    cameraOff: false,
+    roomId: null,
+    roomUrl: null,
+  })
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
   const preserveScrollOnExpandRef = useRef<{ top: number; height: number } | null>(null)
   const shouldStickToBottomRef = useRef(true)
@@ -1588,6 +1691,10 @@ function App() {
     setLikeUsage(getLikeUsage(plan))
     setSuperLikeUsage(getSuperLikeUsage(plan))
   }, [])
+
+  useEffect(() => {
+    callStateRef.current = callState
+  }, [callState])
 
   useEffect(() => {
     refreshEngagementUsage(activePlan)
@@ -2076,9 +2183,6 @@ function App() {
       navigate('discover', { replace: true })
     }
 
-    if (screen === 'moderation' && !isModerationAdmin) {
-      navigate('settings', { replace: true })
-    }
   }, [isAuthenticated, screen, isModerationAdmin, navigate])
 
   useEffect(() => {
@@ -2095,6 +2199,10 @@ function App() {
   useEffect(() => {
     window.localStorage.setItem(CHAT_THREADS_STORAGE_KEY, JSON.stringify(chatThreads))
   }, [chatThreads])
+
+  useEffect(() => {
+    window.localStorage.setItem(CALL_HISTORY_STORAGE_KEY, JSON.stringify(callHistory))
+  }, [callHistory])
 
   useEffect(() => {
     window.localStorage.setItem(CIRCLES_JOINED_STORAGE_KEY, JSON.stringify(joinedCircleIds))
@@ -2844,10 +2952,25 @@ function App() {
     const roomId = buildCallRoom(userEmail || 'guest@lovedate.app', selectedChatProfile.id, type)
     const roomUrl = `https://meet.jit.si/${roomId}`
     const now = Date.now()
+    const logId = `call_${now}_${selectedChatProfile.id}`
+    const nextCallEntry: CallLogEntry = {
+      id: logId,
+      profileId: selectedChatProfile.id,
+      profileName: selectedChatProfile.name,
+      type,
+      roomId,
+      roomUrl,
+      startedAt: now,
+      answeredAt: null,
+      endedAt: null,
+      outcome: 'initiated',
+    }
+    activeCallLogIdRef.current = logId
+    setCallHistory((current) => [nextCallEntry, ...current].slice(0, 200))
     setCallState({
       active: true,
       type,
-      status: 'in-room',
+      status: 'live',
       startedAt: now,
       targetProfileId: selectedChatProfile.id,
       muted: false,
@@ -2865,6 +2988,12 @@ function App() {
             id: now,
             sender: 'me',
             text: `Private ${type} call invite (no phone number): ${roomUrl}`,
+            callMeta: {
+              type,
+              roomId,
+              roomUrl,
+              event: 'invite',
+            },
             createdAt: now,
             status: 'sent',
           },
@@ -2874,11 +3003,58 @@ function App() {
     pushToast('Private call link created and shared in chat.', 'success')
   }
 
-  const endCall = () => {
+  const endCall = useCallback(() => {
+    const snapshot = callStateRef.current
+    const activeType = snapshot.type
+    const activeTargetProfileId = snapshot.targetProfileId
+    const activeRoomId = snapshot.roomId
+    const activeRoomUrl = snapshot.roomUrl
+    const activeStatus = snapshot.status
+    const endedAt = Date.now()
+    const logId = activeCallLogIdRef.current
+    if (logId) {
+      setCallHistory((current) =>
+        current.map((entry) =>
+          entry.id === logId
+            ? {
+                ...entry,
+                outcome: entry.answeredAt ? 'ended' : entry.outcome === 'failed' ? 'failed' : 'missed',
+                endedAt,
+              }
+            : entry,
+        ),
+      )
+    }
+    if (activeTargetProfileId && activeType && activeRoomId && activeRoomUrl) {
+      const callMetaEvent: 'ended' | 'missed' = activeStatus === 'live' ? 'ended' : 'missed'
+      setChatThreads((current) => {
+        const currentThread = current[activeTargetProfileId] ?? []
+        return {
+          ...current,
+          [activeTargetProfileId]: [
+            ...currentThread,
+            {
+              id: endedAt,
+              sender: 'me',
+              text: activeStatus === 'live' ? `${activeType} call ended.` : `${activeType} call was missed.`,
+              callMeta: {
+                type: activeType,
+                roomId: activeRoomId,
+                roomUrl: activeRoomUrl,
+                event: callMetaEvent,
+              },
+              createdAt: endedAt,
+              status: 'sent',
+            },
+          ],
+        }
+      })
+    }
+    activeCallLogIdRef.current = null
     setCallState({
       active: false,
       type: null,
-      status: 'inviting',
+      status: 'connecting',
       startedAt: 0,
       targetProfileId: null,
       muted: false,
@@ -2886,12 +3062,28 @@ function App() {
       roomId: null,
       roomUrl: null,
     })
-  }
+  }, [])
 
   const openCallRoom = () => {
     if (!callState.roomUrl) {
       return
     }
+    const openedAt = Date.now()
+    const logId = activeCallLogIdRef.current
+    if (logId) {
+      setCallHistory((current) =>
+        current.map((entry) =>
+          entry.id === logId && !entry.answeredAt
+            ? {
+                ...entry,
+                outcome: 'connected',
+                answeredAt: openedAt,
+              }
+            : entry,
+        ),
+      )
+    }
+    setCallState((current) => ({ ...current, status: 'live' }))
     window.open(callState.roomUrl, '_blank', 'noopener,noreferrer')
   }
 
@@ -2907,32 +3099,53 @@ function App() {
     }
   }
 
+  const rejoinCallFromHistory = (entry: CallLogEntry) => {
+    activeCallLogIdRef.current = entry.id
+    setCallState({
+      active: true,
+      type: entry.type,
+      status: 'connecting',
+      startedAt: entry.startedAt,
+      targetProfileId: entry.profileId,
+      muted: false,
+      cameraOff: entry.type === 'audio',
+      roomId: entry.roomId,
+      roomUrl: entry.roomUrl,
+    })
+    pushToast(`Rejoining ${entry.type} call with ${entry.profileName}.`, 'info')
+  }
+
+  const closeReportProfileDialog = useCallback(() => {
+    setReportDraftProfile(null)
+    setReportDraftCategory('spam')
+    setReportDraftDetails('')
+  }, [])
+
   const reportProfile = (profile: Profile) => {
-    const categoryInput = window
-      .prompt(
-        `Report category (${SAFETY_CATEGORIES.join(', ')}):`,
-        'spam',
-      )
-      ?.trim()
-      .toLowerCase()
-    const category: SafetyCategory = SAFETY_CATEGORIES.includes(categoryInput as SafetyCategory)
-      ? (categoryInput as SafetyCategory)
-      : 'other'
-    const details =
-      window.prompt('Optional details for moderation team:', '')?.trim() ?? ''
+    setReportDraftProfile(profile)
+    setReportDraftCategory('spam')
+    setReportDraftDetails('')
+  }
+
+  const submitProfileReport = () => {
+    if (!reportDraftProfile) {
+      return
+    }
+
     const report = createSafetyReport({
-      profile,
-      category,
-      details,
+      profile: reportDraftProfile,
+      category: reportDraftCategory,
+      details: reportDraftDetails.trim(),
       reporterEmail: userEmail || 'guest@lovedate.app',
     })
     setSafetyReports((current) => [report, ...current].slice(0, 200))
     pushNotification({
-      title: `Report submitted for ${profile.name}`,
-      body: `Category: ${category}`,
+      title: `Report submitted for ${reportDraftProfile.name}`,
+      body: `Category: ${reportDraftCategory}`,
       category: 'safety',
     })
-    pushToast(`Report submitted for ${profile.name}.`, 'success')
+    pushToast(`Report submitted for ${reportDraftProfile.name}.`, 'success')
+    closeReportProfileDialog()
   }
 
   const updateReportStatus = (reportId: string, status: ModerationStatus) => {
@@ -3061,6 +3274,11 @@ function App() {
         return
       }
 
+      if (event.key === 'Escape' && reportDraftProfile) {
+        closeReportProfileDialog()
+        return
+      }
+
       if (event.key === 'Escape' && lightboxPhoto) {
         closeLightbox()
         return
@@ -3091,7 +3309,7 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [activeMatch, lightboxPhoto, closeLightbox, screen, swipeCard, undoSwipe])
+  }, [activeMatch, reportDraftProfile, lightboxPhoto, closeReportProfileDialog, closeLightbox, screen, swipeCard, undoSwipe])
 
   const handleLoginSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -3223,7 +3441,7 @@ function App() {
         setCallState({
           active: false,
           type: null,
-          status: 'inviting',
+          status: 'connecting',
           startedAt: 0,
           targetProfileId: null,
           muted: false,
@@ -3663,6 +3881,13 @@ function App() {
     return showFullChatHistory ? messages : messages.slice(-CHAT_RENDER_WINDOW)
   }, [selectedChatProfile, chatThreads, selfProfile.name, showFullChatHistory])
 
+  const selectedChatCallHistory = useMemo(() => {
+    if (!selectedChatProfile) {
+      return []
+    }
+    return callHistory.filter((entry) => entry.profileId === selectedChatProfile.id).slice(0, 4)
+  }, [selectedChatProfile, callHistory])
+
   const hiddenChatMessageCount = useMemo(() => {
     if (!selectedChatProfile || showFullChatHistory) {
       return 0
@@ -3787,16 +4012,14 @@ function App() {
     { key: 'activity', label: 'Activity' },
     { key: 'circles', label: 'Circles', badge: joinedCircleIds.length > 0 ? joinedCircleIds.length : undefined },
     { key: 'chats', label: 'Chats', badge: Object.values(unreadChats).reduce((sum, count) => sum + count, 0) },
+    {
+      key: 'moderation',
+      label: 'Moderation',
+      badge: isModerationAdmin ? safetyReports.filter((report) => report.status === 'open').length : undefined,
+    },
     { key: 'profile', label: 'Profile' },
     { key: 'settings', label: 'Settings', badge: unreadNotificationCount },
   ]
-  if (isModerationAdmin) {
-    navItems.splice(4, 0, {
-      key: 'moderation',
-      label: 'Moderation',
-      badge: safetyReports.filter((report) => report.status === 'open').length,
-    })
-  }
 
   const moderationReportsSorted = useMemo(
     () => safetyReports.slice().sort((a, b) => b.createdAt - a.createdAt),
@@ -4699,6 +4922,36 @@ function App() {
                       <p className="soft">Generate 3 personalized date plan options using your shared interests and chemistry.</p>
                     )}
                   </section>
+                  <section className="chat-call-history" aria-label="Recent calls">
+                    <div className="chat-call-history-head">
+                      <p className="compatibility-score">Recent Calls</p>
+                    </div>
+                    {selectedChatCallHistory.length > 0 ? (
+                      <div className="chat-call-history-list">
+                        {selectedChatCallHistory.map((entry) => (
+                          <article key={entry.id} className={`chat-call-history-item ${entry.outcome}`}>
+                            <div>
+                              <strong>{entry.type === 'video' ? 'Video call' : 'Audio call'}</strong>
+                              <p>
+                                {getCallOutcomeLabel(entry.outcome)} {'\u2022'} {formatShortTime(entry.startedAt)}
+                                {entry.endedAt ? ` \u2022 ${getCallDurationLabel(entry.startedAt, entry.endedAt)}` : ''}
+                              </p>
+                            </div>
+                            <div className="summary-actions">
+                              <button type="button" className="ghost mini-btn" onClick={() => rejoinCallFromHistory(entry)}>
+                                Rejoin
+                              </button>
+                              <button type="button" className="mini-btn" onClick={() => window.open(entry.roomUrl, '_blank', 'noopener,noreferrer')}>
+                                Open room
+                              </button>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="soft">No call activity with this match yet.</p>
+                    )}
+                  </section>
                   {hiddenChatMessageCount > 0 ? (
                     <div className="messages-toolbar">
                       <button type="button" className="ghost mini-btn" onClick={revealOlderMessages}>
@@ -4710,6 +4963,16 @@ function App() {
                     {selectedChatMessages.map((message) => (
                       <p key={message.id} className={`msg ${message.sender}`}>
                         {message.text}
+                        {message.callMeta
+                          ? (() => {
+                              const callMeta = message.callMeta
+                              return (
+                                <span className={`msg-call-chip ${callMeta.event}`}>
+                                  {callMeta.type === 'video' ? 'Video' : 'Audio'} call {callMeta.event}
+                                </span>
+                              )
+                            })()
+                          : null}
                         {message.attachment?.kind === 'image' ? (
                           <img className="msg-media" src={message.attachment.url} alt={message.attachment.name} loading="lazy" decoding="async" />
                         ) : null}
@@ -4719,6 +4982,42 @@ function App() {
                         {message.attachment?.kind === 'audio' ? (
                           <audio className="msg-audio" src={message.attachment.url} controls />
                         ) : null}
+                        {message.callMeta && selectedChatProfile
+                          ? (() => {
+                              const callMeta = message.callMeta
+                              return (
+                                <div className="msg-call-actions">
+                                  <button
+                                    type="button"
+                                    className="ghost mini-btn"
+                                    onClick={() =>
+                                      rejoinCallFromHistory({
+                                        id: `${message.id}-${callMeta.roomId}`,
+                                        profileId: selectedChatProfile.id,
+                                        profileName: selectedChatProfile.name,
+                                        type: callMeta.type,
+                                        roomId: callMeta.roomId,
+                                        roomUrl: callMeta.roomUrl,
+                                        startedAt: message.createdAt,
+                                        answeredAt: null,
+                                        endedAt: null,
+                                        outcome: 'initiated',
+                                      })
+                                    }
+                                  >
+                                    Join call
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="ghost mini-btn"
+                                    onClick={() => window.open(callMeta.roomUrl, '_blank', 'noopener,noreferrer')}
+                                  >
+                                    Open externally
+                                  </button>
+                                </div>
+                              )
+                            })()
+                          : null}
                         <span>
                           {formatShortTime(message.createdAt)}
                           {message.sender === 'me' ? ` | ${message.status ?? 'sent'}` : ''}
@@ -5605,8 +5904,33 @@ function App() {
         )}
 
         {screen === 'settings' && (
-          <section className="settings-screen">
-            <article className="profile-settings">
+          <section className="settings-screen settings-dashboard">
+            <article className="profile-settings settings-hero-card">
+              <div className="settings-hero-copy">
+                <p className="pill">Control Center</p>
+                <h1>Settings</h1>
+                <p className="soft">Manage preferences, sharing, notifications, and safety from one polished dashboard.</p>
+              </div>
+              <div className="settings-status-grid" aria-label="Settings overview">
+                <p>
+                  <strong>Profile sync</strong>
+                  <span>{preferenceSaveStatus}</span>
+                </p>
+                <p>
+                  <strong>Settings sync</strong>
+                  <span>{settingsSaveStatus}</span>
+                </p>
+                <p>
+                  <strong>Connected socials</strong>
+                  <span>{socialConnectedCount}</span>
+                </p>
+                <p>
+                  <strong>Unread alerts</strong>
+                  <span>{unreadNotificationCount}</span>
+                </p>
+              </div>
+            </article>
+            <article className="profile-settings settings-card settings-card--preferences">
               <h2>Preferences</h2>
               <label className="setting-row">
                 Push Notifications
@@ -5644,7 +5968,7 @@ function App() {
                 />
               </label>
             </article>
-            <article className="profile-settings">
+            <article className="profile-settings settings-card settings-card--social">
               <h2>Social Connect & Share</h2>
               <p className="soft">{socialMotivationLine}</p>
               <p>
@@ -5693,7 +6017,7 @@ function App() {
                 })}
               </div>
             </article>
-            <article className="profile-settings">
+            <article className="profile-settings settings-card settings-card--plan">
               <h2>Plan & Session</h2>
               <div className="plan-picker">
                 <label htmlFor="plan-tier">Plan</label>
@@ -5728,7 +6052,7 @@ function App() {
                 Sign Out
               </button>
             </article>
-            <article className="profile-settings">
+            <article className="profile-settings settings-card settings-card--notifications">
               <h2>Notifications</h2>
               {notifications.length === 0 ? <p className="soft">No notifications yet.</p> : null}
               <div className="notification-list">
@@ -5744,7 +6068,7 @@ function App() {
                 Mark all as read
               </button>
             </article>
-            <article className="profile-settings">
+            <article className="profile-settings settings-card settings-card--safety">
               <h2>Safety</h2>
               <p>Blocked profiles: {blockedProfileIds.length}</p>
               <p>Reports submitted: {safetyReports.length}</p>
@@ -5777,6 +6101,9 @@ function App() {
               <article className="profile-settings moderation-detail">
                 <h2>Access Restricted</h2>
                 <p className="soft">Moderation Center is available only for admin accounts.</p>
+                <p className="soft">
+                  Signed in as: <strong>{userEmail || 'unknown'}</strong>
+                </p>
                 <button type="button" className="ghost" onClick={() => navigate('settings')}>
                   Back to Settings
                 </button>
@@ -6051,46 +6378,87 @@ function App() {
       ) : null}
       {callState.active ? (
         <div className="match-modal" role="dialog" aria-modal="true" aria-label="Call in progress">
-          <article className="match-card call-card">
+          <article className="match-card call-card call-card--embedded">
             <p className="pill">{callState.type === 'video' ? 'Video call' : 'Audio call'}</p>
             <h2>
               {callState.targetProfileId ? profileById.get(callState.targetProfileId)?.name ?? 'Match' : 'Match'}
             </h2>
             <p>
-              {callState.status === 'inviting'
-                ? 'Preparing private room...'
-                : `In private room | ${formatShortTime(callState.startedAt)}`}
+              {callState.status === 'connecting'
+                ? 'Preparing your private LoveDate room...'
+                : callState.status === 'error'
+                  ? 'The private room could not be prepared.'
+                  : `Private room ready | ${formatShortTime(callState.startedAt)}`}
             </p>
             {callState.roomUrl ? (
               <p className="call-room-link">
                 Room: <strong>{callState.roomId}</strong>
               </p>
             ) : null}
-            <div className="match-actions">
-              <button
-                type="button"
-                className="ghost"
-                onClick={() => setCallState((current) => ({ ...current, muted: !current.muted }))}
-              >
-                {callState.muted ? 'Unmute' : 'Mute'}
-              </button>
-              {callState.type === 'video' ? (
-                <button
-                  type="button"
-                  className="ghost"
-                  onClick={() => setCallState((current) => ({ ...current, cameraOff: !current.cameraOff }))}
-                >
-                  {callState.cameraOff ? 'Camera On' : 'Camera Off'}
-                </button>
-              ) : null}
+            <div className={`call-embed-frame ${callState.type === 'audio' ? 'audio-only' : ''}`}>
+              <div className="call-brand-shell">
+                <div className="call-orb" aria-hidden="true" />
+                <div className="call-shell-copy">
+                  <h3>{callState.type === 'video' ? 'LoveDate video call' : 'LoveDate audio call'}</h3>
+                  <p>
+                    Your private room is ready. Open it in your browser when you want to start talking, while
+                    keeping your personal phone number private.
+                  </p>
+                  <div className="call-shell-status">
+                    <span>{callState.status === 'live' ? 'Room active' : 'Room standby'}</span>
+                    <span>{callState.type === 'video' ? 'Camera capable' : 'Audio only'}</span>
+                    <span>Private invite link generated</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="match-actions call-actions call-actions-primary">
               <button type="button" className="ghost" onClick={openCallRoom} disabled={!callState.roomUrl}>
-                Join Room
+                Open Private Room
               </button>
               <button type="button" className="ghost" onClick={() => void copyCallInvite()} disabled={!callState.roomUrl}>
                 Copy Invite
               </button>
               <button type="button" className="danger" onClick={endCall}>
                 End Call
+              </button>
+            </div>
+          </article>
+        </div>
+      ) : null}
+      {reportDraftProfile ? (
+        <div className="match-modal" role="dialog" aria-modal="true" aria-label={`Report ${reportDraftProfile.name}`}>
+          <article className="match-card report-modal-card">
+            <p className="pill">Safety</p>
+            <h2>Report {reportDraftProfile.name}</h2>
+            <p>Tell us what happened. Your report will appear in the Moderation Center for review.</p>
+            <label className="report-field">
+              <span>Category</span>
+              <select
+                value={reportDraftCategory}
+                onChange={(event) => setReportDraftCategory(event.target.value as SafetyCategory)}
+              >
+                {SAFETY_CATEGORIES.map((category) => (
+                  <option key={category} value={category}>
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="report-field report-field--textarea">
+              <span>Details</span>
+              <textarea
+                value={reportDraftDetails}
+                onChange={(event) => setReportDraftDetails(event.target.value)}
+                placeholder="Add any useful detail for the moderation team."
+              />
+            </label>
+            <div className="match-actions">
+              <button type="button" className="ghost" onClick={closeReportProfileDialog}>
+                Cancel
+              </button>
+              <button type="button" className="danger" onClick={submitProfileReport}>
+                Submit report
               </button>
             </div>
           </article>
