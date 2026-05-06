@@ -1,5 +1,217 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap');
 
+/* --- Responsive enhancements for all screens --- */
+@media (max-width: 900px) {
+  .app-shell,
+  .app-shell--discover,
+  .app-shell--chats {
+    padding: 0.5rem 0.2rem 0.5rem;
+    gap: 0.4rem;
+  }
+  .top-bar,
+  .app-shell--discover .top-bar,
+  .app-shell--chats .top-bar {
+    width: 100%;
+    padding: 0 0.5rem;
+  }
+  .discover-stage,
+  .activity-layout,
+  .profile-screen,
+  .settings-screen,
+  .profile-detail {
+    width: 100%;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .chats-layout {
+    width: 100%;
+    grid-template-columns: 1fr;
+    min-height: unset;
+    border-radius: 0.7rem;
+  }
+  .chat-list {
+    border-right: none;
+    border-bottom: 1px solid rgba(112, 130, 216, 0.34);
+    padding: 0.5rem;
+  }
+  .chat-thread {
+    border-radius: 0 0 1.2rem 1.2rem;
+  }
+  .profile-summary--enhanced {
+    max-height: none;
+    position: static;
+    padding-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .deck-wrap,
+  .discover-main .deck-wrap,
+  .discover-main .state-box,
+  .discover-main .match-summary,
+  .discover-main .actions,
+  .discover-main .hint {
+    width: 100%;
+    margin: 0;
+  }
+  .profile-card {
+    padding: 0.5rem;
+    border-radius: 0.7rem;
+  }
+  .card-photo-wrap {
+    min-height: 14rem;
+    border-radius: 0.7rem;
+  }
+  .profile-hero {
+    min-height: 10rem;
+  }
+  .profile-hero img {
+    min-height: 10rem;
+  }
+  .profile-section,
+  .profile-summary,
+  .profile-settings {
+    padding: 0.5rem;
+    border-radius: 0.7rem;
+  }
+  .activity-layout {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  .activity-overview {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .app-shell,
+  .app-shell--discover,
+  .app-shell--chats {
+    padding: 0.2rem 0.05rem 0.2rem;
+    gap: 0.2rem;
+  }
+  .top-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+    padding: 0 0.2rem;
+  }
+  .brand {
+    font-size: clamp(1.1rem, 4vw, 1.5rem);
+  }
+  .bottom-nav {
+    flex-direction: column;
+    gap: 0.2rem;
+    width: 100%;
+    padding: 0.2rem 0;
+  }
+  .bottom-nav button {
+    min-width: unset;
+    width: 100%;
+    font-size: 1rem;
+    border-radius: 0.7rem;
+  }
+  .screen-panel,
+  .screen-panel--discover {
+    padding: 0.2rem 0.1rem 0.2rem;
+  }
+  .profile-screen,
+  .settings-screen,
+  .profile-detail {
+    grid-template-columns: 1fr;
+    gap: 0.3rem;
+    width: 100%;
+  }
+  .profile-summary--enhanced {
+    padding-bottom: 0.2rem;
+  }
+  .chat-list {
+    padding: 0.2rem;
+  }
+  .chat-thread header {
+    padding: 0.5rem 0.5rem;
+  }
+  .chat-input {
+    padding: 0.5rem 0.5rem;
+  }
+  .chat-icon-btn,
+  .chat-send-btn {
+    min-width: 2.2rem;
+    width: 2.2rem;
+    height: 2.2rem;
+    font-size: 1rem;
+    border-radius: 0.5rem;
+  }
+  .chat-icon-btn svg,
+  .chat-send-btn svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 15px;
+  }
+  .app-shell,
+  .app-shell--discover,
+  .app-shell--chats {
+    padding: 0;
+    gap: 0.1rem;
+  }
+  .top-bar {
+    padding: 0 0.1rem;
+  }
+  .brand {
+    font-size: clamp(0.95rem, 5vw, 1.2rem);
+  }
+  .bottom-nav button {
+    font-size: 0.95rem;
+    border-radius: 0.4rem;
+    padding: 0.5rem 0.2rem;
+  }
+  .profile-card,
+  .profile-section,
+  .profile-summary,
+  .profile-settings {
+    padding: 0.2rem;
+    border-radius: 0.4rem;
+  }
+  .card-photo-wrap {
+    min-height: 8rem;
+    border-radius: 0.4rem;
+  }
+  .profile-hero,
+  .profile-hero img {
+    min-height: 6rem;
+  }
+  .chat-header-profile h2 {
+    font-size: clamp(1.1rem, 4vw, 1.5rem);
+  }
+  .chat-input input {
+    font-size: 0.95rem;
+    padding: 0.5rem 0.5rem;
+  }
+}
+
+/* Remove call-related styles */
+.msg-call-chip,
+.msg-call-chip.connected,
+.msg-call-chip.missed,
+.msg-call-chip.failed,
+.msg-call-actions,
+.chat-call-history,
+.chat-call-history-head,
+.chat-call-history-list,
+.chat-call-history-item,
+.chat-call-history-item.connected,
+.chat-call-history-item.missed,
+.chat-call-history-item.failed {
+  display: none !important;
+}
+
 /* Zodiac styling for profile card */
 :root {
   --theme-text: #edf5ff;
@@ -127,6 +339,22 @@
   gap: 0.75rem;
 }
 
+.login-language-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.15rem;
+}
+
+.login-language-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.32rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--theme-text-soft);
+}
+
 .login-form label,
 .filters label,
 .profile-editor label,
@@ -141,11 +369,13 @@
 }
 
 .login-form input,
+.login-language-row select,
 .filters input,
 .filters select,
 .profile-editor input,
 .profile-editor textarea,
-.chat-input input {
+.chat-input input,
+.setting-row select {
   border-radius: 0.72rem;
   border: 1px solid var(--theme-border);
   background: var(--theme-input);
@@ -2676,6 +2906,9 @@ button:disabled {
   display: grid;
   gap: 0.85rem;
   text-align: left;
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  padding-bottom: 0.75rem;
 }
 
 .call-embed-frame {
@@ -2703,12 +2936,7 @@ button:disabled {
 }
 
 .call-actions-primary {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  margin-top: 0.25rem;
-  padding-top: 0.7rem;
-  background: linear-gradient(180deg, rgba(10, 14, 39, 0), rgba(10, 14, 39, 0.92) 28%, rgba(10, 14, 39, 0.98));
+  display: none;
 }
 
 .call-brand-shell {
@@ -2772,6 +3000,221 @@ button:disabled {
   font-size: 0.84rem;
   color: rgba(222, 235, 255, 0.92);
   word-break: break-word;
+}
+
+.call-cinema-stage {
+  display: grid;
+  gap: 0.8rem;
+  min-height: auto;
+}
+
+.call-cinema-stage.audio-only {
+  min-height: auto;
+}
+
+.call-stage-topline,
+.call-stage-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.call-stage-topline {
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(201, 169, 97, 0.22);
+  background: rgba(9, 14, 34, 0.78);
+}
+
+.call-stage-topline div:first-child {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.call-stage-topline span {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(242, 209, 138, 0.86);
+}
+
+.call-stage-topline strong {
+  color: #fff4d2;
+  font-size: 1.02rem;
+}
+
+.call-stage-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  color: rgba(237, 245, 255, 0.9);
+}
+
+.call-stage-status span {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: #f2d18a;
+}
+
+.call-stage-status.live span {
+  background: #00d9a3;
+}
+
+.call-stage-status.failed span {
+  background: #ff7180;
+}
+
+.call-stage-body {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(13rem, 0.26fr);
+  gap: 0.8rem;
+}
+
+.call-stage-video {
+  position: relative;
+  min-height: clamp(18rem, 48vh, 34rem);
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(201, 169, 97, 0.28);
+  background:
+    linear-gradient(145deg, rgba(23, 31, 76, 0.96), rgba(7, 12, 33, 0.96)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 8px);
+}
+
+.audio-only .call-stage-video {
+  min-height: clamp(14rem, 36vh, 24rem);
+}
+
+.call-jitsi-host,
+.call-jitsi-host iframe {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  border: 0;
+}
+
+.call-stage-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.8rem;
+  padding: 1.4rem;
+  text-align: center;
+  background:
+    linear-gradient(145deg, rgba(10, 15, 38, 0.98), rgba(6, 10, 28, 0.98)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 8px);
+}
+
+.call-stage-loading p {
+  margin: 0;
+  color: rgba(237, 245, 255, 0.92);
+}
+
+.call-stage-setup-note {
+  max-width: min(100%, 34rem);
+  line-height: 1.55;
+  color: rgba(237, 245, 255, 0.78) !important;
+}
+
+.call-stage-pulse {
+  width: 5.5rem;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  border: 1px solid rgba(242, 209, 138, 0.48);
+  background: radial-gradient(circle at 36% 30%, #fff5cf, #d7b66a 34%, #42517f 72%);
+  box-shadow: 0 0 34px rgba(242, 209, 138, 0.22);
+  animation: callPulse 1.8s ease-in-out infinite;
+}
+
+.call-stage-side {
+  min-height: 0;
+  display: grid;
+  gap: 0.8rem;
+  align-content: start;
+}
+
+.call-self-tile,
+.call-date-tools {
+  border-radius: 0.95rem;
+  border: 1px solid rgba(112, 130, 216, 0.26);
+  background: rgba(13, 19, 46, 0.82);
+  padding: 0.9rem;
+}
+
+.call-self-tile {
+  min-height: 9rem;
+  display: grid;
+  align-content: end;
+  gap: 0.25rem;
+  background:
+    linear-gradient(160deg, rgba(37, 45, 92, 0.72), rgba(14, 20, 49, 0.88)),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 10px);
+}
+
+.call-self-tile span,
+.call-date-tools .mini-btn {
+  font-size: 0.78rem;
+}
+
+.call-self-tile strong {
+  color: #fff4d2;
+}
+
+.call-self-tile p {
+  margin: 0;
+  color: rgba(222, 235, 255, 0.78);
+  font-size: 0.82rem;
+}
+
+.call-date-tools {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.call-date-tools .mini-btn {
+  width: 100%;
+  min-width: 0;
+  padding: 0.65rem 0.75rem;
+}
+
+.call-stage-controls {
+  justify-content: center;
+  padding: 0.55rem;
+  border-radius: 0.95rem;
+  background: linear-gradient(180deg, rgba(8, 13, 36, 0.75), rgba(8, 13, 36, 0.96));
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  margin-top: 0.2rem;
+}
+
+.call-stage-controls button {
+  min-width: 8.4rem;
+  padding: 0.7rem 0.95rem;
+  font-size: 0.88rem;
+}
+
+.call-stage-controls .solid {
+  background: linear-gradient(90deg, var(--theme-solid-start), var(--theme-solid-end));
+  color: var(--theme-solid-text);
+  border-color: transparent;
+}
+
+@keyframes callPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
 }
 
 .notification-list {
@@ -2856,6 +3299,14 @@ button:disabled {
   .detail-photos {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .call-stage-body {
+    grid-template-columns: 1fr;
+  }
+
+  .call-stage-side {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 760px) {
@@ -2873,6 +3324,31 @@ button:disabled {
 
   .profile-editor-grid {
     grid-template-columns: 1fr;
+  }
+
+  .call-card--embedded {
+    max-height: calc(100vh - 1.5rem);
+    overflow: auto;
+    padding: 0.85rem;
+  }
+
+  .call-cinema-stage,
+  .call-cinema-stage.audio-only {
+    min-height: auto;
+  }
+
+  .call-stage-video,
+  .audio-only .call-stage-video {
+    min-height: 52vh;
+  }
+
+  .call-stage-side {
+    grid-template-columns: 1fr;
+  }
+
+  .call-stage-controls button {
+    flex: 1 1 8rem;
+    min-width: 0;
   }
 
   .draft-photo-grid,
@@ -4695,6 +5171,14 @@ button:disabled {
 
 .settings-card .setting-row {
   margin-top: 0;
+}
+
+.settings-card .setting-row--select {
+  align-items: flex-start;
+}
+
+.settings-card .setting-row--select select {
+  min-width: 12rem;
 }
 
 .settings-card .social-grid {

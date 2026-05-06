@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import { getProfiles, resolveMatch, type Profile } from './services/loveDateApi'
 import { FilterScreen } from './components/FilterScreen'
+import { EmbeddedCallStage } from './components/EmbeddedCallStage'
 import { Logo } from './components/Logo'
 import {
   backendGuestLogin,
@@ -51,6 +52,7 @@ import {
   sanitizeAnswers,
   type PersonalityAnswer,
 } from './services/compatibility'
+import { createJitsiProviderConfig } from './services/jitsiEmbedConfig'
 import {
   SAFETY_CATEGORIES,
   createSafetyReport,
@@ -78,6 +80,8 @@ type AppScreen =
   | 'moderation'
   | 'profile-detail'
   | 'filters'
+
+type AppLanguage = 'en' | 'ro'
 
 type SwipeHistory = {
   likedIds: number[]
@@ -266,6 +270,469 @@ type SelfProfile = {
   photos: string[]
   personalityAnswers: PersonalityAnswer[]
 }
+
+const APP_LANGUAGE_KEY = 'lovedate:app-language'
+
+/* cSpell:disable */
+const UI_TEXT = {
+  en: {
+    nav: {
+      discover: 'Discover',
+      activity: 'Activity',
+      circles: 'Circles',
+      chats: 'Chats',
+      moderation: 'Moderation',
+      profile: 'Profile',
+      settings: 'Settings',
+    },
+    auth: {
+      signInTitle: 'Sign in to LoveDate',
+      createTitle: 'Create your LoveDate account',
+      inviteCode: 'Beta Invite Code',
+      invitePlaceholder: 'Enter your invite code',
+      email: 'Email',
+      password: 'Password',
+      confirmPassword: 'Confirm Password',
+      passwordHint: 'Use at least 10 chars with uppercase, lowercase, number, and symbol.',
+      pleaseWait: 'Please wait...',
+      createAccount: 'Create Account',
+      signIn: 'Sign In',
+      continueGuest: 'Continue as Guest',
+      switchToCreate: 'Create account',
+      switchToLogin: 'I already have an account',
+      language: 'App Language',
+      english: 'English',
+      romanian: 'Romanian',
+    },
+    common: {
+      exitToLogin: 'Exit to Login',
+      backToDiscover: 'Back to Discover',
+      loading: 'Loading',
+      error: 'Error',
+      retry: 'Retry',
+      noResults: 'No Results',
+      reset: 'Reset',
+      saveStatus: 'saved',
+      savingStatus: 'saving',
+      idleStatus: 'idle',
+      errorStatus: 'error',
+    },
+    discover: {
+      summary: 'Discover summary',
+      inDeck: 'In Deck',
+      matches: 'Matches',
+      likesLeft: 'Likes Left',
+      superLikes: 'Super Likes',
+      openFilters: 'Open Filters',
+      boost: 'Boost',
+      resetFilters: 'Reset Filters',
+      findingProfiles: 'Finding profiles near you...',
+      noProfilesMatch: 'No profiles match your filters',
+      upNext: 'Up Next',
+      activeNow: 'Active now',
+      zodiac: 'Zodiac',
+      matchScore: 'Match score',
+      personality: 'Personality',
+      chemistry: 'Chemistry',
+      cognitiveOverlap: 'Cognitive overlap',
+      aligned: 'Aligned',
+      neutral: 'Neutral',
+      viewFullProfile: 'View full profile',
+      pass: 'Pass',
+      superLike: 'Super Like',
+      like: 'Like',
+      keyboardShortcuts: 'Keyboard shortcuts',
+      undoHint: 'U (undo), Esc (close match).',
+      likeLimitReached: 'Like limit reached for your current plan.',
+      superLikeLimitReached: 'Super Like limit reached for this week.',
+      checkingMatch: 'Checking for a match...',
+      lastAction: 'Last action',
+      deckComplete: 'Deck Complete',
+      noMoreProfiles: 'No more profiles for these filters',
+      startAgain: 'Start Again',
+      clearHistory: 'Clear History',
+    },
+    settings: {
+      controlCenter: 'Control Center',
+      title: 'Settings',
+      subtitle: 'Manage preferences, sharing, notifications, and safety from one polished dashboard.',
+      profileSync: 'Profile sync',
+      settingsSync: 'Settings sync',
+      connectedSocials: 'Connected socials',
+      unreadAlerts: 'Unread alerts',
+      preferences: 'Preferences',
+      pushNotifications: 'Push Notifications',
+      emailNotifications: 'Email Notifications',
+      privateMode: 'Private Mode',
+      incognitoMode: 'Incognito Mode',
+      appLanguage: 'App Language',
+      syncLine: 'Settings: {settings} • Preferences sync: {preferences}',
+    },
+    activity: {
+      overview: 'Activity overview',
+      liked: 'Liked',
+      passed: 'Passed',
+      matches: 'Matches',
+      noMatchesYet: 'No matches yet.',
+      noLikesYet: 'No likes yet.',
+      noPassesYet: 'No passes yet.',
+      chat: 'Chat',
+      view: 'View',
+    },
+    circles: {
+      community: 'Circles community',
+      title: 'Circles',
+      subtitle: 'Join communities around interests and personality vibes.',
+      search: 'Search circles',
+      searchPlaceholder: 'Design, travel, coffee...',
+      members: 'members',
+      joined: 'Joined',
+      explore: 'Explore',
+      leaveCircle: 'Leave Circle',
+      joinCircle: 'Join Circle',
+      upcomingEvents: 'Upcoming Events',
+      rsvpSaved: 'RSVP Saved',
+      rsvp: 'RSVP',
+      feed: 'Circle Feed',
+      sharePrompt: 'Share something with this circle',
+      sharePlaceholder: 'Post a thought, event idea, or question...',
+      publishPost: 'Publish Post',
+      noPosts: 'No posts yet. Be the first to start the conversation.',
+      noCirclesFound: 'No circles found for this search.',
+    },
+    chats: {
+      searchPlaceholder: 'Search conversations...',
+      online: 'Online',
+      audioCall: 'Audio call',
+      videoCall: 'Video call',
+      moreOptions: 'More options',
+      compatibility: 'Compatibility snapshot',
+      type: 'Type',
+      zodiac: 'Zodiac',
+      cognitive: 'Cognitive',
+      unknown: 'Unknown',
+      uniqueCosmicSignature: 'Unique cosmic signature.',
+      aiCoach: 'AI Date Coach (Beta)',
+      thinking: 'Thinking...',
+      generateSuggestions: 'Generate suggestions',
+      coachEmpty: 'Generate personalized opener ideas based on your chemistry and recent chat context.',
+      aiPlanner: 'AI Date Planner (Beta)',
+      planning: 'Planning...',
+      planDate: 'Plan a date',
+      useMessage: 'Use this message',
+      plannerEmpty: 'Generate 3 personalized date plan options using your shared interests and chemistry.',
+      recentCalls: 'Recent Calls',
+      videoCallLabel: 'Video call',
+      audioCallLabel: 'Audio call',
+      rejoin: 'Rejoin',
+      openRoom: 'Open room',
+      noCallActivity: 'No call activity with this match yet.',
+      olderMessages: 'Show {count} older messages',
+      joinCall: 'Join call',
+      openExternally: 'Open externally',
+      attachmentReady: 'Attachment ready:',
+      remove: 'Remove',
+      typeMessage: 'Type a message...',
+      attachMedia: 'Attach media',
+      stopRecording: 'Stop recording',
+      recordVoice: 'Record voice',
+      send: 'Send',
+      noChat: 'No Chat',
+      selectMatch: 'Select a match to begin chatting',
+    },
+    profile: {
+      screen: 'Profile screen',
+      overview: 'Profile overview',
+      aboutMe: 'About Me',
+      personalityCode: 'Personality code',
+      primary: 'Primary',
+      support: 'Support',
+      zodiacNote: 'Zodiac note',
+      uniqueCosmicSignature: 'Unique cosmic signature.',
+      whatCodeMeans: 'What does this code mean?',
+      interests: 'Interests',
+      socialTrust: 'Social Trust',
+      connectedAccounts: 'Connected accounts',
+      noSocialAccounts: 'No social accounts connected yet',
+      editProfile: 'Edit My Profile',
+      identity: 'Identity',
+      name: 'Name',
+      age: 'Age',
+      pronouns: 'Pronouns',
+      gender: 'Gender',
+      orientation: 'Orientation',
+      heightCm: 'Height (cm)',
+      profileDetails: 'Profile Details',
+      city: 'City',
+      hometown: 'Hometown',
+      vibe: 'Vibe',
+      lookingFor: 'Looking For',
+      relationshipIntent: 'Relationship Intent',
+      interestsComma: 'Interests (comma separated)',
+      bio: 'Bio',
+      personalityQuiz: 'Personality Quiz',
+      compatibilityCode: 'Compatibility code',
+      pickOption: 'Pick the option that fits you best.',
+      openGuide: 'Open personality guide',
+      careerLifestyle: 'Career And Lifestyle',
+      jobTitle: 'Job Title',
+      company: 'Company',
+      education: 'Education',
+      languagesComma: 'Languages (comma separated)',
+      drinking: 'Drinking',
+      smoking: 'Smoking',
+      workout: 'Workout',
+      pets: 'Pets',
+      childrenPlan: 'Children Plan',
+      religion: 'Religion',
+      politics: 'Politics',
+      zodiac: 'Zodiac',
+      promptsSocial: 'Prompts And Social',
+      prompt1: 'Prompt 1',
+      prompt2: 'Prompt 2',
+      prompt3: 'Prompt 3',
+      dealbreakersComma: 'Dealbreakers (comma separated)',
+      instagram: 'Instagram',
+      anthem: 'Anthem',
+      travelMode: 'Travel Mode',
+      photos: 'Photos',
+      pastePhotoUrl: 'Paste photo URL',
+      addUrl: 'Add URL',
+      uploadPhoto: 'Upload photo (opens editor)',
+      primaryPhoto: 'Primary',
+      setAsPrimary: 'Set as Primary',
+    },
+  },
+  ro: {
+    nav: {
+      discover: 'Descoperă',
+      activity: 'Activitate',
+      circles: 'Cercuri',
+      chats: 'Chat-uri',
+      moderation: 'Moderare',
+      profile: 'Profil',
+      settings: 'Setări',
+    },
+    auth: {
+      signInTitle: 'Conectează-te la LoveDate',
+      createTitle: 'Creează-ți contul LoveDate',
+      inviteCode: 'Cod invitație beta',
+      invitePlaceholder: 'Introdu codul de invitație',
+      email: 'Email',
+      password: 'Parolă',
+      confirmPassword: 'Confirmă parola',
+      passwordHint: 'Folosește cel puțin 10 caractere cu literă mare, literă mică, număr și simbol.',
+      pleaseWait: 'Te rugăm așteaptă...',
+      createAccount: 'Creează cont',
+      signIn: 'Conectare',
+      continueGuest: 'Continuă ca invitat',
+      switchToCreate: 'Creează cont',
+      switchToLogin: 'Am deja cont',
+      language: 'Limba aplicației',
+      english: 'Engleză',
+      romanian: 'Română',
+    },
+    common: {
+      exitToLogin: 'Ieși la autentificare',
+      backToDiscover: 'Înapoi la Descoperă',
+      loading: 'Se încarcă',
+      error: 'Eroare',
+      retry: 'Reîncearcă',
+      noResults: 'Fără rezultate',
+      reset: 'Resetează',
+      saveStatus: 'salvat',
+      savingStatus: 'se salvează',
+      idleStatus: 'inactiv',
+      errorStatus: 'eroare',
+    },
+    discover: {
+      summary: 'Rezumat descoperire',
+      inDeck: 'În pachet',
+      matches: 'Potriviri',
+      likesLeft: 'Like-uri rămase',
+      superLikes: 'Super Like-uri',
+      openFilters: 'Deschide filtrele',
+      boost: 'Promovare',
+      resetFilters: 'Resetează filtrele',
+      findingProfiles: 'Căutăm profile în apropierea ta...',
+      noProfilesMatch: 'Niciun profil nu se potrivește cu filtrele tale',
+      upNext: 'Urmează',
+      activeNow: 'Activ acum',
+      zodiac: 'Zodie',
+      matchScore: 'Scor compatibilitate',
+      personality: 'Personalitate',
+      chemistry: 'Chimie',
+      cognitiveOverlap: 'Suprapunere cognitivă',
+      aligned: 'Aliniat',
+      neutral: 'Neutru',
+      viewFullProfile: 'Vezi profilul complet',
+      pass: 'Pas',
+      superLike: 'Super Like',
+      like: 'Like',
+      keyboardShortcuts: 'Scurtături tastatură',
+      undoHint: 'U (anulează), Esc (închide potrivirea).',
+      likeLimitReached: 'Ai atins limita de Like-uri pentru planul tău curent.',
+      superLikeLimitReached: 'Ai atins limita de Super Like-uri pentru această săptămână.',
+      checkingMatch: 'Verificăm dacă există o potrivire...',
+      lastAction: 'Ultima acțiune',
+      deckComplete: 'Pachet terminat',
+      noMoreProfiles: 'Nu mai există profile pentru aceste filtre',
+      startAgain: 'Pornește din nou',
+      clearHistory: 'Șterge istoricul',
+    },
+    settings: {
+      controlCenter: 'Centru de control',
+      title: 'Setări',
+      subtitle: 'Gestionează preferințele, distribuirea, notificările și siguranța dintr-un singur panou elegant.',
+      profileSync: 'Sincronizare profil',
+      settingsSync: 'Sincronizare setări',
+      connectedSocials: 'Rețele conectate',
+      unreadAlerts: 'Alerte necitite',
+      preferences: 'Preferințe',
+      pushNotifications: 'Notificări push',
+      emailNotifications: 'Notificări email',
+      privateMode: 'Mod privat',
+      incognitoMode: 'Mod incognito',
+      appLanguage: 'Limba aplicației',
+      syncLine: 'Setări: {settings} • Sincronizare preferințe: {preferences}',
+    },
+    activity: {
+      overview: 'Prezentare activitate',
+      liked: 'Apreciate',
+      passed: 'Respinse',
+      matches: 'Potriviri',
+      noMatchesYet: 'Nu ai încă potriviri.',
+      noLikesYet: 'Nu ai încă aprecieri.',
+      noPassesYet: 'Nu ai încă respingeri.',
+      chat: 'Chat',
+      view: 'Vezi',
+    },
+    circles: {
+      community: 'Comunitatea cercurilor',
+      title: 'Cercuri',
+      subtitle: 'Intră în comunități construite în jurul intereselor și al vibrației de personalitate.',
+      search: 'Caută cercuri',
+      searchPlaceholder: 'Design, călătorii, cafea...',
+      members: 'membri',
+      joined: 'Membru',
+      explore: 'Explorează',
+      leaveCircle: 'Părăsește cercul',
+      joinCircle: 'Alătură-te cercului',
+      upcomingEvents: 'Evenimente viitoare',
+      rsvpSaved: 'RSVP salvat',
+      rsvp: 'RSVP',
+      feed: 'Fluxul cercului',
+      sharePrompt: 'Spune ceva acestui cerc',
+      sharePlaceholder: 'Publică un gând, o idee de eveniment sau o întrebare...',
+      publishPost: 'Publică postarea',
+      noPosts: 'Nu există încă postări. Fii primul care începe conversația.',
+      noCirclesFound: 'Nu au fost găsite cercuri pentru această căutare.',
+    },
+    chats: {
+      searchPlaceholder: 'Caută conversații...',
+      online: 'Online',
+      audioCall: 'Apel audio',
+      videoCall: 'Apel video',
+      moreOptions: 'Mai multe opțiuni',
+      compatibility: 'Rezumat compatibilitate',
+      type: 'Tip',
+      zodiac: 'Zodie',
+      cognitive: 'Cognitiv',
+      unknown: 'Necunoscut',
+      uniqueCosmicSignature: 'Semnătură cosmică unică.',
+      aiCoach: 'Antrenor AI pentru întâlniri (Beta)',
+      thinking: 'Se gândește...',
+      generateSuggestions: 'Generează sugestii',
+      coachEmpty: 'Generează idei personalizate de început de conversație pe baza chimiei și a contextului recent din chat.',
+      aiPlanner: 'Planificator AI de întâlniri (Beta)',
+      planning: 'Planifică...',
+      planDate: 'Planifică o întâlnire',
+      useMessage: 'Folosește mesajul',
+      plannerEmpty: 'Generează 3 opțiuni personalizate de întâlnire folosind interesele și chimia voastră comună.',
+      recentCalls: 'Apeluri recente',
+      videoCallLabel: 'Apel video',
+      audioCallLabel: 'Apel audio',
+      rejoin: 'Reintră',
+      openRoom: 'Deschide camera',
+      noCallActivity: 'Nu există încă activitate de apel cu această potrivire.',
+      olderMessages: 'Arată {count} mesaje mai vechi',
+      joinCall: 'Intră în apel',
+      openExternally: 'Deschide extern',
+      attachmentReady: 'Atașament pregătit:',
+      remove: 'Elimină',
+      typeMessage: 'Scrie un mesaj...',
+      attachMedia: 'Atașează media',
+      stopRecording: 'Oprește înregistrarea',
+      recordVoice: 'Înregistrează voce',
+      send: 'Trimite',
+      noChat: 'Fără chat',
+      selectMatch: 'Selectează o potrivire pentru a începe conversația',
+    },
+    profile: {
+      screen: 'Ecran profil',
+      overview: 'Prezentare profil',
+      aboutMe: 'Despre mine',
+      personalityCode: 'Cod de personalitate',
+      primary: 'Principal',
+      support: 'Suport',
+      zodiacNote: 'Notă zodiacală',
+      uniqueCosmicSignature: 'Semnătură cosmică unică.',
+      whatCodeMeans: 'Ce înseamnă acest cod?',
+      interests: 'Interese',
+      socialTrust: 'Încredere socială',
+      connectedAccounts: 'Conturi conectate',
+      noSocialAccounts: 'Nu există încă conturi sociale conectate',
+      editProfile: 'Editează profilul meu',
+      identity: 'Identitate',
+      name: 'Nume',
+      age: 'Vârstă',
+      pronouns: 'Pronume',
+      gender: 'Gen',
+      orientation: 'Orientare',
+      heightCm: 'Înălțime (cm)',
+      profileDetails: 'Detalii profil',
+      city: 'Oraș',
+      hometown: 'Oraș natal',
+      vibe: 'Vibe',
+      lookingFor: 'Caut',
+      relationshipIntent: 'Intenția relației',
+      interestsComma: 'Interese (separate prin virgulă)',
+      bio: 'Bio',
+      personalityQuiz: 'Test de personalitate',
+      compatibilityCode: 'Cod de compatibilitate',
+      pickOption: 'Alege opțiunea care ți se potrivește cel mai bine.',
+      openGuide: 'Deschide ghidul de personalitate',
+      careerLifestyle: 'Carieră și stil de viață',
+      jobTitle: 'Funcție',
+      company: 'Companie',
+      education: 'Educație',
+      languagesComma: 'Limbi vorbite (separate prin virgulă)',
+      drinking: 'Alcool',
+      smoking: 'Fumat',
+      workout: 'Sport',
+      pets: 'Animale',
+      childrenPlan: 'Plan pentru copii',
+      religion: 'Religie',
+      politics: 'Politică',
+      zodiac: 'Zodie',
+      promptsSocial: 'Prompturi și social',
+      prompt1: 'Prompt 1',
+      prompt2: 'Prompt 2',
+      prompt3: 'Prompt 3',
+      dealbreakersComma: 'Dealbreakers (separate prin virgulă)',
+      instagram: 'Instagram',
+      anthem: 'Imn',
+      travelMode: 'Mod călătorie',
+      photos: 'Poze',
+      pastePhotoUrl: 'Lipește URL-ul pozei',
+      addUrl: 'Adaugă URL',
+      uploadPhoto: 'Încarcă poză (deschide editorul)',
+      primaryPhoto: 'Principală',
+      setAsPrimary: 'Setează ca principală',
+    },
+  },
+} as const
+/* cSpell:enable */
 
 type PhotoStudioControls = {
   cropAspect: 'free' | 'portrait' | 'square' | 'classic'
@@ -1354,6 +1821,24 @@ const getCallDurationLabel = (startedAt: number, endedAt: number | null): string
   return `${minutes}m ${seconds.toString().padStart(2, '0')}s`
 }
 
+const readAppLanguage = (): AppLanguage => {
+  if (typeof window === 'undefined') {
+    return 'en'
+  }
+  const stored = window.localStorage.getItem(APP_LANGUAGE_KEY)
+  return stored === 'ro' ? 'ro' : 'en'
+}
+
+const persistAppLanguage = (language: AppLanguage): void => {
+  window.localStorage.setItem(APP_LANGUAGE_KEY, language)
+}
+
+const formatUiText = (template: string, replacements: Record<string, string | number>): string =>
+  Object.entries(replacements).reduce(
+    (current, [key, value]) => current.replaceAll(`{${key}}`, String(value)),
+    template,
+  )
+
 const getProfilePhotos = (profile: Profile): string[] => profile.photos
 
 const getProfilePrompts = (profile: Profile): string[] => [
@@ -1521,6 +2006,33 @@ const seedChat = (selfName: string): ChatMessage[] => [
 ]
 
 function App() {
+  // Clear any leftover demo/test data on first launch if not authenticated.
+  // This ensures new installs start completely empty.
+  if (typeof window !== 'undefined') {
+    const CLEAN_FLAG = 'lovedate:clean-v1'
+    if (!window.localStorage.getItem(CLEAN_FLAG)) {
+      const auth = window.localStorage.getItem(AUTH_STORAGE_KEY)
+      let isRealAuth = false
+      try {
+        const parsed = JSON.parse(auth ?? '{}') as { isAuthenticated?: boolean }
+        isRealAuth = parsed.isAuthenticated === true
+      } catch { /* ignore */ }
+      if (!isRealAuth) {
+        ;[
+          HISTORY_STORAGE_KEY,
+          CHAT_THREADS_STORAGE_KEY,
+          CALL_HISTORY_STORAGE_KEY,
+          CIRCLES_JOINED_STORAGE_KEY,
+          CIRCLES_POSTS_STORAGE_KEY,
+          CIRCLES_RSVP_STORAGE_KEY,
+          'lovedate:blocked-profiles',
+          'lovedate:moderation-queue',
+        ].forEach((key) => window.localStorage.removeItem(key))
+      }
+      window.localStorage.setItem(CLEAN_FLAG, '1')
+    }
+  }
+
   const initialRoute = readRouteFromWindow()
   const initialAuth = readAuth()
   const initialSelfProfile = readSelfProfile(initialAuth.email)
@@ -1609,6 +2121,15 @@ function App() {
     roomId: null,
     roomUrl: null,
   })
+  const jitsiProvider = useMemo(
+    () =>
+      createJitsiProviderConfig({
+        domain: runtimeConfig.calls.jitsiDomain,
+        appId: runtimeConfig.calls.jitsiAppId,
+        jwt: runtimeConfig.calls.jitsiJwt,
+      }),
+    [],
+  )
   const [blockedProfileIds, setBlockedProfileIds] = useState<number[]>(() => readBlockedProfileIds())
   const [safetyReports, setSafetyReports] = useState<SafetyReport[]>(() => readModerationQueue())
   const [reportDraftProfile, setReportDraftProfile] = useState<Profile | null>(null)
@@ -1629,6 +2150,7 @@ function App() {
   })
   const [settingsSaveStatus, setSettingsSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [preferenceSaveStatus, setPreferenceSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [appLanguage, setAppLanguage] = useState<AppLanguage>(() => readAppLanguage())
   const [toasts, setToasts] = useState<Toast[]>([])
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null)
   const [lightboxZoom, setLightboxZoom] = useState(1)
@@ -1687,6 +2209,18 @@ function App() {
   const [isMovingCrop, setIsMovingCrop] = useState(false)
   const [isRedrawCropMode, setIsRedrawCropMode] = useState(false)
 
+  const copy = UI_TEXT[appLanguage]
+  const formatStatusLabel = useCallback(
+    (status: 'idle' | 'saving' | 'saved' | 'error') =>
+      ({
+        idle: copy.common.idleStatus,
+        saving: copy.common.savingStatus,
+        saved: copy.common.saveStatus,
+        error: copy.common.errorStatus,
+      })[status],
+    [copy],
+  )
+
   const refreshEngagementUsage = useCallback((plan: PlanTier) => {
     setLikeUsage(getLikeUsage(plan))
     setSuperLikeUsage(getSuperLikeUsage(plan))
@@ -1695,6 +2229,10 @@ function App() {
   useEffect(() => {
     callStateRef.current = callState
   }, [callState])
+
+  useEffect(() => {
+    persistAppLanguage(appLanguage)
+  }, [appLanguage])
 
   useEffect(() => {
     refreshEngagementUsage(activePlan)
@@ -2949,8 +3487,9 @@ function App() {
     if (!selectedChatProfile) {
       return
     }
-    const roomId = buildCallRoom(userEmail || 'guest@lovedate.app', selectedChatProfile.id, type)
-    const roomUrl = `https://meet.jit.si/${roomId}`
+    const rawRoomId = buildCallRoom(userEmail || 'guest@lovedate.app', selectedChatProfile.id, type)
+    const roomId = jitsiProvider.formatRoomName(rawRoomId)
+    const roomUrl = jitsiProvider.buildRoomUrl(rawRoomId)
     const now = Date.now()
     const logId = `call_${now}_${selectedChatProfile.id}`
     const nextCallEntry: CallLogEntry = {
@@ -2970,7 +3509,7 @@ function App() {
     setCallState({
       active: true,
       type,
-      status: 'live',
+      status: 'connecting',
       startedAt: now,
       targetProfileId: selectedChatProfile.id,
       muted: false,
@@ -3000,8 +3539,57 @@ function App() {
         ],
       }
     })
-    pushToast('Private call link created and shared in chat.', 'success')
+    pushToast(
+      jitsiProvider.needsModeratorAuth
+        ? 'Private call link created, but meet.jit.si may require a moderator login. Configure JaaS for reliable calls.'
+        : 'Private call link created and shared in chat.',
+      jitsiProvider.needsModeratorAuth ? 'info' : 'success',
+    )
   }
+
+  const markCallConnected = useCallback(() => {
+    const connectedAt = Date.now()
+    const logId = activeCallLogIdRef.current
+    if (logId) {
+      setCallHistory((current) =>
+        current.map((entry) =>
+          entry.id === logId && !entry.answeredAt
+            ? {
+                ...entry,
+                outcome: 'connected',
+                answeredAt: connectedAt,
+              }
+            : entry,
+        ),
+      )
+    }
+    setCallState((current) => (current.active ? { ...current, status: 'live' } : current))
+  }, [])
+
+  const markCallFailed = useCallback(() => {
+    const logId = activeCallLogIdRef.current
+    if (logId) {
+      setCallHistory((current) =>
+        current.map((entry) =>
+          entry.id === logId && entry.outcome !== 'connected' && entry.outcome !== 'ended'
+            ? {
+                ...entry,
+                outcome: 'failed',
+              }
+            : entry,
+        ),
+      )
+    }
+    setCallState((current) => (current.active ? { ...current, status: 'error' } : current))
+  }, [])
+
+  const setCallMuted = useCallback((muted: boolean) => {
+    setCallState((current) => (current.active ? { ...current, muted } : current))
+  }, [])
+
+  const setCallCameraOff = useCallback((cameraOff: boolean) => {
+    setCallState((current) => (current.active ? { ...current, cameraOff } : current))
+  }, [])
 
   const endCall = useCallback(() => {
     const snapshot = callStateRef.current
@@ -3064,28 +3652,13 @@ function App() {
     })
   }, [])
 
-  const openCallRoom = () => {
+  const openCallRoom = useCallback(() => {
     if (!callState.roomUrl) {
       return
     }
-    const openedAt = Date.now()
-    const logId = activeCallLogIdRef.current
-    if (logId) {
-      setCallHistory((current) =>
-        current.map((entry) =>
-          entry.id === logId && !entry.answeredAt
-            ? {
-                ...entry,
-                outcome: 'connected',
-                answeredAt: openedAt,
-              }
-            : entry,
-        ),
-      )
-    }
-    setCallState((current) => ({ ...current, status: 'live' }))
+    markCallConnected()
     window.open(callState.roomUrl, '_blank', 'noopener,noreferrer')
-  }
+  }, [callState.roomUrl, markCallConnected])
 
   const copyCallInvite = async () => {
     if (!callState.roomUrl) {
@@ -4008,17 +4581,17 @@ function App() {
   )
 
   const navItems: Array<{ key: AppScreen; label: string; badge?: number }> = [
-    { key: 'discover', label: 'Discover' },
-    { key: 'activity', label: 'Activity' },
-    { key: 'circles', label: 'Circles', badge: joinedCircleIds.length > 0 ? joinedCircleIds.length : undefined },
-    { key: 'chats', label: 'Chats', badge: Object.values(unreadChats).reduce((sum, count) => sum + count, 0) },
+    { key: 'discover', label: copy.nav.discover },
+    { key: 'activity', label: copy.nav.activity },
+    { key: 'circles', label: copy.nav.circles, badge: joinedCircleIds.length > 0 ? joinedCircleIds.length : undefined },
+    { key: 'chats', label: copy.nav.chats, badge: Object.values(unreadChats).reduce((sum, count) => sum + count, 0) },
     {
       key: 'moderation',
-      label: 'Moderation',
+      label: copy.nav.moderation,
       badge: isModerationAdmin ? safetyReports.filter((report) => report.status === 'open').length : undefined,
     },
-    { key: 'profile', label: 'Profile' },
-    { key: 'settings', label: 'Settings', badge: unreadNotificationCount },
+    { key: 'profile', label: copy.nav.profile },
+    { key: 'settings', label: copy.nav.settings, badge: unreadNotificationCount },
   ]
 
   const moderationReportsSorted = useMemo(
@@ -4118,23 +4691,32 @@ function App() {
         <div className="grain" aria-hidden="true" />
         <article className="login-card">
           <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
-          <h1>{authMode === 'register' ? 'Create your LoveDate account' : 'Sign in to LoveDate'}</h1>
+          <div className="login-language-row">
+            <label>
+              {copy.auth.language}
+              <select value={appLanguage} onChange={(event) => setAppLanguage(event.target.value as AppLanguage)}>
+                <option value="en">{copy.auth.english}</option>
+                <option value="ro">{copy.auth.romanian}</option>
+              </select>
+            </label>
+          </div>
+          <h1>{authMode === 'register' ? copy.auth.createTitle : copy.auth.signInTitle}</h1>
           <form className="login-form" onSubmit={handleLoginSubmit}>
             {runtimeConfig.auth.requireInviteCode ? (
               <label>
-                Beta Invite Code
+                {copy.auth.inviteCode}
                 <input
                   type="text"
                   autoComplete="one-time-code"
                   value={inviteCode}
                   onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
-                  placeholder="Enter your invite code"
+                  placeholder={copy.auth.invitePlaceholder}
                   required
                 />
               </label>
             ) : null}
             <label>
-              Email
+              {copy.auth.email}
               <input
                 type="email"
                 autoComplete="email"
@@ -4144,7 +4726,7 @@ function App() {
               />
             </label>
             <label>
-              Password
+              {copy.auth.password}
               <input
                 type="password"
                 autoComplete={authMode === 'register' ? 'new-password' : 'current-password'}
@@ -4153,14 +4735,12 @@ function App() {
                 required
               />
               {authMode === 'register' ? (
-                <small className="soft">
-                  Use at least 10 chars with uppercase, lowercase, number, and symbol.
-                </small>
+                <small className="soft">{copy.auth.passwordHint}</small>
               ) : null}
             </label>
             {authMode === 'register' ? (
               <label>
-                Confirm Password
+                {copy.auth.confirmPassword}
                 <input
                   type="password"
                   autoComplete="new-password"
@@ -4174,11 +4754,11 @@ function App() {
             {loginNotice ? <p className="info-text">{loginNotice}</p> : null}
             <div className="login-actions">
               <button type="submit" disabled={loggingIn}>
-                {loggingIn ? 'Please wait...' : authMode === 'register' ? 'Create Account' : 'Sign In'}
+                {loggingIn ? copy.auth.pleaseWait : authMode === 'register' ? copy.auth.createAccount : copy.auth.signIn}
               </button>
               {runtimeConfig.auth.allowGuestLogin && authMode === 'login' ? (
                 <button type="button" className="ghost" onClick={handleGuestLogin} disabled={loggingIn}>
-                  Continue as Guest
+                  {copy.auth.continueGuest}
                 </button>
               ) : null}
               <button
@@ -4192,7 +4772,7 @@ function App() {
                 }}
                 disabled={loggingIn}
               >
-                {authMode === 'login' ? 'Create account' : 'I already have an account'}
+                {authMode === 'login' ? copy.auth.switchToCreate : copy.auth.switchToLogin}
               </button>
             </div>
           </form>
@@ -4232,7 +4812,7 @@ function App() {
           ))}
         </nav>
         <button type="button" className="top-exit-btn" onClick={handleSignOut}>
-          Exit to Login
+          {copy.common.exitToLogin}
         </button>
       </header>
       <section className={`screen-panel ${screen === 'discover' ? 'screen-panel--discover' : ''}`} aria-live="polite">
@@ -4244,7 +4824,7 @@ function App() {
               style={{ marginBottom: '1.5rem' }}
               onClick={() => navigate('discover')}
             >
-              {'\u2190'} Back to Discover
+              {'\u2190'} {copy.common.backToDiscover}
             </button>
             <FilterScreen
               filters={filters}
@@ -4260,15 +4840,15 @@ function App() {
         )}
         {screen === 'discover' && (
           <section className="discover-main-only discover-redesign" aria-label="Discover cards and actions">
-            <section className="discover-metrics" aria-label="Discover summary">
+            <section className="discover-metrics" aria-label={copy.discover.summary}>
               <div className="discover-kpis">
                 <div className="discover-kpi">
                   <strong className="discover-kpi-value">{filteredProfiles.length}</strong>
-                  <span className="discover-kpi-label">In Deck</span>
+                  <span className="discover-kpi-label">{copy.discover.inDeck}</span>
                 </div>
                 <div className="discover-kpi">
                   <strong className="discover-kpi-value">{matchedProfiles.length}</strong>
-                  <span className="discover-kpi-label">Matches</span>
+                  <span className="discover-kpi-label">{copy.discover.matches}</span>
                 </div>
                 <div className="discover-kpi">
                   <strong className="discover-kpi-value">
@@ -4276,67 +4856,70 @@ function App() {
                       ? '∞'
                       : Math.max(0, likeUsage.limit - likeUsage.used)}
                   </strong>
-                  <span className="discover-kpi-label">Likes Left</span>
+                  <span className="discover-kpi-label">{copy.discover.likesLeft}</span>
                 </div>
                 <div className="discover-kpi">
                   <strong className="discover-kpi-value">
                     {superLikeUsage.limit === Infinity ? '∞' : Math.max(0, superLikeUsage.limit - superLikeUsage.used)}
                   </strong>
-                  <span className="discover-kpi-label">Super Likes</span>
+                  <span className="discover-kpi-label">{copy.discover.superLikes}</span>
                 </div>
               </div>
               <div className="discover-metric-controls">
                 <button type="button" className="discover-metric-btn" onClick={() => navigate('filters')}>
-                  Open Filters
+                  {copy.discover.openFilters}
                 </button>
                 <button
                   type="button"
                   className="discover-metric-btn"
                   onClick={() => {
                     if (boostsLeft <= 0) {
-                      pushToast('No boosts left right now.', 'error')
+                      pushToast(appLanguage === 'ro' ? 'Nu mai ai promovări disponibile momentan.' : 'No boosts left right now.', 'error')
                       return
                     }
                     setBoostsLeft((current) => Math.max(0, current - 1))
                     setIndex(0)
                     setIncludeReviewed(true)
                     pushNotification({
-                      title: 'Profile boost activated',
-                      body: 'Your profile gets extra visibility for the next hour (demo).',
+                      title: appLanguage === 'ro' ? 'Promovare profil activată' : 'Profile boost activated',
+                      body:
+                        appLanguage === 'ro'
+                          ? 'Profilul tău primește vizibilitate extra pentru următoarea oră (demo).'
+                          : 'Your profile gets extra visibility for the next hour (demo).',
                       category: 'system',
                     })
-                    pushToast('Boost activated.', 'success')
+                    pushToast(appLanguage === 'ro' ? 'Promovare activată.' : 'Boost activated.', 'success')
                   }}
                 >
-                  Boost
+                  {copy.discover.boost}
                 </button>
                 <button type="button" className="discover-metric-btn" onClick={() => setFilters(initialFilters)}>
-                  Reset
+                  {copy.common.reset}
                 </button>
               </div>
             </section>
 
             {loadingProfiles && (
               <section className="state-box" aria-live="polite">
-                <p className="pill">Loading</p>
-                <h1>Finding profiles near you...</h1>
+                <p className="pill">{copy.common.loading}</p>
+                <h1>{copy.discover.findingProfiles}</h1>
               </section>
             )}
             {loadError && !loadingProfiles && (
               <section className="state-box" aria-live="assertive">
-                <p className="pill">Error</p>
+                <p className="pill">{copy.common.error}</p>
                 <h1>{loadError}</h1>
                 <button type="button" onClick={() => void loadProfiles()}>
-                  Retry
+                  {copy.common.retry}
                 </button>
               </section>
             )}
             {showingNoResults && !loadError && (
               <section className="state-box" aria-live="polite">
-                <p className="pill">No Results</p>
-                <h1>No profiles match your filters</h1>
+                <p className="pill">{copy.common.noResults}</p>
+                <h1>{copy.discover.noProfilesMatch}</h1>
                 <button type="button" onClick={() => setFilters(initialFilters)}>
-                  Reset Filters
+                  {copy.discover.resetFilters}
                 </button>
               </section>
             )}
@@ -4358,7 +4941,7 @@ function App() {
                               transform: `translateY(${depth * 6}px) scale(${1 - depth * 0.03})`,
                             }}
                           >
-                            <p className="mini-label">Up Next</p>
+                            <p className="mini-label">{copy.discover.upNext}</p>
                             <h2>
                               {profile.name}, {profile.age}
                             </h2>
@@ -4411,7 +4994,7 @@ function App() {
                               </h1>
                               <p className="discover-presence-line">
                                 <span className="discover-status-dot" aria-hidden="true" />
-                                Active now
+                                {copy.discover.activeNow}
                               </p>
                               <p className="discover-location-line">
                                 {'\u{1F4CD}'} {topProfile.city} {'\u2022'} {topProfile.distanceKm} miles away
@@ -4427,7 +5010,7 @@ function App() {
                             </h1>
                             <p className="discover-presence-line">
                               <span className="discover-status-dot" aria-hidden="true" />
-                              Active now
+                              {copy.discover.activeNow}
                             </p>
                             <p className="discover-location-line">
                               {'\u{1F4CD}'} {topProfile.city} {'\u2022'} {topProfile.distanceKm} miles away
@@ -4444,17 +5027,17 @@ function App() {
                       {topProfile.name}, {topProfile.age}
                     </h2>
                     <p className="discover-zodiac-line">
-                      Zodiac: {topProfile.zodiac} {ZODIAC_EMOJI[topProfile.zodiac] ?? ''}
+                      {copy.discover.zodiac}: {topProfile.zodiac} {ZODIAC_EMOJI[topProfile.zodiac] ?? ''}
                     </p>
                     <p className="compatibility-score">
-                      Match score: {topProfileMatchAnalysis?.score ?? getCompatibilityScore(topProfile)}% {'\u2022'} Personality:{' '}
+                      {copy.discover.matchScore}: {topProfileMatchAnalysis?.score ?? getCompatibilityScore(topProfile)}% {'\u2022'} {copy.discover.personality}:{' '}
                       {topProfileMatchAnalysis?.personalityScore ?? compatibilityFromAnswers(selfProfile.personalityAnswers, topProfile.personalityAnswers)}%
                     </p>
                     {topProfileChemistry ? (
                       <p className="compatibility-score">
-                        Chemistry: {topProfileChemistry.chemistryScore}% {'\u2022'} Cognitive overlap:{' '}
-                        {topProfileChemistry.cognitiveOverlapScore}% {'\u2022'} Zodiac:{' '}
-                        {topProfileChemistry.zodiacAligned ? 'Aligned' : 'Neutral'}
+                        {copy.discover.chemistry}: {topProfileChemistry.chemistryScore}% {'\u2022'} {copy.discover.cognitiveOverlap}:{' '}
+                        {topProfileChemistry.cognitiveOverlapScore}% {'\u2022'} {copy.discover.zodiac}:{' '}
+                        {topProfileChemistry.zodiacAligned ? copy.discover.aligned : copy.discover.neutral}
                       </p>
                     ) : null}
                     <p className="compatibility-score">{topProfileMatchAnalysis?.pairCode}</p>
@@ -4480,7 +5063,7 @@ function App() {
                         openProfileDetail(topProfile.id, 'discover')
                       }}
                     >
-                      View full profile
+                      {copy.discover.viewFullProfile}
                     </button>
                   </article>
                   <section className="actions discover-action-cluster discover-primary-actions" aria-label="Swipe actions">
@@ -4490,7 +5073,7 @@ function App() {
                       onClick={() => swipeCard('left')}
                       disabled={!topProfile || isResolvingSwipe}
                     >
-                      Pass
+                      {copy.discover.pass}
                     </button>
                     <button
                       type="button"
@@ -4498,7 +5081,7 @@ function App() {
                       onClick={() => swipeCard('right', 'super-like')}
                       disabled={!topProfile || isResolvingSwipe || likeLimitReached || superLikeLimitReached}
                     >
-                      Super Like
+                      {copy.discover.superLike}
                     </button>
                     <button
                       type="button"
@@ -4506,31 +5089,31 @@ function App() {
                       onClick={() => swipeCard('right')}
                       disabled={!topProfile || isResolvingSwipe || likeLimitReached}
                     >
-                      Like
+                      {copy.discover.like}
                     </button>
                   </section>
                   <footer className="hint discover-hint">
-                    <div className="discover-keymap" aria-label="Keyboard shortcuts">
-                      <span><b>←</b> Pass</span>
-                      <span><b>↑</b> Super Like</span>
-                      <span><b>→</b> Like</span>
+                    <div className="discover-keymap" aria-label={copy.discover.keyboardShortcuts}>
+                      <span><b>{'\u2190'}</b> {copy.discover.pass}</span>
+                      <span><b>{'\u2191'}</b> {copy.discover.superLike}</span>
+                      <span><b>{'\u2192'}</b> {copy.discover.like}</span>
                     </div>
-                    <p>U (undo), Esc (close match).</p>
-                    {likeLimitReached && <p className="result">Like limit reached for your current plan.</p>}
-                    {superLikeLimitReached && <p className="result">Super Like limit reached for this week.</p>}
-                    {isResolvingSwipe && <p className="result">Checking for a match...</p>}
-                    {lastIntent && <p className="result">Last action: {lastIntent.replace('-', ' ')}</p>}
+                    <p>{copy.discover.undoHint}</p>
+                    {likeLimitReached && <p className="result">{copy.discover.likeLimitReached}</p>}
+                    {superLikeLimitReached && <p className="result">{copy.discover.superLikeLimitReached}</p>}
+                    {isResolvingSwipe && <p className="result">{copy.discover.checkingMatch}</p>}
+                    {lastIntent && <p className="result">{copy.discover.lastAction}: {lastIntent.replace('-', ' ')}</p>}
                   </footer>
                 </aside>
               </section>
             )}
             {showingDeckCompletion && (
               <section className="match-summary">
-                <p className="pill">Deck Complete</p>
-                <h1>No more profiles for these filters</h1>
+                <p className="pill">{copy.discover.deckComplete}</p>
+                <h1>{copy.discover.noMoreProfiles}</h1>
                 <div className="summary-actions">
                   <button type="button" onClick={() => setIndex(0)}>
-                    Start Again
+                    {copy.discover.startAgain}
                   </button>
                   <button
                     type="button"
@@ -4545,7 +5128,7 @@ function App() {
                       setIndex(0)
                     }}
                   >
-                    Clear History
+                    {copy.discover.clearHistory}
                   </button>
                 </div>
               </section>
@@ -4554,22 +5137,22 @@ function App() {
         )}
         {screen === 'activity' && (
           <section className="activity-layout">
-            <section className="activity-overview" aria-label="Activity overview">
+            <section className="activity-overview" aria-label={copy.activity.overview}>
               <p>
-                Liked <strong>{likedProfiles.length}</strong>
+                {copy.activity.liked} <strong>{likedProfiles.length}</strong>
               </p>
               <p>
-                Passed <strong>{passedProfiles.length}</strong>
+                {copy.activity.passed} <strong>{passedProfiles.length}</strong>
               </p>
               <p>
-                Matches <strong>{matchedProfiles.length}</strong>
+                {copy.activity.matches} <strong>{matchedProfiles.length}</strong>
               </p>
             </section>
 
             <article className="list-panel activity-panel activity-panel--matches">
-              <h2>Matches</h2>
+              <h2>{copy.activity.matches}</h2>
               {matchedProfiles.length === 0 ? (
-                <p className="soft">No matches yet.</p>
+                <p className="soft">{copy.activity.noMatchesYet}</p>
               ) : (
                 <ul>
                   {matchedProfiles.map((profile) => (
@@ -4592,7 +5175,7 @@ function App() {
                           navigate('chats')
                         }}
                       >
-                        Chat
+                        {copy.activity.chat}
                       </button>
                     </li>
                   ))}
@@ -4601,9 +5184,9 @@ function App() {
             </article>
 
             <article className="list-panel activity-panel">
-              <h2>Liked</h2>
+              <h2>{copy.activity.liked}</h2>
               {likedProfiles.length === 0 ? (
-                <p className="soft">No likes yet.</p>
+                <p className="soft">{copy.activity.noLikesYet}</p>
               ) : (
                 <ul>
                   {likedProfiles.map((profile) => (
@@ -4619,7 +5202,7 @@ function App() {
                         </div>
                       </div>
                       <button type="button" className="mini-btn" onClick={() => openProfileDetail(profile.id, 'activity')}>
-                        View
+                        {copy.activity.view}
                       </button>
                     </li>
                   ))}
@@ -4628,9 +5211,9 @@ function App() {
             </article>
 
             <article className="list-panel activity-panel">
-              <h2>Passed</h2>
+              <h2>{copy.activity.passed}</h2>
               {passedProfiles.length === 0 ? (
-                <p className="soft">No passes yet.</p>
+                <p className="soft">{copy.activity.noPassesYet}</p>
               ) : (
                 <ul>
                   {passedProfiles.map((profile) => (
@@ -4646,7 +5229,7 @@ function App() {
                         </div>
                       </div>
                       <button type="button" className="mini-btn" onClick={() => openProfileDetail(profile.id, 'activity')}>
-                        View
+                        {copy.activity.view}
                       </button>
                     </li>
                   ))}
@@ -4656,17 +5239,17 @@ function App() {
           </section>
         )}
         {screen === 'circles' && (
-          <section className="settings-screen circles-screen" aria-label="Circles community">
+          <section className="settings-screen circles-screen" aria-label={copy.circles.community}>
             <article className="profile-settings circles-list-panel">
-              <h2>Circles</h2>
-              <p className="soft">Join communities around interests and personality vibes.</p>
+              <h2>{copy.circles.title}</h2>
+              <p className="soft">{copy.circles.subtitle}</p>
               <label>
-                Search circles
+                {copy.circles.search}
                 <input
                   type="text"
                   value={circleSearch}
                   onChange={(event) => setCircleSearch(event.target.value)}
-                  placeholder="Design, travel, coffee..."
+                  placeholder={copy.circles.searchPlaceholder}
                 />
               </label>
               <div className="notification-list circles-list">
@@ -4682,10 +5265,10 @@ function App() {
                       <div className="chat-item-body">
                         <div className="chat-meta">
                           <strong>{circle.name}</strong>
-                          <span>{circle.memberCount + (joined ? 1 : 0)} members</span>
+                          <span>{circle.memberCount + (joined ? 1 : 0)} {copy.circles.members}</span>
                         </div>
                         <div className="chat-status">
-                          <small>{joined ? 'Joined' : 'Explore'}</small>
+                          <small>{joined ? copy.circles.joined : copy.circles.explore}</small>
                         </div>
                       </div>
                     </button>
@@ -4711,10 +5294,10 @@ function App() {
                   </div>
                   <div className="summary-actions">
                     <button type="button" className="ghost" onClick={() => toggleCircleJoin(selectedCircle.id)}>
-                      {joinedCircleIds.includes(selectedCircle.id) ? 'Leave Circle' : 'Join Circle'}
+                      {joinedCircleIds.includes(selectedCircle.id) ? copy.circles.leaveCircle : copy.circles.joinCircle}
                     </button>
                   </div>
-                  <h3>Upcoming Events</h3>
+                  <h3>{copy.circles.upcomingEvents}</h3>
                   <div className="circles-events">
                     {selectedCircle.events.map((eventItem) => (
                       <div key={eventItem.id} className="circles-event-card">
@@ -4723,29 +5306,29 @@ function App() {
                         </p>
                         <p>{eventItem.when} {'\u2022'} {eventItem.where}</p>
                         <button type="button" className="ghost" onClick={() => toggleCircleRsvp(eventItem.id)}>
-                          {circleRsvps[eventItem.id] ? 'RSVP Saved' : 'RSVP'}
+                          {circleRsvps[eventItem.id] ? copy.circles.rsvpSaved : copy.circles.rsvp}
                         </button>
                       </div>
                     ))}
                   </div>
-                  <h3>Circle Feed</h3>
+                  <h3>{copy.circles.feed}</h3>
                   <label>
-                    Share something with this circle
+                    {copy.circles.sharePrompt}
                     <textarea
                       rows={3}
                       value={circlePostDraft}
                       onChange={(event) => setCirclePostDraft(event.target.value)}
-                      placeholder="Post a thought, event idea, or question..."
+                      placeholder={copy.circles.sharePlaceholder}
                     />
                   </label>
                   <div className="summary-actions">
                     <button type="button" onClick={publishCirclePost}>
-                      Publish Post
+                      {copy.circles.publishPost}
                     </button>
                   </div>
                   <div className="notification-list circles-posts">
                     {selectedCirclePosts.length === 0 ? (
-                      <p className="soft">No posts yet. Be the first to start the conversation.</p>
+                      <p className="soft">{copy.circles.noPosts}</p>
                     ) : (
                       selectedCirclePosts.map((post) => (
                         <div key={post.id} className="notification-item">
@@ -4758,7 +5341,7 @@ function App() {
                   </div>
                 </>
               ) : (
-                <p className="soft">No circles found for this search.</p>
+                <p className="soft">{copy.circles.noCirclesFound}</p>
               )}
             </article>
           </section>
@@ -4769,7 +5352,7 @@ function App() {
               <div className="chat-tools">
                 <input
                   type="text"
-                  placeholder="Search conversations..."
+                  placeholder={copy.chats.searchPlaceholder}
                   value={chatSearch}
                   onChange={(event) => setChatSearch(event.target.value)}
                 />
@@ -4809,27 +5392,16 @@ function App() {
                       </div>
                       <div>
                         <h2>{selectedChatProfile.name}</h2>
-                        <p className="chat-presence">Online</p>
+                        <p className="chat-presence">{copy.chats.online}</p>
                       </div>
                     </div>
                     <div className="chat-header-actions">
-                      <button type="button" className="chat-icon-btn" aria-label="Audio call" onClick={() => startCall('audio')}>
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                          <path d="M22 16.8v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 11.2 19a19.3 19.3 0 0 1-6-6A19.8 19.8 0 0 1 2.2 4.2 2 2 0 0 1 4.2 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.7.6 2.5a2 2 0 0 1-.5 2l-1.2 1.2a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2-.5c.8.3 1.6.5 2.5.6A2 2 0 0 1 22 16.8z" />
-                        </svg>
-                      </button>
-                      <button type="button" className="chat-icon-btn" aria-label="Video call" onClick={() => startCall('video')}>
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                          <rect x="3" y="6" width="14" height="12" rx="2" ry="2" />
-                          <path d="M17 10l4-2v8l-4-2z" />
-                        </svg>
-                      </button>
                       <button
                         type="button"
                         className="chat-icon-btn"
-                        aria-label="More options"
+                        aria-label={copy.chats.moreOptions}
                         onClick={() => openProfileDetail(selectedChatProfile.id, 'chats')}
-                        title="Open profile"
+                        title={copy.discover.viewFullProfile}
                       >
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                           <circle cx="12" cy="5" r="1.8" />
@@ -4839,36 +5411,36 @@ function App() {
                       </button>
                     </div>
                   </header>
-                  <section className="chat-compatibility-panel" aria-label="Compatibility snapshot">
+                  <section className="chat-compatibility-panel" aria-label={copy.chats.compatibility}>
                     <p className="compatibility-score">
-                      Chemistry: {selectedChatChemistry?.chemistryScore ?? 0}% {'\u2022'} Cognitive overlap:{' '}
-                      {selectedChatChemistry?.cognitiveOverlapScore ?? 0}% {'\u2022'} Zodiac:{' '}
-                      {selectedChatChemistry?.zodiacAligned ? 'Aligned' : 'Neutral'}
+                      {copy.discover.chemistry}: {selectedChatChemistry?.chemistryScore ?? 0}% {'\u2022'} {copy.discover.cognitiveOverlap}:{' '}
+                      {selectedChatChemistry?.cognitiveOverlapScore ?? 0}% {'\u2022'} {copy.chats.zodiac}:{' '}
+                      {selectedChatChemistry?.zodiacAligned ? copy.discover.aligned : copy.discover.neutral}
                     </p>
                     <p className="chat-compatibility-line">
-                      <strong>Type:</strong> {selectedChatPersonalityCode ?? 'Unknown'}
+                      <strong>{copy.chats.type}:</strong> {selectedChatPersonalityCode ?? copy.chats.unknown}
                       {selectedChatTypeGuide ? ` - ${selectedChatTypeGuide.label}` : ''}
                     </p>
                     <p className="chat-compatibility-line">
-                      <strong>Zodiac:</strong> {selectedChatProfile.zodiac} {ZODIAC_EMOJI[selectedChatProfile.zodiac] ?? ''} {'\u2022'}{' '}
-                      {ZODIAC_DESCRIPTIONS[selectedChatProfile.zodiac]?.overview ?? 'Unique cosmic signature.'}
+                      <strong>{copy.chats.zodiac}:</strong> {selectedChatProfile.zodiac} {ZODIAC_EMOJI[selectedChatProfile.zodiac] ?? ''} {'\u2022'}{' '}
+                      {ZODIAC_DESCRIPTIONS[selectedChatProfile.zodiac]?.overview ?? copy.chats.uniqueCosmicSignature}
                     </p>
                     {selectedChatCognitiveFunctions ? (
                       <p className="chat-compatibility-line">
-                        <strong>Cognitive:</strong> {selectedChatCognitiveFunctions.primary} {'\u2022'} {selectedChatCognitiveFunctions.support}
+                        <strong>{copy.chats.cognitive}:</strong> {selectedChatCognitiveFunctions.primary} {'\u2022'} {selectedChatCognitiveFunctions.support}
                       </p>
                     ) : null}
                   </section>
-                  <section className="chat-ai-coach" aria-label="AI Date Coach">
+                  <section className="chat-ai-coach" aria-label={copy.chats.aiCoach}>
                     <div className="chat-ai-coach-head">
-                      <p className="compatibility-score">AI Date Coach (Beta)</p>
+                      <p className="compatibility-score">{copy.chats.aiCoach}</p>
                       <button
                         type="button"
                         className="ghost"
                         onClick={generateAiCoachSuggestions}
                         disabled={aiCoachLoading}
                       >
-                        {aiCoachLoading ? 'Thinking...' : 'Generate suggestions'}
+                        {aiCoachLoading ? copy.chats.thinking : copy.chats.generateSuggestions}
                       </button>
                     </div>
                     {aiCoachSuggestions.length > 0 ? (
@@ -4885,19 +5457,19 @@ function App() {
                         ))}
                       </div>
                     ) : (
-                      <p className="soft">Generate personalized opener ideas based on your chemistry and recent chat context.</p>
+                      <p className="soft">{copy.chats.coachEmpty}</p>
                     )}
                   </section>
-                  <section className="chat-date-planner" aria-label="AI Date Planner">
+                  <section className="chat-date-planner" aria-label={copy.chats.aiPlanner}>
                     <div className="chat-date-planner-head">
-                      <p className="compatibility-score">AI Date Planner (Beta)</p>
+                      <p className="compatibility-score">{copy.chats.aiPlanner}</p>
                       <button
                         type="button"
                         className="ghost"
                         onClick={generateAiDatePlans}
                         disabled={aiDatePlannerLoading}
                       >
-                        {aiDatePlannerLoading ? 'Planning...' : 'Plan a date'}
+                        {aiDatePlannerLoading ? copy.chats.planning : copy.chats.planDate}
                       </button>
                     </div>
                     {aiDatePlans.length > 0 ? (
@@ -4913,25 +5485,25 @@ function App() {
                             </p>
                             <p className="chat-date-plan-pitch">{plan.pitch}</p>
                             <button type="button" className="mini-btn" onClick={() => setChatDraft(plan.message)}>
-                              Use this message
+                              {copy.chats.useMessage}
                             </button>
                           </article>
                         ))}
                       </div>
                     ) : (
-                      <p className="soft">Generate 3 personalized date plan options using your shared interests and chemistry.</p>
+                      <p className="soft">{copy.chats.plannerEmpty}</p>
                     )}
                   </section>
-                  <section className="chat-call-history" aria-label="Recent calls">
+                  <section className="chat-call-history" aria-label={copy.chats.recentCalls}>
                     <div className="chat-call-history-head">
-                      <p className="compatibility-score">Recent Calls</p>
+                      <p className="compatibility-score">{copy.chats.recentCalls}</p>
                     </div>
                     {selectedChatCallHistory.length > 0 ? (
                       <div className="chat-call-history-list">
                         {selectedChatCallHistory.map((entry) => (
                           <article key={entry.id} className={`chat-call-history-item ${entry.outcome}`}>
                             <div>
-                              <strong>{entry.type === 'video' ? 'Video call' : 'Audio call'}</strong>
+                              <strong>{entry.type === 'video' ? copy.chats.videoCallLabel : copy.chats.audioCallLabel}</strong>
                               <p>
                                 {getCallOutcomeLabel(entry.outcome)} {'\u2022'} {formatShortTime(entry.startedAt)}
                                 {entry.endedAt ? ` \u2022 ${getCallDurationLabel(entry.startedAt, entry.endedAt)}` : ''}
@@ -4939,23 +5511,23 @@ function App() {
                             </div>
                             <div className="summary-actions">
                               <button type="button" className="ghost mini-btn" onClick={() => rejoinCallFromHistory(entry)}>
-                                Rejoin
+                                {copy.chats.rejoin}
                               </button>
                               <button type="button" className="mini-btn" onClick={() => window.open(entry.roomUrl, '_blank', 'noopener,noreferrer')}>
-                                Open room
+                                {copy.chats.openRoom}
                               </button>
                             </div>
                           </article>
                         ))}
                       </div>
                     ) : (
-                      <p className="soft">No call activity with this match yet.</p>
+                      <p className="soft">{copy.chats.noCallActivity}</p>
                     )}
                   </section>
                   {hiddenChatMessageCount > 0 ? (
                     <div className="messages-toolbar">
                       <button type="button" className="ghost mini-btn" onClick={revealOlderMessages}>
-                        Show {hiddenChatMessageCount} older messages
+                        {formatUiText(copy.chats.olderMessages, { count: hiddenChatMessageCount })}
                       </button>
                     </div>
                   ) : null}
@@ -4968,7 +5540,7 @@ function App() {
                               const callMeta = message.callMeta
                               return (
                                 <span className={`msg-call-chip ${callMeta.event}`}>
-                                  {callMeta.type === 'video' ? 'Video' : 'Audio'} call {callMeta.event}
+                                  {callMeta.type === 'video' ? copy.chats.videoCallLabel : copy.chats.audioCallLabel} {callMeta.event}
                                 </span>
                               )
                             })()
@@ -5005,14 +5577,14 @@ function App() {
                                       })
                                     }
                                   >
-                                    Join call
+                                    {copy.chats.joinCall}
                                   </button>
                                   <button
                                     type="button"
                                     className="ghost mini-btn"
                                     onClick={() => window.open(callMeta.roomUrl, '_blank', 'noopener,noreferrer')}
                                   >
-                                    Open externally
+                                    {copy.chats.openExternally}
                                   </button>
                                 </div>
                               )
@@ -5027,9 +5599,9 @@ function App() {
                   </div>
                   {chatAttachmentDraft ? (
                     <div className="chat-attachment-preview">
-                      <strong>Attachment ready:</strong> {chatAttachmentDraft.name}
+                      <strong>{copy.chats.attachmentReady}</strong> {chatAttachmentDraft.name}
                       <button type="button" className="mini-btn" onClick={() => setChatAttachmentDraft(null)}>
-                        Remove
+                        {copy.chats.remove}
                       </button>
                     </div>
                   ) : null}
@@ -5042,12 +5614,12 @@ function App() {
                   >
                     <input
                       type="text"
-                      placeholder="Type a message..."
+                      placeholder={copy.chats.typeMessage}
                       value={chatDraft}
                       onChange={(event) => setChatDraft(event.target.value)}
                     />
                     <input ref={attachmentInputRef} type="file" accept="image/*,video/*" hidden onChange={handleAttachmentPick} />
-                    <button type="button" className="chat-icon-btn" aria-label="Attach media" onClick={() => attachmentInputRef.current?.click()}>
+                    <button type="button" className="chat-icon-btn" aria-label={copy.chats.attachMedia} onClick={() => attachmentInputRef.current?.click()}>
                       <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M21.4 11.2l-8.9 8.9a5 5 0 0 1-7.1-7.1l9.5-9.5a3.5 3.5 0 1 1 5 5l-9.8 9.8a2 2 0 1 1-2.8-2.8l8.8-8.8" />
                       </svg>
@@ -5055,7 +5627,7 @@ function App() {
                     <button
                       type="button"
                       className={`chat-icon-btn ${isRecordingVoice ? 'danger' : ''}`}
-                      aria-label={isRecordingVoice ? 'Stop recording' : 'Record voice'}
+                      aria-label={isRecordingVoice ? copy.chats.stopRecording : copy.chats.recordVoice}
                       onClick={() => void startVoiceRecording()}
                     >
                       {isRecordingVoice ? (
@@ -5071,7 +5643,7 @@ function App() {
                         </svg>
                       )}
                     </button>
-                    <button type="submit" className="chat-send-btn" aria-label="Send">
+                    <button type="submit" className="chat-send-btn" aria-label={copy.chats.send}>
                       <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M22 2L11 13" />
                         <path d="M22 2L15 22l-4-9-9-4z" />
@@ -5081,16 +5653,16 @@ function App() {
                 </>
               ) : (
                 <section className="state-box">
-                  <p className="pill">No Chat</p>
-                  <h1>Select a match to begin chatting</h1>
+                  <p className="pill">{copy.chats.noChat}</p>
+                  <h1>{copy.chats.selectMatch}</h1>
                 </section>
               )}
             </article>
           </section>
         )}
         {screen === 'profile' && (
-          <section className="profile-screen" aria-label="Profile screen">
-            <aside className="profile-left-column" aria-label="Profile overview">
+          <section className="profile-screen" aria-label={copy.profile.screen}>
+            <aside className="profile-left-column" aria-label={copy.profile.overview}>
               <article className="profile-summary profile-summary-card">
                 {selfProfile.photos.length > 0 && (
                   <div className="profile-summary-hero">
@@ -5113,12 +5685,12 @@ function App() {
               </article>
 
               <article className="profile-summary profile-about-card">
-                <h3>About Me</h3>
+                <h3>{copy.profile.aboutMe}</h3>
                 <p>{selfProfile.bio}</p>
                 <p className="profile-about-meta">
                   {selfProfile.jobTitle} at {selfProfile.company} {'\u2022'} {selfProfile.lookingFor}
                 </p>
-                <p className="compatibility-score">Personality code: {selfPersonalityCode}</p>
+                <p className="compatibility-score">{copy.profile.personalityCode}: {selfPersonalityCode}</p>
                 {selfTypeGuide ? (
                   <p className="soft">
                     {selfTypeGuide.label}: {selfTypeGuide.summary}
@@ -5126,18 +5698,18 @@ function App() {
                 ) : null}
                 {selfCognitiveFunctions ? (
                   <ul className="profile-cognitive-list">
-                    <li><strong>Primary:</strong> {selfCognitiveFunctions.primary}</li>
-                    <li><strong>Support:</strong> {selfCognitiveFunctions.support}</li>
+                    <li><strong>{copy.profile.primary}:</strong> {selfCognitiveFunctions.primary}</li>
+                    <li><strong>{copy.profile.support}:</strong> {selfCognitiveFunctions.support}</li>
                   </ul>
                 ) : null}
-                <p className="soft">Zodiac note: {ZODIAC_DESCRIPTIONS[selfProfile.zodiac]?.overview ?? 'Unique cosmic signature.'}</p>
+                <p className="soft">{copy.profile.zodiacNote}: {ZODIAC_DESCRIPTIONS[selfProfile.zodiac]?.overview ?? copy.profile.uniqueCosmicSignature}</p>
                 <button type="button" className="ghost personality-guide-open" onClick={() => navigate('personality-guide')}>
-                  What does this code mean?
+                  {copy.profile.whatCodeMeans}
                 </button>
               </article>
 
               <article className="profile-summary profile-interests-card">
-                <h3>Interests</h3>
+                <h3>{copy.profile.interests}</h3>
                 <div className="chips profile-interest-chips">
                   {selfProfile.interests.map((interest) => (
                     <span key={interest}>{interest}</span>
@@ -5145,9 +5717,9 @@ function App() {
                 </div>
               </article>
               <article className="profile-summary profile-interests-card">
-                <h3>Social Trust</h3>
+                <h3>{copy.profile.socialTrust}</h3>
                 <p className="soft">
-                  Connected accounts: <strong>{socialConnectedCount}</strong> / {SOCIAL_PLATFORM_META.length}
+                  {copy.profile.connectedAccounts}: <strong>{socialConnectedCount}</strong> / {SOCIAL_PLATFORM_META.length}
                 </p>
                 <div className="chips profile-interest-chips">
                   {SOCIAL_PLATFORM_META.filter((platform) => selfProfile.socialConnections[platform.id].connected).length > 0 ? (
@@ -5155,19 +5727,19 @@ function App() {
                       <span key={platform.id}>{platform.label}</span>
                     ))
                   ) : (
-                    <span>No social accounts connected yet</span>
+                    <span>{copy.profile.noSocialAccounts}</span>
                   )}
                 </div>
               </article>
             </aside>
 
             <article className="profile-settings profile-editor">
-              <h2>Edit My Profile</h2>
+              <h2>{copy.profile.editProfile}</h2>
               <form onSubmit={saveMyProfile}>
-                <h3>Identity</h3>
+                <h3>{copy.profile.identity}</h3>
                 <div className="profile-editor-grid">
                     <label>
-                      Name
+                      {copy.profile.name}
                       <input
                         type="text"
                         value={profileDraft.name}
@@ -5175,7 +5747,7 @@ function App() {
                       />
                     </label>
                     <label>
-                      Age
+                      {copy.profile.age}
                       <input
                         type="number"
                         min={18}
@@ -5185,7 +5757,7 @@ function App() {
                       />
                     </label>
                     <label>
-                      Pronouns
+                      {copy.profile.pronouns}
                       <input
                         type="text"
                         value={profileDraft.pronouns}
@@ -5193,7 +5765,7 @@ function App() {
                       />
                     </label>
                     <label>
-                      Gender
+                      {copy.profile.gender}
                       <input
                         type="text"
                         value={profileDraft.gender}
@@ -5201,7 +5773,7 @@ function App() {
                       />
                     </label>
                     <label>
-                      Orientation
+                      {copy.profile.orientation}
                       <input
                         type="text"
                         value={profileDraft.orientation}
@@ -5209,7 +5781,7 @@ function App() {
                       />
                     </label>
                     <label>
-                      Height (cm)
+                      {copy.profile.heightCm}
                       <input
                         type="number"
                         min={130}
@@ -5220,10 +5792,10 @@ function App() {
                     </label>
                 </div>
 
-                <h3>Profile Details</h3>
+                <h3>{copy.profile.profileDetails}</h3>
                 <div className="profile-editor-grid">
                     <label>
-                      City
+                      {copy.profile.city}
                       <input
                         type="text"
                         value={profileDraft.city}
@@ -5231,7 +5803,7 @@ function App() {
                       />
                     </label>
                     <label>
-                      Hometown
+                      {copy.profile.hometown}
                       <input
                         type="text"
                         value={profileDraft.hometown}
@@ -5239,7 +5811,7 @@ function App() {
                       />
                     </label>
                     <label>
-                      Vibe
+                      {copy.profile.vibe}
                       <input
                         type="text"
                         value={profileDraft.vibe}
@@ -5247,7 +5819,7 @@ function App() {
                       />
                     </label>
                     <label>
-                      Looking For
+                      {copy.profile.lookingFor}
                       <input
                         type="text"
                         value={profileDraft.lookingFor}
@@ -5255,7 +5827,7 @@ function App() {
                       />
                     </label>
                     <label>
-                      Relationship Intent
+                      {copy.profile.relationshipIntent}
                       <input
                         type="text"
                         value={profileDraft.relationshipIntent}
@@ -5263,7 +5835,7 @@ function App() {
                       />
                     </label>
                     <label>
-                      Interests (comma separated)
+                      {copy.profile.interestsComma}
                       <input
                         type="text"
                         value={profileDraft.interests}
@@ -5271,7 +5843,7 @@ function App() {
                       />
                     </label>
                     <label className="full-width">
-                      Bio
+                      {copy.profile.bio}
                       <textarea
                         rows={3}
                         value={profileDraft.bio}
@@ -5280,13 +5852,13 @@ function App() {
                     </label>
                 </div>
 
-                <h3>Personality Quiz</h3>
+                <h3>{copy.profile.personalityQuiz}</h3>
                 <div className="profile-editor-grid">
                   <p className="soft full-width">
-                    Compatibility code: <strong>{draftPersonalityCode}</strong>. Pick the option that fits you best.
+                    {copy.profile.compatibilityCode}: <strong>{draftPersonalityCode}</strong>. {copy.profile.pickOption}
                   </p>
                   <button type="button" className="ghost full-width personality-guide-open" onClick={() => navigate('personality-guide')}>
-                    Open personality guide
+                    {copy.profile.openGuide}
                   </button>
                   {PERSONALITY_QUESTIONS.map((question, index) => (
                     <label key={question.id} className="full-width">
@@ -5307,10 +5879,10 @@ function App() {
                   ))}
                 </div>
 
-                <h3>Career And Lifestyle</h3>
+                <h3>{copy.profile.careerLifestyle}</h3>
                 <div className="profile-editor-grid">
                   <label>
-                    Job Title
+                    {copy.profile.jobTitle}
                     <input
                       type="text"
                       value={profileDraft.jobTitle}
@@ -5318,7 +5890,7 @@ function App() {
                     />
                   </label>
                   <label>
-                    Company
+                    {copy.profile.company}
                     <input
                       type="text"
                       value={profileDraft.company}
@@ -5326,7 +5898,7 @@ function App() {
                     />
                   </label>
                   <label>
-                    Education
+                    {copy.profile.education}
                     <input
                       type="text"
                       value={profileDraft.education}
@@ -5334,7 +5906,7 @@ function App() {
                     />
                   </label>
                   <label>
-                    Languages (comma separated)
+                    {copy.profile.languagesComma}
                     <input
                       type="text"
                       value={profileDraft.languages}
@@ -5342,7 +5914,7 @@ function App() {
                     />
                   </label>
                   <label>
-                    Drinking
+                    {copy.profile.drinking}
                     <input
                       type="text"
                       value={profileDraft.drinking}
@@ -5350,7 +5922,7 @@ function App() {
                     />
                   </label>
                   <label>
-                    Smoking
+                    {copy.profile.smoking}
                     <input
                       type="text"
                       value={profileDraft.smoking}
@@ -5358,7 +5930,7 @@ function App() {
                     />
                   </label>
                   <label>
-                    Workout
+                    {copy.profile.workout}
                     <input
                       type="text"
                       value={profileDraft.workout}
@@ -5366,7 +5938,7 @@ function App() {
                     />
                   </label>
                   <label>
-                    Pets
+                    {copy.profile.pets}
                     <input
                       type="text"
                       value={profileDraft.pets}
@@ -5374,7 +5946,7 @@ function App() {
                     />
                   </label>
                   <label>
-                    Children Plan
+                    {copy.profile.childrenPlan}
                     <input
                       type="text"
                       value={profileDraft.childrenPlan}
@@ -5382,7 +5954,7 @@ function App() {
                     />
                   </label>
                   <label>
-                    Religion
+                    {copy.profile.religion}
                     <input
                       type="text"
                       value={profileDraft.religion}
@@ -5390,7 +5962,7 @@ function App() {
                     />
                   </label>
                   <label>
-                    Politics
+                    {copy.profile.politics}
                     <input
                       type="text"
                       value={profileDraft.politics}
@@ -5398,7 +5970,7 @@ function App() {
                     />
                   </label>
                   <label>
-                    Zodiac
+                    {copy.profile.zodiac}
                     <input
                       type="text"
                       value={profileDraft.zodiac}
@@ -5407,10 +5979,10 @@ function App() {
                   </label>
                 </div>
 
-                <h3>Prompts And Social</h3>
+                <h3>{copy.profile.promptsSocial}</h3>
                 <div className="profile-editor-grid">
                   <label className="full-width">
-                    Prompt 1
+                    {copy.profile.prompt1}
                     <textarea
                       rows={2}
                       value={profileDraft.promptOne}
@@ -5418,7 +5990,7 @@ function App() {
                     />
                   </label>
                   <label className="full-width">
-                    Prompt 2
+                    {copy.profile.prompt2}
                     <textarea
                       rows={2}
                       value={profileDraft.promptTwo}
@@ -5426,7 +5998,7 @@ function App() {
                     />
                   </label>
                   <label className="full-width">
-                    Prompt 3
+                    {copy.profile.prompt3}
                     <textarea
                       rows={2}
                       value={profileDraft.promptThree}
@@ -5434,7 +6006,7 @@ function App() {
                     />
                   </label>
                   <label>
-                    Dealbreakers (comma separated)
+                    {copy.profile.dealbreakersComma}
                     <input
                       type="text"
                       value={profileDraft.dealbreakers}
@@ -5442,7 +6014,7 @@ function App() {
                     />
                   </label>
                   <label>
-                    Instagram
+                    {copy.profile.instagram}
                     <input
                       type="text"
                       value={profileDraft.instagram}
@@ -5450,7 +6022,7 @@ function App() {
                     />
                   </label>
                   <label>
-                    Anthem
+                    {copy.profile.anthem}
                     <input
                       type="text"
                       value={profileDraft.anthem}
@@ -5458,7 +6030,7 @@ function App() {
                     />
                   </label>
                   <label className="toggle">
-                    Travel Mode
+                    {copy.profile.travelMode}
                     <input
                       type="checkbox"
                       checked={profileDraft.travelMode}
@@ -5467,20 +6039,20 @@ function App() {
                   </label>
                 </div>
 
-                <h3>Photos</h3>
+                <h3>{copy.profile.photos}</h3>
                 <div className="photo-input-row">
                     <input
                       type="url"
-                      placeholder="Paste photo URL"
+                      placeholder={copy.profile.pastePhotoUrl}
                       value={photoUrlInput}
                       onChange={(event) => setPhotoUrlInput(event.target.value)}
                     />
                     <button type="button" className="ghost" onClick={addPhotoFromUrl}>
-                      Add URL
+                      {copy.profile.addUrl}
                     </button>
                   </div>
                   <label className="upload-field">
-                    Upload photo (opens editor)
+                    {copy.profile.uploadPhoto}
                     <input type="file" accept="image/*" onChange={handlePhotoUpload} />
                   </label>
 
@@ -5490,14 +6062,14 @@ function App() {
                       <img src={photo} alt={`Draft profile ${index + 1}`} loading="lazy" decoding="async" />
                       <div className="draft-photo-actions">
                         {index === 0 ? (
-                          <span className="draft-photo-primary-badge">Primary</span>
+                          <span className="draft-photo-primary-badge">{copy.profile.primaryPhoto}</span>
                         ) : (
                           <button
                             type="button"
                             className="mini-btn ghost"
                             onClick={() => setPrimaryDraftPhoto(index)}
                           >
-                            Set as Primary
+                            {copy.profile.setAsPrimary}
                           </button>
                         )}
                         <button type="button" className="mini-btn" onClick={() => removeDraftPhoto(photo)}>
@@ -5907,33 +6479,33 @@ function App() {
           <section className="settings-screen settings-dashboard">
             <article className="profile-settings settings-hero-card">
               <div className="settings-hero-copy">
-                <p className="pill">Control Center</p>
-                <h1>Settings</h1>
-                <p className="soft">Manage preferences, sharing, notifications, and safety from one polished dashboard.</p>
+                <p className="pill">{copy.settings.controlCenter}</p>
+                <h1>{copy.settings.title}</h1>
+                <p className="soft">{copy.settings.subtitle}</p>
               </div>
               <div className="settings-status-grid" aria-label="Settings overview">
                 <p>
-                  <strong>Profile sync</strong>
-                  <span>{preferenceSaveStatus}</span>
+                  <strong>{copy.settings.profileSync}</strong>
+                  <span>{formatStatusLabel(preferenceSaveStatus)}</span>
                 </p>
                 <p>
-                  <strong>Settings sync</strong>
-                  <span>{settingsSaveStatus}</span>
+                  <strong>{copy.settings.settingsSync}</strong>
+                  <span>{formatStatusLabel(settingsSaveStatus)}</span>
                 </p>
                 <p>
-                  <strong>Connected socials</strong>
+                  <strong>{copy.settings.connectedSocials}</strong>
                   <span>{socialConnectedCount}</span>
                 </p>
                 <p>
-                  <strong>Unread alerts</strong>
+                  <strong>{copy.settings.unreadAlerts}</strong>
                   <span>{unreadNotificationCount}</span>
                 </p>
               </div>
             </article>
             <article className="profile-settings settings-card settings-card--preferences">
-              <h2>Preferences</h2>
+              <h2>{copy.settings.preferences}</h2>
               <label className="setting-row">
-                Push Notifications
+                {copy.settings.pushNotifications}
                 <input
                   type="checkbox"
                   checked={settings.pushNotifications}
@@ -5941,7 +6513,7 @@ function App() {
                 />
               </label>
               <label className="setting-row">
-                Email Notifications
+                {copy.settings.emailNotifications}
                 <input
                   type="checkbox"
                   checked={settings.emailNotifications}
@@ -5949,7 +6521,7 @@ function App() {
                 />
               </label>
               <label className="setting-row">
-                Private Mode
+                {copy.settings.privateMode}
                 <input
                   type="checkbox"
                   checked={settings.privateMode}
@@ -5957,15 +6529,25 @@ function App() {
                 />
               </label>
               <p className="soft">
-                Settings: {settingsSaveStatus} {'\u2022'} Preferences sync: {preferenceSaveStatus}
+                {formatUiText(copy.settings.syncLine, {
+                  settings: formatStatusLabel(settingsSaveStatus),
+                  preferences: formatStatusLabel(preferenceSaveStatus),
+                })}
               </p>
               <label className="setting-row">
-                Incognito Mode
+                {copy.settings.incognitoMode}
                 <input
                   type="checkbox"
                   checked={incognitoMode}
                   onChange={(event) => setIncognitoMode(event.target.checked)}
                 />
+              </label>
+              <label className="setting-row setting-row--select">
+                {copy.settings.appLanguage}
+                <select value={appLanguage} onChange={(event) => setAppLanguage(event.target.value as AppLanguage)}>
+                  <option value="en">{copy.auth.english}</option>
+                  <option value="ro">{copy.auth.romanian}</option>
+                </select>
               </label>
             </article>
             <article className="profile-settings settings-card settings-card--social">
@@ -6070,9 +6652,9 @@ function App() {
             </article>
             <article className="profile-settings settings-card settings-card--safety">
               <h2>Safety</h2>
-              <p>Blocked profiles: {blockedProfileIds.length}</p>
-              <p>Reports submitted: {safetyReports.length}</p>
-              <p>Open reports: {safetyReports.filter((report) => report.status === 'open').length}</p>
+              <p>{appLanguage === 'ro' ? 'Profiluri blocate' : 'Blocked profiles'}: {blockedProfileIds.length}</p>
+              <p>{appLanguage === 'ro' ? 'Raportări trimise' : 'Reports submitted'}: {safetyReports.length}</p>
+              <p>{appLanguage === 'ro' ? 'Raportări deschise' : 'Open reports'}: {safetyReports.filter((report) => report.status === 'open').length}</p>
               {safetyReports.length > 0 ? (
                 <ul>
                   {safetyReports.slice(-4).map((report, idx) => {
@@ -6085,11 +6667,11 @@ function App() {
                   })}
                 </ul>
               ) : (
-                <p className="soft">No safety reports yet.</p>
+                <p className="soft">{appLanguage === 'ro' ? 'Nu există încă raportări de siguranță.' : 'No safety reports yet.'}</p>
               )}
               {isModerationAdmin ? (
                 <button type="button" className="ghost" onClick={() => navigate('moderation')}>
-                  Open Moderation Center
+                  {appLanguage === 'ro' ? 'Deschide centrul de moderare' : 'Open Moderation Center'}
                 </button>
               ) : null}
             </article>
@@ -6099,49 +6681,51 @@ function App() {
           <section className="settings-screen moderation-screen">
             {!isModerationAdmin ? (
               <article className="profile-settings moderation-detail">
-                <h2>Access Restricted</h2>
-                <p className="soft">Moderation Center is available only for admin accounts.</p>
+                <h2>{appLanguage === 'ro' ? 'Acces restricționat' : 'Access Restricted'}</h2>
+                <p className="soft">{appLanguage === 'ro' ? 'Centrul de moderare este disponibil doar pentru conturile de administrator.' : 'Moderation Center is available only for admin accounts.'}</p>
                 <p className="soft">
-                  Signed in as: <strong>{userEmail || 'unknown'}</strong>
+                  {appLanguage === 'ro' ? 'Conectat ca' : 'Signed in as'}: <strong>{userEmail || (appLanguage === 'ro' ? 'necunoscut' : 'unknown')}</strong>
                 </p>
                 <button type="button" className="ghost" onClick={() => navigate('settings')}>
-                  Back to Settings
+                  {appLanguage === 'ro' ? 'Înapoi la setări' : 'Back to Settings'}
                 </button>
               </article>
             ) : (
               <>
                 <article className="profile-settings moderation-list">
-                  <h2>Moderation Queue</h2>
-                  <p className="soft">Separate review workspace for user reports.</p>
+                  <h2>{appLanguage === 'ro' ? 'Coada de moderare' : 'Moderation Queue'}</h2>
+                  <p className="soft">{appLanguage === 'ro' ? 'Spațiu separat de revizuire pentru raportările utilizatorilor.' : 'Separate review workspace for user reports.'}</p>
                   <div className="moderation-toolbar">
                     <label>
-                      Status
+                      {appLanguage === 'ro' ? 'Status' : 'Status'}
                       <select
                         value={moderationStatusFilter}
                         onChange={(event) => setModerationStatusFilter(event.target.value as ModerationFilter)}
                       >
-                        <option value="open">Open</option>
-                        <option value="reviewing">Reviewing</option>
-                        <option value="resolved">Resolved</option>
-                        <option value="dismissed">Dismissed</option>
-                        <option value="all">All</option>
+                        <option value="open">{appLanguage === 'ro' ? 'Deschise' : 'Open'}</option>
+                        <option value="reviewing">{appLanguage === 'ro' ? 'În analiză' : 'Reviewing'}</option>
+                        <option value="resolved">{appLanguage === 'ro' ? 'Rezolvate' : 'Resolved'}</option>
+                        <option value="dismissed">{appLanguage === 'ro' ? 'Respinse' : 'Dismissed'}</option>
+                        <option value="all">{appLanguage === 'ro' ? 'Toate' : 'All'}</option>
                       </select>
                     </label>
                     <label className="moderation-search">
-                      Search
+                      {appLanguage === 'ro' ? 'Caută' : 'Search'}
                       <input
                         type="text"
                         value={moderationSearchQuery}
                         onChange={(event) => setModerationSearchQuery(event.target.value)}
-                        placeholder="Name, email, category, details..."
+                        placeholder={appLanguage === 'ro' ? 'Nume, email, categorie, detalii...' : 'Name, email, category, details...'}
                       />
                     </label>
                   </div>
                   <p className="soft">
-                    Showing {moderationReportsFiltered.length} of {moderationReportsSorted.length} reports.
+                    {appLanguage === 'ro'
+                      ? `Se afișează ${moderationReportsFiltered.length} din ${moderationReportsSorted.length} raportări.`
+                      : `Showing ${moderationReportsFiltered.length} of ${moderationReportsSorted.length} reports.`}
                   </p>
                   {moderationReportsFiltered.length === 0 ? (
-                    <p className="soft">No reports match current filters.</p>
+                    <p className="soft">{appLanguage === 'ro' ? 'Nicio raportare nu corespunde filtrelor curente.' : 'No reports match current filters.'}</p>
                   ) : (
                     <div className="notification-list">
                       {moderationReportsFiltered.map((report) => (
@@ -6167,7 +6751,7 @@ function App() {
                 </article>
 
                 <article className="profile-settings moderation-detail">
-                  <h2>Report Details</h2>
+                  <h2>{appLanguage === 'ro' ? 'Detalii raportare' : 'Report Details'}</h2>
                   {selectedModerationReport ? (
                     <>
                       {selectedModerationReport.profileSnapshot.photoUrl ? (
@@ -6181,47 +6765,47 @@ function App() {
                         />
                       ) : null}
                       <p>
-                        <strong>User:</strong> {selectedModerationReport.profileName}, {selectedModerationReport.profileSnapshot.age}
+                        <strong>{appLanguage === 'ro' ? 'Utilizator' : 'User'}:</strong> {selectedModerationReport.profileName}, {selectedModerationReport.profileSnapshot.age}
                       </p>
                       <p>
-                        <strong>Context:</strong> {selectedModerationReport.profileSnapshot.city} {'\u2022'}{' '}
+                        <strong>{appLanguage === 'ro' ? 'Context' : 'Context'}:</strong> {selectedModerationReport.profileSnapshot.city} {'\u2022'}{' '}
                         {selectedModerationReport.profileSnapshot.relationshipGoal}
                       </p>
                       <p>
-                        <strong>Vibe:</strong> {selectedModerationReport.profileSnapshot.vibe}
+                        <strong>{copy.profile.vibe}:</strong> {selectedModerationReport.profileSnapshot.vibe}
                       </p>
                       <p>
-                        <strong>Bio snapshot:</strong> {selectedModerationReport.profileSnapshot.bio}
+                        <strong>{appLanguage === 'ro' ? 'Instantaneu bio' : 'Bio snapshot'}:</strong> {selectedModerationReport.profileSnapshot.bio}
                       </p>
                       <p>
-                        <strong>Category:</strong> {selectedModerationReport.category}
+                        <strong>{appLanguage === 'ro' ? 'Categorie' : 'Category'}:</strong> {selectedModerationReport.category}
                       </p>
                       <p>
-                        <strong>Reporter:</strong> {selectedModerationReport.reporterEmail}
+                        <strong>{appLanguage === 'ro' ? 'Raportat de' : 'Reporter'}:</strong> {selectedModerationReport.reporterEmail}
                       </p>
                       <p>
-                        <strong>Details:</strong> {selectedModerationReport.details || 'No extra details provided.'}
+                        <strong>{appLanguage === 'ro' ? 'Detalii' : 'Details'}:</strong> {selectedModerationReport.details || (appLanguage === 'ro' ? 'Nu au fost oferite detalii suplimentare.' : 'No extra details provided.')}
                       </p>
                       <p>
-                        <strong>Status:</strong> {selectedModerationReport.status}
+                        <strong>{appLanguage === 'ro' ? 'Status' : 'Status'}:</strong> {selectedModerationReport.status}
                       </p>
                       <div className="summary-actions">
                         <button type="button" className="ghost" onClick={() => updateReportStatus(selectedModerationReport.id, 'reviewing')}>
-                          Reviewing
+                          {appLanguage === 'ro' ? 'În analiză' : 'Reviewing'}
                         </button>
                         <button type="button" className="ghost" onClick={() => updateReportStatus(selectedModerationReport.id, 'resolved')}>
-                          Resolve
+                          {appLanguage === 'ro' ? 'Rezolvă' : 'Resolve'}
                         </button>
                         <button type="button" className="danger" onClick={() => resolveAndBlockReport(selectedModerationReport)}>
-                          Resolve + Block
+                          {appLanguage === 'ro' ? 'Rezolvă + blochează' : 'Resolve + Block'}
                         </button>
                         <button type="button" className="danger" onClick={() => updateReportStatus(selectedModerationReport.id, 'dismissed')}>
-                          Dismiss
+                          {appLanguage === 'ro' ? 'Respinge' : 'Dismiss'}
                         </button>
                       </div>
                     </>
                   ) : (
-                    <p className="soft">Select a report from the queue.</p>
+                    <p className="soft">{appLanguage === 'ro' ? 'Selectează o raportare din coadă.' : 'Select a report from the queue.'}</p>
                   )}
                 </article>
               </>
@@ -6234,15 +6818,15 @@ function App() {
               <>
                 <article className="profile-summary">
                   <button type="button" className="ghost" onClick={closeProfileDetail}>
-                    {'\u2190'} Back
+                    {'\u2190'} {appLanguage === 'ro' ? 'Înapoi' : 'Back'}
                   </button>
                   <h2>
                     {selectedDetailProfile.name}, {selectedDetailProfile.age}
                   </h2>
-                  <p>Compatibility score: {selectedDetailMatchAnalysis?.score ?? getCompatibilityScore(selectedDetailProfile)}%</p>
+                  <p>{appLanguage === 'ro' ? 'Scor compatibilitate' : 'Compatibility score'}: {selectedDetailMatchAnalysis?.score ?? getCompatibilityScore(selectedDetailProfile)}%</p>
                   <p>
-                    Personality fit: {selectedDetailMatchAnalysis?.personalityScore ?? compatibilityFromAnswers(selfProfile.personalityAnswers, selectedDetailProfile.personalityAnswers)}%
-                    {' \u2022 '}Pair: {selectedDetailMatchAnalysis?.pairCode ?? `${selfPersonalityCode} x ${personalityCodeFromAnswers(selectedDetailProfile.personalityAnswers)}`}
+                    {appLanguage === 'ro' ? 'Potrivire de personalitate' : 'Personality fit'}: {selectedDetailMatchAnalysis?.personalityScore ?? compatibilityFromAnswers(selfProfile.personalityAnswers, selectedDetailProfile.personalityAnswers)}%
+                    {' \u2022 '}{appLanguage === 'ro' ? 'Pereche' : 'Pair'}: {selectedDetailMatchAnalysis?.pairCode ?? `${selfPersonalityCode} x ${personalityCodeFromAnswers(selectedDetailProfile.personalityAnswers)}`}
                   </p>
                   <p>{selectedDetailProfile.vibe}</p>
                   <p>{selectedDetailProfile.bio}</p>
@@ -6251,14 +6835,14 @@ function App() {
                     {selectedDetailProfile.distanceKm} km
                   </p>
                   <p>
-                    Zodiac: {selectedDetailProfile.zodiac} {ZODIAC_EMOJI[selectedDetailProfile.zodiac] ?? ''}
+                    {copy.profile.zodiac}: {selectedDetailProfile.zodiac} {ZODIAC_EMOJI[selectedDetailProfile.zodiac] ?? ''}
                   </p>
-                  <p className="soft">{ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac]?.overview ?? 'Unique cosmic signature.'}</p>
+                  <p className="soft">{ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac]?.overview ?? copy.profile.uniqueCosmicSignature}</p>
                   {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac] ? (
                     <section className="match-insights zodiac-reading">
-                      <h3>Zodiac Profile</h3>
+                      <h3>{appLanguage === 'ro' ? 'Profil zodiacal' : 'Zodiac Profile'}</h3>
                       <p>
-                        <strong>{selectedDetailProfile.zodiac} overview:</strong>{' '}
+                        <strong>{selectedDetailProfile.zodiac} {appLanguage === 'ro' ? 'pe scurt' : 'overview'}:</strong>{' '}
                         {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].overview}
                       </p>
                       <ul>
@@ -6273,14 +6857,15 @@ function App() {
                         <li><strong>Best matches:</strong> {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].bestMatches}</li>
                       </ul>
                       <p className="soft">
-                        Complete reading: This sign tends to feel most fulfilled when relationship pacing, emotional language,
-                        and daily behavior align with these traits, not just attraction.
+                        {appLanguage === 'ro'
+                          ? 'Lectură completă: acest semn tinde să se simtă cel mai împlinit atunci când ritmul relației, limbajul emoțional și comportamentul de zi cu zi se aliniază cu aceste trăsături, nu doar atracția.'
+                          : 'Complete reading: This sign tends to feel most fulfilled when relationship pacing, emotional language, and daily behavior align with these traits, not just attraction.'}
                       </p>
                     </section>
                   ) : null}
                   {selectedDetailChemistry ? (
                     <section className="match-insights">
-                      <h3>Compatibility Chemistry</h3>
+                      <h3>{appLanguage === 'ro' ? 'Chimia compatibilității' : 'Compatibility Chemistry'}</h3>
                       <ul>
                         <li><strong>Total chemistry:</strong> {selectedDetailChemistry.chemistryScore}%</li>
                         <li><strong>Cognitive overlap:</strong> {selectedDetailChemistry.cognitiveOverlapScore}%</li>
@@ -6291,12 +6876,12 @@ function App() {
                   ) : null}
                   {selectedDetailTypeGuide ? (
                     <p>
-                      <strong>Type:</strong> {selectedDetailPersonalityCode} - {selectedDetailTypeGuide.label}
+                      <strong>{copy.chats.type}:</strong> {selectedDetailPersonalityCode} - {selectedDetailTypeGuide.label}
                     </p>
                   ) : null}
                   {selectedDetailCognitiveFunctions ? (
                     <section className="match-insights">
-                      <h3>Cognitive Functions</h3>
+                      <h3>{appLanguage === 'ro' ? 'Funcții cognitive' : 'Cognitive Functions'}</h3>
                       <ul>
                         <li><strong>Primary:</strong> {selectedDetailCognitiveFunctions.primary}</li>
                         <li><strong>Support:</strong> {selectedDetailCognitiveFunctions.support}</li>
@@ -6307,7 +6892,7 @@ function App() {
                   ) : null}
                   {selectedDetailMatchAnalysis ? (
                     <section className="match-insights">
-                      <h3>Why you match</h3>
+                      <h3>{appLanguage === 'ro' ? 'De ce vă potriviți' : 'Why you match'}</h3>
                       <ul>
                         {selectedDetailMatchAnalysis.reasons.map((reason) => (
                           <li key={reason}>{reason}</li>
@@ -6318,10 +6903,10 @@ function App() {
                   ) : null}
                   <div className="summary-actions">
                     <button type="button" className="ghost" onClick={() => reportProfile(selectedDetailProfile)}>
-                      Report profile
+                      {appLanguage === 'ro' ? 'Raportează profilul' : 'Report profile'}
                     </button>
                     <button type="button" className="danger" onClick={() => blockProfile(selectedDetailProfile)}>
-                      Block profile
+                      {appLanguage === 'ro' ? 'Blochează profilul' : 'Block profile'}
                     </button>
                   </div>
                   <ul>
@@ -6342,10 +6927,10 @@ function App() {
               </>
             ) : (
               <article className="state-box">
-                <p className="pill">Unavailable</p>
-                <h1>Profile was not found</h1>
+                <p className="pill">{appLanguage === 'ro' ? 'Indisponibil' : 'Unavailable'}</p>
+                <h1>{appLanguage === 'ro' ? 'Profilul nu a fost găsit' : 'Profile was not found'}</h1>
                 <button type="button" onClick={() => navigate('discover')}>
-                  Back to Discover
+                  {copy.common.backToDiscover}
                 </button>
               </article>
             )}
@@ -6353,14 +6938,14 @@ function App() {
         )}
       </section>
       {activeMatch ? (
-        <div className="match-modal" role="dialog" aria-modal="true" aria-label="Match found">
+        <div className="match-modal" role="dialog" aria-modal="true" aria-label={appLanguage === 'ro' ? 'Potrivire găsită' : 'Match found'}>
           <article className="match-card">
-            <p className="pill">It&apos;s a match</p>
-            <h2>You and {activeMatch.name} liked each other</h2>
-            <p>Send a message now or keep swiping.</p>
+            <p className="pill">{appLanguage === 'ro' ? 'Este o potrivire' : "It's a match"}</p>
+            <h2>{appLanguage === 'ro' ? `Tu și ${activeMatch.name} v-ați apreciat reciproc` : `You and ${activeMatch.name} liked each other`}</h2>
+            <p>{appLanguage === 'ro' ? 'Trimite un mesaj acum sau continuă să descoperi profile.' : 'Send a message now or keep swiping.'}</p>
             <div className="match-actions">
               <button type="button" className="ghost" onClick={() => setActiveMatch(null)}>
-                Keep Swiping
+                {appLanguage === 'ro' ? 'Continuă descoperirea' : 'Keep Swiping'}
               </button>
               <button
                 type="button"
@@ -6370,70 +6955,106 @@ function App() {
                   navigate('chats')
                 }}
               >
-                Open Chat
+                {appLanguage === 'ro' ? 'Deschide chatul' : 'Open Chat'}
               </button>
             </div>
           </article>
         </div>
       ) : null}
       {callState.active ? (
-        <div className="match-modal" role="dialog" aria-modal="true" aria-label="Call in progress">
+        <div className="match-modal" role="dialog" aria-modal="true" aria-label={appLanguage === 'ro' ? 'Apel în desfășurare' : 'Call in progress'}>
           <article className="match-card call-card call-card--embedded">
-            <p className="pill">{callState.type === 'video' ? 'Video call' : 'Audio call'}</p>
+            <p className="pill">{callState.type === 'video' ? copy.chats.videoCallLabel : copy.chats.audioCallLabel}</p>
             <h2>
-              {callState.targetProfileId ? profileById.get(callState.targetProfileId)?.name ?? 'Match' : 'Match'}
+              {callState.targetProfileId ? profileById.get(callState.targetProfileId)?.name ?? (appLanguage === 'ro' ? 'Potrivire' : 'Match') : (appLanguage === 'ro' ? 'Potrivire' : 'Match')}
             </h2>
             <p>
               {callState.status === 'connecting'
-                ? 'Preparing your private LoveDate room...'
+                ? (appLanguage === 'ro' ? 'Pregătim camera ta privată LoveDate...' : 'Preparing your private LoveDate room...')
                 : callState.status === 'error'
-                  ? 'The private room could not be prepared.'
-                  : `Private room ready | ${formatShortTime(callState.startedAt)}`}
+                  ? (appLanguage === 'ro' ? 'Camera privată nu a putut fi pregătită.' : 'The private room could not be prepared.')
+                  : appLanguage === 'ro'
+                    ? `Camera privată este gata | ${formatShortTime(callState.startedAt)}`
+                    : `Private room ready | ${formatShortTime(callState.startedAt)}`}
             </p>
             {callState.roomUrl ? (
               <p className="call-room-link">
-                Room: <strong>{callState.roomId}</strong>
+                {appLanguage === 'ro' ? 'Cameră' : 'Room'}: <strong>{callState.roomId}</strong>
               </p>
             ) : null}
+            {callState.type && callState.roomId && callState.roomUrl ? (
+              <EmbeddedCallStage
+                key={callState.roomId}
+                callType={callState.type}
+                domain={jitsiProvider.domain}
+                scriptUrl={jitsiProvider.scriptUrl}
+                jwt={jitsiProvider.jwt}
+                setupMessage={jitsiProvider.setupMessage}
+                roomId={callState.roomId}
+                roomUrl={callState.roomUrl}
+                displayName={selfProfile.name || userEmail.split('@')[0] || 'LoveDate guest'}
+                matchName={
+                  callState.targetProfileId
+                    ? profileById.get(callState.targetProfileId)?.name ?? (appLanguage === 'ro' ? 'Potrivire' : 'Match')
+                    : appLanguage === 'ro' ? 'Potrivire' : 'Match'
+                }
+                startedAtLabel={formatShortTime(callState.startedAt)}
+                muted={callState.muted}
+                cameraOff={callState.cameraOff}
+                language={appLanguage}
+                onConnected={markCallConnected}
+                onEnded={endCall}
+                onFailed={markCallFailed}
+                onMuteChange={setCallMuted}
+                onCameraChange={setCallCameraOff}
+                onCopyInvite={() => void copyCallInvite()}
+                onOpenFallback={openCallRoom}
+              />
+            ) : null}
+            {/* Legacy branded placeholder replaced by EmbeddedCallStage.
             <div className={`call-embed-frame ${callState.type === 'audio' ? 'audio-only' : ''}`}>
               <div className="call-brand-shell">
                 <div className="call-orb" aria-hidden="true" />
                 <div className="call-shell-copy">
-                  <h3>{callState.type === 'video' ? 'LoveDate video call' : 'LoveDate audio call'}</h3>
+                  <h3>{callState.type === 'video'
+                    ? (appLanguage === 'ro' ? 'Apel video LoveDate' : 'LoveDate video call')
+                    : (appLanguage === 'ro' ? 'Apel audio LoveDate' : 'LoveDate audio call')}</h3>
                   <p>
-                    Your private room is ready. Open it in your browser when you want to start talking, while
-                    keeping your personal phone number private.
+                    {appLanguage === 'ro'
+                      ? 'Camera ta privată este gata. Deschide-o în browser atunci când vrei să începi conversația, păstrându-ți numărul personal de telefon privat.'
+                      : 'Your private room is ready. Open it in your browser when you want to start talking, while keeping your personal phone number private.'}
                   </p>
                   <div className="call-shell-status">
-                    <span>{callState.status === 'live' ? 'Room active' : 'Room standby'}</span>
-                    <span>{callState.type === 'video' ? 'Camera capable' : 'Audio only'}</span>
-                    <span>Private invite link generated</span>
+                    <span>{callState.status === 'live' ? (appLanguage === 'ro' ? 'Cameră activă' : 'Room active') : (appLanguage === 'ro' ? 'Cameră în așteptare' : 'Room standby')}</span>
+                    <span>{callState.type === 'video' ? (appLanguage === 'ro' ? 'Compatibil cameră' : 'Camera capable') : (appLanguage === 'ro' ? 'Doar audio' : 'Audio only')}</span>
+                    <span>{appLanguage === 'ro' ? 'Link privat generat' : 'Private invite link generated'}</span>
                   </div>
                 </div>
               </div>
             </div>
+            */}
             <div className="match-actions call-actions call-actions-primary">
               <button type="button" className="ghost" onClick={openCallRoom} disabled={!callState.roomUrl}>
-                Open Private Room
+                {appLanguage === 'ro' ? 'Deschide camera privată' : 'Open Private Room'}
               </button>
               <button type="button" className="ghost" onClick={() => void copyCallInvite()} disabled={!callState.roomUrl}>
-                Copy Invite
+                {appLanguage === 'ro' ? 'Copiază invitația' : 'Copy Invite'}
               </button>
               <button type="button" className="danger" onClick={endCall}>
-                End Call
+                {appLanguage === 'ro' ? 'Închide apelul' : 'End Call'}
               </button>
             </div>
           </article>
         </div>
       ) : null}
       {reportDraftProfile ? (
-        <div className="match-modal" role="dialog" aria-modal="true" aria-label={`Report ${reportDraftProfile.name}`}>
+        <div className="match-modal" role="dialog" aria-modal="true" aria-label={appLanguage === 'ro' ? `Raportează ${reportDraftProfile.name}` : `Report ${reportDraftProfile.name}`}>
           <article className="match-card report-modal-card">
-            <p className="pill">Safety</p>
-            <h2>Report {reportDraftProfile.name}</h2>
-            <p>Tell us what happened. Your report will appear in the Moderation Center for review.</p>
+            <p className="pill">{appLanguage === 'ro' ? 'Siguranță' : 'Safety'}</p>
+            <h2>{appLanguage === 'ro' ? `Raportează ${reportDraftProfile.name}` : `Report ${reportDraftProfile.name}`}</h2>
+            <p>{appLanguage === 'ro' ? 'Spune-ne ce s-a întâmplat. Raportarea ta va apărea în Centrul de Moderare pentru analiză.' : 'Tell us what happened. Your report will appear in the Moderation Center for review.'}</p>
             <label className="report-field">
-              <span>Category</span>
+              <span>{appLanguage === 'ro' ? 'Categorie' : 'Category'}</span>
               <select
                 value={reportDraftCategory}
                 onChange={(event) => setReportDraftCategory(event.target.value as SafetyCategory)}
@@ -6446,19 +7067,19 @@ function App() {
               </select>
             </label>
             <label className="report-field report-field--textarea">
-              <span>Details</span>
+              <span>{appLanguage === 'ro' ? 'Detalii' : 'Details'}</span>
               <textarea
                 value={reportDraftDetails}
                 onChange={(event) => setReportDraftDetails(event.target.value)}
-                placeholder="Add any useful detail for the moderation team."
+                placeholder={appLanguage === 'ro' ? 'Adaugă orice detaliu util pentru echipa de moderare.' : 'Add any useful detail for the moderation team.'}
               />
             </label>
             <div className="match-actions">
               <button type="button" className="ghost" onClick={closeReportProfileDialog}>
-                Cancel
+                {appLanguage === 'ro' ? 'Anulează' : 'Cancel'}
               </button>
               <button type="button" className="danger" onClick={submitProfileReport}>
-                Submit report
+                {appLanguage === 'ro' ? 'Trimite raportarea' : 'Submit report'}
               </button>
             </div>
           </article>

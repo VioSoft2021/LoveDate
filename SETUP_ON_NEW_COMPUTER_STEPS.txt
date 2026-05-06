@@ -1,0 +1,15 @@
+﻿1. Install Git on the new computer.
+2. Install Node.js (LTS).
+3. Install VS Code.
+4. Open terminal and run: git clone https://github.com/VioSoft2021/LoveDate.git
+5. Enter project folder: cd LoveDate
+6. Install dependencies: npm install
+7. Copy your .env.local from current PC to new PC (same project root).
+8. In new PC terminal, run: npm run dev -- --host 0.0.0.0 --port 5173
+9. Open app in browser: http://localhost:5173
+10. (If using Electron) run packaged/dev desktop command you already use in this repo.
+11. Sign in to Git on new PC (HTTPS + token) so pushes work.
+12. Verify remote: git remote -v
+13. Pull latest before each session: git pull
+14. Commit and push your changes from new PC as usual.
+15. If AV blocks automated commands again, apply the same Bitdefender exception settings on the new PC.

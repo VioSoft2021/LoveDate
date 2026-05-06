@@ -1,7 +1,9 @@
 {
     "nextflow.telemetry.enabled": false,
+    "cSpell.language": "en,ro",
     "cSpell.words": [
-        "lovedate"
+        "lovedate",
+        "Moderare"
     ],
     "figma.autocompleteProperties": false,
     "terminal.integrated.defaultProfile.windows": "Command Prompt",

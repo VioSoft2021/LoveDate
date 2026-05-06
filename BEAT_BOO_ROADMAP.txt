@@ -1,55 +1,68 @@
-LOVEDATE - BEAT BOO ROADMAP (v1)
-Saved: 2026-04-08
+BEAT BOO ROADMAP
 
-Goal
-Build a personality-first dating + community app that can outperform Boo for your target audience.
+1. Rebuild the call system properly
+- replace the current private-room workaround with a true LoveDate call flow
+- add incoming call, accept, decline, missed call, reconnect
+- keep it fully brand-clean
 
-Phase 1 - Personality Core (Now)
-1. Upgrade matching engine with weighted personality signals, intent alignment, distance, shared interests, and trust signals.
-2. Show "Why you match" explanations on Discover cards.
-3. Show detailed compatibility breakdown in Full Profile.
-4. Keep scoring transparent and human-readable (not black box).
+2. Make matching intelligence much better
+- improve compatibility scoring using personality, intention, behavior, and interaction signals
+- add "Why this profile fits you" in a very clear way
+- make Discover feel guided, not random
 
-Phase 2 - Community Layer
-1. Interest Groups/Circles (Design, Travel, Coffee, etc.).
-2. Group discovery and join/leave flows.
-3. Group feed + pinned topics + lightweight moderation tools.
-4. Group events (online and local meetups).
+3. Create the community layer
+- interest circles
+- topic rooms
+- social micro-communities
+- community-based discovery, not only swipe-based discovery
 
-Phase 3 - Social Graph
-1. Follow/friend model beyond romantic matches.
-2. Graph recommendations from shared interests + group overlap.
-3. "People like you" and "Friends of your circles" rails.
-4. Relationship pathways: Date / Friends / Community.
+4. Add real AI product value
+- AI profile coach
+- AI conversation helper
+- AI date idea generator
+- AI compatibility explanation engine
+- AI safety warning system
 
-Phase 4 - Trust and Safety Leadership
-1. Dedicated moderation center (already started).
-2. Report evidence attachments + admin notes + decision audit trail.
-3. Escalation actions: warning, temporary restrict, block, ban.
-4. Safety reputation score and repeat-offender detection.
+5. Make trust and safety superior
+- profile verification
+- anti-fake behavior detection
+- stronger moderation case tools
+- clearer reporting and resolution flow
 
-Phase 5 - Retention and Quality
-1. Daily prompts and community challenges.
-2. Better onboarding and profile completion guidance.
-3. Real-time chat reliability and sync across devices.
-4. Push/email lifecycle notifications and re-engagement loops.
+6. Improve persistence and realtime reliability
+- make sure every important user action saves correctly
+- no lost profile edits
+- no lost chat events
+- stronger state sync between sessions and devices
 
-Phase 6 - Scale and Distribution
-1. KPI dashboard: signup -> profile complete -> match -> chat reply -> day-7 retention.
-2. Feature flags + staged rollouts + rollback checkpoints.
-3. Mobile performance hardening.
-4. Compliance baseline (privacy, terms, consent, account deletion/export).
+7. Upgrade media and communication
+- real photo/video/audio messages stored correctly
+- cleaner chat attachment flow
+- more expressive interactions inside chat
 
-Execution order
-1) Personality Core
-2) Community Layer
-3) Social Graph
-4) Trust and Safety
-5) Retention and Quality
-6) Scale and Distribution
+8. Build stronger retention mechanics
+- reasons to come back every day
+- better activity feed
+- event prompts
+- social momentum around circles and matches
 
-Definition of success
-- Users understand why they match.
-- Community activity grows without lowering safety.
-- Retention improves week over week.
-- Moderation decisions are fast, clear, and auditable.
+9. Polish the premium experience
+- refine disproportionate screens
+- tighten layouts
+- unify visual rhythm
+- make every screen feel equally intentional
+
+10. Prepare for real-world testing at a higher level
+- better tester onboarding
+- analytics for user behavior
+- track where people stop, hesitate, or disengage
+- iterate from real data, not only intuition
+
+BEST NEXT SESSION STARTING ORDER
+1. proper call flow
+2. matching intelligence improvements
+3. circles/community depth
+4. AI features
+
+CURRENT CHECKPOINT
+checkpoint-20260409-214801-stable-call-shell

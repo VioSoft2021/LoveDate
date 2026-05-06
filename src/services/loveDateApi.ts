@@ -598,7 +598,9 @@ export const getProfiles = async (): Promise<Profile[]> => {
     }
   }
 
-  return ENRICHED_PROFILES
+  // No real data available — return empty so the app shows "no profiles" state.
+  // The fixture data is intentionally not used in production.
+  return []
 }
 
 export const resolveMatch = async (profileId: number): Promise<boolean> => {
