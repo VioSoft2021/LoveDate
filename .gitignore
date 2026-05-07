@@ -38,3 +38,17 @@ New Figma exports/
 bookmarks/
 *.decoded.html
 .superpowers/
+
+# desktop electron output (multiple variants we've seen)
+desktop-dist-fresh/
+
+# misplaced root-level artifacts
+/LoveDate-debug.apk
+/page.tsx
+/__empty__/
+/vite-dev.err.log
+/vite-dev.log
+
+# Claude Code local state
+.claude/
+
