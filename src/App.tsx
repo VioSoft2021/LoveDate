@@ -24,6 +24,7 @@ import { Logo } from './components/Logo'
 import {
   backendGuestLogin,
   backendLogin,
+  backendFetchSelfProfile,
   backendReadSelfProfile,
   backendRegister,
   backendSaveSelfProfile,
@@ -1488,9 +1489,9 @@ const readHistory = (): SwipeHistory => {
   }
 }
 
-const readSelfProfile = (email = ''): SelfProfile => {
+const normalizeSelfProfile = (raw: unknown): SelfProfile => {
   try {
-    const parsed = backendReadSelfProfile(email) as Partial<SelfProfile> | null
+    const parsed = (raw ?? null) as Partial<SelfProfile> | null
     if (!parsed) {
       return DEFAULT_SELF_PROFILE
     }
@@ -1582,6 +1583,9 @@ const readSelfProfile = (email = ''): SelfProfile => {
     return DEFAULT_SELF_PROFILE
   }
 }
+
+const readSelfProfile = (email = ''): SelfProfile =>
+  normalizeSelfProfile(backendReadSelfProfile(email))
 
 const toProfileDraft = (profile: SelfProfile) => ({
   name: profile.name,
@@ -2789,9 +2793,33 @@ function App() {
       return
     }
 
+    // Synchronous local-cache read first so the profile screen renders
+    // instantly without a flash of empty/default data.
     const loaded = readSelfProfile(userEmail)
     setSelfProfile(loaded)
     setProfileDraft(toProfileDraft(loaded))
+
+    // Async cloud fetch: pulls the canonical copy from Supabase. On a
+    // fresh device this is the only way to recover the user's profile.
+    // On an existing device this brings in changes made elsewhere.
+    let cancelled = false
+    void backendFetchSelfProfile(userEmail)
+      .then((cloudProfile) => {
+        if (cancelled || !cloudProfile) {
+          return
+        }
+        const normalized = normalizeSelfProfile(cloudProfile)
+        setSelfProfile(normalized)
+        setProfileDraft(toProfileDraft(normalized))
+      })
+      .catch(() => {
+        // Offline or transient error — local cache remains authoritative
+        // until the next successful fetch.
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [isAuthenticated, userEmail])
 
   const loadProfiles = useCallback(async () => {

@@ -264,6 +264,10 @@ export const backendValidateInviteCode = async (inviteCode: string): Promise<voi
   throw new Error('Invite code not valid')
 }
 
+/**
+ * Synchronous local cache read — used at app init for instant render
+ * before the cloud copy arrives. Returns null when no cache exists.
+ */
 export const backendReadSelfProfile = (email: string): Record<string, unknown> | null => {
   const candidates = [profileKeyForEmail(email), LOCAL_SELF_PROFILE_KEY]
 
@@ -286,6 +290,56 @@ export const backendReadSelfProfile = (email: string): Record<string, unknown> |
   return null
 }
 
+/**
+ * Async cloud read — call after authentication to pull the latest profile
+ * from Supabase. Returns null when:
+ *   - Supabase is not configured (local-fallback mode)
+ *   - The user is not signed in to Supabase
+ *   - No row exists yet for this user (new account)
+ *   - The fetch failed (offline, RLS, table missing) — caller falls back to cache
+ *
+ * On a successful read, the cloud copy is also written back to localStorage
+ * so the next cold start renders instantly.
+ */
+export const backendFetchSelfProfile = async (
+  email: string,
+): Promise<Record<string, unknown> | null> => {
+  if (!supabase) {
+    return null
+  }
+
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return null
+  }
+
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('profile_data')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (error || !data) {
+    return null
+  }
+
+  const profile = data.profile_data as Record<string, unknown> | null
+  if (!profile || typeof profile !== 'object') {
+    return null
+  }
+
+  // Refresh the local cache so subsequent cold starts render instantly.
+  persistLocal(profileKeyForEmail(email), profile)
+  persistLocal(LOCAL_SELF_PROFILE_KEY, profile)
+
+  return profile
+}
+
+/**
+ * Save profile to local cache immediately, then sync to Supabase in the
+ * background. Throws only when the cloud sync explicitly fails — the local
+ * write always succeeds first so the UI stays responsive.
+ */
 export const backendSaveSelfProfile = async (
   email: string,
   profile: Record<string, unknown>,
@@ -302,41 +356,18 @@ export const backendSaveSelfProfile = async (
     return
   }
 
-  const nowIso = new Date().toISOString()
-  const attempts: Array<{ payload: Record<string, unknown>; conflict: 'user_id' | 'id' }> = [
-    { payload: { user_id: userId, profile_data: profile, updated_at: nowIso }, conflict: 'user_id' },
-    { payload: { user_id: userId, profile_data: profile }, conflict: 'user_id' },
-    { payload: { user_id: userId, profile: profile, updated_at: nowIso }, conflict: 'user_id' },
-    { payload: { user_id: userId, profile: profile }, conflict: 'user_id' },
-    { payload: { id: userId, profile_data: profile, updated_at: nowIso }, conflict: 'id' },
-    { payload: { id: userId, profile_data: profile }, conflict: 'id' },
-    { payload: { id: userId, profile: profile, updated_at: nowIso }, conflict: 'id' },
-    { payload: { id: userId, profile: profile }, conflict: 'id' },
-  ]
+  const { error } = await supabase.from('user_profiles').upsert(
+    {
+      user_id: userId,
+      profile_data: profile,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id' },
+  )
 
-  let lastErrorMessage = 'unknown profile sync error'
-  for (const attempt of attempts) {
-    const { error } = await supabase.from('user_profiles').upsert(attempt.payload, {
-      onConflict: attempt.conflict,
-    })
-    if (!error) {
-      return
-    }
-    lastErrorMessage = error.message
-    const lower = error.message.toLowerCase()
-    const ignorable =
-      lower.includes('relation') ||
-      lower.includes('does not exist') ||
-      lower.includes('row-level security') ||
-      lower.includes('permission denied') ||
-      lower.includes('no unique') ||
-      lower.includes('on conflict')
-    if (ignorable) {
-      continue
-    }
+  if (error) {
+    throw new Error(`Cloud profile sync failed: ${error.message}`)
   }
-
-  throw new Error(`Cloud profile sync failed: ${lastErrorMessage}`)
 }
 
 export const backendSaveSettings = async (settings: SettingsPayload): Promise<void> => {

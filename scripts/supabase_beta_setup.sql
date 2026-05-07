@@ -40,6 +40,15 @@ create table if not exists public.user_settings (
   updated_at timestamptz not null default now()
 );
 
+-- Per-user self-profile (the user's own dating profile, distinct from the
+-- public.profiles swipe pool). Stored as JSONB so the schema can evolve
+-- without migrations every time we add a field.
+create table if not exists public.user_profiles (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  profile_data jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.user_preferences (
   user_id uuid primary key references auth.users (id) on delete cascade,
   min_age integer not null default 21,
@@ -63,6 +72,7 @@ alter table public.beta_invites enable row level security;
 alter table public.profiles enable row level security;
 alter table public.user_settings enable row level security;
 alter table public.user_preferences enable row level security;
+alter table public.user_profiles enable row level security;
 alter table public.chat_events enable row level security;
 
 drop policy if exists "beta_invites_read_active" on public.beta_invites;
@@ -118,6 +128,28 @@ with check (auth.uid() = user_id);
 drop policy if exists "user_preferences_owner_update" on public.user_preferences;
 create policy "user_preferences_owner_update"
 on public.user_preferences
+for update
+to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop policy if exists "user_profiles_owner_select" on public.user_profiles;
+create policy "user_profiles_owner_select"
+on public.user_profiles
+for select
+to authenticated
+using (auth.uid() = user_id);
+
+drop policy if exists "user_profiles_owner_insert" on public.user_profiles;
+create policy "user_profiles_owner_insert"
+on public.user_profiles
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+drop policy if exists "user_profiles_owner_update" on public.user_profiles;
+create policy "user_profiles_owner_update"
+on public.user_profiles
 for update
 to authenticated
 using (auth.uid() = user_id)
