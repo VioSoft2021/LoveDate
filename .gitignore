@@ -52,3 +52,4 @@ desktop-dist-fresh/
 # Claude Code local state
 .claude/
 
+__*.png

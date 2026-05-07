@@ -1,3 +1,5 @@
+import iconUrl from '../assets/icon.png'
+
 type LogoVariant = 'hero' | 'full' | 'compact' | 'icon-only'
 type LogoSize = 'sm' | 'md' | 'lg' | 'xl'
 
@@ -22,14 +24,7 @@ export function Logo({
 
   const icon = (
     <span className="ld-logo-mark" aria-hidden="true">
-      <svg className="ld-logo-mark-svg" viewBox="0 0 64 64" role="presentation" focusable="false">
-        <path
-          className="ld-logo-heart-shape"
-          d="M32 17.2c-4.7-6.4-15.4-4.4-15.4 5.3 0 7.5 6.9 12.2 15.4 19.4 8.5-7.2 15.4-11.9 15.4-19.4 0-9.7-10.7-11.7-15.4-5.3Z"
-        />
-        <circle className="ld-logo-spark" cx="47.5" cy="16.5" r="2.3" />
-        <circle className="ld-logo-spark" cx="51.5" cy="22.3" r="1.5" />
-      </svg>
+      <img className="ld-logo-mark-img" src={iconUrl} alt="" />
     </span>
   )
 
