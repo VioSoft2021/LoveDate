@@ -1,5 +1,25 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap');
 
+/* Safe-area insets for notched phones (iPhone X+, Android cutouts) */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.app-shell {
+  padding-top: max(0.5rem, var(--safe-top));
+  padding-bottom: max(0.5rem, var(--safe-bottom));
+}
+
+/* Android status bar fix — guarantees content never sits behind the status bar.
+   1.75rem ≈ 28px covers every Android status bar (24–48 dp).
+   env(safe-area-inset-top) takes over when the browser reports a larger value (notches). */
+@media (max-width: 768px) {
+  .app-shell {
+    padding-top: max(env(safe-area-inset-top, 1.75rem), 1.75rem) !important;
+  }
+}
+
 /* --- Responsive enhancements for all screens --- */
 @media (max-width: 900px) {
   .app-shell,
@@ -102,16 +122,19 @@
     font-size: clamp(1.1rem, 4vw, 1.5rem);
   }
   .bottom-nav {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 0.2rem;
     width: 100%;
     padding: 0.2rem 0;
   }
   .bottom-nav button {
     min-width: unset;
-    width: 100%;
-    font-size: 1rem;
-    border-radius: 0.7rem;
+    flex: 1 1 auto;
+    font-size: 0.82rem;
+    border-radius: 0.6rem;
+    padding: 0.45rem 0.5rem;
   }
   .screen-panel,
   .screen-panel--discover {
@@ -168,9 +191,10 @@
     font-size: clamp(0.95rem, 5vw, 1.2rem);
   }
   .bottom-nav button {
-    font-size: 0.95rem;
+    flex: 1 1 auto;
+    font-size: 0.78rem;
     border-radius: 0.4rem;
-    padding: 0.5rem 0.2rem;
+    padding: 0.4rem 0.25rem;
   }
   .profile-card,
   .profile-section,
@@ -5215,5 +5239,148 @@ button:disabled {
   }
 }
 
+/* ── Mobile bottom tab bar ─────────────────────────────────── */
+.mobile-tab-bar {
+  display: none;
+}
 
+@media (max-width: 768px) {
+  /* Hide desktop nav from top bar */
+  .top-bar .bottom-nav { display: none !important; }
+  .top-exit-btn { display: none !important; }
+
+  /* Lock app to viewport — prevents body scroll and status-bar bleed */
+  main.app-shell {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden !important;
+  }
+
+  /* Only the panel scrolls, horizontally clipped, with room for tab bar */
+  .screen-panel,
+  .screen-panel--discover {
+    min-height: 0;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0.5rem)) !important;
+  }
+
+  /* Let discover content flow and scroll normally */
+  .discover-redesign {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* Compact 4-column KPI row instead of giant stacked cards */
+  .discover-kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 0.3rem !important;
+  }
+
+  .discover-kpi {
+    min-height: unset !important;
+    padding: 0.45rem 0.2rem !important;
+    border-radius: 0.65rem !important;
+  }
+
+  .discover-kpi-value {
+    font-size: 1.05rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .discover-kpi-label {
+    font-size: 0.54rem !important;
+    letter-spacing: 0.03em !important;
+  }
+
+  /* Compact action buttons (OPEN FILTERS / BOOST / RESET) */
+  .discover-metric-controls {
+    gap: 0.25rem !important;
+  }
+
+  .discover-metric-btn {
+    min-width: 0 !important;
+    height: 2rem !important;
+    padding: 0 0.6rem !important;
+    font-size: 0.7rem !important;
+    border-radius: 0.5rem !important;
+  }
+
+  /* Fixed bottom tab bar */
+  .mobile-tab-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 300;
+    background: rgba(10, 13, 35, 0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    justify-content: space-around;
+    align-items: stretch;
+  }
+
+  .mobile-tab-bar button {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.38);
+    padding: 0.75rem 0;
+    cursor: pointer;
+    position: relative;
+    transition: color 150ms;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 3.2rem;
+    overflow: visible;
+  }
+
+  /* Icons only — hides labels so all 5 tabs fit on screen */
+  .mobile-tab-bar button span {
+    display: none;
+  }
+
+  .mobile-tab-bar button svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    transition: filter 150ms;
+  }
+
+  .mobile-tab-bar button.active {
+    color: #d8b86d;
+  }
+
+  .mobile-tab-bar button.active svg {
+    filter: drop-shadow(0 0 6px rgba(216, 184, 109, 0.6));
+  }
+
+  .mobile-tab-bar .tab-badge {
+    position: absolute;
+    top: 0.3rem;
+    right: calc(50% - 1.1rem);
+    background: #e0144c;
+    color: #fff;
+    border-radius: 999px;
+    font-size: 0.54rem;
+    font-weight: 700;
+    min-width: 1rem;
+    height: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.18rem;
+    line-height: 1;
+  }
+}
 

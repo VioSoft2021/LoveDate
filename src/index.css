@@ -22,3 +22,15 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* On mobile the WebView must never scroll at document level.
+   All scrolling happens inside .screen-panel. */
+@media (max-width: 768px) {
+  html, body, #root {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    max-width: 100vw;
+    width: 100vw;
+  }
+}

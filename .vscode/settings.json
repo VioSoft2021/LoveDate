@@ -10,5 +10,7 @@
     "terminal.integrated.automationProfile.windows": {
         "path": "C:\\Windows\\System32\\cmd.exe"
     },
-    "task.allowAutomaticTasks": "off"
+    "task.allowAutomaticTasks": "off",
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "claudeCode.preferredLocation": "sidebar"
 }

@@ -1,0 +1,18 @@
+{
+  "name": "LoveDate",
+  "short_name": "LoveDate",
+  "description": "Premium dating app — find your perfect match",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#141937",
+  "theme_color": "#141937",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
