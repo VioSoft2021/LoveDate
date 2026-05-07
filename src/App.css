@@ -5262,9 +5262,65 @@ button:disabled {
     min-height: 0;
     overflow-x: hidden !important;
     overflow-y: auto !important;
-    padding-left: 0.25rem !important;
-    padding-right: 0.25rem !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
     padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0.5rem)) !important;
+  }
+
+  /* HARD CLAMP — every direct screen container fits the viewport.
+     Fixes right-side text cutoff on profile/settings/chats screens. */
+  .profile-screen,
+  .settings-screen,
+  .profile-detail,
+  .activity-layout,
+  .chats-layout,
+  .discover-redesign,
+  .profile-left-column,
+  .profile-summary,
+  .profile-settings,
+  .list-panel,
+  .activity-overview,
+  .chat-thread,
+  .chat-list {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    grid-template-columns: 1fr !important;
+    box-sizing: border-box;
+  }
+
+  /* Force long text to wrap inside cards instead of overflowing */
+  .profile-summary,
+  .profile-summary p,
+  .profile-summary h2,
+  .profile-summary h3,
+  .profile-summary li,
+  .profile-summary span,
+  .profile-settings,
+  .profile-settings p,
+  .profile-settings li,
+  .profile-summary--enhanced,
+  .activity-overview p,
+  .list-panel p,
+  .list-panel li {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 100%;
+  }
+
+  /* Tighter card padding so content has more room to breathe */
+  .profile-summary,
+  .profile-settings,
+  .list-panel,
+  .activity-overview {
+    padding: 0.85rem 0.9rem !important;
+  }
+
+  /* Interest chips wrap nicely instead of forming an overflowing row */
+  .profile-interest-chips,
+  .profile-summary .chips {
+    flex-wrap: wrap !important;
+    max-width: 100%;
   }
 
   /* Let discover content flow and scroll normally */
