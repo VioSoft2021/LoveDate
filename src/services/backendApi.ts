@@ -5,6 +5,7 @@ export type SettingsPayload = {
   pushNotifications: boolean
   emailNotifications: boolean
   privateMode: boolean
+  incognitoMode: boolean
 }
 
 export type BackendChatReply = {
@@ -245,17 +246,15 @@ export const backendValidateInviteCode = async (inviteCode: string): Promise<voi
   }
 
   if (supabase) {
-    const { data, error } = await supabase
-      .from('beta_invites')
-      .select('code, active, expires_at')
-      .eq('code', normalized)
-      .limit(1)
-      .maybeSingle()
+    // Calls a SECURITY DEFINER RPC instead of selecting from beta_invites
+    // directly. Direct SELECT used to be allowed for `anon`, which let
+    // anyone with the public anon key dump every active invite code. The
+    // RPC only answers a yes/no for the supplied code.
+    const { data, error } = await supabase.rpc('validate_beta_invite', {
+      p_code: normalized,
+    })
 
-    if (!error && data && data.active !== false) {
-      if (data.expires_at && Date.parse(data.expires_at) < Date.now()) {
-        throw new Error('Invite expired')
-      }
+    if (!error && data === true) {
       rememberValidatedInvite(normalized)
       return
     }
@@ -368,6 +367,225 @@ export const backendSaveSelfProfile = async (
   if (error) {
     throw new Error(`Cloud profile sync failed: ${error.message}`)
   }
+
+  await backendEnsureDiscoverableProfile(userId, profile)
+}
+
+const VALID_GENDERS = new Set(['Woman', 'Man', 'Non-binary'])
+
+const PROFILE_PHOTOS_BUCKET = 'profile-photos'
+
+const dataUrlToBlob = (dataUrl: string): { blob: Blob; mimeType: string } | null => {
+  const match = /^data:([^;,]+);base64,(.*)$/.exec(dataUrl)
+  if (!match) {
+    return null
+  }
+  const mimeType = match[1]
+  const base64 = match[2]
+  try {
+    const binary = atob(base64)
+    const bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i)
+    }
+    return { blob: new Blob([bytes], { type: mimeType }), mimeType }
+  } catch {
+    return null
+  }
+}
+
+const generatePhotoFilename = (mimeType: string): string => {
+  const ext = mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg'
+  const random = Math.random().toString(36).slice(2, 10)
+  return `${Date.now()}-${random}.${ext}`
+}
+
+/**
+ * Uploads a base64 data URL to the profile-photos storage bucket and returns
+ * its public URL. Returns null on any failure (caller should fall back to
+ * keeping the data URL so the user is not blocked offline).
+ */
+export const backendUploadProfilePhoto = async (dataUrl: string): Promise<string | null> => {
+  if (!supabase) {
+    return null
+  }
+
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return null
+  }
+
+  const decoded = dataUrlToBlob(dataUrl)
+  if (!decoded) {
+    return null
+  }
+
+  const path = `${userId}/${generatePhotoFilename(decoded.mimeType)}`
+  const { error: uploadError } = await supabase.storage
+    .from(PROFILE_PHOTOS_BUCKET)
+    .upload(path, decoded.blob, {
+      contentType: decoded.mimeType,
+      cacheControl: '3600',
+      upsert: false,
+    })
+
+  if (uploadError) {
+    // eslint-disable-next-line no-console
+    console.warn('Profile photo upload failed:', uploadError.message)
+    return null
+  }
+
+  const { data } = supabase.storage.from(PROFILE_PHOTOS_BUCKET).getPublicUrl(path)
+  return data?.publicUrl ?? null
+}
+
+const isDataUrl = (value: string): boolean => value.startsWith('data:')
+
+/**
+ * Walks an array of photo strings and replaces any data URLs with uploaded
+ * Storage URLs. Items already at https:// or any non-data URL pass through.
+ * Failed uploads keep their original data URL — the caller's persistence
+ * still proceeds rather than blocking the save.
+ */
+/**
+ * Phase B3: load the cloud-side block list for the current user. Returns
+ * an empty array on any failure (offline, unauthed) so the caller can fall
+ * back to its local cache.
+ */
+export const backendLoadBlockedProfileIds = async (): Promise<number[]> => {
+  if (!supabase) {
+    return []
+  }
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return []
+  }
+  const { data, error } = await supabase
+    .from('user_blocks')
+    .select('blocked_profile_id')
+    .eq('user_id', userId)
+  if (error || !data) {
+    return []
+  }
+  return data
+    .map((row) => Number(row.blocked_profile_id))
+    .filter((id) => Number.isInteger(id))
+}
+
+export const backendAddBlock = async (profileId: number): Promise<void> => {
+  if (!supabase) {
+    return
+  }
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return
+  }
+  const { error } = await supabase
+    .from('user_blocks')
+    .upsert(
+      { user_id: userId, blocked_profile_id: profileId },
+      { onConflict: 'user_id,blocked_profile_id' },
+    )
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Block sync failed:', error.message)
+  }
+}
+
+export const backendRemoveBlock = async (profileId: number): Promise<void> => {
+  if (!supabase) {
+    return
+  }
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return
+  }
+  const { error } = await supabase
+    .from('user_blocks')
+    .delete()
+    .eq('user_id', userId)
+    .eq('blocked_profile_id', profileId)
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Unblock sync failed:', error.message)
+  }
+}
+
+/**
+ * Bulk-push a local block list to the cloud — used once on first authed
+ * app load to migrate existing localStorage entries. Each row uses
+ * upsert-on-conflict so re-running is safe.
+ */
+export const backendBackfillBlocks = async (profileIds: number[]): Promise<void> => {
+  if (!supabase || profileIds.length === 0) {
+    return
+  }
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return
+  }
+  const rows = profileIds.map((id) => ({ user_id: userId, blocked_profile_id: id }))
+  const { error } = await supabase
+    .from('user_blocks')
+    .upsert(rows, { onConflict: 'user_id,blocked_profile_id' })
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Block backfill failed:', error.message)
+  }
+}
+
+export const backendUploadDataUrlPhotos = async (photos: string[]): Promise<string[]> => {
+  const results: string[] = []
+  for (const photo of photos) {
+    if (!photo || !isDataUrl(photo)) {
+      results.push(photo)
+      continue
+    }
+    const uploaded = await backendUploadProfilePhoto(photo)
+    results.push(uploaded ?? photo)
+  }
+  return results
+}
+
+/**
+ * Phase B1: ensures a row exists in public.profiles keyed by auth_user_id.
+ * Currently writes only the minimum fields needed to satisfy NOT NULL
+ * constraints, and forces is_active=false so the row does not yet appear
+ * in anyone's deck. Phase B4 will widen the synced field set and flip
+ * is_active when the profile is complete.
+ */
+const backendEnsureDiscoverableProfile = async (
+  userId: string,
+  profile: Record<string, unknown>,
+): Promise<void> => {
+  void userId
+  if (!supabase) {
+    return
+  }
+
+  const name = typeof profile.name === 'string' ? profile.name.trim() : ''
+  const age = typeof profile.age === 'number' ? profile.age : null
+  const city = typeof profile.city === 'string' ? profile.city.trim() : ''
+  const rawGender = typeof profile.gender === 'string' ? profile.gender : ''
+  const gender = VALID_GENDERS.has(rawGender) ? rawGender : 'Woman'
+
+  if (!name || age === null || age < 18 || age > 99 || !city) {
+    return
+  }
+
+  const { error } = await supabase.rpc('ensure_discoverable_profile', {
+    p_name: name,
+    p_age: age,
+    p_city: city,
+    p_gender: gender,
+  })
+
+  if (error) {
+    // Non-fatal: self-profile already saved; surface for diagnostics but
+    // don't roll back the user's primary write.
+    // eslint-disable-next-line no-console
+    console.warn('Discoverable profile sync skipped:', error.message)
+  }
 }
 
 export const backendSaveSettings = async (settings: SettingsPayload): Promise<void> => {
@@ -388,12 +606,70 @@ export const backendSaveSettings = async (settings: SettingsPayload): Promise<vo
     push_notifications: settings.pushNotifications,
     email_notifications: settings.emailNotifications,
     private_mode: settings.privateMode,
+    incognito_mode: settings.incognitoMode,
     updated_at: new Date().toISOString(),
   })
 
   if (error) {
     throw new Error(error.message)
   }
+}
+
+const readLocalSettings = (): SettingsPayload | null => {
+  try {
+    const raw = window.localStorage.getItem(LOCAL_SETTINGS_KEY)
+    if (!raw) {
+      return null
+    }
+    const parsed = JSON.parse(raw) as Partial<SettingsPayload>
+    if (
+      typeof parsed.pushNotifications !== 'boolean' ||
+      typeof parsed.emailNotifications !== 'boolean' ||
+      typeof parsed.privateMode !== 'boolean'
+    ) {
+      return null
+    }
+    return {
+      pushNotifications: parsed.pushNotifications,
+      emailNotifications: parsed.emailNotifications,
+      privateMode: parsed.privateMode,
+      incognitoMode: typeof parsed.incognitoMode === 'boolean' ? parsed.incognitoMode : false,
+    }
+  } catch {
+    return null
+  }
+}
+
+export const backendLoadSettings = async (): Promise<SettingsPayload | null> => {
+  const local = readLocalSettings()
+
+  if (!supabase) {
+    return local
+  }
+
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return local
+  }
+
+  const { data, error } = await supabase
+    .from('user_settings')
+    .select('push_notifications, email_notifications, private_mode, incognito_mode')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (error || !data) {
+    return local
+  }
+
+  const cloud: SettingsPayload = {
+    pushNotifications: data.push_notifications,
+    emailNotifications: data.email_notifications,
+    privateMode: data.private_mode,
+    incognitoMode: data.incognito_mode ?? false,
+  }
+  persistLocal(LOCAL_SETTINGS_KEY, cloud)
+  return cloud
 }
 
 export const backendSavePreferences = async (payload: {
