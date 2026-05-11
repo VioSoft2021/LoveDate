@@ -113,6 +113,15 @@ export const backendRegister = async (
     }
 
     const signedIn = Boolean(data.session)
+
+    // If we have an active session, record which invite code this user
+    // signed up with. The admin's Codes admin screen joins on this so
+    // it can search by user email later. Fire-and-forget: never let an
+    // audit/link insert failure break signup.
+    if (signedIn) {
+      void recordInviteRedemption()
+    }
+
     return {
       email: data.user?.email ?? email,
       signedIn,
@@ -179,6 +188,24 @@ const isInviteAlreadyValidated = (inviteCode: string): boolean => {
 
 const rememberValidatedInvite = (inviteCode: string): void => {
   window.localStorage.setItem(LOCAL_INVITE_PASS_KEY, normalizeInvite(inviteCode))
+}
+
+/**
+ * Sends the invite code this user signed up with to the
+ * record-invite-redemption Edge Function so the admin can later look up
+ * "which code did this email use". Fire-and-forget: swallow failures.
+ */
+const recordInviteRedemption = async (): Promise<void> => {
+  if (!supabase) return
+  const cached = window.localStorage.getItem(LOCAL_INVITE_PASS_KEY)
+  if (!cached) return
+  try {
+    await supabase.functions.invoke('record-invite-redemption', {
+      body: { code: cached },
+    })
+  } catch {
+    // Best-effort. The admin can still find this user by other means.
+  }
 }
 
 const getRecentInviteAttempts = (): number[] => {
