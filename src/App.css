@@ -2447,6 +2447,184 @@ button:disabled {
   grid-column: 1 / -1;
 }
 
+.profile-editor-section {
+  margin: 0.4rem 0;
+  border-radius: 0.78rem;
+  border: 1px solid rgba(112, 130, 216, 0.26);
+  background: rgba(21, 29, 69, 0.42);
+  overflow: hidden;
+}
+
+.profile-editor {
+  max-height: calc(100vh - 8rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(126, 223, 245, 0.55) rgba(21, 29, 69, 0.4);
+}
+
+.profile-editor::-webkit-scrollbar {
+  width: 8px;
+}
+
+.profile-editor::-webkit-scrollbar-track {
+  background: rgba(21, 29, 69, 0.4);
+  border-radius: 4px;
+}
+
+.profile-editor::-webkit-scrollbar-thumb {
+  background: rgba(126, 223, 245, 0.55);
+  border-radius: 4px;
+}
+
+.profile-editor::-webkit-scrollbar-thumb:hover {
+  background: rgba(126, 223, 245, 0.8);
+}
+
+.settings-actions-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.profile-editor-errors {
+  margin: 0.6rem 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(248, 113, 113, 0.55);
+  background: rgba(80, 17, 24, 0.55);
+  color: rgba(255, 220, 220, 0.96);
+  font-size: 0.86rem;
+}
+
+.profile-editor-errors strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  letter-spacing: 0.02em;
+}
+
+.profile-editor-errors ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.profile-editor-errors li {
+  margin: 0.15rem 0;
+}
+
+/* Settings cards as collapsibles. Hero card stays an article (always visible). */
+.profile-settings.settings-card[open],
+details.profile-settings.settings-card {
+  display: block;
+}
+
+details.profile-settings.settings-card > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.85rem 1.05rem;
+  font-size: 0.96rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(229, 241, 255, 0.96);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  -webkit-user-select: none;
+  border-radius: inherit;
+}
+
+details.profile-settings.settings-card > summary::-webkit-details-marker {
+  display: none;
+}
+
+details.profile-settings.settings-card > summary::after {
+  content: '+';
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: rgba(229, 241, 255, 0.7);
+  margin-left: 0.6rem;
+}
+
+details.profile-settings.settings-card[open] > summary::after {
+  content: '−';
+}
+
+details.profile-settings.settings-card[open] > summary {
+  border-bottom: 1px solid rgba(112, 130, 216, 0.26);
+  margin-bottom: 0.55rem;
+}
+
+/* Top header sign-out + exit button group */
+.top-exit-group {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: stretch;
+}
+
+.top-exit-btn--quit {
+  font-size: 1.05rem;
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
+  font-weight: 700;
+}
+
+.profile-editor-section + .profile-editor-section {
+  margin-top: 0.55rem;
+}
+
+.profile-editor-section > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.78rem 0.95rem;
+  font-size: 0.86rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(229, 241, 255, 0.94);
+  background: rgba(31, 41, 95, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.profile-editor-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.profile-editor-section > summary::after {
+  content: '+';
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(229, 241, 255, 0.7);
+  transition: transform 180ms ease;
+}
+
+.profile-editor-section[open] > summary::after {
+  content: '−';
+}
+
+.profile-editor-section[open] > summary {
+  background: rgba(43, 56, 122, 0.62);
+  border-bottom: 1px solid rgba(112, 130, 216, 0.26);
+}
+
+.profile-editor-section > .profile-editor-grid,
+.profile-editor-section > .photo-input-row,
+.profile-editor-section > .upload-field,
+.profile-editor-section > .draft-photo-grid,
+.profile-editor-section > .photo-studio,
+.profile-editor-section > p {
+  padding-left: 0.82rem;
+  padding-right: 0.82rem;
+}
+
+.profile-editor-section > .profile-editor-grid {
+  padding-top: 0.78rem;
+  padding-bottom: 0.78rem;
+}
+
 .photo-input-row {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -5249,9 +5427,32 @@ button:disabled {
 }
 
 @media (max-width: 768px) {
-  /* Hide desktop nav from top bar */
+  /* Hide desktop nav from top bar — but keep the sign-out / exit buttons. */
   .top-bar .bottom-nav { display: none !important; }
-  .top-exit-btn { display: none !important; }
+
+  /* Exit-group stays visible; collapse to icon-only buttons to fit. */
+  .top-bar .top-exit-group {
+    display: inline-flex !important;
+    margin-left: auto;
+  }
+  .top-bar .top-exit-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0.42rem 0.6rem;
+    font-size: 0;
+    min-width: 2.1rem;
+    min-height: 2.1rem;
+  }
+  /* Replace text label of the sign-out button with a door/arrow glyph */
+  .top-bar .top-exit-btn:not(.top-exit-btn--quit)::before {
+    content: '↩';
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .top-bar .top-exit-btn--quit {
+    font-size: 1.05rem !important;
+  }
 
   /* Lock app to viewport — prevents body scroll and status-bar bleed */
   main.app-shell {

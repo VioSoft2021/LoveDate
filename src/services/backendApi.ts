@@ -295,22 +295,22 @@ export const backendValidateInviteCode = async (inviteCode: string): Promise<voi
  * before the cloud copy arrives. Returns null when no cache exists.
  */
 export const backendReadSelfProfile = (email: string): Record<string, unknown> | null => {
-  const candidates = [profileKeyForEmail(email), LOCAL_SELF_PROFILE_KEY]
+  // Only read the namespaced profile cache for the provided email.
+  // Avoid falling back to the global `lovedate:self-profile` key which
+  // can leak another user's cached profile on shared devices.
+  const key = profileKeyForEmail(email)
+  const raw = window.localStorage.getItem(key)
+  if (!raw) {
+    return null
+  }
 
-  for (const key of candidates) {
-    const raw = window.localStorage.getItem(key)
-    if (!raw) {
-      continue
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>
+    if (parsed && typeof parsed === 'object') {
+      return parsed
     }
-
-    try {
-      const parsed = JSON.parse(raw) as Record<string, unknown>
-      if (parsed && typeof parsed === 'object') {
-        return parsed
-      }
-    } catch {
-      // Ignore malformed local cache entries.
-    }
+  } catch {
+    // Ignore malformed local cache entries.
   }
 
   return null
@@ -356,7 +356,6 @@ export const backendFetchSelfProfile = async (
 
   // Refresh the local cache so subsequent cold starts render instantly.
   persistLocal(profileKeyForEmail(email), profile)
-  persistLocal(LOCAL_SELF_PROFILE_KEY, profile)
 
   return profile
 }
@@ -371,7 +370,6 @@ export const backendSaveSelfProfile = async (
   profile: Record<string, unknown>,
 ): Promise<void> => {
   persistLocal(profileKeyForEmail(email), profile)
-  persistLocal(LOCAL_SELF_PROFILE_KEY, profile)
 
   if (!supabase) {
     return
@@ -396,6 +394,67 @@ export const backendSaveSelfProfile = async (
   }
 
   await backendEnsureDiscoverableProfile(userId, profile)
+}
+
+// Dev helpers: synchronous local-only operations to aid testing in DEV.
+export const backendSetLocalSelfProfile = (email: string, profile: Record<string, unknown>): void => {
+  persistLocal(profileKeyForEmail(email), profile)
+}
+
+export const backendResetLocalSelfProfile = (email: string): void => {
+  try {
+    window.localStorage.removeItem(profileKeyForEmail(email))
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Self-profile cache scrubbing — defense-in-depth against shared-device leaks.
+ *
+ * Removing the global-fallback read (already in place above) prevents User B
+ * from seeing User A's profile in the UI. But User A's data still sits at rest
+ * in localStorage under `lovedate:self-profile:userA@x.com`, readable via
+ * devtools, an Android backup, or any code path that doesn't honor the
+ * per-email gating. These helpers actively delete that data at every auth
+ * transition.
+ *
+ * Two flavours:
+ *   - purgeOtherSelfProfileCaches(currentEmail): wipes every per-email cache
+ *     except the current user's. Call on sign-in/register.
+ *   - purgeAllSelfProfileCaches(): wipes everything. Call on sign-out so the
+ *     next person on the device starts from cloud, not from User A's leftovers.
+ *
+ * Both also remove the bare legacy `lovedate:self-profile` key — orphaned by
+ * the earlier fallback removal but still present on devices that used
+ * pre-fix builds.
+ */
+const removeSelfProfileKeysExcept = (keepKey: string | null): void => {
+  const prefix = `${LOCAL_SELF_PROFILE_KEY}:`
+  const removals: string[] = []
+  // Always clear the bare legacy key (orphaned from pre-fix global fallback).
+  removals.push(LOCAL_SELF_PROFILE_KEY)
+  for (let i = 0; i < window.localStorage.length; i += 1) {
+    const key = window.localStorage.key(i)
+    if (key && key.startsWith(prefix) && key !== keepKey) {
+      removals.push(key)
+    }
+  }
+  for (const key of removals) {
+    try {
+      window.localStorage.removeItem(key)
+    } catch {
+      // continue — localStorage operations are best-effort
+    }
+  }
+}
+
+export const purgeOtherSelfProfileCaches = (currentEmail: string): void => {
+  removeSelfProfileKeysExcept(profileKeyForEmail(currentEmail))
+}
+
+export const purgeAllSelfProfileCaches = (): void => {
+  removeSelfProfileKeysExcept(null)
 }
 
 const VALID_GENDERS = new Set(['Woman', 'Man', 'Non-binary'])

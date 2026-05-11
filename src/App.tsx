@@ -28,8 +28,18 @@ import {
   backendReadSelfProfile,
   backendRegister,
   backendSaveSelfProfile,
+  backendSetLocalSelfProfile,
+  backendResetLocalSelfProfile,
+  backendAddBlock,
+  backendBackfillBlocks,
+  backendLoadBlockedProfileIds,
+  backendLoadSettings,
   backendSavePreferences,
   backendSaveSettings,
+  backendUploadDataUrlPhotos,
+  backendUploadProfilePhoto,
+  purgeAllSelfProfileCaches,
+  purgeOtherSelfProfileCaches,
   backendSendChatReply,
   backendSignOut,
   backendValidateInviteCode,
@@ -764,7 +774,6 @@ type CropHandle = 'nw' | 'ne' | 'sw' | 'se'
 
 const HISTORY_STORAGE_KEY = 'lovedate:swipe-history'
 const AUTH_STORAGE_KEY = 'lovedate:auth-session'
-const SELF_PROFILE_STORAGE_KEY = 'lovedate:self-profile'
 const CHAT_THREADS_STORAGE_KEY = 'lovedate:chat-threads'
 const CALL_HISTORY_STORAGE_KEY = 'lovedate:call-history'
 const CIRCLES_JOINED_STORAGE_KEY = 'lovedate:circles-joined'
@@ -974,6 +983,47 @@ const DEFAULT_SELF_PROFILE: SelfProfile = {
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
   ],
   personalityAnswers: ['B', 'A', 'A', 'A', 'A', 'A', 'A', 'A'],
+}
+
+// Empty profile used for new users so fields render blank instead of
+// showing example/demo data.
+const EMPTY_SELF_PROFILE: SelfProfile = {
+  name: '',
+  age: 0,
+  city: '',
+  vibe: '',
+  bio: '',
+  interests: [],
+  pronouns: '',
+  gender: '',
+  orientation: '',
+  lookingFor: '',
+  relationshipIntent: '',
+  heightCm: 0,
+  jobTitle: '',
+  company: '',
+  education: '',
+  hometown: '',
+  languages: [],
+  drinking: '',
+  smoking: '',
+  workout: '',
+  religion: '',
+  politics: '',
+  zodiac: '',
+  childrenPlan: '',
+  pets: '',
+  promptOne: '',
+  promptTwo: '',
+  promptThree: '',
+  dealbreakers: [],
+  instagram: '',
+  anthem: '',
+  socialConnections: DEFAULT_SOCIAL_CONNECTIONS,
+  socialPromotionOptIn: false,
+  travelMode: false,
+  photos: [],
+  personalityAnswers: Array(PERSONALITY_QUESTIONS.length).fill(''),
 }
 
 const PERSONALITY_DIMENSIONS: Array<{
@@ -1493,22 +1543,22 @@ const normalizeSelfProfile = (raw: unknown): SelfProfile => {
   try {
     const parsed = (raw ?? null) as Partial<SelfProfile> | null
     if (!parsed) {
-      return DEFAULT_SELF_PROFILE
+      return EMPTY_SELF_PROFILE
     }
     const safeInterests = Array.isArray(parsed.interests)
       ? parsed.interests.filter((value): value is string => typeof value === 'string').slice(0, 6)
-      : DEFAULT_SELF_PROFILE.interests
+      : EMPTY_SELF_PROFILE.interests
     const safeLanguages = Array.isArray(parsed.languages)
       ? parsed.languages.filter((value): value is string => typeof value === 'string').slice(0, 6)
-      : DEFAULT_SELF_PROFILE.languages
+      : EMPTY_SELF_PROFILE.languages
     const safeDealbreakers = Array.isArray(parsed.dealbreakers)
       ? parsed.dealbreakers.filter((value): value is string => typeof value === 'string').slice(0, 8)
-      : DEFAULT_SELF_PROFILE.dealbreakers
+      : EMPTY_SELF_PROFILE.dealbreakers
     const safePhotos = Array.isArray(parsed.photos)
       ? parsed.photos.filter((value): value is string => typeof value === 'string' && value.trim().length > 0).slice(0, 9)
-      : DEFAULT_SELF_PROFILE.photos
+      : EMPTY_SELF_PROFILE.photos
 
-    const safeString = (value: unknown, fallback: string): string => {
+    const safeString = (value: unknown, fallback = ''): string => {
       return typeof value === 'string' && value.trim().length > 0 ? value : fallback
     }
     const parsedSocialRaw = parsed.socialConnections
@@ -1532,55 +1582,51 @@ const normalizeSelfProfile = (raw: unknown): SelfProfile => {
     }, {} as SocialConnections)
 
     return {
-      name: safeString(parsed.name, DEFAULT_SELF_PROFILE.name),
-      age: Number.isFinite(parsed.age)
-        ? Math.min(99, Math.max(18, Number(parsed.age)))
-        : DEFAULT_SELF_PROFILE.age,
-      city: safeString(parsed.city, DEFAULT_SELF_PROFILE.city),
-      vibe: safeString(parsed.vibe, DEFAULT_SELF_PROFILE.vibe),
-      bio: safeString(parsed.bio, DEFAULT_SELF_PROFILE.bio),
-      interests: safeInterests.length > 0 ? safeInterests : DEFAULT_SELF_PROFILE.interests,
-      pronouns: safeString(parsed.pronouns, DEFAULT_SELF_PROFILE.pronouns),
-      gender: safeString(parsed.gender, DEFAULT_SELF_PROFILE.gender),
-      orientation: safeString(parsed.orientation, DEFAULT_SELF_PROFILE.orientation),
-      lookingFor: safeString(parsed.lookingFor, DEFAULT_SELF_PROFILE.lookingFor),
-      relationshipIntent: safeString(parsed.relationshipIntent, DEFAULT_SELF_PROFILE.relationshipIntent),
+      name: safeString(parsed.name, EMPTY_SELF_PROFILE.name),
+      age: Number.isFinite(parsed.age) ? Math.min(99, Math.max(18, Number(parsed.age))) : EMPTY_SELF_PROFILE.age,
+      city: safeString(parsed.city, EMPTY_SELF_PROFILE.city),
+      vibe: safeString(parsed.vibe, EMPTY_SELF_PROFILE.vibe),
+      bio: safeString(parsed.bio, EMPTY_SELF_PROFILE.bio),
+      interests: safeInterests.length > 0 ? safeInterests : EMPTY_SELF_PROFILE.interests,
+      pronouns: safeString(parsed.pronouns, EMPTY_SELF_PROFILE.pronouns),
+      gender: safeString(parsed.gender, EMPTY_SELF_PROFILE.gender),
+      orientation: safeString(parsed.orientation, EMPTY_SELF_PROFILE.orientation),
+      lookingFor: safeString(parsed.lookingFor, EMPTY_SELF_PROFILE.lookingFor),
+      relationshipIntent: safeString(parsed.relationshipIntent, EMPTY_SELF_PROFILE.relationshipIntent),
       heightCm: Number.isFinite(parsed.heightCm)
         ? Math.min(230, Math.max(130, Number(parsed.heightCm)))
-        : DEFAULT_SELF_PROFILE.heightCm,
-      jobTitle: safeString(parsed.jobTitle, DEFAULT_SELF_PROFILE.jobTitle),
-      company: safeString(parsed.company, DEFAULT_SELF_PROFILE.company),
-      education: safeString(parsed.education, DEFAULT_SELF_PROFILE.education),
-      hometown: safeString(parsed.hometown, DEFAULT_SELF_PROFILE.hometown),
-      languages: safeLanguages.length > 0 ? safeLanguages : DEFAULT_SELF_PROFILE.languages,
-      drinking: safeString(parsed.drinking, DEFAULT_SELF_PROFILE.drinking),
-      smoking: safeString(parsed.smoking, DEFAULT_SELF_PROFILE.smoking),
-      workout: safeString(parsed.workout, DEFAULT_SELF_PROFILE.workout),
-      religion: safeString(parsed.religion, DEFAULT_SELF_PROFILE.religion),
-      politics: safeString(parsed.politics, DEFAULT_SELF_PROFILE.politics),
-      zodiac: safeString(parsed.zodiac, DEFAULT_SELF_PROFILE.zodiac),
-      childrenPlan: safeString(parsed.childrenPlan, DEFAULT_SELF_PROFILE.childrenPlan),
-      pets: safeString(parsed.pets, DEFAULT_SELF_PROFILE.pets),
-      promptOne: safeString(parsed.promptOne, DEFAULT_SELF_PROFILE.promptOne),
-      promptTwo: safeString(parsed.promptTwo, DEFAULT_SELF_PROFILE.promptTwo),
-      promptThree: safeString(parsed.promptThree, DEFAULT_SELF_PROFILE.promptThree),
-      dealbreakers: safeDealbreakers.length > 0 ? safeDealbreakers : DEFAULT_SELF_PROFILE.dealbreakers,
-      instagram: safeString(parsed.instagram, DEFAULT_SELF_PROFILE.instagram),
-      anthem: safeString(parsed.anthem, DEFAULT_SELF_PROFILE.anthem),
+        : EMPTY_SELF_PROFILE.heightCm,
+      jobTitle: safeString(parsed.jobTitle, EMPTY_SELF_PROFILE.jobTitle),
+      company: safeString(parsed.company, EMPTY_SELF_PROFILE.company),
+      education: safeString(parsed.education, EMPTY_SELF_PROFILE.education),
+      hometown: safeString(parsed.hometown, EMPTY_SELF_PROFILE.hometown),
+      languages: safeLanguages.length > 0 ? safeLanguages : EMPTY_SELF_PROFILE.languages,
+      drinking: safeString(parsed.drinking, EMPTY_SELF_PROFILE.drinking),
+      smoking: safeString(parsed.smoking, EMPTY_SELF_PROFILE.smoking),
+      workout: safeString(parsed.workout, EMPTY_SELF_PROFILE.workout),
+      religion: safeString(parsed.religion, EMPTY_SELF_PROFILE.religion),
+      politics: safeString(parsed.politics, EMPTY_SELF_PROFILE.politics),
+      zodiac: safeString(parsed.zodiac, EMPTY_SELF_PROFILE.zodiac),
+      childrenPlan: safeString(parsed.childrenPlan, EMPTY_SELF_PROFILE.childrenPlan),
+      pets: safeString(parsed.pets, EMPTY_SELF_PROFILE.pets),
+      promptOne: safeString(parsed.promptOne, EMPTY_SELF_PROFILE.promptOne),
+      promptTwo: safeString(parsed.promptTwo, EMPTY_SELF_PROFILE.promptTwo),
+      promptThree: safeString(parsed.promptThree, EMPTY_SELF_PROFILE.promptThree),
+      dealbreakers: safeDealbreakers.length > 0 ? safeDealbreakers : EMPTY_SELF_PROFILE.dealbreakers,
+      instagram: safeString(parsed.instagram, EMPTY_SELF_PROFILE.instagram),
+      anthem: safeString(parsed.anthem, EMPTY_SELF_PROFILE.anthem),
       socialConnections: safeSocialConnections,
       socialPromotionOptIn:
-        typeof parsed.socialPromotionOptIn === 'boolean'
-          ? parsed.socialPromotionOptIn
-          : DEFAULT_SELF_PROFILE.socialPromotionOptIn,
-      travelMode: typeof parsed.travelMode === 'boolean' ? parsed.travelMode : DEFAULT_SELF_PROFILE.travelMode,
-      photos: safePhotos.length > 0 ? safePhotos : DEFAULT_SELF_PROFILE.photos,
+        typeof parsed.socialPromotionOptIn === 'boolean' ? parsed.socialPromotionOptIn : EMPTY_SELF_PROFILE.socialPromotionOptIn,
+      travelMode: typeof parsed.travelMode === 'boolean' ? parsed.travelMode : EMPTY_SELF_PROFILE.travelMode,
+      photos: safePhotos.length > 0 ? safePhotos : EMPTY_SELF_PROFILE.photos,
       personalityAnswers:
         sanitizeAnswers(parsed.personalityAnswers).length === PERSONALITY_QUESTIONS.length
           ? (sanitizeAnswers(parsed.personalityAnswers) as PersonalityAnswer[])
-          : DEFAULT_SELF_PROFILE.personalityAnswers,
+          : EMPTY_SELF_PROFILE.personalityAnswers,
     }
   } catch {
-    return DEFAULT_SELF_PROFILE
+    return EMPTY_SELF_PROFILE
   }
 }
 
@@ -1589,7 +1635,7 @@ const readSelfProfile = (email = ''): SelfProfile =>
 
 const toProfileDraft = (profile: SelfProfile) => ({
   name: profile.name,
-  age: String(profile.age),
+  age: profile.age > 0 ? String(profile.age) : '',
   city: profile.city,
   vibe: profile.vibe,
   bio: profile.bio,
@@ -1599,7 +1645,7 @@ const toProfileDraft = (profile: SelfProfile) => ({
   orientation: profile.orientation,
   lookingFor: profile.lookingFor,
   relationshipIntent: profile.relationshipIntent,
-  heightCm: String(profile.heightCm),
+  heightCm: profile.heightCm > 0 ? String(profile.heightCm) : '',
   jobTitle: profile.jobTitle,
   company: profile.company,
   education: profile.education,
@@ -2012,6 +2058,18 @@ const seedChat = (selfName: string): ChatMessage[] => [
 ]
 
 function App() {
+  // Boot-time orphan cleanup: remove the legacy global self-profile key
+  // (`lovedate:self-profile`) from devices that used pre-fix builds. The
+  // current code never reads it, but leaving it sitting in localStorage is
+  // a passive data-at-rest leak on shared devices.
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.removeItem('lovedate:self-profile')
+    } catch {
+      // best-effort
+    }
+  }
+
   // Clear any leftover demo/test data on first launch if not authenticated.
   // This ensures new installs start completely empty.
   if (typeof window !== 'undefined') {
@@ -2043,11 +2101,13 @@ function App() {
   const initialAuth = readAuth()
   const initialSelfProfile = readSelfProfile(initialAuth.email)
 
-  const [screen, setScreen] = useState<AppScreen>(initialRoute.screen)
+  // Always require fresh login on cold start. We keep the saved email so the
+  // login form is pre-filled, but never auto-resume a session.
+  const [screen, setScreen] = useState<AppScreen>('login')
   const [selectedProfileId, setSelectedProfileId] = useState<number | null>(initialRoute.profileId)
   const [previousScreen, setPreviousScreen] = useState<AppScreen>('discover')
 
-  const [isAuthenticated, setIsAuthenticated] = useState(initialAuth.isAuthenticated)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userEmail, setUserEmail] = useState(initialAuth.email)
   const [loginEmail, setLoginEmail] = useState(initialAuth.email)
   const [loginPassword, setLoginPassword] = useState('')
@@ -2060,6 +2120,7 @@ function App() {
   const [selfProfile, setSelfProfile] = useState<SelfProfile>(initialSelfProfile)
   const [profileDraft, setProfileDraft] = useState(() => toProfileDraft(initialSelfProfile))
   const [profileSaveStatus, setProfileSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle')
+  const [profileSaveErrors, setProfileSaveErrors] = useState<string[]>([])
   const [photoUrlInput, setPhotoUrlInput] = useState('')
   const [photoStudioSource, setPhotoStudioSource] = useState<string | null>(null)
   const [photoStudioAnalysis, setPhotoStudioAnalysis] = useState<PhotoStudioAnalysis | null>(null)
@@ -2146,13 +2207,13 @@ function App() {
   const [moderationSearchQuery, setModerationSearchQuery] = useState('')
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [boostsLeft, setBoostsLeft] = useState(3)
-  const [incognitoMode, setIncognitoMode] = useState(false)
   const [rewindsLeft, setRewindsLeft] = useState(5)
 
   const [settings, setSettings] = useState<SettingsPayload>({
     pushNotifications: true,
     emailNotifications: false,
     privateMode: false,
+    incognitoMode: false,
   })
   const [settingsSaveStatus, setSettingsSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [preferenceSaveStatus, setPreferenceSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
@@ -2817,6 +2878,50 @@ function App() {
         // until the next successful fetch.
       })
 
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated, userEmail])
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return
+    }
+    let cancelled = false
+    void backendLoadSettings()
+      .then((loaded) => {
+        if (cancelled || !loaded) {
+          return
+        }
+        setSettings(loaded)
+      })
+      .catch(() => {
+        // Offline or transient error — defaults / local cache stand in.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated, userEmail])
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return
+    }
+    let cancelled = false
+    // Hydrate the block list from the cloud, merging with anything we have
+    // locally (which may include blocks made before B3 shipped). Backfill
+    // those local-only entries to the cloud so the next device sees them.
+    void (async () => {
+      const cloud = await backendLoadBlockedProfileIds()
+      if (cancelled) return
+      const local = readBlockedProfileIds()
+      const localOnly = local.filter((id) => !cloud.includes(id))
+      if (localOnly.length > 0) {
+        void backendBackfillBlocks(localOnly)
+      }
+      const merged = Array.from(new Set([...cloud, ...local])).sort((a, b) => a - b)
+      setBlockedProfileIds(merged)
+    })()
     return () => {
       cancelled = true
     }
@@ -3779,6 +3884,7 @@ function App() {
 
   const blockProfileById = (profileId: number, profileName = 'Profile') => {
     setBlockedProfileIds((current) => (current.includes(profileId) ? current : [...current, profileId]))
+    void backendAddBlock(profileId)
     setChatThreads((current) => {
       const clone = { ...current }
       delete clone[profileId]
@@ -3977,6 +4083,10 @@ function App() {
           return
         }
 
+        // Scrub any other user's profile cache before we hydrate ours.
+        // Closes the shared-device data-at-rest leak: nothing in localStorage
+        // for any account other than this one.
+        purgeOtherSelfProfileCaches(result.email)
         setIsAuthenticated(true)
         setUserEmail(result.email)
         navigate('discover', { replace: true })
@@ -4004,6 +4114,7 @@ function App() {
     void inviteValidation
       .then(() => backendGuestLogin())
       .then((result) => {
+        purgeOtherSelfProfileCaches(result.email)
         setIsAuthenticated(true)
         setUserEmail(result.email)
         setLoginEmail(result.email)
@@ -4018,6 +4129,43 @@ function App() {
       .finally(() => {
         setLoggingIn(false)
       })
+  }
+
+  // Dev test-account helpers (DEV only)
+  const DEV_TEST_EMAIL = (import.meta.env.VITE_DEV_TEST_EMAIL as string | undefined) ?? 'dev@lovedate.local'
+
+  const handleUseDevAccount = async () => {
+    if (!import.meta.env.DEV) return
+    setLoggingIn(true)
+    try {
+      // Always overwrite local profile for the dev test email with an empty profile
+      // so tests start from a clean slate regardless of prior runs.
+      backendResetLocalSelfProfile(DEV_TEST_EMAIL)
+      await backendSaveSelfProfile(DEV_TEST_EMAIL, EMPTY_SELF_PROFILE as unknown as Record<string, unknown>)
+      setIsAuthenticated(true)
+      setUserEmail(DEV_TEST_EMAIL)
+      setLoginEmail(DEV_TEST_EMAIL)
+      navigate('discover', { replace: true })
+      pushToast('Dev account loaded.', 'info')
+    } catch {
+      pushToast('Dev account load failed.', 'error')
+    } finally {
+      setLoggingIn(false)
+    }
+  }
+
+  const handleResetDevAccount = async () => {
+    if (!import.meta.env.DEV) return
+    setLoggingIn(true)
+    try {
+      backendResetLocalSelfProfile(DEV_TEST_EMAIL)
+      await backendSaveSelfProfile(DEV_TEST_EMAIL, EMPTY_SELF_PROFILE as unknown as Record<string, unknown>)
+      pushToast('Dev account reset locally.', 'success')
+    } catch {
+      pushToast('Dev reset failed.', 'error')
+    } finally {
+      setLoggingIn(false)
+    }
   }
 
   const handleSettingsToggle = (key: keyof SettingsPayload, checked: boolean) => {
@@ -4039,12 +4187,26 @@ function App() {
       })
   }
 
+  const handleExitApp = () => {
+    handleSignOut()
+    void import('@capacitor/app')
+      .then(({ App: CapacitorApp }) => CapacitorApp.exitApp())
+      .catch(() => {
+        window.close()
+      })
+  }
+
   const handleSignOut = () => {
     void backendSignOut()
       .catch(() => {
         pushToast('Sign out sync failed, local session cleared anyway.', 'error')
       })
       .finally(() => {
+        // Wipe every self-profile cache (current + any leftovers) so the
+        // next person on this device cannot read profile data via devtools.
+        // Trades instant-render on next sign-in (cloud fetch instead) for
+        // a hard zero-leak guarantee.
+        purgeAllSelfProfileCaches()
         setIsAuthenticated(false)
         setUserEmail('')
         setLoginPassword('')
@@ -4086,7 +4248,8 @@ function App() {
     (nextProfile: SelfProfile, successMessage?: string) => {
       setSelfProfile(nextProfile)
       setProfileDraft(toProfileDraft(nextProfile))
-      window.localStorage.setItem(SELF_PROFILE_STORAGE_KEY, JSON.stringify(nextProfile))
+      // Local persistence handled by `backendSaveSelfProfile`; avoid writing
+      // the global fallback key which can leak another user's cache.
       void backendSaveSelfProfile(userEmail, nextProfile as unknown as Record<string, unknown>).catch(() => {
         pushToast('Saved locally, but cloud sync failed for profile.', 'error')
       })
@@ -4305,20 +4468,28 @@ function App() {
 
     setPhotoStudioBusy(true)
     void renderEditedPhoto(photoStudioSource, photoStudioControls)
-      .then((editedPhoto) => {
+      .then(async (editedPhoto) => {
+        // Upload to Supabase Storage; fall back to the data URL if upload
+        // fails (offline or bucket misconfig) so the draft is never blocked.
+        const uploaded = await backendUploadProfilePhoto(editedPhoto)
+        const finalPhoto = uploaded ?? editedPhoto
+
         setProfileDraft((current) => {
-          if (current.photos.includes(editedPhoto)) {
+          if (current.photos.includes(finalPhoto)) {
             return current
           }
 
           return {
             ...current,
-            photos: [editedPhoto, ...current.photos].slice(0, 9),
+            photos: [finalPhoto, ...current.photos].slice(0, 9),
           }
         })
         setProfileSaveStatus('idle')
         closePhotoStudio()
-        pushToast('Photo edited and added to draft.', 'success')
+        pushToast(
+          uploaded ? 'Photo uploaded and added to draft.' : 'Photo added (offline mode — will sync on next save).',
+          'success',
+        )
       })
       .catch(() => {
         pushToast('Photo processing failed. Please try another image.', 'error')
@@ -4331,10 +4502,10 @@ function App() {
   const saveMyProfile = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const requestedAge = Number(profileDraft.age)
-    const safeAge = Number.isFinite(requestedAge) ? Math.min(99, Math.max(18, requestedAge)) : 28
-    const requestedHeight = Number(profileDraft.heightCm)
-    const safeHeight = Number.isFinite(requestedHeight) ? Math.min(230, Math.max(130, requestedHeight)) : 172
+      const requestedAge = Number(profileDraft.age)
+      const safeAge = Number.isFinite(requestedAge) ? Math.min(99, Math.max(18, requestedAge)) : EMPTY_SELF_PROFILE.age
+      const requestedHeight = Number(profileDraft.heightCm)
+      const safeHeight = Number.isFinite(requestedHeight) ? Math.min(230, Math.max(130, requestedHeight)) : EMPTY_SELF_PROFILE.heightCm
     const interests = profileDraft.interests
       .split(',')
       .map((value) => value.trim())
@@ -4354,62 +4525,86 @@ function App() {
     const personalityAnswers =
       sanitizeAnswers(profileDraft.personalityAnswers).length === PERSONALITY_QUESTIONS.length
         ? (sanitizeAnswers(profileDraft.personalityAnswers) as PersonalityAnswer[])
-        : DEFAULT_SELF_PROFILE.personalityAnswers
+        : EMPTY_SELF_PROFILE.personalityAnswers
 
-    if (
-      profileDraft.name.trim().length < 2 ||
-      profileDraft.bio.trim().length < 20 ||
-      profileDraft.promptOne.trim().length < 8
-    ) {
+    // Relaxed for beta. Onboarding required-fields flow is a future
+    // conversation; for now just need a name so we have something to
+    // identify the row by. Everything else can be filled in later.
+    const nameLen = profileDraft.name.trim().length
+    if (nameLen < 2) {
       setProfileSaveStatus('error')
-      pushToast('Please add a valid name, fuller bio, and first prompt.', 'error')
+      setProfileSaveErrors(['Name (need at least 2 characters)'])
+      const sections = document.querySelectorAll<HTMLDetailsElement>('.profile-editor-section')
+      if (sections.length > 0) sections[0].open = true
+      pushToast('Save blocked — Name needs at least 2 characters.', 'error')
       return
     }
+    setProfileSaveErrors([])
 
     const nextProfile: SelfProfile = {
       name: profileDraft.name.trim(),
       age: safeAge,
-      city: profileDraft.city.trim() || DEFAULT_SELF_PROFILE.city,
-      vibe: profileDraft.vibe.trim() || DEFAULT_SELF_PROFILE.vibe,
+      city: profileDraft.city.trim() || EMPTY_SELF_PROFILE.city,
+      vibe: profileDraft.vibe.trim() || EMPTY_SELF_PROFILE.vibe,
       bio: profileDraft.bio.trim(),
-      interests: interests.length > 0 ? interests : DEFAULT_SELF_PROFILE.interests,
-      pronouns: profileDraft.pronouns.trim() || DEFAULT_SELF_PROFILE.pronouns,
-      gender: profileDraft.gender.trim() || DEFAULT_SELF_PROFILE.gender,
-      orientation: profileDraft.orientation.trim() || DEFAULT_SELF_PROFILE.orientation,
-      lookingFor: profileDraft.lookingFor.trim() || DEFAULT_SELF_PROFILE.lookingFor,
-      relationshipIntent: profileDraft.relationshipIntent.trim() || DEFAULT_SELF_PROFILE.relationshipIntent,
+      interests: interests.length > 0 ? interests : EMPTY_SELF_PROFILE.interests,
+      pronouns: profileDraft.pronouns.trim() || EMPTY_SELF_PROFILE.pronouns,
+      gender: profileDraft.gender.trim() || EMPTY_SELF_PROFILE.gender,
+      orientation: profileDraft.orientation.trim() || EMPTY_SELF_PROFILE.orientation,
+      lookingFor: profileDraft.lookingFor.trim() || EMPTY_SELF_PROFILE.lookingFor,
+      relationshipIntent: profileDraft.relationshipIntent.trim() || EMPTY_SELF_PROFILE.relationshipIntent,
       heightCm: safeHeight,
-      jobTitle: profileDraft.jobTitle.trim() || DEFAULT_SELF_PROFILE.jobTitle,
-      company: profileDraft.company.trim() || DEFAULT_SELF_PROFILE.company,
-      education: profileDraft.education.trim() || DEFAULT_SELF_PROFILE.education,
-      hometown: profileDraft.hometown.trim() || DEFAULT_SELF_PROFILE.hometown,
-      languages: languages.length > 0 ? languages : DEFAULT_SELF_PROFILE.languages,
-      drinking: profileDraft.drinking.trim() || DEFAULT_SELF_PROFILE.drinking,
-      smoking: profileDraft.smoking.trim() || DEFAULT_SELF_PROFILE.smoking,
-      workout: profileDraft.workout.trim() || DEFAULT_SELF_PROFILE.workout,
-      religion: profileDraft.religion.trim() || DEFAULT_SELF_PROFILE.religion,
-      politics: profileDraft.politics.trim() || DEFAULT_SELF_PROFILE.politics,
-      zodiac: profileDraft.zodiac.trim() || DEFAULT_SELF_PROFILE.zodiac,
-      childrenPlan: profileDraft.childrenPlan.trim() || DEFAULT_SELF_PROFILE.childrenPlan,
-      pets: profileDraft.pets.trim() || DEFAULT_SELF_PROFILE.pets,
-      promptOne: profileDraft.promptOne.trim() || DEFAULT_SELF_PROFILE.promptOne,
-      promptTwo: profileDraft.promptTwo.trim() || DEFAULT_SELF_PROFILE.promptTwo,
-      promptThree: profileDraft.promptThree.trim() || DEFAULT_SELF_PROFILE.promptThree,
-      dealbreakers: dealbreakers.length > 0 ? dealbreakers : DEFAULT_SELF_PROFILE.dealbreakers,
-      instagram: profileDraft.instagram.trim() || DEFAULT_SELF_PROFILE.instagram,
-      anthem: profileDraft.anthem.trim() || DEFAULT_SELF_PROFILE.anthem,
+      jobTitle: profileDraft.jobTitle.trim() || EMPTY_SELF_PROFILE.jobTitle,
+      company: profileDraft.company.trim() || EMPTY_SELF_PROFILE.company,
+      education: profileDraft.education.trim() || EMPTY_SELF_PROFILE.education,
+      hometown: profileDraft.hometown.trim() || EMPTY_SELF_PROFILE.hometown,
+      languages: languages.length > 0 ? languages : EMPTY_SELF_PROFILE.languages,
+      drinking: profileDraft.drinking.trim() || EMPTY_SELF_PROFILE.drinking,
+      smoking: profileDraft.smoking.trim() || EMPTY_SELF_PROFILE.smoking,
+      workout: profileDraft.workout.trim() || EMPTY_SELF_PROFILE.workout,
+      religion: profileDraft.religion.trim() || EMPTY_SELF_PROFILE.religion,
+      politics: profileDraft.politics.trim() || EMPTY_SELF_PROFILE.politics,
+      zodiac: profileDraft.zodiac.trim() || EMPTY_SELF_PROFILE.zodiac,
+      childrenPlan: profileDraft.childrenPlan.trim() || EMPTY_SELF_PROFILE.childrenPlan,
+      pets: profileDraft.pets.trim() || EMPTY_SELF_PROFILE.pets,
+      promptOne: profileDraft.promptOne.trim() || EMPTY_SELF_PROFILE.promptOne,
+      promptTwo: profileDraft.promptTwo.trim() || EMPTY_SELF_PROFILE.promptTwo,
+      promptThree: profileDraft.promptThree.trim() || EMPTY_SELF_PROFILE.promptThree,
+      dealbreakers: dealbreakers.length > 0 ? dealbreakers : EMPTY_SELF_PROFILE.dealbreakers,
+      instagram: profileDraft.instagram.trim() || EMPTY_SELF_PROFILE.instagram,
+      anthem: profileDraft.anthem.trim() || EMPTY_SELF_PROFILE.anthem,
       socialConnections: selfProfile.socialConnections,
       socialPromotionOptIn: profileDraft.socialPromotionOptIn,
       travelMode: profileDraft.travelMode,
-      photos: photos.length > 0 ? photos : DEFAULT_SELF_PROFILE.photos,
+      photos: photos.length > 0 ? photos : EMPTY_SELF_PROFILE.photos,
       personalityAnswers,
     }
 
     setSelfProfile(nextProfile)
-    void backendSaveSelfProfile(userEmail, nextProfile as unknown as Record<string, unknown>).catch(() => {
-      pushToast('Saved locally, but cloud sync failed for profile.', 'error')
-    })
-    window.localStorage.setItem(SELF_PROFILE_STORAGE_KEY, JSON.stringify(nextProfile))
+    void (async () => {
+      // Lazy-migrate any leftover data URLs (from saves predating B2) to
+      // Storage URLs before persisting. Failed uploads keep their original
+      // data URL so offline saves still work.
+      const migratedPhotos = await backendUploadDataUrlPhotos(nextProfile.photos)
+      const migratedProfile =
+        migratedPhotos === nextProfile.photos
+          ? nextProfile
+          : { ...nextProfile, photos: migratedPhotos }
+      if (migratedPhotos !== nextProfile.photos) {
+        setSelfProfile(migratedProfile)
+        setProfileDraft(toProfileDraft(migratedProfile))
+        // Namespaced local cache will be updated by backendSaveSelfProfile below.
+      }
+      try {
+        await backendSaveSelfProfile(
+          userEmail,
+          migratedProfile as unknown as Record<string, unknown>,
+        )
+      } catch {
+        pushToast('Saved locally, but cloud sync failed for profile.', 'error')
+      }
+    })()
+    // Local cache persisted via `backendSaveSelfProfile` (called above).
     setProfileDraft(toProfileDraft(nextProfile))
     setProfileSaveStatus('saved')
     pushToast('Profile updated.', 'success')
@@ -4814,6 +5009,16 @@ function App() {
                 {authMode === 'login' ? copy.auth.switchToCreate : copy.auth.switchToLogin}
               </button>
             </div>
+            {import.meta.env.DEV ? (
+              <div className="dev-auth-row">
+                <button type="button" className="ghost" onClick={handleUseDevAccount} disabled={loggingIn}>
+                  Use Dev Account
+                </button>
+                <button type="button" className="ghost" onClick={handleResetDevAccount} disabled={loggingIn}>
+                  Reset Dev Account
+                </button>
+              </div>
+            ) : null}
           </form>
         </article>
       </main>
@@ -4850,9 +5055,20 @@ function App() {
             </button>
           ))}
         </nav>
-        <button type="button" className="top-exit-btn" onClick={handleSignOut}>
-          {copy.common.exitToLogin}
-        </button>
+        <div className="top-exit-group">
+          <button type="button" className="top-exit-btn" onClick={handleSignOut}>
+            {copy.common.exitToLogin}
+          </button>
+          <button
+            type="button"
+            className="top-exit-btn top-exit-btn--quit"
+            onClick={handleExitApp}
+            aria-label="Exit App"
+            title="Exit App"
+          >
+            ⏻
+          </button>
+        </div>
       </header>
       <section className={`screen-panel ${screen === 'discover' ? 'screen-panel--discover' : ''}`} aria-live="polite">
         {screen === 'filters' && (
@@ -5775,7 +5991,8 @@ function App() {
             <article className="profile-settings profile-editor">
               <h2>{copy.profile.editProfile}</h2>
               <form onSubmit={saveMyProfile}>
-                <h3>{copy.profile.identity}</h3>
+                <details className="profile-editor-section" open>
+                <summary>{copy.profile.identity}</summary>
                 <div className="profile-editor-grid">
                     <label>
                       {copy.profile.name}
@@ -5831,7 +6048,10 @@ function App() {
                     </label>
                 </div>
 
-                <h3>{copy.profile.profileDetails}</h3>
+                </details>
+
+                <details className="profile-editor-section">
+                <summary>{copy.profile.profileDetails}</summary>
                 <div className="profile-editor-grid">
                     <label>
                       {copy.profile.city}
@@ -5891,7 +6111,10 @@ function App() {
                     </label>
                 </div>
 
-                <h3>{copy.profile.personalityQuiz}</h3>
+                </details>
+
+                <details className="profile-editor-section">
+                <summary>{copy.profile.personalityQuiz}</summary>
                 <div className="profile-editor-grid">
                   <p className="soft full-width">
                     {copy.profile.compatibilityCode}: <strong>{draftPersonalityCode}</strong>. {copy.profile.pickOption}
@@ -5918,7 +6141,10 @@ function App() {
                   ))}
                 </div>
 
-                <h3>{copy.profile.careerLifestyle}</h3>
+                </details>
+
+                <details className="profile-editor-section">
+                <summary>{copy.profile.careerLifestyle}</summary>
                 <div className="profile-editor-grid">
                   <label>
                     {copy.profile.jobTitle}
@@ -6018,7 +6244,10 @@ function App() {
                   </label>
                 </div>
 
-                <h3>{copy.profile.promptsSocial}</h3>
+                </details>
+
+                <details className="profile-editor-section">
+                <summary>{copy.profile.promptsSocial}</summary>
                 <div className="profile-editor-grid">
                   <label className="full-width">
                     {copy.profile.prompt1}
@@ -6078,7 +6307,10 @@ function App() {
                   </label>
                 </div>
 
-                <h3>{copy.profile.photos}</h3>
+                </details>
+
+                <details className="profile-editor-section">
+                <summary>{copy.profile.photos}</summary>
                 <div className="photo-input-row">
                     <input
                       type="url"
@@ -6441,6 +6673,18 @@ function App() {
                     </div>
                   </aside>
                 )}
+                </details>
+
+                {profileSaveErrors.length > 0 ? (
+                  <div className="profile-editor-errors" role="alert">
+                    <strong>Save blocked — fix the following:</strong>
+                    <ul>
+                      {profileSaveErrors.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
                 <div className="profile-editor-actions">
                   <button type="submit">Save Profile</button>
                   <button
@@ -6541,8 +6785,8 @@ function App() {
                 </p>
               </div>
             </article>
-            <article className="profile-settings settings-card settings-card--preferences">
-              <h2>{copy.settings.preferences}</h2>
+            <details className="profile-settings settings-card settings-card--preferences" open>
+              <summary>{copy.settings.preferences}</summary>
               <label className="setting-row">
                 {copy.settings.pushNotifications}
                 <input
@@ -6577,8 +6821,8 @@ function App() {
                 {copy.settings.incognitoMode}
                 <input
                   type="checkbox"
-                  checked={incognitoMode}
-                  onChange={(event) => setIncognitoMode(event.target.checked)}
+                  checked={settings.incognitoMode}
+                  onChange={(event) => handleSettingsToggle('incognitoMode', event.target.checked)}
                 />
               </label>
               <label className="setting-row setting-row--select">
@@ -6588,9 +6832,9 @@ function App() {
                   <option value="ro">{copy.auth.romanian}</option>
                 </select>
               </label>
-            </article>
-            <article className="profile-settings settings-card settings-card--social">
-              <h2>Social Connect & Share</h2>
+            </details>
+            <details className="profile-settings settings-card settings-card--social">
+              <summary>Social Connect & Share</summary>
               <p className="soft">{socialMotivationLine}</p>
               <p>
                 Connected: <strong>{socialConnectedCount}</strong> / {SOCIAL_PLATFORM_META.length}
@@ -6637,9 +6881,9 @@ function App() {
                   )
                 })}
               </div>
-            </article>
-            <article className="profile-settings settings-card settings-card--plan">
-              <h2>Plan & Session</h2>
+            </details>
+            <details className="profile-settings settings-card settings-card--plan">
+              <summary>Plan & Session</summary>
               <div className="plan-picker">
                 <label htmlFor="plan-tier">Plan</label>
                 <select
@@ -6669,12 +6913,10 @@ function App() {
               <p>Rewinds left: {rewindsLeft}</p>
               <p>Passport access: {canUsePassport(activePlan) ? 'Enabled' : 'Upgrade required'}</p>
               <p>Backend mode: {backendMode}</p>
-              <button type="button" className="danger" onClick={handleSignOut}>
-                Sign Out
-              </button>
-            </article>
-            <article className="profile-settings settings-card settings-card--notifications">
-              <h2>Notifications</h2>
+              <p className="soft">Sign out and Exit App live in the top header.</p>
+            </details>
+            <details className="profile-settings settings-card settings-card--notifications">
+              <summary>Notifications</summary>
               {notifications.length === 0 ? <p className="soft">No notifications yet.</p> : null}
               <div className="notification-list">
                 {notifications.slice(0, 8).map((item) => (
@@ -6688,9 +6930,9 @@ function App() {
               <button type="button" className="ghost" onClick={markAllNotificationsRead}>
                 Mark all as read
               </button>
-            </article>
-            <article className="profile-settings settings-card settings-card--safety">
-              <h2>Safety</h2>
+            </details>
+            <details className="profile-settings settings-card settings-card--safety">
+              <summary>Safety</summary>
               <p>{appLanguage === 'ro' ? 'Profiluri blocate' : 'Blocked profiles'}: {blockedProfileIds.length}</p>
               <p>{appLanguage === 'ro' ? 'Raportări trimise' : 'Reports submitted'}: {safetyReports.length}</p>
               <p>{appLanguage === 'ro' ? 'Raportări deschise' : 'Open reports'}: {safetyReports.filter((report) => report.status === 'open').length}</p>
@@ -6713,7 +6955,7 @@ function App() {
                   {appLanguage === 'ro' ? 'Deschide centrul de moderare' : 'Open Moderation Center'}
                 </button>
               ) : null}
-            </article>
+            </details>
           </section>
         )}
         {screen === 'moderation' && (

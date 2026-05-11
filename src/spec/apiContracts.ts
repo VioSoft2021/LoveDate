@@ -131,6 +131,7 @@ export type ApiContracts = {
       pushNotifications: boolean
       emailNotifications: boolean
       privateMode: boolean
+      incognitoMode: boolean
       readReceipts: boolean
     }
     response: ApiEnvelope<{ saved: true }>
