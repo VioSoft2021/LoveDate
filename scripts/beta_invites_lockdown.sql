@@ -20,7 +20,6 @@ as $$
     select 1 from public.beta_invites
     where code = p_code
       and active = true
-      and uses_left > 0
       and (expires_at is null or expires_at > now())
   );
 $$;
