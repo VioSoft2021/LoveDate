@@ -649,26 +649,58 @@ const backendEnsureDiscoverableProfile = async (
     return
   }
 
-  const name = typeof profile.name === 'string' ? profile.name.trim() : ''
-  const age = typeof profile.age === 'number' ? profile.age : null
-  const city = typeof profile.city === 'string' ? profile.city.trim() : ''
+  // Build a JSONB payload of the discoverable subset. The server-side
+  // sync_discoverable_profile function handles validation, gender
+  // coercion, photo-array parsing, and the is_active gating
+  // (only true when there is at least one photo + name/age/city/gender).
   const rawGender = typeof profile.gender === 'string' ? profile.gender : ''
   const gender = VALID_GENDERS.has(rawGender) ? rawGender : 'Woman'
 
-  if (!name || age === null || age < 18 || age > 99 || !city) {
-    return
+  const payload = {
+    name: typeof profile.name === 'string' ? profile.name : '',
+    age: typeof profile.age === 'number' ? profile.age : null,
+    city: typeof profile.city === 'string' ? profile.city : '',
+    gender,
+    vibe: typeof profile.vibe === 'string' ? profile.vibe : '',
+    bio: typeof profile.bio === 'string' ? profile.bio : '',
+    interests: Array.isArray(profile.interests)
+      ? (profile.interests as unknown[]).filter((v): v is string => typeof v === 'string')
+      : [],
+    photos: Array.isArray(profile.photos)
+      ? (profile.photos as unknown[]).filter((v): v is string => typeof v === 'string' && v.length > 0)
+      : [],
+    distanceKm: 10,
+    relationshipIntent: typeof profile.relationshipIntent === 'string' ? profile.relationshipIntent : 'Long-term',
+    zodiac: typeof profile.zodiac === 'string' ? profile.zodiac : 'Libra',
+    extras: {
+      pronouns: profile.pronouns ?? '',
+      orientation: profile.orientation ?? '',
+      lookingFor: profile.lookingFor ?? '',
+      heightCm: profile.heightCm ?? null,
+      jobTitle: profile.jobTitle ?? '',
+      education: profile.education ?? '',
+      languages: profile.languages ?? [],
+      drinking: profile.drinking ?? '',
+      smoking: profile.smoking ?? '',
+      workout: profile.workout ?? '',
+      religion: profile.religion ?? '',
+      politics: profile.politics ?? '',
+      childrenPlan: profile.childrenPlan ?? '',
+      pets: profile.pets ?? '',
+      promptOne: profile.promptOne ?? '',
+      promptTwo: profile.promptTwo ?? '',
+      promptThree: profile.promptThree ?? '',
+      dealbreakers: profile.dealbreakers ?? [],
+      personalityAnswers: profile.personalityAnswers ?? [],
+    },
   }
 
-  const { error } = await supabase.rpc('ensure_discoverable_profile', {
-    p_name: name,
-    p_age: age,
-    p_city: city,
-    p_gender: gender,
+  const { error } = await supabase.rpc('sync_discoverable_profile', {
+    p_payload: payload,
   })
 
   if (error) {
-    // Non-fatal: self-profile already saved; surface for diagnostics but
-    // don't roll back the user's primary write.
+    // Non-fatal: self-profile already saved.
     // eslint-disable-next-line no-console
     console.warn('Discoverable profile sync skipped:', error.message)
   }
@@ -763,7 +795,6 @@ export const backendSavePreferences = async (payload: {
   maxAge: number
   city: string
   interest: string
-  includeReviewed: boolean
 }): Promise<void> => {
   persistLocal(LOCAL_PREFERENCES_KEY, payload)
 
@@ -783,7 +814,6 @@ export const backendSavePreferences = async (payload: {
     max_age: payload.maxAge,
     city: payload.city,
     interest: payload.interest,
-    include_reviewed: payload.includeReviewed,
     updated_at: new Date().toISOString(),
   })
 

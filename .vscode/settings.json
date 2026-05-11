@@ -11,6 +11,6 @@
         "path": "C:\\Windows\\System32\\cmd.exe"
     },
     "task.allowAutomaticTasks": "off",
-    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.configuration.updateBuildConfiguration": "automatic",
     "claudeCode.preferredLocation": "sidebar"
 }

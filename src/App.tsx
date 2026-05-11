@@ -920,7 +920,9 @@ const initialFilters: Filters = {
   maxAge: 60,
   city: '',
   interest: '',
-  gender: 'woman',
+  // Default to 'any' so a brand-new user with no opposite-gender profiles
+  // in the deck doesn't see an empty discover screen on first run.
+  gender: 'any',
   relationshipGoal: 'any',
   maxDistanceKm: 60,
   verifiedOnly: false,
@@ -987,6 +989,42 @@ const DEFAULT_SELF_PROFILE: SelfProfile = {
 
 // Empty profile used for new users so fields render blank instead of
 // showing example/demo data.
+// Dropdown option lists. Some are gated by DB CHECK constraints (gender,
+// relationshipIntent → public.profiles.relationship_goal); the rest are
+// soft conventions to keep deck filters useful and free-text entropy down.
+const GENDER_OPTIONS = ['Woman', 'Man', 'Non-binary'] as const
+const ZODIAC_OPTIONS = [
+  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
+] as const
+const RELATIONSHIP_INTENT_OPTIONS = ['Long-term', 'Short-term', 'Friends', 'Figuring it out'] as const
+const PRONOUNS_OPTIONS = ['She/Her', 'He/Him', 'They/Them', 'She/They', 'He/They', 'Other'] as const
+const ORIENTATION_OPTIONS = ['Straight', 'Gay', 'Lesbian', 'Bisexual', 'Pansexual', 'Asexual', 'Queer', 'Open', 'Other'] as const
+const LOOKING_FOR_OPTIONS = [
+  'Long-term relationship',
+  'Short-term, open to long',
+  'Short-term fun',
+  'New friends',
+  'Figuring it out',
+] as const
+const DRINKING_OPTIONS = ['Never', 'Rarely', 'Socially', 'Often', 'Prefer not to say'] as const
+const SMOKING_OPTIONS = ['Never', 'Socially', 'Regularly', 'Trying to quit', 'Prefer not to say'] as const
+const WORKOUT_OPTIONS = ['Never', 'Sometimes', '1-2x per week', '3x per week', '4-5x per week', 'Daily'] as const
+const CHILDREN_PLAN_OPTIONS = [
+  'Want someday',
+  'Maybe someday',
+  'Don’t want',
+  'Have and want more',
+  'Have, don’t want more',
+  'Prefer not to say',
+] as const
+const PETS_OPTIONS = ['Dog person', 'Cat person', 'Both', 'Allergic', 'Want one', 'Prefer not to say'] as const
+const RELIGION_OPTIONS = [
+  'Agnostic', 'Atheist', 'Buddhist', 'Christian', 'Hindu', 'Jewish',
+  'Muslim', 'Spiritual', 'Other', 'Prefer not to say',
+] as const
+const POLITICS_OPTIONS = ['Liberal', 'Moderate', 'Conservative', 'Apolitical', 'Other', 'Prefer not to say'] as const
+
 const EMPTY_SELF_PROFILE: SelfProfile = {
   name: '',
   age: 0,
@@ -2152,7 +2190,6 @@ function App() {
   const [isResolvingSwipe, setIsResolvingSwipe] = useState(false)
   const [exitDirection, setExitDirection] = useState<SwipeDirection | null>(null)
   const [lastIntent, setLastIntent] = useState<SwipeIntent | null>(null)
-  const [includeReviewed, setIncludeReviewed] = useState(false)
   const [history, setHistory] = useState<SwipeHistory>(() => readHistory())
   const [activeMatch, setActiveMatch] = useState<Profile | null>(null)
   const [swipeLog, setSwipeLog] = useState<SwipeLog[]>([])
@@ -2990,13 +3027,13 @@ function App() {
       const byAge = profile.age >= filters.minAge && profile.age <= filters.maxAge
       const byCity = filters.city.length === 0 || profile.city === filters.city
       const byInterest =
-        interestFilter.length === 0 || 
+        interestFilter.length === 0 ||
         profile.interests.some((interest) => interest.toLowerCase().includes(interestFilter))
       const byGoal =
         selectedGoal === 'any' || profile.relationshipGoal.toLowerCase() === selectedGoal
       const byDistance = profile.distanceKm <= filters.maxDistanceKm
       const byVerified = !filters.verifiedOnly || profile.verified
-      const byReviewed = includeReviewed || !swipedIds.has(profile.id)
+      const byReviewed = !swipedIds.has(profile.id)
       let byZodiac = true
       if (filters.zodiacCompatibility && filters.zodiacCompatibility !== 'any') {
         // Show only profiles compatible with the selected sign
@@ -3025,7 +3062,7 @@ function App() {
     }
 
     return sorted
-  }, [genderFilteredProfiles, filters, includeReviewed, swipedIds, blockedProfileIds, getCompatibilityScore])
+  }, [genderFilteredProfiles, filters, swipedIds, blockedProfileIds, getCompatibilityScore])
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -3036,7 +3073,7 @@ function App() {
     const persist = async () => {
       try {
         setPreferenceSaveStatus('saving')
-        await backendSavePreferences({ ...filters, includeReviewed })
+        await backendSavePreferences({ ...filters })
         if (!cancelled) {
           setPreferenceSaveStatus('saved')
         }
@@ -3055,7 +3092,7 @@ function App() {
       cancelled = true
       window.clearTimeout(timer)
     }
-  }, [filters, includeReviewed, isAuthenticated])
+  }, [filters, isAuthenticated])
 
   useEffect(() => {
     setIndex(0)
@@ -3065,7 +3102,7 @@ function App() {
     setExitDirection(null)
     setIsResolvingSwipe(false)
     dragStart.current = null
-  }, [filters, includeReviewed])
+  }, [filters])
 
   const matchedProfiles = useMemo(() => {
     return history.matchIds
@@ -5084,8 +5121,6 @@ function App() {
             <FilterScreen
               filters={filters}
               setFilters={setFilters}
-              includeReviewed={includeReviewed}
-              setIncludeReviewed={setIncludeReviewed}
               cityOptions={cityOptions}
               genderOptions={genderOptions}
               relationshipGoalOptions={relationshipGoalOptions}
@@ -5134,7 +5169,6 @@ function App() {
                     }
                     setBoostsLeft((current) => Math.max(0, current - 1))
                     setIndex(0)
-                    setIncludeReviewed(true)
                     pushNotification({
                       title: appLanguage === 'ro' ? 'Promovare profil activată' : 'Profile boost activated',
                       body:
@@ -5173,9 +5207,22 @@ function App() {
               <section className="state-box" aria-live="polite">
                 <p className="pill">{copy.common.noResults}</p>
                 <h1>{copy.discover.noProfilesMatch}</h1>
-                <button type="button" onClick={() => setFilters(initialFilters)}>
-                  {copy.discover.resetFilters}
-                </button>
+                <div className="summary-actions">
+                  <button type="button" onClick={() => setFilters(initialFilters)}>
+                    {copy.discover.resetFilters}
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => {
+                      setHistory({ likedIds: [], passedIds: [], matchIds: [] })
+                      setSwipeLog([])
+                      setIndex(0)
+                    }}
+                  >
+                    {appLanguage === 'ro' ? 'Reset istoric swipe' : 'Reset swipe history'}
+                  </button>
+                </div>
               </section>
             )}
             {!loadingProfiles && !loadError && topProfile && (
@@ -6014,27 +6061,39 @@ function App() {
                     </label>
                     <label>
                       {copy.profile.pronouns}
-                      <input
-                        type="text"
+                      <select
                         value={profileDraft.pronouns}
                         onChange={(event) => handleProfileDraftChange('pronouns', event.target.value)}
-                      />
+                      >
+                        <option value="">Select...</option>
+                        {PRONOUNS_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
                     </label>
                     <label>
                       {copy.profile.gender}
-                      <input
-                        type="text"
+                      <select
                         value={profileDraft.gender}
                         onChange={(event) => handleProfileDraftChange('gender', event.target.value)}
-                      />
+                      >
+                        <option value="">Select...</option>
+                        {GENDER_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
                     </label>
                     <label>
                       {copy.profile.orientation}
-                      <input
-                        type="text"
+                      <select
                         value={profileDraft.orientation}
                         onChange={(event) => handleProfileDraftChange('orientation', event.target.value)}
-                      />
+                      >
+                        <option value="">Select...</option>
+                        {ORIENTATION_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
                     </label>
                     <label>
                       {copy.profile.heightCm}
@@ -6079,19 +6138,27 @@ function App() {
                     </label>
                     <label>
                       {copy.profile.lookingFor}
-                      <input
-                        type="text"
+                      <select
                         value={profileDraft.lookingFor}
                         onChange={(event) => handleProfileDraftChange('lookingFor', event.target.value)}
-                      />
+                      >
+                        <option value="">Select...</option>
+                        {LOOKING_FOR_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
                     </label>
                     <label>
                       {copy.profile.relationshipIntent}
-                      <input
-                        type="text"
+                      <select
                         value={profileDraft.relationshipIntent}
                         onChange={(event) => handleProfileDraftChange('relationshipIntent', event.target.value)}
-                      />
+                      >
+                        <option value="">Select...</option>
+                        {RELATIONSHIP_INTENT_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
                     </label>
                     <label>
                       {copy.profile.interestsComma}
@@ -6180,67 +6247,99 @@ function App() {
                   </label>
                   <label>
                     {copy.profile.drinking}
-                    <input
-                      type="text"
+                    <select
                       value={profileDraft.drinking}
                       onChange={(event) => handleProfileDraftChange('drinking', event.target.value)}
-                    />
+                    >
+                      <option value="">Select...</option>
+                      {DRINKING_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
                   </label>
                   <label>
                     {copy.profile.smoking}
-                    <input
-                      type="text"
+                    <select
                       value={profileDraft.smoking}
                       onChange={(event) => handleProfileDraftChange('smoking', event.target.value)}
-                    />
+                    >
+                      <option value="">Select...</option>
+                      {SMOKING_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
                   </label>
                   <label>
                     {copy.profile.workout}
-                    <input
-                      type="text"
+                    <select
                       value={profileDraft.workout}
                       onChange={(event) => handleProfileDraftChange('workout', event.target.value)}
-                    />
+                    >
+                      <option value="">Select...</option>
+                      {WORKOUT_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
                   </label>
                   <label>
                     {copy.profile.pets}
-                    <input
-                      type="text"
+                    <select
                       value={profileDraft.pets}
                       onChange={(event) => handleProfileDraftChange('pets', event.target.value)}
-                    />
+                    >
+                      <option value="">Select...</option>
+                      {PETS_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
                   </label>
                   <label>
                     {copy.profile.childrenPlan}
-                    <input
-                      type="text"
+                    <select
                       value={profileDraft.childrenPlan}
                       onChange={(event) => handleProfileDraftChange('childrenPlan', event.target.value)}
-                    />
+                    >
+                      <option value="">Select...</option>
+                      {CHILDREN_PLAN_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
                   </label>
                   <label>
                     {copy.profile.religion}
-                    <input
-                      type="text"
+                    <select
                       value={profileDraft.religion}
                       onChange={(event) => handleProfileDraftChange('religion', event.target.value)}
-                    />
+                    >
+                      <option value="">Select...</option>
+                      {RELIGION_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
                   </label>
                   <label>
                     {copy.profile.politics}
-                    <input
-                      type="text"
+                    <select
                       value={profileDraft.politics}
                       onChange={(event) => handleProfileDraftChange('politics', event.target.value)}
-                    />
+                    >
+                      <option value="">Select...</option>
+                      {POLITICS_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
                   </label>
                   <label>
                     {copy.profile.zodiac}
-                    <input
-                      type="text"
+                    <select
                       value={profileDraft.zodiac}
                       onChange={(event) => handleProfileDraftChange('zodiac', event.target.value)}
-                    />
+                    >
+                      <option value="">Select...</option>
+                      {ZODIAC_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
                   </label>
                 </div>
 

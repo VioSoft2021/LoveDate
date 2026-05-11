@@ -122,7 +122,6 @@ export type ApiContracts = {
       radiusKm: number
       city: string
       interests: string[]
-      includeReviewed: boolean
     }
     response: ApiEnvelope<{ saved: true }>
   }

@@ -5,22 +5,21 @@ import type { Filters } from '../App';
 export interface FilterScreenProps {
   filters: Filters;
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
-  includeReviewed: boolean;
-  setIncludeReviewed: (v: boolean) => void;
   cityOptions: string[];
-  genderOptions: string[];
-  relationshipGoalOptions: string[];
+  /** Kept for backwards-compat; gender options are now a fixed list. */
+  genderOptions?: string[];
+  /** Kept for backwards-compat; relationship goals are now a fixed list. */
+  relationshipGoalOptions?: string[];
   ZODIAC_EMOJI: Record<string, string>;
 }
 
 export const FilterScreen: React.FC<FilterScreenProps> = ({
   filters,
   setFilters,
-  includeReviewed,
-  setIncludeReviewed,
   cityOptions,
-  genderOptions,
-  relationshipGoalOptions,
+  // genderOptions / relationshipGoalOptions are accepted but no longer used —
+  // the deck-derived lists hid options for genders that hadn't yet been
+  // loaded. We now render fixed lists matching the schema CHECK constraints.
   ZODIAC_EMOJI,
 }) => {
   return (
@@ -117,7 +116,7 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
           />
         </label>
         <label>
-          Sex
+          Gender
           <select
             value={filters.gender}
             onChange={(event) =>
@@ -128,9 +127,9 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
             }
           >
             <option value="any">Any</option>
-            {genderOptions.includes('Woman') && <option value="woman">Woman</option>}
-            {genderOptions.includes('Man') && <option value="man">Man</option>}
-            {genderOptions.includes('Non-binary') && <option value="non-binary">Non-binary</option>}
+            <option value="woman">Woman</option>
+            <option value="man">Man</option>
+            <option value="non-binary">Non-binary</option>
           </select>
         </label>
         <label>
@@ -145,11 +144,10 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
             }
           >
             <option value="any">Any</option>
-            {relationshipGoalOptions.map((goal) => (
-              <option key={goal} value={goal}>
-                {goal}
-              </option>
-            ))}
+            <option value="Long-term">Long-term</option>
+            <option value="Short-term">Short-term</option>
+            <option value="Friends">Friends</option>
+            <option value="Figuring it out">Figuring it out</option>
           </select>
         </label>
         <label>
@@ -197,14 +195,6 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
                 verifiedOnly: event.target.checked,
               }))
             }
-          />
-        </label>
-        <label className="toggle">
-          Include Reviewed
-          <input
-            type="checkbox"
-            checked={includeReviewed}
-            onChange={(event) => setIncludeReviewed(event.target.checked)}
           />
         </label>
       </section>

@@ -5461,7 +5461,9 @@ details.profile-settings.settings-card[open] > summary {
     overflow: hidden !important;
   }
 
-  /* Only the panel scrolls, horizontally clipped, with room for tab bar */
+  /* Only the panel scrolls, horizontally clipped, with room for tab bar.
+     Tab bar buttons are 3.2rem min-height + 0.75rem×2 padding ≈ 4.7rem.
+     5.75rem gives ~1rem visual breathing room above the bar. */
   .screen-panel,
   .screen-panel--discover {
     min-height: 0;
@@ -5469,7 +5471,7 @@ details.profile-settings.settings-card[open] > summary {
     overflow-y: auto !important;
     padding-left: 0.5rem !important;
     padding-right: 0.5rem !important;
-    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0.5rem)) !important;
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0.5rem)) !important;
   }
 
   /* HARD CLAMP — every direct screen container fits the viewport.
