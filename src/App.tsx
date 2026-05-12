@@ -12,6 +12,7 @@ import { CirclesScreen } from './screens/CirclesScreen'
 import { LoginScreen } from './screens/LoginScreen'
 import { ModerationScreen } from './screens/ModerationScreen'
 import { PersonalityGuideScreen } from './screens/PersonalityGuideScreen'
+import { ProfileDetailScreen } from './screens/ProfileDetailScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import {
   backendGuestLogin,
@@ -4737,128 +4738,20 @@ function App() {
           />
         )}
         {screen === 'profile-detail' && (
-          <section className="profile-detail">
-            {selectedDetailProfile ? (
-              <>
-                <article className="profile-summary">
-                  <button type="button" className="ghost" onClick={closeProfileDetail}>
-                    {'\u2190'} {appLanguage === 'ro' ? 'Înapoi' : 'Back'}
-                  </button>
-                  <h2>
-                    {selectedDetailProfile.name}, {selectedDetailProfile.age}
-                  </h2>
-                  <p>{appLanguage === 'ro' ? 'Scor compatibilitate' : 'Compatibility score'}: {selectedDetailMatchAnalysis?.score ?? getCompatibilityScore(selectedDetailProfile)}%</p>
-                  <p>
-                    {appLanguage === 'ro' ? 'Potrivire de personalitate' : 'Personality fit'}: {selectedDetailMatchAnalysis?.personalityScore ?? compatibilityFromAnswers(selfProfile.personalityAnswers, selectedDetailProfile.personalityAnswers)}%
-                    {' \u2022 '}{appLanguage === 'ro' ? 'Pereche' : 'Pair'}: {selectedDetailMatchAnalysis?.pairCode ?? `${selfPersonalityCode} x ${personalityCodeFromAnswers(selectedDetailProfile.personalityAnswers)}`}
-                  </p>
-                  <p>{selectedDetailProfile.vibe}</p>
-                  <p>{selectedDetailProfile.bio}</p>
-                  <p>
-                    {selectedDetailProfile.gender} {'\u2022'} {selectedDetailProfile.city} {'\u2022'}{' '}
-                    {selectedDetailProfile.distanceKm} km
-                  </p>
-                  <p>
-                    {copy.profile.zodiac}: {selectedDetailProfile.zodiac} {ZODIAC_EMOJI[selectedDetailProfile.zodiac] ?? ''}
-                  </p>
-                  <p className="soft">{ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac]?.overview ?? copy.profile.uniqueCosmicSignature}</p>
-                  {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac] ? (
-                    <section className="match-insights zodiac-reading">
-                      <h3>{appLanguage === 'ro' ? 'Profil zodiacal' : 'Zodiac Profile'}</h3>
-                      <p>
-                        <strong>{selectedDetailProfile.zodiac} {appLanguage === 'ro' ? 'pe scurt' : 'overview'}:</strong>{' '}
-                        {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].overview}
-                      </p>
-                      <ul>
-                        <li><strong>Love style:</strong> {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].loveStyle}</li>
-                        <li><strong>Communication:</strong> {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].communication}</li>
-                        <li><strong>Green flags:</strong> {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].greenFlags}</li>
-                        <li><strong>Growth edge:</strong> {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].growthEdge}</li>
-                        <li><strong>Emotional needs:</strong> {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.emotionalNeeds ?? 'Connection, honesty, and safety.'}</li>
-                        <li><strong>Intimacy style:</strong> {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.intimacyStyle ?? 'Expressive and relational.'}</li>
-                        <li><strong>Conflict style:</strong> {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.conflictStyle ?? 'Seeks resolution with care.'}</li>
-                        <li><strong>Ideal date energy:</strong> {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.idealDateEnergy ?? 'Balanced and authentic.'}</li>
-                        <li><strong>Best matches:</strong> {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].bestMatches}</li>
-                      </ul>
-                      <p className="soft">
-                        {appLanguage === 'ro'
-                          ? 'Lectură completă: acest semn tinde să se simtă cel mai împlinit atunci când ritmul relației, limbajul emoțional și comportamentul de zi cu zi se aliniază cu aceste trăsături, nu doar atracția.'
-                          : 'Complete reading: This sign tends to feel most fulfilled when relationship pacing, emotional language, and daily behavior align with these traits, not just attraction.'}
-                      </p>
-                    </section>
-                  ) : null}
-                  {selectedDetailChemistry ? (
-                    <section className="match-insights">
-                      <h3>{appLanguage === 'ro' ? 'Chimia compatibilității' : 'Compatibility Chemistry'}</h3>
-                      <ul>
-                        <li><strong>Total chemistry:</strong> {selectedDetailChemistry.chemistryScore}%</li>
-                        <li><strong>Cognitive overlap:</strong> {selectedDetailChemistry.cognitiveOverlapScore}%</li>
-                        <li><strong>Zodiac:</strong> {selectedDetailChemistry.zodiacAligned ? 'Aligned' : 'Neutral'}</li>
-                      </ul>
-                      <p className="soft">{selectedDetailChemistry.summary}</p>
-                    </section>
-                  ) : null}
-                  {selectedDetailTypeGuide ? (
-                    <p>
-                      <strong>{copy.chats.type}:</strong> {selectedDetailPersonalityCode} - {selectedDetailTypeGuide.label}
-                    </p>
-                  ) : null}
-                  {selectedDetailCognitiveFunctions ? (
-                    <section className="match-insights">
-                      <h3>{appLanguage === 'ro' ? 'Funcții cognitive' : 'Cognitive Functions'}</h3>
-                      <ul>
-                        <li><strong>Primary:</strong> {selectedDetailCognitiveFunctions.primary}</li>
-                        <li><strong>Support:</strong> {selectedDetailCognitiveFunctions.support}</li>
-                        <li><strong>Tertiary:</strong> {selectedDetailCognitiveFunctions.tertiary}</li>
-                        <li><strong>Shadow:</strong> {selectedDetailCognitiveFunctions.shadow}</li>
-                      </ul>
-                    </section>
-                  ) : null}
-                  {selectedDetailMatchAnalysis ? (
-                    <section className="match-insights">
-                      <h3>{appLanguage === 'ro' ? 'De ce vă potriviți' : 'Why you match'}</h3>
-                      <ul>
-                        {selectedDetailMatchAnalysis.reasons.map((reason) => (
-                          <li key={reason}>{reason}</li>
-                        ))}
-                      </ul>
-                      {selectedDetailMatchAnalysis.caution ? <p className="soft">{selectedDetailMatchAnalysis.caution}</p> : null}
-                    </section>
-                  ) : null}
-                  <div className="summary-actions">
-                    <button type="button" className="ghost" onClick={() => reportProfile(selectedDetailProfile)}>
-                      {appLanguage === 'ro' ? 'Raportează profilul' : 'Report profile'}
-                    </button>
-                    <button type="button" className="danger" onClick={() => blockProfile(selectedDetailProfile)}>
-                      {appLanguage === 'ro' ? 'Blochează profilul' : 'Block profile'}
-                    </button>
-                  </div>
-                  <ul>
-                    {getProfilePrompts(selectedDetailProfile).map((prompt, indexPrompt) => (
-                      <li key={`prompt-${indexPrompt}`}>{prompt}</li>
-                    ))}
-                  </ul>
-                </article>
-                <article className="detail-photos">
-                  {getProfilePhotos(selectedDetailProfile).map((photo, idx) => (
-                    <div key={`${photo}-${idx}`} className="photo-card">
-                      <button type="button" className="photo-button" onClick={() => openLightbox(photo)}>
-                        <img src={photo} alt={`${selectedDetailProfile.name} photo ${idx + 1}`} loading="lazy" decoding="async" />
-                      </button>
-                    </div>
-                  ))}
-                </article>
-              </>
-            ) : (
-              <article className="state-box">
-                <p className="pill">{appLanguage === 'ro' ? 'Indisponibil' : 'Unavailable'}</p>
-                <h1>{appLanguage === 'ro' ? 'Profilul nu a fost găsit' : 'Profile was not found'}</h1>
-                <button type="button" onClick={() => navigate('discover')}>
-                  {copy.common.backToDiscover}
-                </button>
-              </article>
-            )}
-          </section>
+          <ProfileDetailScreen
+            appLanguage={appLanguage}
+            selectedDetailProfile={selectedDetailProfile ?? null}
+            selfProfile={selfProfile}
+            selfPersonalityCode={selfPersonalityCode}
+            selectedDetailMatchAnalysis={selectedDetailMatchAnalysis ?? null}
+            selectedDetailChemistry={selectedDetailChemistry ?? null}
+            getCompatibilityScore={getCompatibilityScore}
+            reportProfile={reportProfile}
+            blockProfile={blockProfile}
+            openLightbox={openLightbox}
+            closeProfileDetail={closeProfileDetail}
+            onBackToDiscover={() => navigate('discover')}
+          />
         )}
       </section>
       {activeMatch ? (
