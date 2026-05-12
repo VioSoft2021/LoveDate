@@ -78,211 +78,36 @@ import {
   type SafetyReport,
 } from './services/moderation'
 import { PLAN_OPTIONS, type PlanTier } from './spec/lovedateConfig'
+import type {
+  AppLanguage,
+  AppScreen,
+  CallLogEntry,
+  CallState,
+  ChatMessage,
+  ChemistryInsights,
+  Circle,
+  CirclePost,
+  CropHandle,
+  DatePlan,
+  Filters,
+  MatchAnalysis,
+  ModerationFilter,
+  NotificationItem,
+  PhotoStudioAnalysis,
+  PhotoStudioControls,
+  SelfProfile,
+  SocialConnection,
+  SocialConnections,
+  SocialPlatform,
+  SwipeDirection,
+  SwipeHistory,
+  SwipeIntent,
+  SwipeLog,
+  Toast,
+} from './domain'
 
-type SwipeDirection = 'left' | 'right'
-type SwipeIntent = 'pass' | 'like' | 'super-like'
-type AppScreen =
-  | 'login'
-  | 'discover'
-  | 'activity'
-  | 'circles'
-  | 'chats'
-  | 'profile'
-  | 'personality-guide'
-  | 'settings'
-  | 'moderation'
-  | 'profile-detail'
-  | 'filters'
-
-type AppLanguage = 'en' | 'ro'
-
-type SwipeHistory = {
-  likedIds: number[]
-  passedIds: number[]
-  matchIds: number[]
-}
-
-export type Filters = {
-  minAge: number
-  maxAge: number
-  city: string
-  interest: string
-  gender: 'any' | 'woman' | 'man' | 'non-binary'
-  relationshipGoal: 'any' | Profile['relationshipGoal']
-  maxDistanceKm: number
-  verifiedOnly: boolean
-  sortBy: 'recommended' | 'nearest' | 'youngest' | 'oldest'
-  zodiacCompatibility: string // '' means no filter, otherwise filter for compatible signs
-}
-
-type SwipeLog = {
-  profileId: number
-  direction: SwipeDirection
-  intent: SwipeIntent
-  wasMatch: boolean
-}
-
-type ChatMessage = {
-  id: number
-  sender: 'me' | 'them'
-  text: string
-  createdAt: number
-  attachment?: {
-    kind: 'image' | 'video' | 'audio'
-    url: string
-    name: string
-  }
-  callMeta?: {
-    type: 'audio' | 'video'
-    roomId: string
-    roomUrl: string
-    event: 'invite' | 'connected' | 'ended' | 'missed' | 'failed'
-  }
-  status?: 'sending' | 'sent' | 'read'
-}
-
-type DatePlan = {
-  id: string
-  title: string
-  placeType: string
-  budget: '$' | '$$' | '$$$'
-  duration: string
-  pitch: string
-  message: string
-}
-
-type Toast = {
-  id: number
-  message: string
-  tone: 'info' | 'success' | 'error'
-}
-
-type NotificationItem = {
-  id: number
-  title: string
-  body: string
-  createdAt: number
-  read: boolean
-  category: 'match' | 'message' | 'system' | 'safety'
-}
-
-type MatchAnalysis = {
-  score: number
-  personalityScore: number
-  sharedInterests: string[]
-  intentAligned: boolean
-  zodiacAligned: boolean
-  ageGap: number
-  reasons: string[]
-  caution: string | null
-  pairCode: string
-}
-
-type ChemistryInsights = {
-  chemistryScore: number
-  cognitiveOverlapScore: number
-  zodiacAligned: boolean
-  summary: string
-}
-
-type ModerationFilter = 'all' | ModerationStatus
-
-type CallState = {
-  active: boolean
-  type: 'audio' | 'video' | null
-  status: 'connecting' | 'live' | 'error'
-  startedAt: number
-  targetProfileId: number | null
-  muted: boolean
-  cameraOff: boolean
-  roomId: string | null
-  roomUrl: string | null
-}
-
-type CallLogEntry = {
-  id: string
-  profileId: number
-  profileName: string
-  type: 'audio' | 'video'
-  roomId: string
-  roomUrl: string
-  startedAt: number
-  answeredAt: number | null
-  endedAt: number | null
-  outcome: 'initiated' | 'connected' | 'ended' | 'missed' | 'failed'
-}
-
-type Circle = {
-  id: string
-  name: string
-  theme: string
-  description: string
-  tags: string[]
-  memberCount: number
-  hero: string
-  events: Array<{
-    id: string
-    title: string
-    when: string
-    where: string
-  }>
-}
-
-type CirclePost = {
-  id: string
-  circleId: string
-  author: string
-  text: string
-  createdAt: number
-}
-
-type SocialPlatform = 'x' | 'instagram' | 'facebook' | 'linkedin' | 'tiktok'
-
-type SocialConnection = {
-  connected: boolean
-  handle: string
-}
-
-type SocialConnections = Record<SocialPlatform, SocialConnection>
-
-type SelfProfile = {
-  name: string
-  age: number
-  city: string
-  vibe: string
-  bio: string
-  interests: string[]
-  pronouns: string
-  gender: string
-  orientation: string
-  lookingFor: string
-  relationshipIntent: string
-  heightCm: number
-  jobTitle: string
-  company: string
-  education: string
-  hometown: string
-  languages: string[]
-  drinking: string
-  smoking: string
-  workout: string
-  religion: string
-  politics: string
-  zodiac: string
-  childrenPlan: string
-  pets: string
-  promptOne: string
-  promptTwo: string
-  promptThree: string
-  dealbreakers: string[]
-  instagram: string
-  anthem: string
-  socialConnections: SocialConnections
-  socialPromotionOptIn: boolean
-  travelMode: boolean
-  photos: string[]
-  personalityAnswers: PersonalityAnswer[]
-}
+// Re-export Filters so legacy imports `from '../App'` still resolve.
+export type { Filters }
 
 const APP_LANGUAGE_KEY = 'lovedate:app-language'
 
@@ -747,30 +572,7 @@ const UI_TEXT = {
 } as const
 /* cSpell:enable */
 
-type PhotoStudioControls = {
-  cropAspect: 'free' | 'portrait' | 'square' | 'classic'
-  zoom: number
-  rotate: number
-  brightness: number
-  contrast: number
-  saturate: number
-  offsetX: number
-  offsetY: number
-  freeCropX: number
-  freeCropY: number
-  freeCropWidth: number
-  freeCropHeight: number
-}
-
-type PhotoStudioAnalysis = {
-  width: number
-  height: number
-  aspectRatio: string
-  sizeKb: number
-  averageBrightness: number
-}
-
-type CropHandle = 'nw' | 'ne' | 'sw' | 'se'
+// PhotoStudio types now live in src/domain/photoStudio.ts (imported above via the domain barrel).
 
 const HISTORY_STORAGE_KEY = 'lovedate:swipe-history'
 const AUTH_STORAGE_KEY = 'lovedate:auth-session'
