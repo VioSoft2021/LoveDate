@@ -539,15 +539,20 @@ export const getProfiles = async (): Promise<Profile[]> => {
     } = await supabase.auth.getUser()
     const selfUid = user?.id ?? null
 
+    // Only show profiles that have a proper auth_user_id (i.e. owned by a real
+    // signed-in user). Null auth_user_id rows are orphan/legacy data from
+    // before the B1 identity bridge — they have no way to be matched/messaged.
+    // Self-exclusion is unconditional: never show the viewer their own row.
     let query = supabase
       .from('profiles')
       .select(
         'id, name, age, city, vibe, bio, interests, palette, photos, gender, distance_km, verified, relationship_goal, zodiac, extras, is_active, auth_user_id',
       )
       .eq('is_active', true)
+      .not('auth_user_id', 'is', null)
       .limit(200)
     if (selfUid) {
-      query = query.or(`auth_user_id.is.null,auth_user_id.neq.${selfUid}`)
+      query = query.neq('auth_user_id', selfUid)
     }
     const { data, error } = await query
 

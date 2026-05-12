@@ -640,7 +640,7 @@ export const backendUploadDataUrlPhotos = async (photos: string[]): Promise<stri
  * in anyone's deck. Phase B4 will widen the synced field set and flip
  * is_active when the profile is complete.
  */
-const backendEnsureDiscoverableProfile = async (
+export const backendEnsureDiscoverableProfile = async (
   userId: string,
   profile: Record<string, unknown>,
 ): Promise<void> => {
@@ -703,6 +703,37 @@ const backendEnsureDiscoverableProfile = async (
     // Non-fatal: self-profile already saved.
     // eslint-disable-next-line no-console
     console.warn('Discoverable profile sync skipped:', error.message)
+  }
+}
+
+/**
+ * One-shot bridge-repair for legacy accounts: any user whose profile was
+ * created before the B1 identity bridge has a row in `public.profiles` with
+ * a null auth_user_id and is therefore invisible to everyone else. Call this
+ * after every successful sign-in / register — it reads the saved self-profile
+ * from `user_profiles` and pushes it through `sync_discoverable_profile`,
+ * which sets auth_user_id on the row. Idempotent and cheap on already-bridged
+ * accounts (just rewrites the same data).
+ *
+ * Fire-and-forget: failures are logged but never block the auth flow.
+ */
+export const backendRepairDiscoverableProfile = async (email: string): Promise<void> => {
+  if (!supabase) {
+    return
+  }
+  try {
+    const userId = await getCurrentUserId()
+    if (!userId) {
+      return
+    }
+    const profile = await backendFetchSelfProfile(email)
+    if (!profile) {
+      return
+    }
+    await backendEnsureDiscoverableProfile(userId, profile)
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Discoverable-profile bridge repair skipped:', error)
   }
 }
 

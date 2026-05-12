@@ -28,6 +28,7 @@ import {
   backendResetLocalSelfProfile,
   backendAddBlock,
   backendBackfillBlocks,
+  backendRepairDiscoverableProfile,
   backendLoadBlockedProfileIds,
   backendLoadSettings,
   backendSavePreferences,
@@ -2264,6 +2265,10 @@ function App() {
         purgeOtherSelfProfileCaches(result.email)
         setIsAuthenticated(true)
         setUserEmail(result.email)
+        // Repair the discoverable-profile bridge for legacy accounts whose
+        // public.profiles row predates B1 (null auth_user_id → invisible to
+        // other users). Fire-and-forget; no-op for new/already-bridged users.
+        void backendRepairDiscoverableProfile(result.email)
         navigate('discover', { replace: true })
         pushToast(authMode === 'register' ? 'Account created successfully.' : 'Signed in successfully.', 'success')
       })
@@ -2293,6 +2298,7 @@ function App() {
         setIsAuthenticated(true)
         setUserEmail(result.email)
         setLoginEmail(result.email)
+        void backendRepairDiscoverableProfile(result.email)
         navigate('discover', { replace: true })
         pushToast('Guest session started.', 'info')
       })
