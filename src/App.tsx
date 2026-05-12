@@ -8,6 +8,7 @@ import { FilterScreen } from './components/FilterScreen'
 import { EmbeddedCallStage } from './components/EmbeddedCallStage'
 import { Logo } from './components/Logo'
 import { ActivityScreen } from './screens/ActivityScreen'
+import { CirclesScreen } from './screens/CirclesScreen'
 import { LoginScreen } from './screens/LoginScreen'
 import { PersonalityGuideScreen } from './screens/PersonalityGuideScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
@@ -3505,112 +3506,22 @@ function App() {
           />
         )}
         {screen === 'circles' && (
-          <section className="settings-screen circles-screen" aria-label={copy.circles.community}>
-            <article className="profile-settings circles-list-panel">
-              <h2>{copy.circles.title}</h2>
-              <p className="soft">{copy.circles.subtitle}</p>
-              <label>
-                {copy.circles.search}
-                <input
-                  type="text"
-                  value={circleSearch}
-                  onChange={(event) => setCircleSearch(event.target.value)}
-                  placeholder={copy.circles.searchPlaceholder}
-                />
-              </label>
-              <div className="notification-list circles-list">
-                {filteredCircles.map((circle) => {
-                  const joined = joinedCircleIds.includes(circle.id)
-                  return (
-                    <button
-                      key={circle.id}
-                      type="button"
-                      className={`chat-item ${selectedCircle?.id === circle.id ? 'active' : ''}`}
-                      onClick={() => setSelectedCircleId(circle.id)}
-                    >
-                      <div className="chat-item-body">
-                        <div className="chat-meta">
-                          <strong>{circle.name}</strong>
-                          <span>{circle.memberCount + (joined ? 1 : 0)} {copy.circles.members}</span>
-                        </div>
-                        <div className="chat-status">
-                          <small>{joined ? copy.circles.joined : copy.circles.explore}</small>
-                        </div>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            </article>
-            <article className="profile-settings circles-detail-panel">
-              {selectedCircle ? (
-                <>
-                  <div className="circles-hero">
-                    <img src={selectedCircle.hero} alt={`${selectedCircle.name} cover`} loading="lazy" decoding="async" />
-                    <div className="circles-hero-overlay">
-                      <h3>{selectedCircle.name}</h3>
-                      <p>{selectedCircle.theme}</p>
-                    </div>
-                  </div>
-                  <p>{selectedCircle.description}</p>
-                  <div className="chips">
-                    {selectedCircle.tags.map((tag) => (
-                      <span key={tag}>{tag}</span>
-                    ))}
-                  </div>
-                  <div className="summary-actions">
-                    <button type="button" className="ghost" onClick={() => toggleCircleJoin(selectedCircle.id)}>
-                      {joinedCircleIds.includes(selectedCircle.id) ? copy.circles.leaveCircle : copy.circles.joinCircle}
-                    </button>
-                  </div>
-                  <h3>{copy.circles.upcomingEvents}</h3>
-                  <div className="circles-events">
-                    {selectedCircle.events.map((eventItem) => (
-                      <div key={eventItem.id} className="circles-event-card">
-                        <p>
-                          <strong>{eventItem.title}</strong>
-                        </p>
-                        <p>{eventItem.when} {'\u2022'} {eventItem.where}</p>
-                        <button type="button" className="ghost" onClick={() => toggleCircleRsvp(eventItem.id)}>
-                          {circleRsvps[eventItem.id] ? copy.circles.rsvpSaved : copy.circles.rsvp}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  <h3>{copy.circles.feed}</h3>
-                  <label>
-                    {copy.circles.sharePrompt}
-                    <textarea
-                      rows={3}
-                      value={circlePostDraft}
-                      onChange={(event) => setCirclePostDraft(event.target.value)}
-                      placeholder={copy.circles.sharePlaceholder}
-                    />
-                  </label>
-                  <div className="summary-actions">
-                    <button type="button" onClick={publishCirclePost}>
-                      {copy.circles.publishPost}
-                    </button>
-                  </div>
-                  <div className="notification-list circles-posts">
-                    {selectedCirclePosts.length === 0 ? (
-                      <p className="soft">{copy.circles.noPosts}</p>
-                    ) : (
-                      selectedCirclePosts.map((post) => (
-                        <div key={post.id} className="notification-item">
-                          <strong>{post.author}</strong>
-                          <span>{post.text}</span>
-                          <small>{formatShortTime(post.createdAt)}</small>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </>
-              ) : (
-                <p className="soft">{copy.circles.noCirclesFound}</p>
-              )}
-            </article>
-          </section>
+          <CirclesScreen
+            appLanguage={appLanguage}
+            circleSearch={circleSearch}
+            setCircleSearch={setCircleSearch}
+            filteredCircles={filteredCircles}
+            joinedCircleIds={joinedCircleIds}
+            selectedCircle={selectedCircle ?? null}
+            setSelectedCircleId={setSelectedCircleId}
+            toggleCircleJoin={toggleCircleJoin}
+            circleRsvps={circleRsvps}
+            toggleCircleRsvp={toggleCircleRsvp}
+            circlePostDraft={circlePostDraft}
+            setCirclePostDraft={setCirclePostDraft}
+            publishCirclePost={publishCirclePost}
+            selectedCirclePosts={selectedCirclePosts}
+          />
         )}
         {screen === 'chats' && (
           <section className="chats-layout">
