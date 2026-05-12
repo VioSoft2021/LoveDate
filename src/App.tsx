@@ -10,6 +10,7 @@ import { Logo } from './components/Logo'
 import { ActivityScreen } from './screens/ActivityScreen'
 import { CirclesScreen } from './screens/CirclesScreen'
 import { LoginScreen } from './screens/LoginScreen'
+import { ModerationScreen } from './screens/ModerationScreen'
 import { PersonalityGuideScreen } from './screens/PersonalityGuideScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import {
@@ -4718,139 +4719,22 @@ function App() {
           />
         )}
         {screen === 'moderation' && (
-          <section className="settings-screen moderation-screen">
-            {!isModerationAdmin ? (
-              <article className="profile-settings moderation-detail">
-                <h2>{appLanguage === 'ro' ? 'Acces restricționat' : 'Access Restricted'}</h2>
-                <p className="soft">{appLanguage === 'ro' ? 'Centrul de moderare este disponibil doar pentru conturile de administrator.' : 'Moderation Center is available only for admin accounts.'}</p>
-                <p className="soft">
-                  {appLanguage === 'ro' ? 'Conectat ca' : 'Signed in as'}: <strong>{userEmail || (appLanguage === 'ro' ? 'necunoscut' : 'unknown')}</strong>
-                </p>
-                <button type="button" className="ghost" onClick={() => navigate('settings')}>
-                  {appLanguage === 'ro' ? 'Înapoi la setări' : 'Back to Settings'}
-                </button>
-              </article>
-            ) : (
-              <>
-                <article className="profile-settings moderation-list">
-                  <h2>{appLanguage === 'ro' ? 'Coada de moderare' : 'Moderation Queue'}</h2>
-                  <p className="soft">{appLanguage === 'ro' ? 'Spațiu separat de revizuire pentru raportările utilizatorilor.' : 'Separate review workspace for user reports.'}</p>
-                  <div className="moderation-toolbar">
-                    <label>
-                      {appLanguage === 'ro' ? 'Status' : 'Status'}
-                      <select
-                        value={moderationStatusFilter}
-                        onChange={(event) => setModerationStatusFilter(event.target.value as ModerationFilter)}
-                      >
-                        <option value="open">{appLanguage === 'ro' ? 'Deschise' : 'Open'}</option>
-                        <option value="reviewing">{appLanguage === 'ro' ? 'În analiză' : 'Reviewing'}</option>
-                        <option value="resolved">{appLanguage === 'ro' ? 'Rezolvate' : 'Resolved'}</option>
-                        <option value="dismissed">{appLanguage === 'ro' ? 'Respinse' : 'Dismissed'}</option>
-                        <option value="all">{appLanguage === 'ro' ? 'Toate' : 'All'}</option>
-                      </select>
-                    </label>
-                    <label className="moderation-search">
-                      {appLanguage === 'ro' ? 'Caută' : 'Search'}
-                      <input
-                        type="text"
-                        value={moderationSearchQuery}
-                        onChange={(event) => setModerationSearchQuery(event.target.value)}
-                        placeholder={appLanguage === 'ro' ? 'Nume, email, categorie, detalii...' : 'Name, email, category, details...'}
-                      />
-                    </label>
-                  </div>
-                  <p className="soft">
-                    {appLanguage === 'ro'
-                      ? `Se afișează ${moderationReportsFiltered.length} din ${moderationReportsSorted.length} raportări.`
-                      : `Showing ${moderationReportsFiltered.length} of ${moderationReportsSorted.length} reports.`}
-                  </p>
-                  {moderationReportsFiltered.length === 0 ? (
-                    <p className="soft">{appLanguage === 'ro' ? 'Nicio raportare nu corespunde filtrelor curente.' : 'No reports match current filters.'}</p>
-                  ) : (
-                    <div className="notification-list">
-                      {moderationReportsFiltered.map((report) => (
-                        <button
-                          key={report.id}
-                          type="button"
-                          className={`chat-item ${selectedModerationReport?.id === report.id ? 'active' : ''}`}
-                          onClick={() => setActiveModerationReportId(report.id)}
-                        >
-                          <div className="chat-item-body">
-                            <div className="chat-meta">
-                              <strong>{report.profileName}</strong>
-                              <span>{report.category}</span>
-                            </div>
-                            <div className="chat-status">
-                              <small>{report.status}</small>
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </article>
-
-                <article className="profile-settings moderation-detail">
-                  <h2>{appLanguage === 'ro' ? 'Detalii raportare' : 'Report Details'}</h2>
-                  {selectedModerationReport ? (
-                    <>
-                      {selectedModerationReport.profileSnapshot.photoUrl ? (
-                        <img
-                          className="chat-avatar"
-                          style={{ width: '5.2rem', height: '5.2rem', borderRadius: '1rem', marginBottom: '0.8rem' }}
-                          src={selectedModerationReport.profileSnapshot.photoUrl}
-                          alt={`${selectedModerationReport.profileName} snapshot`}
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      ) : null}
-                      <p>
-                        <strong>{appLanguage === 'ro' ? 'Utilizator' : 'User'}:</strong> {selectedModerationReport.profileName}, {selectedModerationReport.profileSnapshot.age}
-                      </p>
-                      <p>
-                        <strong>{appLanguage === 'ro' ? 'Context' : 'Context'}:</strong> {selectedModerationReport.profileSnapshot.city} {'\u2022'}{' '}
-                        {selectedModerationReport.profileSnapshot.relationshipGoal}
-                      </p>
-                      <p>
-                        <strong>{copy.profile.vibe}:</strong> {selectedModerationReport.profileSnapshot.vibe}
-                      </p>
-                      <p>
-                        <strong>{appLanguage === 'ro' ? 'Instantaneu bio' : 'Bio snapshot'}:</strong> {selectedModerationReport.profileSnapshot.bio}
-                      </p>
-                      <p>
-                        <strong>{appLanguage === 'ro' ? 'Categorie' : 'Category'}:</strong> {selectedModerationReport.category}
-                      </p>
-                      <p>
-                        <strong>{appLanguage === 'ro' ? 'Raportat de' : 'Reporter'}:</strong> {selectedModerationReport.reporterEmail}
-                      </p>
-                      <p>
-                        <strong>{appLanguage === 'ro' ? 'Detalii' : 'Details'}:</strong> {selectedModerationReport.details || (appLanguage === 'ro' ? 'Nu au fost oferite detalii suplimentare.' : 'No extra details provided.')}
-                      </p>
-                      <p>
-                        <strong>{appLanguage === 'ro' ? 'Status' : 'Status'}:</strong> {selectedModerationReport.status}
-                      </p>
-                      <div className="summary-actions">
-                        <button type="button" className="ghost" onClick={() => updateReportStatus(selectedModerationReport.id, 'reviewing')}>
-                          {appLanguage === 'ro' ? 'În analiză' : 'Reviewing'}
-                        </button>
-                        <button type="button" className="ghost" onClick={() => updateReportStatus(selectedModerationReport.id, 'resolved')}>
-                          {appLanguage === 'ro' ? 'Rezolvă' : 'Resolve'}
-                        </button>
-                        <button type="button" className="danger" onClick={() => resolveAndBlockReport(selectedModerationReport)}>
-                          {appLanguage === 'ro' ? 'Rezolvă + blochează' : 'Resolve + Block'}
-                        </button>
-                        <button type="button" className="danger" onClick={() => updateReportStatus(selectedModerationReport.id, 'dismissed')}>
-                          {appLanguage === 'ro' ? 'Respinge' : 'Dismiss'}
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="soft">{appLanguage === 'ro' ? 'Selectează o raportare din coadă.' : 'Select a report from the queue.'}</p>
-                  )}
-                </article>
-              </>
-            )}
-          </section>
+          <ModerationScreen
+            appLanguage={appLanguage}
+            isModerationAdmin={isModerationAdmin}
+            userEmail={userEmail}
+            moderationStatusFilter={moderationStatusFilter}
+            setModerationStatusFilter={setModerationStatusFilter}
+            moderationSearchQuery={moderationSearchQuery}
+            setModerationSearchQuery={setModerationSearchQuery}
+            moderationReportsFiltered={moderationReportsFiltered}
+            moderationReportsSorted={moderationReportsSorted}
+            selectedModerationReport={selectedModerationReport ?? null}
+            setActiveModerationReportId={setActiveModerationReportId}
+            updateReportStatus={updateReportStatus}
+            resolveAndBlockReport={resolveAndBlockReport}
+            onBackToSettings={() => navigate('settings')}
+          />
         )}
         {screen === 'profile-detail' && (
           <section className="profile-detail">
