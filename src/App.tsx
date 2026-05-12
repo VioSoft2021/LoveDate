@@ -7,6 +7,7 @@ import { getProfiles, resolveMatch, type Profile } from './services/loveDateApi'
 import { FilterScreen } from './components/FilterScreen'
 import { EmbeddedCallStage } from './components/EmbeddedCallStage'
 import { Logo } from './components/Logo'
+import { LoginScreen } from './screens/LoginScreen'
 import {
   backendGuestLogin,
   backendLogin,
@@ -3086,107 +3087,29 @@ function App() {
 
   if (screen === 'login') {
     return (
-      <main className="login-shell">
-        <div className="grain" aria-hidden="true" />
-        <article className="login-card">
-          <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
-          <div className="login-language-row">
-            <label>
-              {copy.auth.language}
-              <select value={appLanguage} onChange={(event) => setAppLanguage(event.target.value as AppLanguage)}>
-                <option value="en">{copy.auth.english}</option>
-                <option value="ro">{copy.auth.romanian}</option>
-              </select>
-            </label>
-          </div>
-          <h1>{authMode === 'register' ? copy.auth.createTitle : copy.auth.signInTitle}</h1>
-          <form className="login-form" onSubmit={handleLoginSubmit}>
-            {runtimeConfig.auth.requireInviteCode ? (
-              <label>
-                {copy.auth.inviteCode}
-                <input
-                  type="text"
-                  autoComplete="one-time-code"
-                  value={inviteCode}
-                  onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
-                  placeholder={copy.auth.invitePlaceholder}
-                  required
-                />
-              </label>
-            ) : null}
-            <label>
-              {copy.auth.email}
-              <input
-                type="email"
-                autoComplete="email"
-                value={loginEmail}
-                onChange={(event) => setLoginEmail(event.target.value)}
-                required
-              />
-            </label>
-            <label>
-              {copy.auth.password}
-              <input
-                type="password"
-                autoComplete={authMode === 'register' ? 'new-password' : 'current-password'}
-                value={loginPassword}
-                onChange={(event) => setLoginPassword(event.target.value)}
-                required
-              />
-              {authMode === 'register' ? (
-                <small className="soft">{copy.auth.passwordHint}</small>
-              ) : null}
-            </label>
-            {authMode === 'register' ? (
-              <label>
-                {copy.auth.confirmPassword}
-                <input
-                  type="password"
-                  autoComplete="new-password"
-                  value={registerPasswordConfirm}
-                  onChange={(event) => setRegisterPasswordConfirm(event.target.value)}
-                  required
-                />
-              </label>
-            ) : null}
-            {loginError ? <p className="error-text">{loginError}</p> : null}
-            {loginNotice ? <p className="info-text">{loginNotice}</p> : null}
-            <div className="login-actions">
-              <button type="submit" disabled={loggingIn}>
-                {loggingIn ? copy.auth.pleaseWait : authMode === 'register' ? copy.auth.createAccount : copy.auth.signIn}
-              </button>
-              {runtimeConfig.auth.allowGuestLogin && authMode === 'login' ? (
-                <button type="button" className="ghost" onClick={handleGuestLogin} disabled={loggingIn}>
-                  {copy.auth.continueGuest}
-                </button>
-              ) : null}
-              <button
-                type="button"
-                className="ghost"
-                onClick={() => {
-                  setLoginError(null)
-                  setLoginNotice(null)
-                  setRegisterPasswordConfirm('')
-                  setAuthMode((current) => (current === 'login' ? 'register' : 'login'))
-                }}
-                disabled={loggingIn}
-              >
-                {authMode === 'login' ? copy.auth.switchToCreate : copy.auth.switchToLogin}
-              </button>
-            </div>
-            {import.meta.env.DEV ? (
-              <div className="dev-auth-row">
-                <button type="button" className="ghost" onClick={handleUseDevAccount} disabled={loggingIn}>
-                  Use Dev Account
-                </button>
-                <button type="button" className="ghost" onClick={handleResetDevAccount} disabled={loggingIn}>
-                  Reset Dev Account
-                </button>
-              </div>
-            ) : null}
-          </form>
-        </article>
-      </main>
+      <LoginScreen
+        appLanguage={appLanguage}
+        setAppLanguage={setAppLanguage}
+        authMode={authMode}
+        setAuthMode={setAuthMode}
+        inviteCode={inviteCode}
+        setInviteCode={setInviteCode}
+        loginEmail={loginEmail}
+        setLoginEmail={setLoginEmail}
+        loginPassword={loginPassword}
+        setLoginPassword={setLoginPassword}
+        registerPasswordConfirm={registerPasswordConfirm}
+        setRegisterPasswordConfirm={setRegisterPasswordConfirm}
+        loginError={loginError}
+        setLoginError={setLoginError}
+        loginNotice={loginNotice}
+        setLoginNotice={setLoginNotice}
+        loggingIn={loggingIn}
+        onSubmit={handleLoginSubmit}
+        onGuestLogin={handleGuestLogin}
+        onUseDevAccount={handleUseDevAccount}
+        onResetDevAccount={handleResetDevAccount}
+      />
     )
   }
 
