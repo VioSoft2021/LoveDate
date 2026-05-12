@@ -105,11 +105,27 @@ import type {
   SwipeLog,
   Toast,
 } from './domain'
+import {
+  AUTH_STORAGE_KEY,
+  CALL_HISTORY_STORAGE_KEY,
+  CHAT_THREADS_STORAGE_KEY,
+  CIRCLES_JOINED_STORAGE_KEY,
+  CIRCLES_POSTS_STORAGE_KEY,
+  CIRCLES_RSVP_STORAGE_KEY,
+  HISTORY_STORAGE_KEY,
+  persistAppLanguage,
+  readAppLanguage,
+  readAuth,
+  readCallHistory,
+  readChatThreads,
+  readCircleRsvps,
+  readCirclePosts,
+  readHistory,
+  readJoinedCircles,
+} from './persistence'
 
 // Re-export Filters so legacy imports `from '../App'` still resolve.
 export type { Filters }
-
-const APP_LANGUAGE_KEY = 'lovedate:app-language'
 
 /* cSpell:disable */
 const UI_TEXT = {
@@ -574,13 +590,7 @@ const UI_TEXT = {
 
 // PhotoStudio types now live in src/domain/photoStudio.ts (imported above via the domain barrel).
 
-const HISTORY_STORAGE_KEY = 'lovedate:swipe-history'
-const AUTH_STORAGE_KEY = 'lovedate:auth-session'
-const CHAT_THREADS_STORAGE_KEY = 'lovedate:chat-threads'
-const CALL_HISTORY_STORAGE_KEY = 'lovedate:call-history'
-const CIRCLES_JOINED_STORAGE_KEY = 'lovedate:circles-joined'
-const CIRCLES_POSTS_STORAGE_KEY = 'lovedate:circles-posts'
-const CIRCLES_RSVP_STORAGE_KEY = 'lovedate:circles-rsvp'
+// Storage keys live in src/persistence/keys.ts (imported via the persistence barrel).
 const CHAT_RENDER_WINDOW = 120
 const APP_BOOT_TS = Date.now()
 
@@ -1337,47 +1347,7 @@ const readRouteFromWindow = (): { screen: AppScreen; profileId: number | null } 
   return parseRoute(window.location.pathname)
 }
 
-const readAuth = (): { isAuthenticated: boolean; email: string } => {
-  try {
-    const raw = window.localStorage.getItem(AUTH_STORAGE_KEY)
-    if (!raw) {
-      return { isAuthenticated: false, email: '' }
-    }
-
-    const parsed = JSON.parse(raw) as { email?: string; isAuthenticated?: boolean }
-    if (parsed.isAuthenticated && typeof parsed.email === 'string') {
-      return { isAuthenticated: true, email: parsed.email }
-    }
-
-    return { isAuthenticated: false, email: '' }
-  } catch {
-    return { isAuthenticated: false, email: '' }
-  }
-}
-
-const readHistory = (): SwipeHistory => {
-  try {
-    const raw = window.localStorage.getItem(HISTORY_STORAGE_KEY)
-    if (!raw) {
-      return { likedIds: [], passedIds: [], matchIds: [] }
-    }
-
-    const parsed = JSON.parse(raw) as Partial<SwipeHistory>
-    return {
-      likedIds: Array.isArray(parsed.likedIds)
-        ? parsed.likedIds.filter((id): id is number => Number.isInteger(id))
-        : [],
-      passedIds: Array.isArray(parsed.passedIds)
-        ? parsed.passedIds.filter((id): id is number => Number.isInteger(id))
-        : [],
-      matchIds: Array.isArray(parsed.matchIds)
-        ? parsed.matchIds.filter((id): id is number => Number.isInteger(id))
-        : [],
-    }
-  } catch {
-    return { likedIds: [], passedIds: [], matchIds: [] }
-  }
-}
+// readAuth, readHistory now live in src/persistence/ (imported above).
 
 const normalizeSelfProfile = (raw: unknown): SelfProfile => {
   try {
@@ -1511,169 +1481,7 @@ const toProfileDraft = (profile: SelfProfile) => ({
   personalityAnswers: profile.personalityAnswers,
 })
 
-const readChatThreads = (): Record<number, ChatMessage[]> => {
-  try {
-    const raw = window.localStorage.getItem(CHAT_THREADS_STORAGE_KEY)
-    if (!raw) {
-      return {}
-    }
-
-    const parsed = JSON.parse(raw) as Record<string, ChatMessage[]>
-    const next: Record<number, ChatMessage[]> = {}
-
-    for (const [key, thread] of Object.entries(parsed)) {
-      const numericId = Number(key)
-      if (!Number.isInteger(numericId) || !Array.isArray(thread)) {
-        continue
-      }
-
-      next[numericId] = thread
-        .filter((message) => message && typeof message === 'object')
-        .map((message, index) => ({
-          id: Number.isFinite(message.id) ? Number(message.id) : Date.now() + index,
-          sender: message.sender === 'them' ? 'them' : 'me',
-          text: typeof message.text === 'string' ? message.text : '',
-          createdAt: Number.isFinite(message.createdAt) ? Number(message.createdAt) : Date.now(),
-          attachment:
-            message.attachment &&
-            typeof message.attachment.url === 'string' &&
-            !message.attachment.url.startsWith('blob:')
-              ? {
-                  kind: message.attachment.kind,
-                  url: message.attachment.url,
-                  name: message.attachment.name,
-                }
-              : undefined,
-          status:
-            message.status === 'sending' || message.status === 'sent' || message.status === 'read'
-              ? message.status
-              : undefined,
-        }))
-    }
-
-    return next
-  } catch {
-    return {}
-  }
-}
-
-const readCallHistory = (): CallLogEntry[] => {
-  try {
-    const raw = window.localStorage.getItem(CALL_HISTORY_STORAGE_KEY)
-    if (!raw) {
-      return []
-    }
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed)) {
-      return []
-    }
-    return parsed
-      .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
-      .map((item) => {
-        const type: CallLogEntry['type'] = item.type === 'video' ? 'video' : 'audio'
-        const outcome: CallLogEntry['outcome'] =
-          item.outcome === 'connected' ||
-          item.outcome === 'ended' ||
-          item.outcome === 'missed' ||
-          item.outcome === 'failed'
-            ? item.outcome
-            : 'initiated'
-        return {
-          id: String(item.id ?? ''),
-          profileId: Number(item.profileId ?? 0),
-          profileName: String(item.profileName ?? 'Match'),
-          type,
-          roomId: String(item.roomId ?? ''),
-          roomUrl: String(item.roomUrl ?? ''),
-          startedAt: Number(item.startedAt ?? Date.now()),
-          answeredAt: item.answeredAt == null ? null : Number(item.answeredAt),
-          endedAt: item.endedAt == null ? null : Number(item.endedAt),
-          outcome,
-        }
-      })
-      .filter((entry) => entry.id.length > 0 && Number.isFinite(entry.profileId))
-  } catch {
-    return []
-  }
-}
-
-const readJoinedCircles = (): string[] => {
-  try {
-    const raw = window.localStorage.getItem(CIRCLES_JOINED_STORAGE_KEY)
-    if (!raw) {
-      return ['design-lounge', 'coffee-club']
-    }
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed)) {
-      return ['design-lounge', 'coffee-club']
-    }
-    return parsed.filter((item): item is string => typeof item === 'string' && item.length > 0)
-  } catch {
-    return ['design-lounge', 'coffee-club']
-  }
-}
-
-const readCirclePosts = (): CirclePost[] => {
-  try {
-    const raw = window.localStorage.getItem(CIRCLES_POSTS_STORAGE_KEY)
-    if (!raw) {
-      return [
-        {
-          id: 'seed-post-1',
-          circleId: 'design-lounge',
-          author: 'Sofia',
-          text: 'Hot take: the best first-date question is “what are you building for yourself this year?”',
-          createdAt: Date.now() - 1000 * 60 * 43,
-        },
-        {
-          id: 'seed-post-2',
-          circleId: 'coffee-club',
-          author: 'Noah',
-          text: 'Anyone in Berlin wants to test 3 specialty cafes this weekend?',
-          createdAt: Date.now() - 1000 * 60 * 120,
-        },
-      ]
-    }
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed)) {
-      return []
-    }
-    return parsed
-      .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
-      .map((item, index) => ({
-        id: typeof item.id === 'string' ? item.id : `post_${Date.now()}_${index}`,
-        circleId: typeof item.circleId === 'string' ? item.circleId : '',
-        author: typeof item.author === 'string' ? item.author : 'Member',
-        text: typeof item.text === 'string' ? item.text : '',
-        createdAt: Number.isFinite(item.createdAt) ? Number(item.createdAt) : Date.now(),
-      }))
-      .filter((item) => item.circleId.length > 0 && item.text.trim().length > 0)
-  } catch {
-    return []
-  }
-}
-
-const readCircleRsvps = (): Record<string, boolean> => {
-  try {
-    const raw = window.localStorage.getItem(CIRCLES_RSVP_STORAGE_KEY)
-    if (!raw) {
-      return {}
-    }
-    const parsed = JSON.parse(raw)
-    if (!parsed || typeof parsed !== 'object') {
-      return {}
-    }
-    const next: Record<string, boolean> = {}
-    for (const [key, value] of Object.entries(parsed)) {
-      if (typeof value === 'boolean') {
-        next[key] = value
-      }
-    }
-    return next
-  } catch {
-    return {}
-  }
-}
+// readChatThreads, readCallHistory, readJoinedCircles, readCirclePosts, readCircleRsvps now live in src/persistence/.
 
 const formatShortTime = (timestamp: number): string =>
   new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -1713,17 +1521,7 @@ const getCallDurationLabel = (startedAt: number, endedAt: number | null): string
   return `${minutes}m ${seconds.toString().padStart(2, '0')}s`
 }
 
-const readAppLanguage = (): AppLanguage => {
-  if (typeof window === 'undefined') {
-    return 'en'
-  }
-  const stored = window.localStorage.getItem(APP_LANGUAGE_KEY)
-  return stored === 'ro' ? 'ro' : 'en'
-}
-
-const persistAppLanguage = (language: AppLanguage): void => {
-  window.localStorage.setItem(APP_LANGUAGE_KEY, language)
-}
+// readAppLanguage, persistAppLanguage now live in src/persistence/language.ts.
 
 const formatUiText = (template: string, replacements: Record<string, string | number>): string =>
   Object.entries(replacements).reduce(
