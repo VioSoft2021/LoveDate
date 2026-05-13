@@ -65,6 +65,34 @@
   .chats-layout[data-mobile-view='list'] .chat-thread {
     display: none;
   }
+  /* CSS Grid defaults grid items to min-width: auto, which prevents the
+     track from shrinking below its content's natural width. Long text in
+     the chat thread (compatibility line, AI suggestions, zodiac blurb)
+     was forcing the track wider than the viewport on phones, clipping
+     every line at the right edge. Force min-width:0 on the chat-thread
+     track and on its section children so text wraps to the viewport. */
+  .chats-layout {
+    min-width: 0;
+    overflow-x: hidden;
+  }
+  .chat-thread,
+  .chat-thread > section,
+  .chat-thread > header {
+    min-width: 0;
+  }
+  .chat-thread > section,
+  .chat-thread > section p,
+  .chat-thread .chat-ai-suggestion {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  /* Make the chat thread itself scrollable so the AI panels, compat
+     panel, messages, and composer can all be reached even on a short
+     phone viewport. */
+  .chat-thread {
+    overflow-y: auto;
+    max-height: calc(100vh - 9rem);
+  }
   .profile-summary--enhanced {
     max-height: none;
     position: static;
