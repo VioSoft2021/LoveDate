@@ -1501,7 +1501,6 @@ function App() {
     (profile: Profile, direction: SwipeDirection, intent: SwipeIntent, wasMatch: boolean) => {
       addSwipeHistory(profile.id, direction, wasMatch)
       setSwipeLog((current) => [...current, { profileId: profile.id, direction, intent, wasMatch }])
-      void backendRecordSwipe(profile.id, direction)
 
       if (wasMatch) {
         setActiveMatch(profile)
@@ -1552,7 +1551,6 @@ function App() {
       setIsResolvingSwipe(true)
 
       const swipedProfile = topProfile
-      const matchPromise = direction === 'right' ? resolveMatch(swipedProfile.id) : Promise.resolve(false)
 
       window.setTimeout(async () => {
         setIndex((current) => current + 1)
@@ -1560,7 +1558,9 @@ function App() {
         resetDrag()
 
         try {
-          const wasMatch = await matchPromise
+          await backendRecordSwipe(swipedProfile.id, direction)
+          const wasMatch =
+            direction === 'right' ? await resolveMatch(swipedProfile.id) : false
           finalizeSwipe(swipedProfile, direction, intent, wasMatch)
           if (direction === 'right' && (intent === 'like' || intent === 'super-like')) {
             recordLikeEvent()

@@ -521,8 +521,6 @@ const ENRICHED_PROFILES: Profile[] = PROFILE_FIXTURE.map((profile, index) => {
   }
 })
 
-const MATCHABLE_IDS = new Set([1, 3, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24])
-
 const wait = (ms: number): Promise<void> =>
   new Promise((resolve) => {
     window.setTimeout(resolve, ms)
@@ -629,7 +627,31 @@ export const getProfiles = async (): Promise<Profile[]> => {
 }
 
 export const resolveMatch = async (profileId: number): Promise<boolean> => {
-  await wait(180)
-  return MATCHABLE_IDS.has(profileId)
+  const supabase = createSupabaseClient()
+  if (!supabase) {
+    return false
+  }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return false
+  }
+  const { data: target } = await supabase
+    .from('profiles')
+    .select('auth_user_id')
+    .eq('id', profileId)
+    .maybeSingle()
+  if (!target?.auth_user_id) {
+    return false
+  }
+  const { data, error } = await supabase.rpc('users_are_matched', {
+    user_a: user.id,
+    user_b: target.auth_user_id,
+  })
+  if (error) {
+    return false
+  }
+  return Boolean(data)
 }
 
