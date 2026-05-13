@@ -29,6 +29,7 @@ import {
   backendAddBlock,
   backendBackfillBlocks,
   backendRepairDiscoverableProfile,
+  backendSubmitReport,
   backendLoadBlockedProfileIds,
   backendLoadSettings,
   backendSavePreferences,
@@ -2032,6 +2033,13 @@ function App() {
       reporterEmail: userEmail || 'guest@lovedate.app',
     })
     setSafetyReports((current) => [report, ...current].slice(0, 200))
+    void backendSubmitReport({
+      reportedProfileId: report.profileId,
+      reportedProfileName: report.profileName,
+      category: report.category,
+      details: report.details,
+      profileSnapshot: report.profileSnapshot,
+    })
     pushNotification({
       title: `Report submitted for ${reportDraftProfile.name}`,
       body: `Category: ${reportDraftCategory}`,

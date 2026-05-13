@@ -878,3 +878,50 @@ export const backendSendChatReply = async (name: string, message: string): Promi
   await wait(500)
   return reply
 }
+
+/**
+ * Phase C2 — cloud insert for a profile safety report. Fire-and-forget: the
+ * UI flow already updates the local moderation queue immediately, so failures
+ * here only forfeit cloud durability, not the user's feedback. Falls silent
+ * when running without Supabase credentials.
+ */
+export const backendSubmitReport = async (input: {
+  reportedProfileId: number
+  reportedProfileName: string
+  category: string
+  details: string
+  profileSnapshot: {
+    age: number
+    city: string
+    vibe: string
+    bio: string
+    relationshipGoal: string
+    photoUrl: string
+  }
+}): Promise<void> => {
+  if (!supabase) {
+    return
+  }
+
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return
+  }
+
+  const { error } = await supabase.from('safety_reports').insert({
+    reporter_id: userId,
+    reported_profile_id: input.reportedProfileId,
+    profile_snapshot: {
+      name: input.reportedProfileName,
+      ...input.profileSnapshot,
+    },
+    category: input.category,
+    details: input.details,
+    status: 'open',
+  })
+
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Safety report cloud insert skipped:', error.message)
+  }
+}

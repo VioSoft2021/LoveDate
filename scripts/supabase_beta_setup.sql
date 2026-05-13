@@ -530,6 +530,96 @@ for delete
 to authenticated
 using (auth.uid() = user_id);
 
+-- Phase C2 — Safety reports to cloud.
+--
+-- Until now, submitProfileReport wrote to a localStorage queue only. A
+-- reported user was invisible to the operator unless they happened to log
+-- in on the reporter's own device. This block adds a cloud table so reports
+-- are durable and admin-readable.
+--
+-- Schema notes:
+--   - reporter_id / reported_profile_id are `on delete set null` so the
+--     audit trail survives account deletion on either side. profile_snapshot
+--     keeps the data even if the profile row is later gone.
+--   - status mirrors the client-side ModerationStatus enum.
+create table if not exists public.safety_reports (
+  id uuid primary key default gen_random_uuid(),
+  reporter_id uuid references auth.users (id) on delete set null,
+  reported_profile_id bigint references public.profiles (id) on delete set null,
+  profile_snapshot jsonb not null default '{}'::jsonb,
+  category text not null
+    check (category in ('spam','scam','harassment','hate','nudity','underage','impersonation','other')),
+  details text not null default '',
+  status text not null default 'open'
+    check (status in ('open','reviewing','resolved','dismissed')),
+  reviewed_at timestamptz,
+  reviewer_id uuid references auth.users (id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists safety_reports_status_created_idx
+  on public.safety_reports (status, created_at desc);
+create index if not exists safety_reports_reporter_idx
+  on public.safety_reports (reporter_id);
+
+alter table public.safety_reports enable row level security;
+
+-- Admin identity helper. Keep the email allowlist in sync with the
+-- VITE_MODERATION_ADMIN_EMAILS fallback in App.tsx. When we move to a
+-- server-side admin role, replace this body with a role-table lookup.
+create or replace function public.is_admin()
+returns boolean
+language plpgsql
+security definer
+stable
+set search_path = public
+as $$
+declare
+  v_email text;
+begin
+  select email into v_email from auth.users where id = auth.uid();
+  if v_email is null then
+    return false;
+  end if;
+  return lower(v_email) in ('viomediere@gmail.com', 'viorelbox1@gmail.com');
+end;
+$$;
+
+revoke all on function public.is_admin() from public;
+grant execute on function public.is_admin() to authenticated;
+
+drop policy if exists "safety_reports_owner_insert" on public.safety_reports;
+create policy "safety_reports_owner_insert"
+on public.safety_reports
+for insert
+to authenticated
+with check (
+  auth.uid() = reporter_id
+  and reported_profile_id is not null
+);
+
+drop policy if exists "safety_reports_owner_select" on public.safety_reports;
+create policy "safety_reports_owner_select"
+on public.safety_reports
+for select
+to authenticated
+using (auth.uid() = reporter_id);
+
+drop policy if exists "safety_reports_admin_select" on public.safety_reports;
+create policy "safety_reports_admin_select"
+on public.safety_reports
+for select
+to authenticated
+using (public.is_admin());
+
+drop policy if exists "safety_reports_admin_update" on public.safety_reports;
+create policy "safety_reports_admin_update"
+on public.safety_reports
+for update
+to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
 -- Phase B2: Supabase Storage bucket for profile photos. Public read so any
 -- viewer can render deck cards without an extra signed-URL roundtrip; writes
 -- restricted to authenticated users uploading into their own auth-uid folder.
