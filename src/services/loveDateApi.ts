@@ -531,29 +531,40 @@ export const getProfiles = async (): Promise<Profile[]> => {
   const supabase = createSupabaseClient()
   if (supabase) {
     // Phase B4: real users now appear in the deck. Exclude self via
-    // auth_user_id (the bridge column added in B1). When unauthenticated
-    // — e.g. a guest-mode session that never created a user — there's no
-    // user id to filter on so we skip the .neq() call.
+    // auth_user_id (the bridge column added in B1). Prefer the cached
+    // session — getSession() reads in-memory state populated synchronously
+    // by sign-in, while getUser() hits the server and races with a
+    // just-completed sign-in. If we still can't resolve a uid, refuse to
+    // load the deck (returning [] is safer than showing self).
     const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    const selfUid = user?.id ?? null
+      data: { session },
+    } = await supabase.auth.getSession()
+    let selfUid = session?.user?.id ?? null
+    if (!selfUid) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      selfUid = user?.id ?? null
+    }
+    if (!selfUid) {
+      // eslint-disable-next-line no-console
+      console.warn('[getProfiles] no auth uid — refusing to load deck')
+      return []
+    }
 
     // Only show profiles that have a proper auth_user_id (i.e. owned by a real
     // signed-in user). Null auth_user_id rows are orphan/legacy data from
     // before the B1 identity bridge — they have no way to be matched/messaged.
     // Self-exclusion is unconditional: never show the viewer their own row.
-    let query = supabase
+    const query = supabase
       .from('profiles')
       .select(
         'id, name, age, city, vibe, bio, interests, palette, photos, gender, distance_km, verified, relationship_goal, zodiac, extras, is_active, auth_user_id',
       )
       .eq('is_active', true)
       .not('auth_user_id', 'is', null)
+      .neq('auth_user_id', selfUid)
       .limit(200)
-    if (selfUid) {
-      query = query.neq('auth_user_id', selfUid)
-    }
     const { data, error } = await query
 
     if (!error && Array.isArray(data) && data.length > 0) {

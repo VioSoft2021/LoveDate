@@ -43,6 +43,17 @@ const getCurrentUserId = async (): Promise<string | null> => {
     return null
   }
 
+  // Prefer the cached session — getSession() reads from the in-memory
+  // client and is populated synchronously by the sign-in call. getUser()
+  // hits the server and races with the just-completed sign-in on a fresh
+  // install, occasionally returning null before the token is accepted.
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (session?.user?.id) {
+    return session.user.id
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser()
