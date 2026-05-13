@@ -6,11 +6,6 @@ export type SettingsPayload = {
   emailNotifications: boolean
 }
 
-export type BackendChatReply = {
-  text: string
-  createdAt: number
-}
-
 type BackendMode = 'supabase' | 'local-fallback'
 
 const LOCAL_SETTINGS_KEY = 'lovedate:settings'
@@ -842,32 +837,6 @@ export const backendSavePreferences = async (payload: {
   if (error) {
     throw new Error(error.message)
   }
-}
-
-export const backendSendChatReply = async (name: string, message: string): Promise<BackendChatReply> => {
-  const reply: BackendChatReply = {
-    text: `${name} liked that: "${message.slice(0, 40)}". Want to pick a time this week?`,
-    createdAt: Date.now(),
-  }
-
-  if (!supabase) {
-    await wait(650)
-    return reply
-  }
-
-  const userId = await getCurrentUserId()
-  if (userId) {
-    await supabase.from('chat_events').insert({
-      user_id: userId,
-      match_name: name,
-      outgoing_text: message,
-      generated_reply: reply.text,
-      created_at: new Date().toISOString(),
-    })
-  }
-
-  await wait(500)
-  return reply
 }
 
 /**
