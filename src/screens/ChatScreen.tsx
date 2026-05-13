@@ -99,7 +99,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const copy = UI_TEXT[appLanguage]
 
   return (
-    <section className="chats-layout">
+    <section
+      className="chats-layout"
+      data-mobile-view={activeChatId ? 'thread' : 'list'}
+    >
       <article className="chat-list">
         <div className="chat-tools">
           <input
@@ -143,6 +146,16 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         {selectedChatProfile ? (
           <>
             <header>
+              <button
+                type="button"
+                className="chat-back-btn"
+                aria-label="Back to chats"
+                onClick={() => setActiveChatId(null)}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
               <div className="chat-header-profile">
                 <div className="chat-avatar-wrap">
                   <img

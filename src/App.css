@@ -57,6 +57,14 @@
   .chat-thread {
     border-radius: 0 0 1.2rem 1.2rem;
   }
+  /* Mobile: show only one of the two panes at a time. The data-mobile-view
+     attribute on .chats-layout is toggled by ChatScreen.tsx. */
+  .chats-layout[data-mobile-view='thread'] .chat-list {
+    display: none;
+  }
+  .chats-layout[data-mobile-view='list'] .chat-thread {
+    display: none;
+  }
   .profile-summary--enhanced {
     max-height: none;
     position: static;
@@ -1733,6 +1741,36 @@ button:disabled {
   padding: 1rem 1.25rem;
   border-bottom: 1px solid rgba(112, 130, 216, 0.34);
   background: rgba(20, 28, 68, 0.72);
+}
+
+/* Mobile-only back button in the chat thread header. Desktop hides it
+   because the chat list is always visible on the left. */
+.chat-back-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid rgba(112, 130, 216, 0.34);
+  border-radius: 999px;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  color: rgba(229, 239, 255, 0.92);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.chat-back-btn:hover {
+  border-color: rgba(133, 225, 248, 0.76);
+  background: rgba(27, 38, 90, 0.62);
+}
+.chat-back-btn svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+@media (max-width: 900px) {
+  .chat-back-btn {
+    display: inline-flex;
+  }
 }
 
 .chat-compatibility-panel {
@@ -4745,6 +4783,20 @@ details.profile-settings.settings-card[open] > summary {
 
   .chat-date-planner {
     padding: 0.52rem 0.9rem 0.65rem;
+  }
+
+  /* Stack the head row vertically so button labels don't truncate
+     when fighting the section title for horizontal space. */
+  .chat-ai-coach-head,
+  .chat-date-planner-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
+  }
+  .chat-ai-coach-head > button,
+  .chat-date-planner-head > button {
+    width: 100%;
+    white-space: normal;
   }
 
   .chat-date-plan-top strong {
