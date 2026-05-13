@@ -2488,7 +2488,7 @@ function App() {
   }
 
   const handleExitApp = () => {
-    handleSignOut()
+    void handleSignOut()
     void import('@capacitor/app')
       .then(({ App: CapacitorApp }) => CapacitorApp.exitApp())
       .catch(() => {
@@ -2496,34 +2496,35 @@ function App() {
       })
   }
 
-  const handleSignOut = () => {
-    void backendSignOut()
-      .catch(() => {
-        pushToast('Sign out sync failed, local session cleared anyway.', 'error')
-      })
-      .finally(() => {
-        // Wipe every self-profile cache (current + any leftovers) so the
-        // next person on this device cannot read profile data via devtools.
-        // Trades instant-render on next sign-in (cloud fetch instead) for
-        // a hard zero-leak guarantee.
-        purgeAllSelfProfileCaches()
-        setIsAuthenticated(false)
-        setUserEmail('')
-        setLoginPassword('')
-        setActiveMatch(null)
-        setActiveChatId(null)
-        setCallState({
-          active: false,
-          type: null,
-          status: 'connecting',
-          startedAt: 0,
-          targetProfileId: null,
-          muted: false,
-          cameraOff: false,
-          roomId: null,
-          roomUrl: null,
-        })
-      })
+  const handleSignOut = async () => {
+    // Await the cloud sign-out before flipping local state so the next
+    // sign-in can't race with the previous session's signOut completing.
+    try {
+      await backendSignOut()
+    } catch {
+      pushToast('Sign out sync failed, local session cleared anyway.', 'error')
+    }
+    // Wipe every self-profile cache (current + any leftovers) so the
+    // next person on this device cannot read profile data via devtools.
+    // Trades instant-render on next sign-in (cloud fetch instead) for
+    // a hard zero-leak guarantee.
+    purgeAllSelfProfileCaches()
+    setIsAuthenticated(false)
+    setUserEmail('')
+    setLoginPassword('')
+    setActiveMatch(null)
+    setActiveChatId(null)
+    setCallState({
+      active: false,
+      type: null,
+      status: 'connecting',
+      startedAt: 0,
+      targetProfileId: null,
+      muted: false,
+      cameraOff: false,
+      roomId: null,
+      roomUrl: null,
+    })
   }
 
   const socialConnectedCount = useMemo(
