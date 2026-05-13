@@ -2918,8 +2918,8 @@ function App() {
       const last = messages[messages.length - 1]
       return {
         profile,
-        lastText: last.text,
-        lastTime: formatShortTime(last.createdAt),
+        lastText: last?.text ?? '',
+        lastTime: last ? formatShortTime(last.createdAt) : '',
         unread: unreadChats[profile.id] ?? 0,
       }
     })
