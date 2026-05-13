@@ -4,6 +4,7 @@ import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import './App.css'
 import { getProfiles, resolveMatch, type Profile } from './services/loveDateApi'
+import { backendInvokeIcebreaker } from './services/ai/icebreaker'
 import { FilterScreen } from './components/FilterScreen'
 import { EmbeddedCallStage } from './components/EmbeddedCallStage'
 import { Logo } from './components/Logo'
@@ -1698,26 +1699,26 @@ function App() {
       return
     }
 
+    const target = selectedChatProfile
     setAiCoachLoading(true)
-    window.setTimeout(() => {
-      const thread = chatThreads[selectedChatProfile.id] ?? []
+
+    const buildTemplatedFallback = (): string[] => {
+      const thread = chatThreads[target.id] ?? []
       const lastThem = [...thread].reverse().find((message) => message.sender === 'them')
-      const interest = selectedChatProfile.interests[0] ?? 'coffee'
-      const interestTwo = selectedChatProfile.interests[1] ?? 'music'
-      const chemistry = getChemistryInsights(selectedChatProfile).chemistryScore
-      const localTypeCode = personalityCodeFromAnswers(selectedChatProfile.personalityAnswers)
+      const interest = target.interests[0] ?? 'coffee'
+      const interestTwo = target.interests[1] ?? 'music'
+      const chemistry = getChemistryInsights(target).chemistryScore
+      const localTypeCode = personalityCodeFromAnswers(target.personalityAnswers)
       const typeLabel =
         PERSONALITY_TYPE_GUIDE.find((type) => type.code === localTypeCode)?.label ?? localTypeCode
-      const zodiac = selectedChatProfile.zodiac
+      const zodiac = target.zodiac
 
       const suggestions: string[] = []
-
       if (lastThem?.text?.includes('?')) {
         suggestions.push(
           `Great question. I’d love to tell you more - and I’m curious about your take too. What’s your favorite ${interest} spot lately?`,
         )
       }
-
       suggestions.push(
         `You seem like a ${typeLabel.toLowerCase()} and I like that energy. Want to do a quick ${interest} plan this week and see how we vibe live?`,
       )
@@ -1727,14 +1728,56 @@ function App() {
       suggestions.push(
         `Okay ${zodiac} energy detected. I vote we keep this fun: one playful question each and the loser plans the first date.`,
       )
+      return suggestions.slice(0, 3)
+    }
 
-      setAiCoachSuggestions(suggestions.slice(0, 3))
-      setAiCoachLoading(false)
-    }, 450)
+    void (async () => {
+      try {
+        const thread = chatThreads[target.id] ?? []
+        const recent = thread
+          .slice(-10)
+          .map((message) => ({
+            sender: message.sender,
+            text: message.text,
+          }))
+        const aiSuggestions = await backendInvokeIcebreaker({
+          selfProfile: {
+            name: selfProfile.name,
+            age: selfProfile.age,
+            city: selfProfile.city,
+            vibe: selfProfile.vibe,
+            bio: selfProfile.bio,
+            interests: selfProfile.interests,
+            relationshipGoal: selfProfile.relationshipIntent,
+            zodiac: selfProfile.zodiac,
+          },
+          otherProfile: {
+            id: target.id,
+            name: target.name,
+            age: target.age,
+            city: target.city,
+            vibe: target.vibe,
+            bio: target.bio,
+            interests: target.interests,
+            relationshipGoal: target.relationshipGoal,
+            zodiac: target.zodiac,
+          },
+          chatExcerpt: recent,
+        })
+        const next = aiSuggestions && aiSuggestions.length > 0
+          ? aiSuggestions.slice(0, 3)
+          : buildTemplatedFallback()
+        setAiCoachSuggestions(next)
+      } catch {
+        setAiCoachSuggestions(buildTemplatedFallback())
+      } finally {
+        setAiCoachLoading(false)
+      }
+    })()
   }, [
     selectedChatProfile,
     chatThreads,
-    selfProfile.name,
+    selfProfile,
     getChemistryInsights,
   ])
 
