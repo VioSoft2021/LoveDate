@@ -97,6 +97,20 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   openProfileDetail,
 }) => {
   const copy = UI_TEXT[appLanguage]
+  const composerInputRef = React.useRef<HTMLInputElement | null>(null)
+
+  const applyDraftAndFocus = (text: string) => {
+    setChatDraft(text)
+    // After React commits the new draft, scroll the composer into view
+    // and focus it so the user sees the tapped suggestion landed.
+    window.requestAnimationFrame(() => {
+      const node = composerInputRef.current
+      if (node) {
+        node.scrollIntoView({ block: 'center', behavior: 'smooth' })
+        node.focus()
+      }
+    })
+  }
 
   return (
     <section
@@ -232,7 +246,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                       key={`${index}-${suggestion.slice(0, 18)}`}
                       type="button"
                       className="chat-ai-suggestion"
-                      onClick={() => setChatDraft(suggestion)}
+                      onClick={() => applyDraftAndFocus(suggestion)}
                     >
                       {suggestion}
                     </button>
@@ -269,7 +283,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                       <button
                         type="button"
                         className="mini-btn"
-                        onClick={() => setChatDraft(plan.message)}
+                        onClick={() => applyDraftAndFocus(plan.message)}
                       >
                         {copy.chats.useMessage}
                       </button>
@@ -426,6 +440,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
               }}
             >
               <input
+                ref={composerInputRef}
                 type="text"
                 placeholder={copy.chats.typeMessage}
                 value={chatDraft}
