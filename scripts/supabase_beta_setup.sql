@@ -47,13 +47,14 @@ create table if not exists public.user_settings (
   user_id uuid primary key references auth.users (id) on delete cascade,
   push_notifications boolean not null default true,
   email_notifications boolean not null default true,
-  private_mode boolean not null default false,
   updated_at timestamptz not null default now()
 );
 
--- Added in Commit A of the private/incognito work. Safe to re-run.
+-- Private/Incognito toggles removed 2026-05-13. Drop the columns so existing
+-- deployments stop carrying dead state. Safe to re-run.
 alter table public.user_settings
-  add column if not exists incognito_mode boolean not null default false;
+  drop column if exists private_mode,
+  drop column if exists incognito_mode;
 
 -- Discovery v1 / Phase B1 — identity bridge from auth.users to public.profiles.
 -- A null auth_user_id means a seeded mock profile; a non-null value points
@@ -294,106 +295,11 @@ grant execute on function public.sync_discoverable_profile(jsonb) to authenticat
 -- ids via the SQL editor.
 update public.profiles set is_active = false where auth_user_id is null;
 
--- Phase C1 — Private/Incognito visibility gates.
---
--- The product surfaces two privacy toggles in Settings: private_mode and
--- incognito_mode (user_settings columns). Until now the UI flipped these
--- flags but no read path respected them, so a user who enabled "Private"
--- still appeared in every deck. This block fixes that.
---
--- The check happens via a SECURITY DEFINER helper because it has to read
--- the candidate owner's user_settings row, and the user_settings RLS
--- policy only lets each user read their own. Running the check under the
--- function owner's privileges (which bypass RLS) avoids weakening the
--- user_settings policy.
---
--- Semantics:
---   - private_mode on the owner: row visible only if the *viewer* has
---     already right-swiped this owner. (The viewer must already know the
---     owner exists from some other surface — a match list, a search by
---     name later, etc.)
---   - incognito_mode on the owner: row visible only if the *owner* has
---     already right-swiped a profile that belongs to the viewer. The
---     owner curates who can see them.
---   - Owner can always see their own row.
---   - Anonymous viewers only see fully-public profiles (neither flag).
-create or replace function public.is_profile_visible_to_me(p_profile_id bigint)
-returns boolean
-language plpgsql
-security definer
-stable
-set search_path = public
-as $$
-declare
-  v_viewer uuid := auth.uid();
-  v_owner uuid;
-  v_private boolean;
-  v_incognito boolean;
-begin
-  select auth_user_id into v_owner
-  from public.profiles
-  where id = p_profile_id;
-
-  if v_owner is null then
-    return false;
-  end if;
-
-  if v_viewer is not null and v_viewer = v_owner then
-    return true;
-  end if;
-
-  select private_mode, incognito_mode
-    into v_private, v_incognito
-  from public.user_settings
-  where user_id = v_owner;
-
-  v_private := coalesce(v_private, false);
-  v_incognito := coalesce(v_incognito, false);
-
-  if not v_private and not v_incognito then
-    return true;
-  end if;
-
-  if v_viewer is null then
-    return false;
-  end if;
-
-  if v_private and exists (
-    select 1 from public.swipes
-    where liker_id = v_viewer
-      and target_id = p_profile_id
-      and direction = 'right'
-  ) then
-    return true;
-  end if;
-
-  if v_incognito and exists (
-    select 1 from public.swipes s
-    join public.profiles p on p.id = s.target_id
-    where s.liker_id = v_owner
-      and p.auth_user_id = v_viewer
-      and s.direction = 'right'
-  ) then
-    return true;
-  end if;
-
-  return false;
-end;
-$$;
-
-revoke all on function public.is_profile_visible_to_me(bigint) from public;
-grant execute on function public.is_profile_visible_to_me(bigint) to anon, authenticated;
-
-drop policy if exists "profiles_public_read" on public.profiles;
-create policy "profiles_public_read"
-on public.profiles
-for select
-to anon, authenticated
-using (
-  is_active = true
-  and auth_user_id is not null
-  and public.is_profile_visible_to_me(id)
-);
+-- Private/Incognito toggles removed 2026-05-13. The visibility helper and
+-- its RLS policy override are gone; the simple `profiles_public_read using
+-- (is_active = true)` policy defined earlier in this file is the final
+-- read gate. Drop the helper if a previous run created it.
+drop function if exists public.is_profile_visible_to_me(bigint);
 
 drop policy if exists "user_settings_owner_select" on public.user_settings;
 create policy "user_settings_owner_select"

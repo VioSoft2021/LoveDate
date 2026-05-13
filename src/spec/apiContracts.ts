@@ -72,7 +72,6 @@ export type FeatureFlagsPayload = {
   aiIcebreakersEnabled: boolean
   safetyCenterEnabled: boolean
   hiddenWordsEnabled: boolean
-  incognitoModeEnabled: boolean
 }
 
 export type ApiContracts = {
@@ -129,8 +128,6 @@ export type ApiContracts = {
     request: {
       pushNotifications: boolean
       emailNotifications: boolean
-      privateMode: boolean
-      incognitoMode: boolean
       readReceipts: boolean
     }
     response: ApiEnvelope<{ saved: true }>

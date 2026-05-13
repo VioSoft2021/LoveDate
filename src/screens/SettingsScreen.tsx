@@ -135,28 +135,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             onChange={(event) => handleSettingsToggle('emailNotifications', event.target.checked)}
           />
         </label>
-        <label className="setting-row">
-          {copy.settings.privateMode}
-          <input
-            type="checkbox"
-            checked={settings.privateMode}
-            onChange={(event) => handleSettingsToggle('privateMode', event.target.checked)}
-          />
-        </label>
         <p className="soft">
           {formatUiText(copy.settings.syncLine, {
             settings: formatStatusLabel(settingsSaveStatus),
             preferences: formatStatusLabel(preferenceSaveStatus),
           })}
         </p>
-        <label className="setting-row">
-          {copy.settings.incognitoMode}
-          <input
-            type="checkbox"
-            checked={settings.incognitoMode}
-            onChange={(event) => handleSettingsToggle('incognitoMode', event.target.checked)}
-          />
-        </label>
         <label className="setting-row setting-row--select">
           {copy.settings.appLanguage}
           <select

@@ -4,8 +4,6 @@ import { isAllowedEmailDomain, runtimeConfig } from './runtimeConfig'
 export type SettingsPayload = {
   pushNotifications: boolean
   emailNotifications: boolean
-  privateMode: boolean
-  incognitoMode: boolean
 }
 
 export type BackendChatReply = {
@@ -754,8 +752,6 @@ export const backendSaveSettings = async (settings: SettingsPayload): Promise<vo
     user_id: userId,
     push_notifications: settings.pushNotifications,
     email_notifications: settings.emailNotifications,
-    private_mode: settings.privateMode,
-    incognito_mode: settings.incognitoMode,
     updated_at: new Date().toISOString(),
   })
 
@@ -773,16 +769,13 @@ const readLocalSettings = (): SettingsPayload | null => {
     const parsed = JSON.parse(raw) as Partial<SettingsPayload>
     if (
       typeof parsed.pushNotifications !== 'boolean' ||
-      typeof parsed.emailNotifications !== 'boolean' ||
-      typeof parsed.privateMode !== 'boolean'
+      typeof parsed.emailNotifications !== 'boolean'
     ) {
       return null
     }
     return {
       pushNotifications: parsed.pushNotifications,
       emailNotifications: parsed.emailNotifications,
-      privateMode: parsed.privateMode,
-      incognitoMode: typeof parsed.incognitoMode === 'boolean' ? parsed.incognitoMode : false,
     }
   } catch {
     return null
@@ -803,7 +796,7 @@ export const backendLoadSettings = async (): Promise<SettingsPayload | null> => 
 
   const { data, error } = await supabase
     .from('user_settings')
-    .select('push_notifications, email_notifications, private_mode, incognito_mode')
+    .select('push_notifications, email_notifications')
     .eq('user_id', userId)
     .maybeSingle()
 
@@ -814,8 +807,6 @@ export const backendLoadSettings = async (): Promise<SettingsPayload | null> => 
   const cloud: SettingsPayload = {
     pushNotifications: data.push_notifications,
     emailNotifications: data.email_notifications,
-    privateMode: data.private_mode,
-    incognitoMode: data.incognito_mode ?? false,
   }
   persistLocal(LOCAL_SETTINGS_KEY, cloud)
   return cloud

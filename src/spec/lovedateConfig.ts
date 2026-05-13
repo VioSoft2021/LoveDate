@@ -133,5 +133,4 @@ export const PRODUCT_FEATURE_FLAGS = {
   aiIcebreakersEnabled: true,
   safetyCenterEnabled: true,
   hiddenWordsEnabled: true,
-  incognitoModeEnabled: true,
 } as const

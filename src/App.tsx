@@ -382,8 +382,6 @@ function App() {
   const [settings, setSettings] = useState<SettingsPayload>({
     pushNotifications: true,
     emailNotifications: false,
-    privateMode: false,
-    incognitoMode: false,
   })
   const [settingsSaveStatus, setSettingsSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [preferenceSaveStatus, setPreferenceSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
