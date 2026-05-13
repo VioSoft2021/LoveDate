@@ -620,6 +620,101 @@ to authenticated
 using (public.is_admin())
 with check (public.is_admin());
 
+-- Phase C3 — Chat to cloud.
+--
+-- Until now, chatThreads in App.tsx lived in localStorage; two friends on
+-- two phones could never see each other's messages. This block adds a real
+-- messaging primitive.
+--
+-- Pair identity: messages travel between auth.uid() (sender_id) and the
+-- other user's auth.uid() (recipient_id). RLS lets either participant
+-- read; only the sender can insert, and only if they are matched (both
+-- right-swiped each other in public.swipes).
+--
+-- Realtime: chat_messages is added to the supabase_realtime publication so
+-- the client can subscribe to inserts.
+create table if not exists public.chat_messages (
+  id uuid primary key default gen_random_uuid(),
+  sender_id uuid not null references auth.users (id) on delete cascade,
+  recipient_id uuid not null references auth.users (id) on delete cascade,
+  text text not null default '',
+  attachment jsonb,
+  created_at timestamptz not null default now(),
+  check (sender_id <> recipient_id)
+);
+
+create index if not exists chat_messages_recipient_created_idx
+  on public.chat_messages (recipient_id, created_at desc);
+create index if not exists chat_messages_sender_created_idx
+  on public.chat_messages (sender_id, created_at desc);
+
+alter table public.chat_messages enable row level security;
+
+-- Match check: both users have right-swiped each other's profile row.
+-- SECURITY DEFINER so it can read the swipes table (which is owner-RLS'd
+-- to liker_id) for both sides of the pair.
+create or replace function public.users_are_matched(user_a uuid, user_b uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.swipes s
+    join public.profiles p on p.id = s.target_id
+    where s.liker_id = user_a
+      and s.direction = 'right'
+      and p.auth_user_id = user_b
+  ) and exists (
+    select 1 from public.swipes s
+    join public.profiles p on p.id = s.target_id
+    where s.liker_id = user_b
+      and s.direction = 'right'
+      and p.auth_user_id = user_a
+  );
+$$;
+
+revoke all on function public.users_are_matched(uuid, uuid) from public;
+grant execute on function public.users_are_matched(uuid, uuid) to authenticated;
+
+drop policy if exists "chat_messages_participant_select" on public.chat_messages;
+create policy "chat_messages_participant_select"
+on public.chat_messages
+for select
+to authenticated
+using (
+  auth.uid() = sender_id
+  or auth.uid() = recipient_id
+);
+
+drop policy if exists "chat_messages_sender_insert" on public.chat_messages;
+create policy "chat_messages_sender_insert"
+on public.chat_messages
+for insert
+to authenticated
+with check (
+  auth.uid() = sender_id
+  and public.users_are_matched(sender_id, recipient_id)
+);
+
+-- Add chat_messages to the realtime publication so the client can subscribe.
+-- Wrapped in a check because supabase_realtime is created by the platform
+-- and may not exist in a fresh self-hosted setup.
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime'
+        and schemaname = 'public'
+        and tablename = 'chat_messages'
+    ) then
+      execute 'alter publication supabase_realtime add table public.chat_messages';
+    end if;
+  end if;
+end$$;
+
 -- Phase B2: Supabase Storage bucket for profile photos. Public read so any
 -- viewer can render deck cards without an extra signed-URL roundtrip; writes
 -- restricted to authenticated users uploading into their own auth-uid folder.

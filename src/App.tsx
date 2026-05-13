@@ -30,6 +30,10 @@ import {
   backendBackfillBlocks,
   backendRepairDiscoverableProfile,
   backendSubmitReport,
+  backendRecordSwipe,
+  backendSendChatMessage,
+  backendLoadChatHistory,
+  backendSubscribeToInbox,
   backendLoadBlockedProfileIds,
   backendLoadSettings,
   backendSavePreferences,
@@ -38,7 +42,6 @@ import {
   backendUploadProfilePhoto,
   purgeAllSelfProfileCaches,
   purgeOtherSelfProfileCaches,
-  backendSendChatReply,
   backendSignOut,
   backendValidateInviteCode,
   getBackendMode,
@@ -186,7 +189,6 @@ export type { Filters }
 
 // Storage keys live in src/persistence/keys.ts (imported via the persistence barrel).
 const CHAT_RENDER_WINDOW = 120
-const APP_BOOT_TS = Date.now()
 
 // CIRCLE_SEED moved to src/constants/circles.ts.
 
@@ -225,15 +227,6 @@ const APP_BOOT_TS = Date.now()
 // loadImageFromSource, readFileAsDataUrl now live in src/utils/.
 
 // analyzePhoto, renderEditedPhoto now live in src/utils/image.ts.
-
-const seedChat = (selfName: string): ChatMessage[] => [
-  {
-    id: APP_BOOT_TS,
-    sender: 'them',
-    text: `Hey! Nice to match with you. Up for a chat, ${selfName}?`,
-    createdAt: APP_BOOT_TS,
-  },
-]
 
 function App() {
   // Boot-time orphan cleanup: remove the legacy global self-profile key
@@ -438,6 +431,9 @@ function App() {
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
   const preserveScrollOnExpandRef = useRef<{ top: number; height: number } | null>(null)
   const shouldStickToBottomRef = useRef(true)
+  const allProfilesRef = useRef<Profile[]>([])
+  const screenRef = useRef<AppScreen>('login')
+  const activeChatIdRef = useRef<number | null>(null)
   const studioFrameRef = useRef<HTMLDivElement | null>(null)
   const cropDragStartRef = useRef<{ x: number; y: number } | null>(null)
   const cropResizeStartRef = useRef<{
@@ -1121,6 +1117,106 @@ function App() {
     void loadProfiles()
   }, [loadProfiles])
 
+  useEffect(() => {
+    allProfilesRef.current = allProfiles
+  }, [allProfiles])
+
+  useEffect(() => {
+    screenRef.current = screen
+  }, [screen])
+
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId
+  }, [activeChatId])
+
+  // Phase C3 — subscribe to inbox while authenticated. Realtime fires for
+  // every message where the current user is the recipient; the callback
+  // looks up the sender's local profile.id and appends to the thread.
+  // dedups by cloudId so a history reload + realtime arrival don't double.
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return
+    }
+    const unsubscribe = backendSubscribeToInbox((incoming) => {
+      const senderProfile = allProfilesRef.current.find(
+        (profile) => profile.authUserId === incoming.senderId,
+      )
+      if (!senderProfile) {
+        return
+      }
+      setChatThreads((current) => {
+        const thread = current[senderProfile.id] ?? []
+        if (thread.some((message) => message.cloudId === incoming.id)) {
+          return current
+        }
+        return {
+          ...current,
+          [senderProfile.id]: [
+            ...thread,
+            {
+              id: Date.now() + Math.floor(Math.random() * 1000),
+              cloudId: incoming.id,
+              sender: 'them',
+              text: incoming.text,
+              createdAt: incoming.createdAt,
+              attachment: incoming.attachment ?? undefined,
+              status: 'read',
+            },
+          ],
+        }
+      })
+      const isOpen =
+        screenRef.current === 'chats' && activeChatIdRef.current === senderProfile.id
+      if (!isOpen) {
+        setUnreadChats((current) => ({
+          ...current,
+          [senderProfile.id]: (current[senderProfile.id] ?? 0) + 1,
+        }))
+        pushNotification({
+          title: `${senderProfile.name} sent a message`,
+          body:
+            incoming.text ||
+            (incoming.attachment ? `Shared a ${incoming.attachment.kind}` : ''),
+          category: 'message',
+        })
+      }
+    })
+    return unsubscribe
+  }, [isAuthenticated, pushNotification])
+
+  // Phase C3 — load cloud history for the open chat. Replaces the local
+  // thread for that profile so messages stay consistent across devices.
+  useEffect(() => {
+    if (!isAuthenticated || activeChatId == null) {
+      return
+    }
+    const target = allProfilesRef.current.find((profile) => profile.id === activeChatId)
+    const recipientAuthId = target?.authUserId
+    if (!recipientAuthId) {
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      const history = await backendLoadChatHistory(recipientAuthId)
+      if (cancelled) {
+        return
+      }
+      const mapped: ChatMessage[] = history.map((message) => ({
+        id: Date.now() + Math.floor(Math.random() * 1000000),
+        cloudId: message.id,
+        sender: message.sender,
+        text: message.text,
+        createdAt: message.createdAt,
+        attachment: message.attachment ?? undefined,
+        status: 'read',
+      }))
+      setChatThreads((current) => ({ ...current, [activeChatId]: mapped }))
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated, activeChatId])
+
   const profileById = useMemo(() => {
     const map = new Map<number, Profile>()
     for (const profile of allProfiles) {
@@ -1405,6 +1501,7 @@ function App() {
     (profile: Profile, direction: SwipeDirection, intent: SwipeIntent, wasMatch: boolean) => {
       addSwipeHistory(profile.id, direction, wasMatch)
       setSwipeLog((current) => [...current, { profileId: profile.id, direction, intent, wasMatch }])
+      void backendRecordSwipe(profile.id, direction)
 
       if (wasMatch) {
         setActiveMatch(profile)
@@ -1414,7 +1511,7 @@ function App() {
           }
           return {
             ...current,
-            [profile.id]: seedChat(selfProfile.name),
+            [profile.id]: [],
           }
         })
 
@@ -1542,6 +1639,7 @@ function App() {
             ? 'Voice message'
             : ''
     const composedText = text.length > 0 ? text : attachmentLabel
+    const attachmentForSend = chatAttachmentDraft ?? undefined
 
     setChatThreads((current) => {
       const currentThread = current[selectedChatProfile.id] ?? []
@@ -1554,7 +1652,7 @@ function App() {
             sender: 'me',
             text: composedText,
             createdAt: Date.now(),
-            attachment: chatAttachmentDraft ?? undefined,
+            attachment: attachmentForSend,
             status: 'sending',
           },
         ],
@@ -1563,65 +1661,37 @@ function App() {
     setChatDraft('')
     setChatAttachmentDraft(null)
 
-    const backendPrompt =
-      chatAttachmentDraft && text.length === 0 ? `Shared a ${chatAttachmentDraft.kind}.` : composedText
+    const recipientAuthId = selectedChatProfile.authUserId
+    if (!recipientAuthId) {
+      pushToast('Cannot send to this profile yet (no linked account).', 'error')
+      return
+    }
+    const targetProfileId = selectedChatProfile.id
 
-    void backendSendChatReply(selectedChatProfile.name, backendPrompt)
-      .then((reply) => {
+    void backendSendChatMessage({
+      recipientId: recipientAuthId,
+      text: composedText,
+      attachment: attachmentForSend ?? null,
+    })
+      .then((sent) => {
+        if (!sent) {
+          pushToast('Message did not reach the cloud. Try again.', 'error')
+          return
+        }
         setChatThreads((current) => {
-          const currentThread = current[selectedChatProfile.id] ?? []
-          const withDelivered = currentThread.map((message) =>
-            message.id === baseId ? { ...message, status: 'sent' as const } : message,
-          )
+          const currentThread = current[targetProfileId] ?? []
           return {
             ...current,
-            [selectedChatProfile.id]: [
-              ...withDelivered,
-              {
-                id: baseId + 1,
-                sender: 'them',
-                text: reply.text,
-                createdAt: reply.createdAt,
-                status: 'read',
-              },
-            ],
+            [targetProfileId]: currentThread.map((message) =>
+              message.id === baseId
+                ? { ...message, status: 'sent' as const, cloudId: sent.id }
+                : message,
+            ),
           }
-        })
-
-        const chatIsOpen = screen === 'chats' && activeChatId === selectedChatProfile.id
-        if (!chatIsOpen) {
-          setUnreadChats((current) => ({
-            ...current,
-            [selectedChatProfile.id]: (current[selectedChatProfile.id] ?? 0) + 1,
-          }))
-        }
-        pushNotification({
-          title: `${selectedChatProfile.name} sent a message`,
-          body: reply.text,
-          category: 'message',
         })
       })
       .catch(() => {
-        pushToast('Message failed to sync. Retrying locally.', 'error')
-        setChatThreads((current) => {
-          const currentThread = current[selectedChatProfile.id] ?? []
-          const withDelivered = currentThread.map((message) =>
-            message.id === baseId ? { ...message, status: 'sent' as const } : message,
-          )
-          return {
-            ...current,
-            [selectedChatProfile.id]: [
-              ...withDelivered,
-              {
-                id: baseId + 1,
-                sender: 'them',
-                text: 'Connection hiccup. Message me again in a sec?',
-                createdAt: Date.now(),
-                status: 'read',
-              },
-            ],
-          }
-        })
+        pushToast('Message failed to sync.', 'error')
       })
   }
 
@@ -1632,7 +1702,7 @@ function App() {
 
     setAiCoachLoading(true)
     window.setTimeout(() => {
-      const thread = chatThreads[selectedChatProfile.id] ?? seedChat(selfProfile.name)
+      const thread = chatThreads[selectedChatProfile.id] ?? []
       const lastThem = [...thread].reverse().find((message) => message.sender === 'them')
       const interest = selectedChatProfile.interests[0] ?? 'coffee'
       const interestTwo = selectedChatProfile.interests[1] ?? 'music'
@@ -2844,7 +2914,7 @@ function App() {
 
   const chatPreviews = useMemo(() => {
     return matchedProfiles.map((profile) => {
-      const messages = chatThreads[profile.id] ?? seedChat(selfProfile.name)
+      const messages = chatThreads[profile.id] ?? []
       const last = messages[messages.length - 1]
       return {
         profile,
@@ -2873,7 +2943,7 @@ function App() {
     if (!selectedChatProfile) {
       return []
     }
-    const messages = chatThreads[selectedChatProfile.id] ?? seedChat(selfProfile.name)
+    const messages = chatThreads[selectedChatProfile.id] ?? []
     return showFullChatHistory ? messages : messages.slice(-CHAT_RENDER_WINDOW)
   }, [selectedChatProfile, chatThreads, selfProfile.name, showFullChatHistory])
 
@@ -2888,7 +2958,7 @@ function App() {
     if (!selectedChatProfile || showFullChatHistory) {
       return 0
     }
-    const messages = chatThreads[selectedChatProfile.id] ?? seedChat(selfProfile.name)
+    const messages = chatThreads[selectedChatProfile.id] ?? []
     return Math.max(0, messages.length - CHAT_RENDER_WINDOW)
   }, [selectedChatProfile, chatThreads, selfProfile.name, showFullChatHistory])
 

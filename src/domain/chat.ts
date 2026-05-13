@@ -1,5 +1,6 @@
 export type ChatMessage = {
   id: number
+  cloudId?: string
   sender: 'me' | 'them'
   text: string
   createdAt: number

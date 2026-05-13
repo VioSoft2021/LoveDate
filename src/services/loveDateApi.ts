@@ -3,6 +3,7 @@ import { generateAnswersFromSeed, sanitizeAnswers, type PersonalityAnswer } from
 
 export type Profile = {
   id: number
+  authUserId: string | null
   name: string
   age: number
   city: string
@@ -21,7 +22,7 @@ export type Profile = {
 
 type SeedProfile = Omit<
   Profile,
-  'gender' | 'distanceKm' | 'verified' | 'relationshipGoal' | 'personalityAnswers'
+  'authUserId' | 'gender' | 'distanceKm' | 'verified' | 'relationshipGoal' | 'personalityAnswers'
 >
 
 const PROFILE_FIXTURE: SeedProfile[] = [
@@ -510,6 +511,7 @@ const ENRICHED_PROFILES: Profile[] = PROFILE_FIXTURE.map((profile, index) => {
 
   return {
     ...profile,
+    authUserId: null,
     photos: pickGenderPhotos(gender, index),
     gender,
     distanceKm: 2 + ((index * 7) % 58),
@@ -593,6 +595,7 @@ export const getProfiles = async (): Promise<Profile[]> => {
 
           return {
             id: Number(row.id),
+            authUserId: row.auth_user_id ? String(row.auth_user_id) : null,
             name: String(row.name ?? 'Unknown'),
             age: Number(row.age ?? 25),
             city: String(row.city ?? 'City'),
