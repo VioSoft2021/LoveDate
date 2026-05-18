@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import './App.css'
-import { getProfiles, resolveMatch, type Profile } from './services/loveDateApi'
+import { getMyMatches, getProfiles, resolveMatch, type Profile } from './services/loveDateApi'
 import { backendInvokeIcebreaker } from './services/ai/icebreaker'
 import { FilterScreen } from './components/FilterScreen'
 import { EmbeddedCallStage } from './components/EmbeddedCallStage'
@@ -1115,6 +1115,57 @@ function App() {
   useEffect(() => {
     void loadProfiles()
   }, [loadProfiles])
+
+  // Cloud-backed match list. Run on every authed mount so matches survive
+  // reinstall — the local history state starts empty after a wipe, but the
+  // cloud knows both sides right-swiped. Merge the returned profiles into
+  // allProfiles (deck filter excludes already-swiped, so matches wouldn't
+  // be there otherwise) and into history.matchIds. Seed empty chat threads
+  // for any match that doesn't already have one.
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      const matches = await getMyMatches()
+      if (cancelled || matches.length === 0) {
+        return
+      }
+      const normalized = matches.map(normalizeProfilePhotos)
+      setAllProfiles((current) => {
+        const byId = new Map<number, Profile>(current.map((p) => [p.id, p]))
+        for (const m of normalized) {
+          if (!byId.has(m.id)) {
+            byId.set(m.id, m)
+          }
+        }
+        return Array.from(byId.values())
+      })
+      setHistory((current) => {
+        const existing = new Set(current.matchIds)
+        const merged = [...current.matchIds]
+        for (const m of normalized) {
+          if (!existing.has(m.id)) {
+            merged.push(m.id)
+          }
+        }
+        return { ...current, matchIds: merged }
+      })
+      setChatThreads((current) => {
+        const next = { ...current }
+        for (const m of normalized) {
+          if (!(m.id in next)) {
+            next[m.id] = []
+          }
+        }
+        return next
+      })
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated])
 
   useEffect(() => {
     allProfilesRef.current = allProfiles

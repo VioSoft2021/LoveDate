@@ -602,6 +602,43 @@ begin
   end if;
 end$$;
 
+-- Cloud-backed match list. Returns the full discoverable profile rows for
+-- every user the caller is mutually matched with (both sides right-swiped).
+-- SECURITY DEFINER so it can read swipes rows for both directions of the
+-- pair regardless of the swipes_owner_select policy.
+--
+-- Solves the post-reinstall "I have no matches" problem: matches lived in
+-- localStorage and disappeared after a wipe even though the cloud knew
+-- both swipes existed.
+create or replace function public.get_my_matches()
+returns setof public.profiles
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p.*
+  from public.profiles p
+  where p.auth_user_id is not null
+    and p.auth_user_id <> auth.uid()
+    and exists (
+      select 1 from public.swipes mine
+      where mine.liker_id = auth.uid()
+        and mine.target_id = p.id
+        and mine.direction = 'right'
+    )
+    and exists (
+      select 1 from public.swipes theirs
+      join public.profiles me on me.id = theirs.target_id
+      where theirs.liker_id = p.auth_user_id
+        and theirs.direction = 'right'
+        and me.auth_user_id = auth.uid()
+    );
+$$;
+
+revoke all on function public.get_my_matches() from public;
+grant execute on function public.get_my_matches() to authenticated;
+
 -- Phase B2: Supabase Storage bucket for profile photos. Public read so any
 -- viewer can render deck cards without an extra signed-URL roundtrip; writes
 -- restricted to authenticated users uploading into their own auth-uid folder.

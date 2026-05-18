@@ -526,6 +526,61 @@ const wait = (ms: number): Promise<void> =>
     window.setTimeout(resolve, ms)
   })
 
+const mapProfileRow = (row: Record<string, unknown>): Profile | null => {
+  const id = Number(row.id)
+  if (!Number.isFinite(id)) return null
+  const genderRaw = String(row.gender ?? 'Woman')
+  const relationshipRaw = String(row.relationship_goal ?? 'Long-term')
+  const gender: Profile['gender'] =
+    genderRaw === 'Man' || genderRaw === 'Non-binary' ? genderRaw : 'Woman'
+  const relationshipGoal: Profile['relationshipGoal'] =
+    relationshipRaw === 'Short-term' ||
+    relationshipRaw === 'Friends' ||
+    relationshipRaw === 'Figuring it out'
+      ? relationshipRaw
+      : 'Long-term'
+  const photos = Array.isArray(row.photos)
+    ? (row.photos as unknown[])
+        .filter((value): value is string => typeof value === 'string' && value.length > 0)
+        .slice(0, 9)
+        .map(toHighResPhoto)
+    : []
+  const interests = Array.isArray(row.interests)
+    ? (row.interests as unknown[])
+        .filter((value): value is string => typeof value === 'string')
+        .slice(0, 6)
+    : []
+  const palette: [string, string] =
+    Array.isArray(row.palette) && row.palette.length >= 2
+      ? [String((row.palette as unknown[])[0]), String((row.palette as unknown[])[1])]
+      : ['#141937', '#252d5c']
+  const extras =
+    row.extras && typeof row.extras === 'object'
+      ? (row.extras as Record<string, unknown>)
+      : {}
+  const personalityAnswers = sanitizeAnswers(extras.personalityAnswers)
+
+  return {
+    id,
+    authUserId: row.auth_user_id ? String(row.auth_user_id) : null,
+    name: String(row.name ?? 'Unknown'),
+    age: Number(row.age ?? 25),
+    city: String(row.city ?? 'City'),
+    vibe: String(row.vibe ?? 'Good energy'),
+    bio: String(row.bio ?? ''),
+    interests: interests.length > 0 ? interests : ['Coffee', 'Music', 'Travel'],
+    palette,
+    photos: photos.length > 0 ? photos : pickGenderPhotos(gender, id),
+    gender,
+    distanceKm: Math.max(1, Number(row.distance_km ?? 10)),
+    verified: Boolean(row.verified),
+    relationshipGoal,
+    zodiac: String(row.zodiac ?? 'Libra'),
+    personalityAnswers:
+      personalityAnswers.length === 8 ? personalityAnswers : generateAnswersFromSeed(id),
+  }
+}
+
 export const getProfiles = async (): Promise<Profile[]> => {
   await wait(220)
   const supabase = createSupabaseClient()
@@ -569,63 +624,8 @@ export const getProfiles = async (): Promise<Profile[]> => {
 
     if (!error && Array.isArray(data) && data.length > 0) {
       const mapped = data
-        .map((row) => {
-          const genderRaw = String(row.gender ?? 'Woman')
-          const relationshipRaw = String(row.relationship_goal ?? 'Long-term')
-          const gender: Profile['gender'] =
-            genderRaw === 'Man' || genderRaw === 'Non-binary' ? genderRaw : 'Woman'
-          const relationshipGoal: Profile['relationshipGoal'] =
-            relationshipRaw === 'Short-term' ||
-            relationshipRaw === 'Friends' ||
-            relationshipRaw === 'Figuring it out'
-              ? relationshipRaw
-              : 'Long-term'
-
-          const photos = Array.isArray(row.photos)
-            ? row.photos
-                .filter((value): value is string => typeof value === 'string' && value.length > 0)
-                .slice(0, 9)
-                .map(toHighResPhoto)
-            : []
-
-          const interests = Array.isArray(row.interests)
-            ? row.interests.filter((value): value is string => typeof value === 'string').slice(0, 6)
-            : []
-
-          const palette: [string, string] =
-            Array.isArray(row.palette) && row.palette.length >= 2
-              ? [String(row.palette[0]), String(row.palette[1])]
-              : ['#141937', '#252d5c']
-          const extras =
-            row.extras && typeof row.extras === 'object'
-              ? (row.extras as Record<string, unknown>)
-              : {}
-          const personalityAnswers = sanitizeAnswers(extras.personalityAnswers)
-
-          return {
-            id: Number(row.id),
-            authUserId: row.auth_user_id ? String(row.auth_user_id) : null,
-            name: String(row.name ?? 'Unknown'),
-            age: Number(row.age ?? 25),
-            city: String(row.city ?? 'City'),
-            vibe: String(row.vibe ?? 'Good energy'),
-            bio: String(row.bio ?? ''),
-            interests: interests.length > 0 ? interests : ['Coffee', 'Music', 'Travel'],
-            palette,
-            photos: photos.length > 0 ? photos : pickGenderPhotos(gender, Number(row.id) || 0),
-            gender,
-            distanceKm: Math.max(1, Number(row.distance_km ?? 10)),
-            verified: Boolean(row.verified),
-            relationshipGoal,
-            zodiac: String(row.zodiac ?? 'Libra'),
-            personalityAnswers:
-              personalityAnswers.length === 8
-                ? personalityAnswers
-                : generateAnswersFromSeed(Number(row.id) || 0),
-          } satisfies Profile
-        })
-        .filter((profile) => Number.isFinite(profile.id))
-
+        .map((row) => mapProfileRow(row as Record<string, unknown>))
+        .filter((profile): profile is Profile => profile !== null)
       if (mapped.length > 0) {
         return mapped
       }
@@ -635,6 +635,27 @@ export const getProfiles = async (): Promise<Profile[]> => {
   // No real data available — return empty so the app shows "no profiles" state.
   // The fixture data is intentionally not used in production.
   return []
+}
+
+/**
+ * Returns the profiles of every user the caller is mutually matched with.
+ * Wraps the get_my_matches() SECURITY DEFINER RPC. Used on auth to seed the
+ * local match list so it survives reinstalls.
+ */
+export const getMyMatches = async (): Promise<Profile[]> => {
+  const supabase = createSupabaseClient()
+  if (!supabase) {
+    return []
+  }
+  const { data, error } = await supabase.rpc('get_my_matches')
+  if (error || !Array.isArray(data)) {
+    // eslint-disable-next-line no-console
+    console.warn('get_my_matches failed:', error?.message ?? 'no data')
+    return []
+  }
+  return data
+    .map((row) => mapProfileRow(row as Record<string, unknown>))
+    .filter((profile): profile is Profile => profile !== null)
 }
 
 export const resolveMatch = async (profileId: number): Promise<boolean> => {
