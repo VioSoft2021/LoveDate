@@ -1,5 +1,15 @@
 ﻿@import url('/fonts/lovedate-fonts.css');
 
+/* Global box-sizing reset. Without this, declared widths (e.g. width:100%)
+   don't include padding/border — on a 358px container, a 100%-width card
+   with 1rem padding becomes 390px wide and overflows the viewport. This
+   was the root cause of "overlapping objects" on phone-width screens. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 /* Safe-area insets for notched phones (iPhone X+, Android cutouts) */
 :root {
   --safe-top: env(safe-area-inset-top, 0px);
