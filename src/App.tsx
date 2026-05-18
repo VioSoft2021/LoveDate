@@ -175,6 +175,7 @@ import {
   parseRoute,
   readFileAsDataUrl,
   readRouteFromWindow,
+  useHashRouting,
   renderEditedPhoto,
   sanitizeRoomPart,
   toDataUrl,
@@ -922,9 +923,8 @@ function App() {
 
       const nextPath = buildPath(nextScreen, nextScreen === 'profile-detail' ? profileId : null)
       const navMethod = options?.replace ? window.history.replaceState : window.history.pushState
-      const isFileProtocol = window.location.protocol === 'file:'
 
-      if (isFileProtocol) {
+      if (useHashRouting()) {
         const nextHash = `#${nextPath}`
         if (window.location.hash !== nextHash) {
           navMethod.call(window.history, null, '', nextHash)

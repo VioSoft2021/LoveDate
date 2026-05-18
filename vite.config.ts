@@ -5,6 +5,11 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   base: './',
   plugins: [react()],
+  server: {
+    // Allow cloudflared quick tunnels (random *.trycloudflare.com hostnames)
+    // so friends can hit the dev server through a public URL during testing.
+    allowedHosts: ['.trycloudflare.com', '.vercel.app', '.netlify.app'],
+  },
   build: {
     rollupOptions: {
       output: {

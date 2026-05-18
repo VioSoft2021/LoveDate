@@ -75,9 +75,18 @@ export const buildPath = (screen: AppScreen, profileId: number | null): string =
   return `/${screen}`
 }
 
+// Hash routing is used when the build can't rely on pathname-based SPA
+// routing — namely Capacitor's file:// scheme and static hosts that serve
+// 404 for unknown paths (e.g. GitHub Pages without a 404.html fallback).
+// VITE_HASH_ROUTING=true is set by the GitHub Pages deploy workflow.
+export const useHashRouting = (): boolean => {
+  if (typeof window === 'undefined') return false
+  if (window.location.protocol === 'file:') return true
+  return (import.meta.env.VITE_HASH_ROUTING as string | undefined) === 'true'
+}
+
 export const readRouteFromWindow = (): { screen: AppScreen; profileId: number | null } => {
-  const isFileProtocol = window.location.protocol === 'file:'
-  if (isFileProtocol) {
+  if (useHashRouting()) {
     const rawHash = window.location.hash.replace(/^#/, '')
     const hashPath = rawHash.length > 0 ? (rawHash.startsWith('/') ? rawHash : `/${rawHash}`) : '/login'
     return parseRoute(hashPath)
