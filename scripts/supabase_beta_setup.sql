@@ -602,6 +602,92 @@ begin
   end if;
 end$$;
 
+-- Push notification subscriptions. Each row is one device that wants to
+-- receive web push notifications for the user. Endpoint + keys come from
+-- PushManager.subscribe() on the client; the send-push Edge Function
+-- reads from here when it needs to fan out a notification.
+create table if not exists public.push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  endpoint text not null,
+  p256dh text not null,
+  auth text not null,
+  user_agent text,
+  created_at timestamptz not null default now(),
+  unique (user_id, endpoint)
+);
+
+create index if not exists push_subscriptions_user_idx
+  on public.push_subscriptions (user_id);
+
+alter table public.push_subscriptions enable row level security;
+
+drop policy if exists "push_subscriptions_owner_select" on public.push_subscriptions;
+create policy "push_subscriptions_owner_select"
+on public.push_subscriptions
+for select
+to authenticated
+using (auth.uid() = user_id);
+
+drop policy if exists "push_subscriptions_owner_insert" on public.push_subscriptions;
+create policy "push_subscriptions_owner_insert"
+on public.push_subscriptions
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+drop policy if exists "push_subscriptions_owner_delete" on public.push_subscriptions;
+create policy "push_subscriptions_owner_delete"
+on public.push_subscriptions
+for delete
+to authenticated
+using (auth.uid() = user_id);
+
+-- Trigger: when a new chat message lands, hit the send-push Edge Function
+-- asynchronously via pg_net so the insert path stays fast and tolerates
+-- transient push delivery failures. The function reads the recipient's
+-- subscriptions and POSTs to each browser's push endpoint.
+create extension if not exists pg_net with schema extensions;
+
+create or replace function public.notify_chat_recipient()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_project_url text := 'https://gjgkylwgnpzffaspsdsm.supabase.co';
+  -- The anon key is meant to be public — same key the client embeds.
+  -- The Edge Function uses --no-verify-jwt but the Supabase gateway
+  -- still requires Authorization, so we pass anon here. Real security
+  -- lives in the function body + RLS on push_subscriptions.
+  v_anon_key text :=
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqZ2t5bHdnbnB6ZmZhc3BzZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzNDMyMDksImV4cCI6MjA5MDkxOTIwOX0.tzC2LqrSB2N4TJPCLmDqC1ThgOXx7mYX03T22jxCWT4';
+begin
+  perform net.http_post(
+    url := v_project_url || '/functions/v1/send-push',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || v_anon_key,
+      'apikey', v_anon_key
+    ),
+    body := jsonb_build_object(
+      'recipient_id', NEW.recipient_id,
+      'sender_id', NEW.sender_id,
+      'message_id', NEW.id,
+      'preview', left(coalesce(NEW.text, ''), 140)
+    )
+  );
+  return NEW;
+end;
+$$;
+
+drop trigger if exists chat_message_push on public.chat_messages;
+create trigger chat_message_push
+  after insert on public.chat_messages
+  for each row
+  execute function public.notify_chat_recipient();
+
 -- Cloud-backed match list. Returns the full discoverable profile rows for
 -- every user the caller is mutually matched with (both sides right-swiped).
 -- SECURITY DEFINER so it can read swipes rows for both directions of the

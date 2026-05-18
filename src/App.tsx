@@ -5,6 +5,7 @@ import { StatusBar, Style } from '@capacitor/status-bar'
 import './App.css'
 import { getMyMatches, getProfiles, resolveMatch, type Profile } from './services/loveDateApi'
 import { backendInvokeIcebreaker } from './services/ai/icebreaker'
+import { enablePushNotifications, disablePushNotifications } from './services/push'
 import { FilterScreen } from './components/FilterScreen'
 import { EmbeddedCallStage } from './components/EmbeddedCallStage'
 import { Logo } from './components/Logo'
@@ -2536,6 +2537,30 @@ function App() {
         setSettingsSaveStatus('error')
         pushToast('Settings failed to save.', 'error')
       })
+
+    // Side effect: when the user flips Push Notifications on, request
+    // permission + subscribe. Reverting the local toggle if denied keeps
+    // the UI honest. Flipping off purges the subscription.
+    if (key === 'pushNotifications') {
+      if (checked) {
+        void enablePushNotifications().then((result) => {
+          if (!result.ok) {
+            setSettings((current) => ({ ...current, pushNotifications: false }))
+            const message =
+              result.reason === 'denied'
+                ? 'Browser blocked notifications. Enable them in site settings.'
+                : result.reason === 'unsupported'
+                  ? 'Push not supported on this browser/device.'
+                  : 'Could not enable push notifications.'
+            pushToast(message, 'error')
+          } else {
+            pushToast('Push notifications enabled.', 'success')
+          }
+        })
+      } else {
+        void disablePushNotifications()
+      }
+    }
   }
 
   const handleExitApp = () => {

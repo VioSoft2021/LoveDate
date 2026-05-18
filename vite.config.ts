@@ -8,6 +8,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'pwa-icon-192.png', 'pwa-icon-512.png'],
       manifest: {
@@ -26,18 +29,8 @@ export default defineConfig({
           { src: 'pwa-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: {
-        // Don't pre-cache images / fonts — keeps install fast on first run.
-        // Network-first for HTML so the app can update; cache-first for JS/CSS.
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg}'],
-        runtimeCaching: [
-          {
-            urlPattern: ({ request }) => request.destination === 'image',
-            handler: 'CacheFirst',
-            options: { cacheName: 'images', expiration: { maxEntries: 80 } },
-          },
-        ],
-        navigateFallback: 'index.html',
       },
     }),
   ],
