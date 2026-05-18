@@ -3282,15 +3282,19 @@ function App() {
           <button type="button" className="top-exit-btn" onClick={handleSignOut}>
             {copy.common.exitToLogin}
           </button>
-          <button
-            type="button"
-            className="top-exit-btn top-exit-btn--quit"
-            onClick={handleExitApp}
-            aria-label="Exit App"
-            title="Exit App"
-          >
-            ⏻
-          </button>
+          {(Capacitor.isNativePlatform() ||
+            (typeof navigator !== 'undefined' &&
+              navigator.userAgent.includes('Electron'))) && (
+            <button
+              type="button"
+              className="top-exit-btn top-exit-btn--quit"
+              onClick={handleExitApp}
+              aria-label="Exit App"
+              title="Exit App"
+            >
+              ⏻
+            </button>
+          )}
         </div>
       </header>
       <section className={`screen-panel ${screen === 'discover' ? 'screen-panel--discover' : ''}`} aria-live="polite">
