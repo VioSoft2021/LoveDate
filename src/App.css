@@ -1792,14 +1792,28 @@ button:disabled {
 
 .chat-thread {
   margin: 0;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
+  /* Was display:grid with a 3-row template (auto 1fr auto), which only
+     accounted for 3 children. The actual structure has 7+ children
+     (header, compat panel, AI Coach, AI Date Planner, call history,
+     messages, composer), so the 1fr ended up on the compat panel and
+     stretched it bizarrely while the messages got squeezed — looked
+     like the AI panels were overlapping the chat area on phones.
+     Flex column stacks every child predictably; .messages flex:1
+     fills the remaining space on desktop, while overflow-y:auto on
+     the thread on mobile scrolls the whole thing. */
+  display: flex;
+  flex-direction: column;
   gap: 0;
   min-height: 0;
   border-radius: 0;
   padding: 0;
   background: linear-gradient(180deg, rgba(10, 16, 49, 0.98), rgba(4, 8, 30, 0.98));
   box-shadow: none;
+}
+
+.chat-thread .messages {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .chat-thread header {
