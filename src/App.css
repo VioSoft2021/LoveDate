@@ -371,6 +371,37 @@
   width: min(100%, 28rem);
 }
 
+.password-field {
+  position: relative;
+  display: block;
+}
+.password-field > input {
+  width: 100%;
+  padding-right: 2.6rem;
+}
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.42rem;
+  transform: translateY(-50%);
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: rgba(229, 239, 255, 0.78);
+  cursor: pointer;
+  border-radius: 999px;
+}
+.password-toggle:hover,
+.password-toggle:focus-visible {
+  color: rgba(133, 225, 248, 1);
+  background: rgba(27, 38, 90, 0.4);
+}
+
 .login-card h1,
 .match-card h2,
 .profile-head h1,

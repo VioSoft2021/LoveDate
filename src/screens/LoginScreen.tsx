@@ -28,6 +28,23 @@ export type LoginScreenProps = {
   onResetDevAccount: () => void
 }
 
+const EyeIcon = ({ open }: { open: boolean }) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+    {open ? (
+      <>
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      </>
+    ) : (
+      <>
+        <path d="M2 12s3.5-7 10-7c2.4 0 4.4.95 6 2.2" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M22 12s-3.5 7-10 7c-2.4 0-4.4-.95-6-2.2" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M3 3l18 18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      </>
+    )}
+  </svg>
+)
+
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   appLanguage,
   setAppLanguage,
@@ -52,6 +69,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   onResetDevAccount,
 }) => {
   const copy = UI_TEXT[appLanguage]
+  const [showPassword, setShowPassword] = React.useState(false)
 
   return (
     <main className="login-shell">
@@ -97,25 +115,39 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           </label>
           <label>
             {copy.auth.password}
-            <input
-              type="password"
-              autoComplete={authMode === 'register' ? 'new-password' : 'current-password'}
-              value={loginPassword}
-              onChange={(event) => setLoginPassword(event.target.value)}
-              required
-            />
+            <div className="password-field">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                autoComplete={authMode === 'register' ? 'new-password' : 'current-password'}
+                value={loginPassword}
+                onChange={(event) => setLoginPassword(event.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword((s) => !s)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
+                tabIndex={-1}
+              >
+                <EyeIcon open={showPassword} />
+              </button>
+            </div>
             {authMode === 'register' ? <small className="soft">{copy.auth.passwordHint}</small> : null}
           </label>
           {authMode === 'register' ? (
             <label>
               {copy.auth.confirmPassword}
-              <input
-                type="password"
-                autoComplete="new-password"
-                value={registerPasswordConfirm}
-                onChange={(event) => setRegisterPasswordConfirm(event.target.value)}
-                required
-              />
+              <div className="password-field">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={registerPasswordConfirm}
+                  onChange={(event) => setRegisterPasswordConfirm(event.target.value)}
+                  required
+                />
+              </div>
             </label>
           ) : null}
           {loginError ? <p className="error-text">{loginError}</p> : null}
