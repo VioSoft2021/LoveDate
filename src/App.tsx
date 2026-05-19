@@ -16,6 +16,7 @@ import { useDeck } from './hooks/useDeck'
 import { useChatState } from './hooks/useChatState'
 import { useProfileEditor } from './hooks/useProfileEditor'
 import { useReports } from './hooks/useReports'
+import { useToasts } from './hooks/useToasts'
 import { ActivityScreen } from './screens/ActivityScreen'
 import { ChatScreen } from './screens/ChatScreen'
 import { CirclesScreen } from './screens/CirclesScreen'
@@ -281,6 +282,17 @@ function App() {
   const initialAuth = readAuth()
   const initialSelfProfile = readSelfProfile(initialAuth.email)
 
+  // Toasts must come first — other hooks (useAuth, useChatState handlers,
+  // etc.) take pushToast as a callback so transient errors can surface
+  // anywhere in the app.
+  const {
+    toasts,
+    notifications,
+    pushToast,
+    pushNotification,
+    markAllNotificationsRead,
+  } = useToasts()
+
   // Always require fresh login on cold start. We keep the saved email so the
   // login form is pre-filled, but never auto-resume a session.
   const [screen, setScreen] = useState<AppScreen>('login')
@@ -397,7 +409,7 @@ function App() {
     moderationStatusFilter, setModerationStatusFilter,
     moderationSearchQuery, setModerationSearchQuery,
   } = reports
-  const [notifications, setNotifications] = useState<NotificationItem[]>([])
+  // notifications + toasts state now live in useToasts (above).
   const [boostsLeft, setBoostsLeft] = useState(3)
   const [rewindsLeft, setRewindsLeft] = useState(5)
 
@@ -408,7 +420,6 @@ function App() {
   const [settingsSaveStatus, setSettingsSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [preferenceSaveStatus, setPreferenceSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [appLanguage, setAppLanguage] = useState<AppLanguage>(() => readAppLanguage())
-  const [toasts, setToasts] = useState<Toast[]>([])
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null)
   const [lightboxZoom, setLightboxZoom] = useState(1)
 
@@ -505,27 +516,7 @@ function App() {
     refreshEngagementUsage(activePlan)
   }, [activePlan, refreshEngagementUsage])
 
-  const pushToast = useCallback((message: string, tone: Toast['tone'] = 'info') => {
-    const id = Date.now() + Math.floor(Math.random() * 1000)
-    setToasts((current) => [...current, { id, message, tone }])
-    window.setTimeout(() => {
-      setToasts((current) => current.filter((toast) => toast.id !== id))
-    }, 2600)
-  }, [])
-
-  const pushNotification = useCallback((item: Omit<NotificationItem, 'id' | 'createdAt' | 'read'>) => {
-    const next: NotificationItem = {
-      ...item,
-      id: Date.now() + Math.floor(Math.random() * 1000),
-      createdAt: Date.now(),
-      read: false,
-    }
-    setNotifications((current) => [next, ...current].slice(0, 30))
-  }, [])
-
-  const markAllNotificationsRead = useCallback(() => {
-    setNotifications((current) => current.map((item) => ({ ...item, read: true })))
-  }, [])
+  // pushToast / pushNotification / markAllNotificationsRead now live in useToasts.
 
   const getMatchAnalysis = useCallback(
     (profile: Profile): MatchAnalysis => {
