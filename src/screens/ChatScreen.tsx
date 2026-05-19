@@ -190,14 +190,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                 type="button"
                 className="chat-back-btn"
                 aria-label="Back to chats"
-                onPointerUp={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  setActiveChatId(null)
-                }}
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
+                onClick={() => {
+                  // Plain onClick, no preventDefault/stopPropagation. The
+                  // earlier defensive handlers may have been preventing the
+                  // synthesized click from firing on Android Chrome.
                   setActiveChatId(null)
                 }}
               >
