@@ -186,7 +186,7 @@ import {
   parseRoute,
   readFileAsDataUrl,
   readRouteFromWindow,
-  useHashRouting,
+  shouldUseHashRouting,
   renderEditedPhoto,
   sanitizeRoomPart,
   toDataUrl,
@@ -944,7 +944,7 @@ function App() {
       const nextPath = buildPath(nextScreen, nextScreen === 'profile-detail' ? profileId : null)
       const navMethod = options?.replace ? window.history.replaceState : window.history.pushState
 
-      if (useHashRouting()) {
+      if (shouldUseHashRouting()) {
         const nextHash = `#${nextPath}`
         if (window.location.hash !== nextHash) {
           navMethod.call(window.history, null, '', nextHash)
@@ -1092,7 +1092,7 @@ function App() {
       const first = safetyReports.slice().sort((a, b) => b.createdAt - a.createdAt)[0]
       setActiveModerationReportId(first?.id ?? null)
     }
-  }, [safetyReports, activeModerationReportId])
+  }, [safetyReports, activeModerationReportId, setActiveModerationReportId])
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -1126,7 +1126,7 @@ function App() {
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated, userEmail])
+  }, [isAuthenticated, userEmail, setProfileDraft, setSelfProfile])
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -1146,7 +1146,7 @@ function App() {
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated, userEmail])
+  }, [isAuthenticated, userEmail, setSettings])
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -1170,7 +1170,7 @@ function App() {
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated, userEmail])
+  }, [isAuthenticated, userEmail, setBlockedProfileIds])
 
   // loadProfiles now lives in useDeck.
 
@@ -1227,7 +1227,7 @@ function App() {
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, setAllProfiles, setChatThreads])
 
   useEffect(() => {
     allProfilesRef.current = allProfiles
@@ -1294,7 +1294,7 @@ function App() {
       }
     })
     return unsubscribe
-  }, [isAuthenticated, pushNotification])
+  }, [isAuthenticated, pushNotification, setChatThreads, setUnreadChats])
 
   // Phase C3 — load cloud history for the open chat. Replaces the local
   // thread for that profile so messages stay consistent across devices.
@@ -1327,7 +1327,7 @@ function App() {
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated, activeChatId])
+  }, [isAuthenticated, activeChatId, setChatThreads])
 
   const profileById = useMemo(() => {
     const map = new Map<number, Profile>()
@@ -1440,7 +1440,7 @@ function App() {
       cancelled = true
       window.clearTimeout(timer)
     }
-  }, [filters, isAuthenticated])
+  }, [filters, isAuthenticated, setPreferenceSaveStatus])
 
   useEffect(() => {
     setIndex(0)
@@ -1450,7 +1450,7 @@ function App() {
     setExitDirection(null)
     setIsResolvingSwipe(false)
     dragStart.current = null
-  }, [filters])
+  }, [filters, dragStart, setDragX, setDragY, setExitDirection, setIndex, setIsDragging, setIsResolvingSwipe])
 
   const matchedProfiles = useMemo(() => {
     return history.matchIds
@@ -1480,7 +1480,7 @@ function App() {
     if (!stillExists) {
       setActiveChatId(isPhone ? null : matchedProfiles[0].id)
     }
-  }, [matchedProfiles, activeChatId])
+  }, [matchedProfiles, activeChatId, setActiveChatId])
 
   useEffect(() => {
     if (screen === 'chats' && activeChatId) {
@@ -1496,12 +1496,12 @@ function App() {
       })
       setMatchQueueIds((current) => current.filter((id) => id !== activeChatId))
     }
-  }, [screen, activeChatId])
+  }, [screen, activeChatId, setMatchQueueIds, setUnreadChats])
 
   useEffect(() => {
     setShowFullChatHistory(false)
     shouldStickToBottomRef.current = true
-  }, [activeChatId])
+  }, [activeChatId, setShowFullChatHistory])
 
   useEffect(() => {
     if (screen === 'settings' && notifications.some((item) => !item.read)) {
@@ -1613,7 +1613,7 @@ function App() {
       })
       setMatchQueueIds((current) => current.filter((id) => id !== entry.profileId))
     }
-  }, [])
+  }, [setChatThreads, setMatchQueueIds, setUnreadChats])
 
   const finalizeSwipe = useCallback(
     (profile: Profile, direction: SwipeDirection, intent: SwipeIntent, wasMatch: boolean) => {
@@ -1645,7 +1645,7 @@ function App() {
         pushToast(`It's a match with ${profile.name}!`, 'success')
       }
     },
-    [addSwipeHistory, pushNotification, pushToast, selfProfile.name],
+    [addSwipeHistory, pushNotification, pushToast, setChatThreads, setMatchQueueIds, setUnreadChats],
   )
 
   const swipeCard = useCallback(
@@ -1702,6 +1702,10 @@ function App() {
       finalizeSwipe,
       pushToast,
       refreshEngagementUsage,
+      setExitDirection,
+      setIndex,
+      setIsResolvingSwipe,
+      setLastIntent,
     ],
   )
 
@@ -1738,6 +1742,9 @@ function App() {
     refreshEngagementUsage,
     rewindsLeft,
     pushToast,
+    setIndex,
+    setLastIntent,
+    setRewindsLeft,
   ])
 
   const sendChatMessage = () => {
@@ -1898,6 +1905,8 @@ function App() {
     chatThreads,
     selfProfile,
     getChemistryInsights,
+    setAiCoachLoading,
+    setAiCoachSuggestions,
   ])
 
   const generateAiDatePlans = useCallback(() => {
@@ -1959,14 +1968,14 @@ function App() {
       setAiDatePlans(plans)
       setAiDatePlannerLoading(false)
     }, 520)
-  }, [selectedChatProfile, getChemistryInsights, selfProfile.city, selfProfile.interests])
+  }, [selectedChatProfile, getChemistryInsights, selfProfile.city, selfProfile.interests, setAiDatePlannerLoading, setAiDatePlans])
 
   useEffect(() => {
     setAiCoachSuggestions([])
     setAiCoachLoading(false)
     setAiDatePlans([])
     setAiDatePlannerLoading(false)
-  }, [selectedChatProfile?.id])
+  }, [selectedChatProfile?.id, setAiCoachLoading, setAiCoachSuggestions, setAiDatePlannerLoading, setAiDatePlans])
 
   const handleAttachmentPick = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -2201,7 +2210,7 @@ function App() {
       roomId: null,
       roomUrl: null,
     })
-  }, [])
+  }, [setChatThreads])
 
   const openCallRoom = useCallback(() => {
     if (!callState.roomUrl) {
@@ -2243,7 +2252,7 @@ function App() {
     setReportDraftProfile(null)
     setReportDraftCategory('spam')
     setReportDraftDetails('')
-  }, [])
+  }, [setReportDraftCategory, setReportDraftDetails, setReportDraftProfile])
 
   const reportProfile = (profile: Profile) => {
     setReportDraftProfile(profile)
@@ -2529,7 +2538,7 @@ function App() {
         pushToast(successMessage, 'success')
       }
     },
-    [userEmail, pushToast],
+    [userEmail, pushToast, setProfileDraft, setSelfProfile],
   )
 
   const suggestSocialHandle = (platform: SocialPlatform): string => {
@@ -2914,7 +2923,7 @@ function App() {
         unread: unreadChats[profile.id] ?? 0,
       }
     })
-  }, [matchedProfiles, chatThreads, unreadChats, selfProfile.name])
+  }, [matchedProfiles, chatThreads, unreadChats])
 
   const filteredChatPreviews = useMemo(() => {
     const query = chatSearch.trim().toLowerCase()
@@ -3688,15 +3697,17 @@ function App() {
           ))}
         </div>
       ) : null}
+      {/* Mobile tab bar — 5 tap targets only. Circles + Moderation
+         used to live here too, dropped because 7 icons at phone widths
+         are too small to hit reliably. Both routes are still reachable:
+         Moderation via the Settings screen's "Open moderation queue"
+         button (admin-only), Circles via the desktop top-bar nav OR
+         direct navigation. */}
       <nav className="mobile-tab-bar" aria-label="Primary navigation">
         {([
           { key: 'discover' as AppScreen, label: copy.nav.discover, icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
           { key: 'activity' as AppScreen, label: copy.nav.activity, badge: notifications.filter(n => !n.read).length, icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> },
-          { key: 'circles' as AppScreen, label: copy.nav.circles, badge: joinedCircleIds.length > 0 ? joinedCircleIds.length : undefined, icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg> },
           { key: 'chats' as AppScreen, label: copy.nav.chats, badge: Object.values(unreadChats).reduce((s, c) => s + c, 0), icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> },
-          ...(isModerationAdmin
-            ? [{ key: 'moderation' as AppScreen, label: copy.nav.moderation, badge: safetyReports.filter(r => r.status === 'open').length, icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> }]
-            : []),
           { key: 'profile' as AppScreen, label: copy.nav.profile, icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
           { key: 'settings' as AppScreen, label: copy.nav.settings, badge: unreadNotificationCount, icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> },
         ] as Array<{ key: AppScreen; label: string; icon: React.ReactNode; badge?: number }>).map((tab) => (

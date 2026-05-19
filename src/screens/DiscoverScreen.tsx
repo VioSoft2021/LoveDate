@@ -275,7 +275,16 @@ export const DiscoverScreen: React.FC<DiscoverScreenProps> = ({
                   NOPE
                 </div>
                 {topProfile.photos[0] ? (
-                  <div className="card-photo-wrap">
+                  <div
+                    className="card-photo-wrap"
+                    style={{
+                      // Used by .card-photo-wrap::before in mobile.css to
+                      // paint a blurred copy of the photo behind the contained
+                      // image — eliminates ugly letterboxing on non-portrait
+                      // photos while keeping the full image visible.
+                      ['--card-photo-bg' as string]: `url("${buildHighResImageUrl(topProfile.photos[0], 1200, 1)}")`,
+                    } as React.CSSProperties}
+                  >
                     <img
                       src={buildHighResImageUrl(topProfile.photos[0], 2400, 2)}
                       srcSet={`${buildHighResImageUrl(topProfile.photos[0], 1800, 1)} 1x, ${buildHighResImageUrl(topProfile.photos[0], 3200, 2)} 2x`}

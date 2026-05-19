@@ -9,7 +9,7 @@
     "Avenir", "keymap", "wordmark", "xlink", "iconify", "labelledby",
     "vite", "Vite",
     "pgcrypto", "plpgsql", "conname", "conrelid", "regclass", "upserts",
-    "pubname", "schemaname", "apikey", "XVCJ",
+    "pubname", "schemaname", "apikey", "XVCJ", "dedups", "misconfig",
     "Firestarter", "Overfocus", "Rsvps",
     "bikepacking", "Bikepacking",
     "Mateo", "Rina", "Mila", "Ravi", "Budva",

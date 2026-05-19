@@ -121,11 +121,38 @@
   .discover-deck .card-photo {
     max-width: 100% !important;
   }
-  /* Show the whole photo (letterboxed if wide), don't crop the sides. */
+  /* Show the WHOLE photo without cropping, but instead of ugly black
+     letterboxing for non-portrait images, paint a heavily-blurred copy
+     of the same photo behind it. Standard pattern from Instagram /
+     Spotify / dating apps. The --card-photo-bg CSS variable is set
+     inline on .card-photo-wrap in DiscoverScreen.tsx from the same
+     photo URL. */
+  .discover-deck .card-photo-wrap {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .discover-deck .card-photo-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--card-photo-bg);
+    background-size: cover;
+    background-position: center;
+    filter: blur(28px) saturate(1.2) brightness(0.55);
+    transform: scale(1.15);
+    z-index: 0;
+  }
   .discover-deck .card-photo {
+    position: relative;
+    z-index: 1;
     object-fit: contain !important;
     object-position: center !important;
-    background: rgba(8, 12, 30, 0.6);
+    background: transparent;
+  }
+  /* Card overlay (name + ACTIVE NOW + city) sits on top of both layers */
+  .discover-deck .card-photo-overlay {
+    z-index: 2;
   }
 
   /* Hide redundant View-Full-Profile button — tapping the card opens
