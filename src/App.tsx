@@ -15,6 +15,7 @@ import { useAuth } from './hooks/useAuth'
 import { useDeck } from './hooks/useDeck'
 import { useChatState } from './hooks/useChatState'
 import { useProfileEditor } from './hooks/useProfileEditor'
+import { useReports } from './hooks/useReports'
 import { ActivityScreen } from './screens/ActivityScreen'
 import { ChatScreen } from './screens/ChatScreen'
 import { CirclesScreen } from './screens/CirclesScreen'
@@ -384,14 +385,18 @@ function App() {
       }),
     [],
   )
-  const [blockedProfileIds, setBlockedProfileIds] = useState<number[]>(() => readBlockedProfileIds())
-  const [safetyReports, setSafetyReports] = useState<SafetyReport[]>(() => readModerationQueue())
-  const [reportDraftProfile, setReportDraftProfile] = useState<Profile | null>(null)
-  const [reportDraftCategory, setReportDraftCategory] = useState<SafetyCategory>('spam')
-  const [reportDraftDetails, setReportDraftDetails] = useState('')
-  const [activeModerationReportId, setActiveModerationReportId] = useState<string | null>(null)
-  const [moderationStatusFilter, setModerationStatusFilter] = useState<ModerationFilter>('open')
-  const [moderationSearchQuery, setModerationSearchQuery] = useState('')
+  // Reports / moderation state moves into useReports.
+  const reports = useReports()
+  const {
+    blockedProfileIds, setBlockedProfileIds,
+    safetyReports, setSafetyReports,
+    reportDraftProfile, setReportDraftProfile,
+    reportDraftCategory, setReportDraftCategory,
+    reportDraftDetails, setReportDraftDetails,
+    activeModerationReportId, setActiveModerationReportId,
+    moderationStatusFilter, setModerationStatusFilter,
+    moderationSearchQuery, setModerationSearchQuery,
+  } = reports
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [boostsLeft, setBoostsLeft] = useState(3)
   const [rewindsLeft, setRewindsLeft] = useState(5)
