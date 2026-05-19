@@ -5611,12 +5611,9 @@ details.profile-settings.settings-card[open] > summary {
     overflow: hidden !important;
   }
 
-  /* Only the panel scrolls, horizontally clipped, with room for tab bar
-     AND for the new fixed compact action bar (Pass / Super Like / Like)
-     that floats just above the tab bar. Math: 4.7rem (tab bar) +
-     3.35rem (action bar height) + 0.5rem (action bar bottom offset
-     above tab bar) + 2rem of visual breathing room so the View Full
-     Profile button isn't pinned right against the floating bar. */
+  /* With the action bar back in-flow at the end of the side panel,
+     padding-bottom only needs to clear the fixed mobile tab bar with
+     a bit of breathing room. 4.7rem (tab bar) + 1.5rem visual gap. */
   .screen-panel,
   .screen-panel--discover {
     min-height: 0;
@@ -5624,32 +5621,32 @@ details.profile-settings.settings-card[open] > summary {
     overflow-y: auto !important;
     padding-left: 0.5rem !important;
     padding-right: 0.5rem !important;
-    padding-bottom: calc(14rem + env(safe-area-inset-bottom, 0.5rem)) !important;
+    padding-bottom: calc(6.2rem + env(safe-area-inset-bottom, 0.5rem)) !important;
   }
 
-  /* DISCOVER REDESIGN: replace the 3 oversized full-width Pass/SuperLike/
-     Like buttons with a compact icon-toolbar fixed above the mobile tab
-     bar. The swipe gesture on the card already does the same thing, so
-     this acts as a small visible reminder rather than a giant duplicate.
-     Floating because in the old in-flow layout the Like row was being
-     pushed off-screen no matter how much padding-bottom we added. */
+  /* DISCOVER actions: in-flow, compact, at the end of the side panel.
+     The previous fixed-floating bar always overlapped content at
+     mid-scroll positions — no amount of padding-bottom fixes that, only
+     the final scroll position has clearance. In-flow trades "always
+     visible" for "never overlaps content": user scrolls down, sees the
+     Pass/Super Like/Like row at the bottom of the info panel, taps. */
   .discover-primary-actions.actions {
-    position: fixed !important;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 4.7rem) !important;
-    left: 0.6rem !important;
-    right: 0.6rem !important;
-    z-index: 250 !important;
+    position: static !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    z-index: auto !important;
     display: grid !important;
     grid-template-columns: 1fr 1fr 1fr !important;
     gap: 0.4rem !important;
     padding: 0.4rem !important;
-    background: rgba(10, 13, 35, 0.92) !important;
-    backdrop-filter: blur(14px) !important;
-    -webkit-backdrop-filter: blur(14px) !important;
+    background: rgba(10, 13, 35, 0.55) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     border-radius: 0.95rem !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 -6px 22px rgba(0, 0, 0, 0.42) !important;
-    margin: 0 !important;
+    box-shadow: none !important;
+    margin: 0.6rem 0 0.4rem 0 !important;
     width: auto !important;
   }
   .discover-primary-actions.actions button {
@@ -5692,7 +5689,11 @@ details.profile-settings.settings-card[open] > summary {
   }
   .chats-layout[data-mobile-view='thread'] .chat-thread {
     position: fixed !important;
-    top: 4.6rem !important;
+    /* Start below status bar (safe-area-inset-top) + LoveDate top-bar
+       (~4.6rem). If chat-thread started behind the top-bar, taps in
+       that area landed on the top-bar's home button instead of the
+       chat back button. */
+    top: calc(env(safe-area-inset-top, 0px) + 5.2rem) !important;
     bottom: calc(env(safe-area-inset-bottom, 0px) + 4.7rem) !important;
     left: 0 !important;
     right: 0 !important;
@@ -5703,6 +5704,16 @@ details.profile-settings.settings-card[open] > summary {
     max-height: none !important;
     overflow: hidden !important;
     border-radius: 0 !important;
+  }
+  /* Bigger, more obvious chat back button — easier to hit, clearly
+     distinct from the LoveDate top-bar's own back/home button. */
+  .chats-layout[data-mobile-view='thread'] .chat-back-btn {
+    width: 2.6rem !important;
+    height: 2.6rem !important;
+    padding: 0 !important;
+    border-radius: 0.7rem !important;
+    background: rgba(126, 223, 246, 0.12) !important;
+    border-color: rgba(126, 223, 246, 0.4) !important;
   }
   .chats-layout[data-mobile-view='thread'] .chat-thread > header {
     flex: 0 0 auto !important;
