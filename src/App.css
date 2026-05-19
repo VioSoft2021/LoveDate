@@ -5612,8 +5612,9 @@ details.profile-settings.settings-card[open] > summary {
   }
 
   /* With the action bar back in-flow at the end of the side panel,
-     padding-bottom only needs to clear the fixed mobile tab bar with
-     a bit of breathing room. 4.7rem (tab bar) + 1.5rem visual gap. */
+     padding-bottom needs to clear the fixed mobile tab bar AND the
+     in-flow action bar's own height with breathing room. 4.7rem (tab
+     bar) + 3rem (in-flow action bar height) + 0.5rem gap = ~8.2rem. */
   .screen-panel,
   .screen-panel--discover {
     min-height: 0;
@@ -5621,7 +5622,7 @@ details.profile-settings.settings-card[open] > summary {
     overflow-y: auto !important;
     padding-left: 0.5rem !important;
     padding-right: 0.5rem !important;
-    padding-bottom: calc(6.2rem + env(safe-area-inset-bottom, 0.5rem)) !important;
+    padding-bottom: calc(8.2rem + env(safe-area-inset-bottom, 0.5rem)) !important;
   }
 
   /* DISCOVER actions: in-flow, compact, at the end of the side panel.
@@ -5689,11 +5690,13 @@ details.profile-settings.settings-card[open] > summary {
   }
   .chats-layout[data-mobile-view='thread'] .chat-thread {
     position: fixed !important;
-    /* Start below status bar (safe-area-inset-top) + LoveDate top-bar
-       (~4.6rem). If chat-thread started behind the top-bar, taps in
-       that area landed on the top-bar's home button instead of the
-       chat back button. */
-    top: calc(env(safe-area-inset-top, 0px) + 5.2rem) !important;
+    /* Start strictly below the LoveDate top-bar. App-shell padding-top
+       is max(env(safe-area-inset-top, 1.75rem), 1.75rem) ≈ 1.75rem in
+       Chrome (no status-bar safe-area inside the browser chrome) +
+       top-bar content ~4rem = ~5.75rem. Adding 0.75rem buffer so the
+       chat-thread never overlaps the top-bar's right-side exit button
+       on edge-to-edge phones. */
+    top: calc(env(safe-area-inset-top, 0px) + 6.5rem) !important;
     bottom: calc(env(safe-area-inset-bottom, 0px) + 4.7rem) !important;
     left: 0 !important;
     right: 0 !important;

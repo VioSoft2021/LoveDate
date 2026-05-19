@@ -168,7 +168,16 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                 type="button"
                 className="chat-back-btn"
                 aria-label="Back to chats"
-                onClick={() => setActiveChatId(null)}
+                onPointerUp={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setActiveChatId(null)
+                }}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setActiveChatId(null)
+                }}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
