@@ -11,6 +11,7 @@ import { EmbeddedCallStage } from './components/EmbeddedCallStage'
 import { Logo } from './components/Logo'
 import { BuildChip } from './components/BuildChip'
 import { UpdateBanner } from './components/UpdateBanner'
+import { useAuth } from './hooks/useAuth'
 import { ActivityScreen } from './screens/ActivityScreen'
 import { ChatScreen } from './screens/ChatScreen'
 import { CirclesScreen } from './screens/CirclesScreen'
@@ -283,16 +284,8 @@ function App() {
   const [selectedProfileId, setSelectedProfileId] = useState<number | null>(initialRoute.profileId)
   const [previousScreen, setPreviousScreen] = useState<AppScreen>('discover')
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [userEmail, setUserEmail] = useState(initialAuth.email)
-  const [loginEmail, setLoginEmail] = useState(initialAuth.email)
-  const [loginPassword, setLoginPassword] = useState('')
-  const [registerPasswordConfirm, setRegisterPasswordConfirm] = useState('')
-  const [loginError, setLoginError] = useState<string | null>(null)
-  const [loginNotice, setLoginNotice] = useState<string | null>(null)
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
-  const [inviteCode, setInviteCode] = useState('')
-  const [loggingIn, setLoggingIn] = useState(false)
+  // Auth state + handlers live in useAuth — wired in below, after pushToast
+  // and navigate are defined (so onSignedIn/onSignedOut can use them).
   const [selfProfile, setSelfProfile] = useState<SelfProfile>(initialSelfProfile)
   const [profileDraft, setProfileDraft] = useState(() => toProfileDraft(initialSelfProfile))
   const [profileSaveStatus, setProfileSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle')
@@ -410,10 +403,8 @@ function App() {
       ),
     )
   }, [])
-  const isModerationAdmin = useMemo(
-    () => moderationAdminEmails.includes(userEmail.trim().toLowerCase()),
-    [moderationAdminEmails, userEmail],
-  )
+  // isModerationAdmin moved below useAuth() — userEmail is now sourced
+  // from there and isn't in scope until after the destructure.
 
   const dragStart = useRef<{ x: number; y: number } | null>(null)
   const attachmentInputRef = useRef<HTMLInputElement | null>(null)
@@ -940,6 +931,59 @@ function App() {
       }
     },
     [],
+  )
+
+  // Phase D1.1 — auth state + handlers extracted to useAuth.
+  // onSignedIn navigates to the home screen; onSignedOut clears the
+  // non-auth state that handleSignOut used to reset inline.
+  const auth = useAuth({
+    pushToast,
+    onSignedIn: () => navigate('discover', { replace: true }),
+    onSignedOut: () => {
+      setActiveMatch(null)
+      setActiveChatId(null)
+      setCallState({
+        active: false,
+        type: null,
+        status: 'connecting',
+        startedAt: 0,
+        targetProfileId: null,
+        muted: false,
+        cameraOff: false,
+        roomId: null,
+        roomUrl: null,
+      })
+    },
+  })
+  const {
+    isAuthenticated,
+    userEmail,
+    loginEmail,
+    loginPassword,
+    registerPasswordConfirm,
+    loginError,
+    loginNotice,
+    authMode,
+    inviteCode,
+    loggingIn,
+    setLoginEmail,
+    setLoginPassword,
+    setRegisterPasswordConfirm,
+    setAuthMode,
+    setInviteCode,
+    setLoginError,
+    setLoginNotice,
+  } = auth
+  const handleLoginSubmit = auth.submitLogin
+  const handleGuestLogin = auth.guestLogin
+  const handleSignOut = auth.signOut
+  const handleExitApp = auth.exitApp
+  const handleUseDevAccount = auth.useDevAccount
+  const handleResetDevAccount = auth.resetDevAccount
+
+  const isModerationAdmin = useMemo(
+    () => moderationAdminEmails.includes(userEmail.trim().toLowerCase()),
+    [moderationAdminEmails, userEmail],
   )
 
   useEffect(() => {
@@ -2401,150 +2445,6 @@ function App() {
     }
   }, [activeMatch, reportDraftProfile, lightboxPhoto, closeReportProfileDialog, closeLightbox, screen, swipeCard, undoSwipe])
 
-  const handleLoginSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setLoggingIn(true)
-    setLoginError(null)
-    setLoginNotice(null)
-
-    if (authMode === 'register') {
-      const strongPasswordError = getStrongPasswordError(loginPassword)
-      if (strongPasswordError) {
-        setLoginError(strongPasswordError)
-        setLoggingIn(false)
-        return
-      }
-    }
-
-    if (authMode === 'register' && loginPassword !== registerPasswordConfirm) {
-      setLoginError('Passwords do not match.')
-      setLoggingIn(false)
-      return
-    }
-
-    const inviteValidation = runtimeConfig.auth.requireInviteCode
-      ? backendValidateInviteCode(inviteCode.trim())
-      : Promise.resolve()
-
-    void inviteValidation
-      .then(() =>
-        authMode === 'register'
-          ? backendRegister(loginEmail.trim(), loginPassword).then((result) => {
-              if (result.signedIn) {
-                return { email: result.email, signedIn: true, registered: true, needsEmailConfirmation: false }
-              }
-              return {
-                email: result.email,
-                signedIn: false,
-                registered: true,
-                needsEmailConfirmation: result.needsEmailConfirmation,
-              }
-            })
-          : backendLogin(loginEmail.trim(), loginPassword).then((result) => ({
-              email: result.email,
-              signedIn: true,
-              registered: false,
-              needsEmailConfirmation: false,
-            })),
-      )
-      .then((result) => {
-        if (!result.signedIn && result.registered && result.needsEmailConfirmation) {
-          setAuthMode('login')
-          setLoginNotice('Account created. Confirm your email, then sign in.')
-          pushToast('Account created. Please confirm your email.', 'info')
-          return
-        }
-
-        // Scrub any other user's profile cache before we hydrate ours.
-        // Closes the shared-device data-at-rest leak: nothing in localStorage
-        // for any account other than this one.
-        purgeOtherSelfProfileCaches(result.email)
-        setIsAuthenticated(true)
-        setUserEmail(result.email)
-        // Repair the discoverable-profile bridge for legacy accounts whose
-        // public.profiles row predates B1 (null auth_user_id → invisible to
-        // other users). Fire-and-forget; no-op for new/already-bridged users.
-        void backendRepairDiscoverableProfile(result.email)
-        navigate('discover', { replace: true })
-        pushToast(authMode === 'register' ? 'Account created successfully.' : 'Signed in successfully.', 'success')
-      })
-      .catch((error: unknown) => {
-        const detail = error instanceof Error ? error.message : 'Login failed'
-        setLoginError(detail)
-        pushToast(authMode === 'register' ? 'Account creation failed.' : 'Login failed. Check invite code and credentials.', 'error')
-      })
-      .finally(() => {
-        setLoggingIn(false)
-      })
-  }
-
-  const handleGuestLogin = () => {
-    setLoggingIn(true)
-    setLoginError(null)
-    setLoginNotice(null)
-
-    const inviteValidation = runtimeConfig.auth.requireInviteCode
-      ? backendValidateInviteCode(inviteCode.trim())
-      : Promise.resolve()
-
-    void inviteValidation
-      .then(() => backendGuestLogin())
-      .then((result) => {
-        purgeOtherSelfProfileCaches(result.email)
-        setIsAuthenticated(true)
-        setUserEmail(result.email)
-        setLoginEmail(result.email)
-        void backendRepairDiscoverableProfile(result.email)
-        navigate('discover', { replace: true })
-        pushToast('Guest session started.', 'info')
-      })
-      .catch((error: unknown) => {
-        const detail = error instanceof Error ? error.message : 'Guest login failed'
-        setLoginError(detail)
-        pushToast('Guest login failed.', 'error')
-      })
-      .finally(() => {
-        setLoggingIn(false)
-      })
-  }
-
-  // Dev test-account helpers (DEV only)
-  const DEV_TEST_EMAIL = (import.meta.env.VITE_DEV_TEST_EMAIL as string | undefined) ?? 'dev@lovedate.local'
-
-  const handleUseDevAccount = async () => {
-    if (!import.meta.env.DEV) return
-    setLoggingIn(true)
-    try {
-      // Always overwrite local profile for the dev test email with an empty profile
-      // so tests start from a clean slate regardless of prior runs.
-      backendResetLocalSelfProfile(DEV_TEST_EMAIL)
-      await backendSaveSelfProfile(DEV_TEST_EMAIL, EMPTY_SELF_PROFILE as unknown as Record<string, unknown>)
-      setIsAuthenticated(true)
-      setUserEmail(DEV_TEST_EMAIL)
-      setLoginEmail(DEV_TEST_EMAIL)
-      navigate('discover', { replace: true })
-      pushToast('Dev account loaded.', 'info')
-    } catch {
-      pushToast('Dev account load failed.', 'error')
-    } finally {
-      setLoggingIn(false)
-    }
-  }
-
-  const handleResetDevAccount = async () => {
-    if (!import.meta.env.DEV) return
-    setLoggingIn(true)
-    try {
-      backendResetLocalSelfProfile(DEV_TEST_EMAIL)
-      await backendSaveSelfProfile(DEV_TEST_EMAIL, EMPTY_SELF_PROFILE as unknown as Record<string, unknown>)
-      pushToast('Dev account reset locally.', 'success')
-    } catch {
-      pushToast('Dev reset failed.', 'error')
-    } finally {
-      setLoggingIn(false)
-    }
-  }
-
   const handleSettingsToggle = (key: keyof SettingsPayload, checked: boolean) => {
     const nextValue = {
       ...settings,
@@ -2586,46 +2486,6 @@ function App() {
         void disablePushNotifications()
       }
     }
-  }
-
-  const handleExitApp = () => {
-    void handleSignOut()
-    void import('@capacitor/app')
-      .then(({ App: CapacitorApp }) => CapacitorApp.exitApp())
-      .catch(() => {
-        window.close()
-      })
-  }
-
-  const handleSignOut = async () => {
-    // Await the cloud sign-out before flipping local state so the next
-    // sign-in can't race with the previous session's signOut completing.
-    try {
-      await backendSignOut()
-    } catch {
-      pushToast('Sign out sync failed, local session cleared anyway.', 'error')
-    }
-    // Wipe every self-profile cache (current + any leftovers) so the
-    // next person on this device cannot read profile data via devtools.
-    // Trades instant-render on next sign-in (cloud fetch instead) for
-    // a hard zero-leak guarantee.
-    purgeAllSelfProfileCaches()
-    setIsAuthenticated(false)
-    setUserEmail('')
-    setLoginPassword('')
-    setActiveMatch(null)
-    setActiveChatId(null)
-    setCallState({
-      active: false,
-      type: null,
-      status: 'connecting',
-      startedAt: 0,
-      targetProfileId: null,
-      muted: false,
-      cameraOff: false,
-      roomId: null,
-      roomUrl: null,
-    })
   }
 
   const socialConnectedCount = useMemo(
