@@ -323,4 +323,160 @@
     flex: 1 1 0;
     min-height: 0;
   }
+
+  /* ── HARD CLAMP — every direct screen container fits the viewport.
+     Fixes right-side text cutoff on profile/settings/chats screens. */
+  .profile-screen,
+  .settings-screen,
+  .profile-detail,
+  .activity-layout,
+  .chats-layout,
+  .discover-redesign,
+  .profile-left-column,
+  .profile-summary,
+  .profile-settings,
+  .list-panel,
+  .activity-overview,
+  .chat-thread,
+  .chat-list {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    grid-template-columns: 1fr !important;
+    box-sizing: border-box;
+  }
+
+  /* Force long text to wrap inside cards instead of overflowing */
+  .profile-summary,
+  .profile-summary p,
+  .profile-summary h2,
+  .profile-summary h3,
+  .profile-summary li,
+  .profile-summary span,
+  .profile-settings,
+  .profile-settings p,
+  .profile-settings li,
+  .profile-summary--enhanced,
+  .activity-overview p,
+  .list-panel p,
+  .list-panel li {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 100%;
+  }
+
+  /* Tighter card padding so content has more room to breathe */
+  .profile-summary,
+  .profile-settings,
+  .list-panel,
+  .activity-overview {
+    padding: 0.85rem 0.9rem !important;
+  }
+
+  /* Interest chips wrap nicely instead of forming an overflowing row */
+  .profile-interest-chips,
+  .profile-summary .chips {
+    flex-wrap: wrap !important;
+    max-width: 100%;
+  }
+
+  /* Let discover content flow and scroll normally */
+  .discover-redesign {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* ── Discover KPIs — compact 4-column row instead of giant stacked cards */
+  .discover-kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 0.3rem !important;
+  }
+  .discover-kpi {
+    min-height: unset !important;
+    padding: 0.45rem 0.2rem !important;
+    border-radius: 0.65rem !important;
+  }
+  .discover-kpi-value {
+    font-size: 1.05rem !important;
+    line-height: 1.2 !important;
+  }
+  .discover-kpi-label {
+    font-size: 0.54rem !important;
+    letter-spacing: 0.03em !important;
+  }
+
+  /* Compact action buttons (OPEN FILTERS / BOOST / RESET) */
+  .discover-metric-controls { gap: 0.25rem !important; }
+  .discover-metric-btn {
+    min-width: 0 !important;
+    height: 2rem !important;
+    padding: 0 0.6rem !important;
+    font-size: 0.7rem !important;
+    border-radius: 0.5rem !important;
+  }
+
+  /* ── Mobile bottom tab bar — fixed at viewport bottom */
+  .mobile-tab-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-tab-bar);
+    background: rgba(10, 13, 35, 0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    padding-bottom: var(--safe-bottom);
+    justify-content: space-around;
+    align-items: stretch;
+  }
+  .mobile-tab-bar button {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.38);
+    padding: 0.75rem 0;
+    cursor: pointer;
+    position: relative;
+    transition: color 150ms;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 3.2rem;
+    overflow: visible;
+  }
+  /* Icons-only mode so all tabs fit at narrow widths */
+  .mobile-tab-bar button span { display: none; }
+  .mobile-tab-bar button svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    transition: filter 150ms;
+  }
+  .mobile-tab-bar button.active { color: #d8b86d; }
+  .mobile-tab-bar button.active svg {
+    filter: drop-shadow(0 0 6px rgba(216, 184, 109, 0.6));
+  }
+  .mobile-tab-bar .tab-badge {
+    position: absolute;
+    top: 0.3rem;
+    right: calc(50% - 1.1rem);
+    background: #e0144c;
+    color: #fff;
+    border-radius: 999px;
+    font-size: 0.54rem;
+    font-weight: 700;
+    min-width: 1rem;
+    height: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.18rem;
+    line-height: 1;
+  }
 }
