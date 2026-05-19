@@ -4,6 +4,7 @@ import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import './App.css'
 import { getMyMatches, resolveMatch, type Profile } from './services/loveDateApi'
+import { backendInvokeDatePlanner } from './services/ai/datePlanner'
 import { backendInvokeIcebreaker } from './services/ai/icebreaker'
 import { backendInvokeMatchScore, type AiMatchScoreResult } from './services/ai/matchScore'
 import { enablePushNotifications, disablePushNotifications } from './services/push'
@@ -1994,20 +1995,22 @@ function App() {
     if (!selectedChatProfile) {
       return
     }
+    const target = selectedChatProfile
 
     setAiDatePlannerLoading(true)
-    window.setTimeout(() => {
-      const chemistry = getChemistryInsights(selectedChatProfile).chemistryScore
-      const city = selectedChatProfile.city || selfProfile.city || 'your city'
-      const sharedInterests = selectedChatProfile.interests.filter((interest) =>
+
+    const buildTemplatedFallback = (): DatePlan[] => {
+      const chemistry = getChemistryInsights(target).chemistryScore
+      const city = target.city || selfProfile.city || 'your city'
+      const sharedInterests = target.interests.filter((interest) =>
         selfProfile.interests.some(
           (mine) =>
             mine.toLowerCase().includes(interest.toLowerCase()) ||
             interest.toLowerCase().includes(mine.toLowerCase()),
         ),
       )
-      const anchorInterestRaw = sharedInterests[0] ?? selectedChatProfile.interests[0] ?? 'coffee'
-      const anchorInterestTwoRaw = sharedInterests[1] ?? selectedChatProfile.interests[1] ?? 'music'
+      const anchorInterestRaw = sharedInterests[0] ?? target.interests[0] ?? 'coffee'
+      const anchorInterestTwoRaw = sharedInterests[1] ?? target.interests[1] ?? 'music'
       const anchorInterest = translateInterestForSentence(anchorInterestRaw, appLanguage)
       const anchorInterestTwo = translateInterestForSentence(anchorInterestTwoRaw, appLanguage)
 
@@ -2028,9 +2031,9 @@ function App() {
       const cultureVars = { anchorTwo: anchorInterestTwo }
       const signatureVars = { anchor: anchorInterest }
 
-      const plans: DatePlan[] = [
+      return [
         {
-          id: `micro-date-${selectedChatProfile.id}`,
+          id: `micro-date-${target.id}`,
           title: dp.datePlanGoldenTitle,
           placeType: fill(dp.datePlanGoldenPlace, goldenVars),
           budget: '$',
@@ -2039,7 +2042,7 @@ function App() {
           message: fill(dp.datePlanGoldenMessage, goldenVars),
         },
         {
-          id: `culture-date-${selectedChatProfile.id}`,
+          id: `culture-date-${target.id}`,
           title: dp.datePlanCultureTitle,
           placeType: fill(dp.datePlanCulturePlace, cultureVars),
           budget: '$$',
@@ -2048,7 +2051,7 @@ function App() {
           message: fill(dp.datePlanCultureMessage, cultureVars),
         },
         {
-          id: `signature-date-${selectedChatProfile.id}`,
+          id: `signature-date-${target.id}`,
           title: dp.datePlanSignatureTitle,
           placeType: fill(dp.datePlanSignaturePlace, signatureVars),
           budget: '$$$',
@@ -2057,11 +2060,59 @@ function App() {
           message: fill(dp.datePlanSignatureMessage, signatureVars),
         },
       ]
+    }
 
-      setAiDatePlans(plans)
-      setAiDatePlannerLoading(false)
-    }, 520)
-  }, [selectedChatProfile, getChemistryInsights, selfProfile.city, selfProfile.interests, appLanguage, setAiDatePlannerLoading, setAiDatePlans])
+    void (async () => {
+      try {
+        const chemistry = getChemistryInsights(target).chemistryScore
+        const aiPlans = await backendInvokeDatePlanner({
+          selfProfile: {
+            name: selfProfile.name,
+            age: selfProfile.age,
+            city: selfProfile.city,
+            vibe: selfProfile.vibe,
+            bio: selfProfile.bio,
+            interests: selfProfile.interests,
+            relationshipGoal: selfProfile.relationshipIntent,
+            zodiac: selfProfile.zodiac,
+          },
+          otherProfile: {
+            id: target.id,
+            name: target.name,
+            age: target.age,
+            city: target.city,
+            vibe: target.vibe,
+            bio: target.bio,
+            interests: target.interests,
+            relationshipGoal: target.relationshipGoal,
+            zodiac: target.zodiac,
+          },
+          chemistryScore: chemistry,
+          language: appLanguage,
+        })
+
+        if (aiPlans && aiPlans.length > 0) {
+          setAiDatePlans(
+            aiPlans.map((plan, idx) => ({
+              id: `ai-date-${target.id}-${idx}`,
+              title: plan.title,
+              placeType: plan.placeType,
+              budget: plan.budget,
+              duration: plan.duration,
+              pitch: plan.pitch,
+              message: plan.message,
+            })),
+          )
+        } else {
+          setAiDatePlans(buildTemplatedFallback())
+        }
+      } catch {
+        setAiDatePlans(buildTemplatedFallback())
+      } finally {
+        setAiDatePlannerLoading(false)
+      }
+    })()
+  }, [selectedChatProfile, getChemistryInsights, selfProfile, appLanguage, setAiDatePlannerLoading, setAiDatePlans])
 
   useEffect(() => {
     setAiCoachSuggestions([])
