@@ -5613,10 +5613,9 @@ details.profile-settings.settings-card[open] > summary {
 
   /* Only the panel scrolls, horizontally clipped, with room for tab bar.
      Tab bar buttons are 3.2rem min-height + 0.75rem×2 padding ≈ 4.7rem.
-     Bumped from 7rem → 10rem because on Discover the Like button (the
-     last action in the discover-side-panel) was still clipping under
-     the fixed nav on a ~640px tall viewport. 10rem gives the user clear
-     daylight between the last button and the bar. */
+     Pushed to 12rem because user reports Like still clipping at 10rem
+     — likely due to the tab bar's safe-area-inset-bottom on edge-to-edge
+     Android being larger than the 0.5rem fallback we assumed. */
   .screen-panel,
   .screen-panel--discover {
     min-height: 0;
@@ -5624,7 +5623,7 @@ details.profile-settings.settings-card[open] > summary {
     overflow-y: auto !important;
     padding-left: 0.5rem !important;
     padding-right: 0.5rem !important;
-    padding-bottom: calc(10rem + env(safe-area-inset-bottom, 0.5rem)) !important;
+    padding-bottom: calc(12rem + env(safe-area-inset-bottom, 0.5rem)) !important;
   }
 
   /* Discover hint footer = keyboard shortcuts (← Pass ↑ Super Like → Like)
@@ -5691,6 +5690,64 @@ details.profile-settings.settings-card[open] > summary {
     object-fit: contain !important;
     object-position: center !important;
     background: rgba(8, 12, 30, 0.6);
+  }
+
+  /* Chat header on phone: total flex content (back btn + avatar + name
+     + actions + padding) was ~418px on a 384px viewport, so chat-header-
+     actions overflowed off the right edge with flex-wrap:nowrap. Fix
+     by shrinking the profile name aggressively (clamp + ellipsis), giving
+     actions flex-shrink:0 so they never get cut, and squeezing padding. */
+  .chat-thread header {
+    padding: 0.6rem 0.55rem !important;
+    gap: 0.4rem !important;
+    min-height: 0 !important;
+  }
+  .chat-header-profile {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    gap: 0.45rem !important;
+  }
+  .chat-header-profile h2 {
+    font-size: 1.05rem !important;
+    line-height: 1.15 !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .chat-header-profile .chat-presence {
+    font-size: 0.72rem !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+  }
+  .chat-thread .chat-avatar {
+    width: 2.4rem !important;
+    height: 2.4rem !important;
+  }
+  .chat-header-actions {
+    flex-shrink: 0 !important;
+    gap: 0.2rem !important;
+  }
+  .chat-header-actions .chat-icon-btn {
+    width: 2.2rem !important;
+    min-width: 2.2rem !important;
+    height: 2.2rem !important;
+    padding: 0 !important;
+    color: rgba(237, 244, 255, 0.95) !important;
+  }
+  /* The 3-dot "More options" button uses fill:currentColor (line 2244).
+     But that rule targets aria-label='More options' literally — works
+     for English, breaks for any localized aria-label. Make sure ANY
+     chat-icon-btn whose SVG uses bare <circle> elements renders solid. */
+  .chat-header-actions .chat-icon-btn svg {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    display: block !important;
+  }
+  .chat-back-btn {
+    flex-shrink: 0 !important;
+    padding: 0.3rem 0.5rem !important;
   }
 
   /* On phone, hide the four insight panels (compatibility, AI coach,

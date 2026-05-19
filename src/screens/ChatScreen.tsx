@@ -206,15 +206,15 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                 </button>
                 <button
                   type="button"
-                  className="chat-icon-btn"
+                  className="chat-icon-btn chat-more-options"
                   aria-label={copy.chats.moreOptions}
                   onClick={() => openProfileDetail(selectedChatProfile.id, 'chats')}
                   title={copy.discover.viewFullProfile}
                 >
                   <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="5" r="1.8" />
-                    <circle cx="12" cy="12" r="1.8" />
-                    <circle cx="12" cy="19" r="1.8" />
+                    <circle cx="12" cy="5" r="1.8" fill="currentColor" />
+                    <circle cx="12" cy="12" r="1.8" fill="currentColor" />
+                    <circle cx="12" cy="19" r="1.8" fill="currentColor" />
                   </svg>
                 </button>
               </div>
