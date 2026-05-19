@@ -14,6 +14,7 @@ import { UpdateBanner } from './components/UpdateBanner'
 import { useAuth } from './hooks/useAuth'
 import { useDeck } from './hooks/useDeck'
 import { useChatState } from './hooks/useChatState'
+import { useProfileEditor } from './hooks/useProfileEditor'
 import { ActivityScreen } from './screens/ActivityScreen'
 import { ChatScreen } from './screens/ChatScreen'
 import { CirclesScreen } from './screens/CirclesScreen'
@@ -287,28 +288,20 @@ function App() {
 
   // Auth state + handlers live in useAuth — wired in below, after pushToast
   // and navigate are defined (so onSignedIn/onSignedOut can use them).
-  const [selfProfile, setSelfProfile] = useState<SelfProfile>(initialSelfProfile)
-  const [profileDraft, setProfileDraft] = useState(() => toProfileDraft(initialSelfProfile))
-  const [profileSaveStatus, setProfileSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle')
-  const [profileSaveErrors, setProfileSaveErrors] = useState<string[]>([])
-  const [photoUrlInput, setPhotoUrlInput] = useState('')
-  const [photoStudioSource, setPhotoStudioSource] = useState<string | null>(null)
-  const [photoStudioAnalysis, setPhotoStudioAnalysis] = useState<PhotoStudioAnalysis | null>(null)
-  const [photoStudioControls, setPhotoStudioControls] = useState<PhotoStudioControls>({
-    cropAspect: 'free',
-    zoom: 1,
-    rotate: 0,
-    brightness: 100,
-    contrast: 100,
-    saturate: 100,
-    offsetX: 0,
-    offsetY: 0,
-    freeCropX: 10,
-    freeCropY: 10,
-    freeCropWidth: 80,
-    freeCropHeight: 80,
-  })
-  const [photoStudioBusy, setPhotoStudioBusy] = useState(false)
+  // Profile editor + photo studio state moves into useProfileEditor.
+  const profileEditor = useProfileEditor(initialSelfProfile)
+  const {
+    selfProfile, setSelfProfile,
+    profileDraft, setProfileDraft,
+    profileSaveStatus, setProfileSaveStatus,
+    profileSaveErrors, setProfileSaveErrors,
+    photoUrlInput, setPhotoUrlInput,
+    photoStudioSource, setPhotoStudioSource,
+    photoStudioAnalysis, setPhotoStudioAnalysis,
+    photoStudioControls, setPhotoStudioControls,
+    photoStudioBusy, setPhotoStudioBusy,
+    isDraggingCrop, setIsDraggingCrop,
+  } = profileEditor
 
   // Deck state + drag gesture + pure derivations now live in useDeck.
   const deck = useDeck()
@@ -464,7 +457,7 @@ function App() {
     pointer: { x: number; y: number }
     rect: { x: number; y: number; width: number; height: number }
   } | null>(null)
-  const [isDraggingCrop, setIsDraggingCrop] = useState(false)
+  // isDraggingCrop now in useProfileEditor.
   const [activeCropHandle, setActiveCropHandle] = useState<CropHandle | null>(null)
   const [isMovingCrop, setIsMovingCrop] = useState(false)
   const [isRedrawCropMode, setIsRedrawCropMode] = useState(false)
