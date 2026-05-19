@@ -5611,11 +5611,10 @@ details.profile-settings.settings-card[open] > summary {
     overflow: hidden !important;
   }
 
-  /* Only the panel scrolls, horizontally clipped, with room for tab bar.
-     Tab bar buttons are 3.2rem min-height + 0.75rem×2 padding ≈ 4.7rem.
-     Pushed to 12rem because user reports Like still clipping at 10rem
-     — likely due to the tab bar's safe-area-inset-bottom on edge-to-edge
-     Android being larger than the 0.5rem fallback we assumed. */
+  /* Only the panel scrolls, horizontally clipped, with room for tab bar
+     AND for the new fixed compact action bar (Pass / Super Like / Like)
+     that floats just above the tab bar. Math: 4.7rem (tab bar) + 3.2rem
+     (action bar) + 0.6rem gap ≈ 8.5rem. */
   .screen-panel,
   .screen-panel--discover {
     min-height: 0;
@@ -5623,7 +5622,100 @@ details.profile-settings.settings-card[open] > summary {
     overflow-y: auto !important;
     padding-left: 0.5rem !important;
     padding-right: 0.5rem !important;
-    padding-bottom: calc(12rem + env(safe-area-inset-bottom, 0.5rem)) !important;
+    padding-bottom: calc(8.5rem + env(safe-area-inset-bottom, 0.5rem)) !important;
+  }
+
+  /* DISCOVER REDESIGN: replace the 3 oversized full-width Pass/SuperLike/
+     Like buttons with a compact icon-toolbar fixed above the mobile tab
+     bar. The swipe gesture on the card already does the same thing, so
+     this acts as a small visible reminder rather than a giant duplicate.
+     Floating because in the old in-flow layout the Like row was being
+     pushed off-screen no matter how much padding-bottom we added. */
+  .discover-primary-actions.actions {
+    position: fixed !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 4.7rem) !important;
+    left: 0.6rem !important;
+    right: 0.6rem !important;
+    z-index: 250 !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 0.4rem !important;
+    padding: 0.4rem !important;
+    background: rgba(10, 13, 35, 0.92) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border-radius: 0.95rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 -6px 22px rgba(0, 0, 0, 0.42) !important;
+    margin: 0 !important;
+    width: auto !important;
+  }
+  .discover-primary-actions.actions button {
+    height: 2.55rem !important;
+    min-height: 0 !important;
+    font-size: 0.86rem !important;
+    border-radius: 0.6rem !important;
+    padding: 0 0.4rem !important;
+  }
+
+  /* Smaller deck so the card doesn't dominate the viewport. Was
+     clamp(20rem, 56vh, 32rem); reduce to 35vh so the side panel and
+     full-profile button sit comfortably above the floating action bar. */
+  .discover-deck {
+    height: clamp(14rem, 36vh, 20rem) !important;
+    max-height: 20rem !important;
+  }
+
+  /* User reported "swipable pictures makes harder vertical navigation".
+     Previously the card had touch-action: none which intercepted every
+     touch and blocked the browser from scrolling. Switch to pan-y on
+     phone: browser handles vertical scrolling (so the user can scroll
+     the page by dragging on the card), app still receives horizontal
+     pointer events for the swipe-to-like/pass gesture. */
+  .discover-deck .profile-card.front {
+    touch-action: pan-y !important;
+  }
+
+  /* CHAT REDESIGN: kill the double-scroll. Previously both .chats-layout
+     AND .chat-thread (overflow-y: auto) AND .messages were scrollable,
+     producing two visible scrollbars and an empty space below the last
+     message. New model: chat-thread is a flex column that fills the
+     screen-panel exactly; ONLY .messages scrolls; header and composer
+     stay pinned at top/bottom by flex layout. */
+  .chats-layout {
+    height: calc(100dvh - 4.6rem - env(safe-area-inset-bottom, 0px)) !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: hidden !important;
+  }
+  .chat-thread {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    max-height: none !important;
+    overflow: hidden !important;
+  }
+  .chat-thread > header {
+    flex: 0 0 auto !important;
+  }
+  .chat-thread > .messages {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+  .chat-thread > .chat-input,
+  .chat-thread > .chat-attachment-preview,
+  .chat-thread > .messages-toolbar {
+    flex: 0 0 auto !important;
+  }
+  /* The screen-panel hosting the chats no longer needs to scroll on phone
+     — the chat-thread manages its own scroll internally — and removing the
+     panel's bottom padding eliminates the dead space below the composer. */
+  .app-shell--chats .screen-panel,
+  .screen-panel--chats {
+    overflow: hidden !important;
+    padding-bottom: 0 !important;
   }
 
   /* Discover hint footer = keyboard shortcuts (← Pass ↑ Super Like → Like)
