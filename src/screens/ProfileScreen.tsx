@@ -20,6 +20,11 @@ import {
 } from '../constants'
 import { PERSONALITY_QUESTIONS, type PersonalityAnswer } from '../services/compatibility'
 import { toProfileDraft } from '../persistence'
+import { formatUiText } from '../utils'
+import {
+  backendInvokePhotoCoach,
+  type AiPhotoCoachResult,
+} from '../services/ai/photoCoach'
 import type {
   AppLanguage,
   PhotoStudioAnalysis,
@@ -117,6 +122,51 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onOpenSettings,
 }) => {
   const copy = UI_TEXT[appLanguage]
+
+  // AI Photo Coach — local to this screen since no other surface needs it.
+  const [photoCoachResult, setPhotoCoachResult] =
+    React.useState<AiPhotoCoachResult | null>(null)
+  const [photoCoachLoading, setPhotoCoachLoading] = React.useState(false)
+  const [photoCoachError, setPhotoCoachError] = React.useState<string | null>(null)
+
+  const runPhotoCoach = React.useCallback(async () => {
+    if (!profileDraft.photos.length) {
+      setPhotoCoachError(copy.profile.photoCoachNoPhotos)
+      return
+    }
+    setPhotoCoachError(null)
+    setPhotoCoachLoading(true)
+    try {
+      const result = await backendInvokePhotoCoach({
+        photos: profileDraft.photos,
+        selfProfile: {
+          name: selfProfile.name,
+          age: selfProfile.age,
+          vibe: selfProfile.vibe,
+        },
+        language: appLanguage,
+      })
+      if (!result) {
+        setPhotoCoachError(copy.profile.photoCoachError)
+        setPhotoCoachResult(null)
+      } else {
+        setPhotoCoachResult(result)
+      }
+    } catch {
+      setPhotoCoachError(copy.profile.photoCoachError)
+      setPhotoCoachResult(null)
+    } finally {
+      setPhotoCoachLoading(false)
+    }
+  }, [
+    profileDraft.photos,
+    selfProfile.name,
+    selfProfile.age,
+    selfProfile.vibe,
+    appLanguage,
+    copy.profile.photoCoachNoPhotos,
+    copy.profile.photoCoachError,
+  ])
 
   return (
     <section className="profile-screen" aria-label={copy.profile.screen}>
@@ -630,6 +680,107 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
               {copy.profile.uploadPhoto}
               <input type="file" accept="image/*" onChange={handlePhotoUpload} />
             </label>
+
+            <div className="photo-coach-block">
+              <div className="photo-coach-actions">
+                <button
+                  type="button"
+                  className="ghost photo-coach-cta"
+                  onClick={() => void runPhotoCoach()}
+                  disabled={photoCoachLoading || profileDraft.photos.length === 0}
+                >
+                  {photoCoachLoading
+                    ? copy.profile.photoCoachLoading
+                    : copy.profile.photoCoachCta}
+                </button>
+                {photoCoachError ? (
+                  <button
+                    type="button"
+                    className="mini-btn"
+                    onClick={() => void runPhotoCoach()}
+                  >
+                    {copy.profile.photoCoachRetry}
+                  </button>
+                ) : null}
+              </div>
+              {photoCoachError ? (
+                <p className="photo-coach-error soft">{photoCoachError}</p>
+              ) : null}
+              {photoCoachResult ? (
+                <div className="photo-coach-result">
+                  <p className="photo-coach-overall">
+                    <strong>{copy.profile.photoCoachOverall}:</strong>{' '}
+                    {photoCoachResult.overall}
+                  </p>
+                  <p className="photo-coach-primary soft">
+                    <strong>{copy.profile.photoCoachPrimaryPick}:</strong>{' '}
+                    {formatUiText(copy.profile.photoCoachPhotoLabel, {
+                      index: photoCoachResult.primaryPick + 1,
+                    })}
+                  </p>
+                  <ul className="photo-coach-photo-list">
+                    {photoCoachResult.perPhoto.map((entry) => {
+                      const photoSrc = profileDraft.photos[entry.index]
+                      return (
+                        <li
+                          key={`coach-${entry.index}`}
+                          className={`photo-coach-photo-card ${
+                            entry.index === photoCoachResult.primaryPick
+                              ? 'is-primary-pick'
+                              : ''
+                          }`}
+                        >
+                          <div className="photo-coach-photo-thumb">
+                            {photoSrc ? (
+                              <img
+                                src={photoSrc}
+                                alt={formatUiText(copy.profile.photoCoachPhotoLabel, {
+                                  index: entry.index + 1,
+                                })}
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            ) : null}
+                          </div>
+                          <div className="photo-coach-photo-body">
+                            <p className="photo-coach-photo-head">
+                              <strong>
+                                {formatUiText(copy.profile.photoCoachPhotoLabel, {
+                                  index: entry.index + 1,
+                                })}
+                              </strong>{' '}
+                              <span className="photo-coach-score">
+                                {copy.profile.photoCoachScore}: {entry.score}/10
+                              </span>
+                            </p>
+                            {entry.strengths.length ? (
+                              <div className="photo-coach-bullets">
+                                <em>{copy.profile.photoCoachStrengths}:</em>
+                                <ul>
+                                  {entry.strengths.map((s, i) => (
+                                    <li key={`s-${entry.index}-${i}`}>{s}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                            {entry.improvements.length ? (
+                              <div className="photo-coach-bullets">
+                                <em>{copy.profile.photoCoachImprovements}:</em>
+                                <ul>
+                                  {entry.improvements.map((s, i) => (
+                                    <li key={`i-${entry.index}-${i}`}>{s}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                          </div>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
 
             <div className="draft-photo-grid">
               {profileDraft.photos.map((photo, index) => (

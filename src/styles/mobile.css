@@ -517,3 +517,110 @@
     line-height: 1;
   }
 }
+
+/* ── AI Photo Coach panel (all viewports) ───────────────────────────── */
+.photo-coach-block {
+  margin: 0.6rem 0 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.photo-coach-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.photo-coach-cta {
+  flex: 1 1 auto;
+  min-height: 2.4rem;
+}
+.photo-coach-error {
+  color: #ff8a8a;
+  margin: 0;
+}
+.photo-coach-result {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(216, 184, 109, 0.25);
+  border-radius: 0.85rem;
+  padding: 0.85rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.photo-coach-overall {
+  margin: 0;
+  line-height: 1.45;
+}
+.photo-coach-primary {
+  margin: 0;
+}
+.photo-coach-photo-list {
+  list-style: none;
+  margin: 0.2rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.photo-coach-photo-card {
+  display: grid;
+  grid-template-columns: 5rem 1fr;
+  gap: 0.7rem;
+  align-items: start;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 0.7rem;
+  padding: 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.photo-coach-photo-card.is-primary-pick {
+  border-color: rgba(216, 184, 109, 0.55);
+  box-shadow: 0 0 0 1px rgba(216, 184, 109, 0.18) inset;
+}
+.photo-coach-photo-thumb {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: #000;
+}
+.photo-coach-photo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photo-coach-photo-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.photo-coach-photo-head {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.photo-coach-score {
+  font-size: 0.82rem;
+  opacity: 0.8;
+}
+.photo-coach-bullets {
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+.photo-coach-bullets em {
+  font-style: normal;
+  opacity: 0.72;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.photo-coach-bullets ul {
+  margin: 0.15rem 0 0;
+  padding-left: 1.05rem;
+}
+.photo-coach-bullets li {
+  margin: 0.1rem 0;
+}
