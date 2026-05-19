@@ -5619,6 +5619,54 @@ details.profile-settings.settings-card[open] > summary {
     display: none !important;
   }
 
+  /* Discover screen — phone layout fixes.
+     1. Force single-column. The 1024px breakpoint sets grid-template-columns
+        to 1fr but a desktop-specific rule later in the file can override at
+        higher specificity; pin it with !important.
+     2. Each column gets full width and shrinks below intrinsic min so long
+        text wraps instead of pushing the layout sideways.
+     3. The desktop rule `.screen-panel--discover .discover-redesign { height: 100% }`
+        was capping the inner box to viewport height; on phone, content below
+        the fold (Like button) had no scroll runway. Switch to auto + min-height
+        100% so the scroll container can actually scroll past the fold. */
+  .discover-stage {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .discover-deck-column,
+  .discover-side-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    justify-self: stretch !important;
+  }
+  .screen-panel--discover .discover-redesign {
+    height: auto !important;
+    min-height: 100% !important;
+  }
+  /* The photo overlay (.card-photo-overlay) already shows name + age +
+     ACTIVE NOW + city/distance. The side panel was duplicating name and
+     zodiac just below — drop them on phone to save vertical space. */
+  .discover-side-panel .discover-side-name,
+  .discover-side-panel .discover-zodiac-line {
+    display: none !important;
+  }
+  /* Trim the deck height so the side panel + action buttons fit without
+     having to scroll past a giant card. Was clamp(22rem, calc(100dvh - 24rem), 38rem) */
+  .discover-deck {
+    height: clamp(20rem, 56vh, 32rem) !important;
+    max-height: 32rem !important;
+  }
+  /* Hard clamp every layer of the deck so a wide image can never push the
+     card past the viewport edge. */
+  .discover-deck,
+  .discover-deck .profile-card,
+  .discover-deck .card-photo-wrap,
+  .discover-deck .card-photo {
+    max-width: 100% !important;
+  }
+
   /* On phone, hide the four insight panels (compatibility, AI coach,
      AI planner, call history) by default. They eat the entire chat
      thread, pushing the actual messages off-screen. The new sparkle
