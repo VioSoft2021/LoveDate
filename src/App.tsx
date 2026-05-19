@@ -5,6 +5,7 @@ import { StatusBar, Style } from '@capacitor/status-bar'
 import './App.css'
 import { getMyMatches, resolveMatch, type Profile } from './services/loveDateApi'
 import { backendInvokeIcebreaker } from './services/ai/icebreaker'
+import { backendInvokeMatchScore, type AiMatchScoreResult } from './services/ai/matchScore'
 import { enablePushNotifications, disablePushNotifications } from './services/push'
 import { FilterScreen } from './components/FilterScreen'
 import { EmbeddedCallStage } from './components/EmbeddedCallStage'
@@ -429,6 +430,11 @@ function App() {
   } = appSettings
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null)
   const [lightboxZoom, setLightboxZoom] = useState(1)
+
+  // Phase E3 — AI match scoring overlay. Keyed by profile id. The
+  // matchScore service caches results 7 days in localStorage, so even
+  // after a reload we only pay the API cost once per profile pair.
+  const [aiMatchScores, setAiMatchScores] = useState<Record<number, AiMatchScoreResult>>({})
 
   const backendMode = getBackendMode()
   // Engagement state (plan tier, like/super-like usage, boost/rewind
@@ -1524,18 +1530,90 @@ function App() {
   }, [selectedProfileId, profileById])
 
   const topProfile = filteredProfiles[index]
-  const topProfileMatchAnalysis = useMemo(
-    () => (topProfile ? getMatchAnalysis(topProfile) : null),
-    [topProfile, getMatchAnalysis],
-  )
+
+  // Phase E3 — fetch AI score for the currently-visible candidates.
+  // Only the topProfile (Discover front card) and selectedDetailProfile
+  // (full-profile modal) actually display match analysis; everything
+  // else uses the heuristic sort score. Fetch fires once per profile
+  // and caches in service-level localStorage for 7 days.
+  useEffect(() => {
+    if (!isAuthenticated) return
+    const candidates = [topProfile, selectedDetailProfile].filter(
+      (p): p is Profile => Boolean(p),
+    )
+    let cancelled = false
+    for (const candidate of candidates) {
+      if (aiMatchScores[candidate.id]) continue
+      void (async () => {
+        const result = await backendInvokeMatchScore({
+          selfProfile: {
+            name: selfProfile.name,
+            age: selfProfile.age,
+            city: selfProfile.city,
+            vibe: selfProfile.vibe,
+            bio: selfProfile.bio,
+            interests: selfProfile.interests,
+            relationshipGoal: selfProfile.lookingFor,
+            zodiac: selfProfile.zodiac,
+            workout: selfProfile.workout,
+            drinking: selfProfile.drinking,
+            smoking: selfProfile.smoking,
+            pets: selfProfile.pets,
+            religion: selfProfile.religion,
+            politics: selfProfile.politics,
+            childrenPlan: selfProfile.childrenPlan,
+          },
+          candidateProfile: {
+            id: candidate.id,
+            name: candidate.name,
+            age: candidate.age,
+            city: candidate.city,
+            vibe: candidate.vibe,
+            bio: candidate.bio,
+            interests: candidate.interests,
+            relationshipGoal: candidate.relationshipGoal,
+            zodiac: candidate.zodiac,
+          },
+        })
+        if (cancelled || !result) return
+        setAiMatchScores((prev) =>
+          prev[candidate.id] ? prev : { ...prev, [candidate.id]: result },
+        )
+      })()
+    }
+    return () => {
+      cancelled = true
+    }
+  }, [topProfile, selectedDetailProfile, selfProfile, isAuthenticated, aiMatchScores])
+
+  const topProfileMatchAnalysis = useMemo(() => {
+    if (!topProfile) return null
+    const base = getMatchAnalysis(topProfile)
+    const ai = aiMatchScores[topProfile.id]
+    if (!ai) return base
+    return {
+      ...base,
+      score: ai.score,
+      reasons: ai.reasons,
+      caution: ai.redFlags.length > 0 ? ai.redFlags.join(' · ') : base.caution,
+    }
+  }, [topProfile, getMatchAnalysis, aiMatchScores])
   const topProfileChemistry = useMemo(
     () => (topProfile ? getChemistryInsights(topProfile) : null),
     [topProfile, getChemistryInsights],
   )
-  const selectedDetailMatchAnalysis = useMemo(
-    () => (selectedDetailProfile ? getMatchAnalysis(selectedDetailProfile) : null),
-    [selectedDetailProfile, getMatchAnalysis],
-  )
+  const selectedDetailMatchAnalysis = useMemo(() => {
+    if (!selectedDetailProfile) return null
+    const base = getMatchAnalysis(selectedDetailProfile)
+    const ai = aiMatchScores[selectedDetailProfile.id]
+    if (!ai) return base
+    return {
+      ...base,
+      score: ai.score,
+      reasons: ai.reasons,
+      caution: ai.redFlags.length > 0 ? ai.redFlags.join(' · ') : base.caution,
+    }
+  }, [selectedDetailProfile, getMatchAnalysis, aiMatchScores])
   const selectedDetailChemistry = useMemo(
     () => (selectedDetailProfile ? getChemistryInsights(selectedDetailProfile) : null),
     [selectedDetailProfile, getChemistryInsights],
