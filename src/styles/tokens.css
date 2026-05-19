@@ -1,0 +1,45 @@
+/* LoveDate layout tokens — the equivalent of Android's dimens.xml.
+   Every rule that needs a layout dimension should reference one of
+   these custom properties instead of hardcoding rem/px values. Changing
+   one token here updates every dependent rule across the app.
+
+   This file is imported FIRST in main.tsx, before App.css, so the
+   properties are available to all stylesheets that follow.
+
+   Phase: R1 of the mobile responsive refactor. */
+
+:root {
+  /* Safe areas — resolved at runtime from the device. Fallbacks are 0
+     because most browsers report 0 inside their own chrome (Chrome
+     handles status/nav bars itself). On PWA standalone mode or fullscreen
+     Capacitor app, these report the actual system bar heights. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
+  /* App-shell layout sizes — single source of truth.
+     Updating any of these here updates every layout rule that depends
+     on them. No more "bumped padding from 7rem to 9rem to 11rem to 14rem"
+     guessing across many sessions. */
+  --top-bar-h: 5.75rem;       /* LoveDate header (logo + branding + exit button) */
+  --tab-bar-h: 4.7rem;         /* Mobile bottom navigation */
+  --action-bar-h: 3rem;        /* In-flow Pass/Super Like/Like row */
+  --action-bar-gap: 0.7rem;    /* Visual breathing room above action bar */
+
+  /* Derived padding-bottom values. The whole point of tokens: derivation
+     is consistent, never miscalculated, automatically picks up changes
+     to inputs. */
+  --bottom-reserve: calc(var(--tab-bar-h) + var(--safe-bottom));
+  --bottom-reserve-with-actions: calc(
+    var(--bottom-reserve) + var(--action-bar-h) + var(--action-bar-gap)
+  );
+
+  /* Z-index ladder — named layers so we never write z-index: 9999 again
+     because z-index: 9998 wasn't enough. Each layer is documented. */
+  --z-base: 1;                /* Default app content */
+  --z-fixed-card: 50;         /* Position-fixed chat-thread, photo cards */
+  --z-tab-bar: 300;           /* Bottom mobile nav (must overlay content) */
+  --z-build-chip: 9999;       /* Build-version chip (above tab bar but below banner) */
+  --z-update-banner: 10000;   /* "New version" banner (highest interactive) */
+}
