@@ -12,6 +12,8 @@ export type SafetyCategory =
 
 export type ModerationStatus = 'open' | 'reviewing' | 'resolved' | 'dismissed'
 
+export type AiRiskLevel = 'low' | 'medium' | 'high'
+
 export type SafetyReport = {
   id: string
   profileId: number
@@ -31,6 +33,12 @@ export type SafetyReport = {
   status: ModerationStatus
   reviewedAt: number | null
   reviewerEmail: string | null
+  // Phase #5 — AI safety triage. Populated async by the ai-safety-triage
+  // Edge Function after submission. All three are undefined until the
+  // triage call lands.
+  aiRiskLevel?: AiRiskLevel
+  aiCategories?: SafetyCategory[]
+  aiSummary?: string
 }
 
 const BLOCKED_IDS_KEY = 'lovedate:blocked-profiles'

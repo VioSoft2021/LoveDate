@@ -869,32 +869,39 @@ export const backendSubmitReport = async (input: {
     relationshipGoal: string
     photoUrl: string
   }
-}): Promise<void> => {
+}): Promise<{ reportId: string } | null> => {
   if (!supabase) {
-    return
+    return null
   }
 
   const userId = await getCurrentUserId()
   if (!userId) {
-    return
+    return null
   }
 
-  const { error } = await supabase.from('safety_reports').insert({
-    reporter_id: userId,
-    reported_profile_id: input.reportedProfileId,
-    profile_snapshot: {
-      name: input.reportedProfileName,
-      ...input.profileSnapshot,
-    },
-    category: input.category,
-    details: input.details,
-    status: 'open',
-  })
+  const { data, error } = await supabase
+    .from('safety_reports')
+    .insert({
+      reporter_id: userId,
+      reported_profile_id: input.reportedProfileId,
+      profile_snapshot: {
+        name: input.reportedProfileName,
+        ...input.profileSnapshot,
+      },
+      category: input.category,
+      details: input.details,
+      status: 'open',
+    })
+    .select('id')
+    .single()
 
-  if (error) {
+  if (error || !data?.id) {
     // eslint-disable-next-line no-console
-    console.warn('Safety report cloud insert skipped:', error.message)
+    console.warn('Safety report cloud insert skipped:', error?.message ?? 'no row id')
+    return null
   }
+
+  return { reportId: String(data.id) }
 }
 
 /**

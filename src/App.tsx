@@ -7,6 +7,7 @@ import { getMyMatches, resolveMatch, type Profile } from './services/loveDateApi
 import { backendInvokeDatePlanner } from './services/ai/datePlanner'
 import { backendInvokeIcebreaker } from './services/ai/icebreaker'
 import { backendInvokeMatchScore, type AiMatchScoreResult } from './services/ai/matchScore'
+import { backendInvokeSafetyTriage } from './services/ai/safetyTriage'
 import { enablePushNotifications, disablePushNotifications } from './services/push'
 import { FilterScreen } from './components/FilterScreen'
 import { EmbeddedCallStage } from './components/EmbeddedCallStage'
@@ -2427,13 +2428,47 @@ function App() {
       reporterEmail: userEmail || 'guest@lovedate.app',
     })
     setSafetyReports((current) => [report, ...current].slice(0, 200))
-    void backendSubmitReport({
-      reportedProfileId: report.profileId,
-      reportedProfileName: report.profileName,
-      category: report.category,
-      details: report.details,
-      profileSnapshot: report.profileSnapshot,
-    })
+    void (async () => {
+      const submission = await backendSubmitReport({
+        reportedProfileId: report.profileId,
+        reportedProfileName: report.profileName,
+        category: report.category,
+        details: report.details,
+        profileSnapshot: report.profileSnapshot,
+      })
+      if (!submission?.reportId) return
+      // Fire-and-forget triage. The Edge Function writes the verdict back
+      // to safety_reports via the service role; we also overlay it on the
+      // local queue so the operator sees AI summary immediately.
+      const verdict = await backendInvokeSafetyTriage({
+        reportId: submission.reportId,
+        category: report.category,
+        details: report.details,
+        profileSnapshot: {
+          name: report.profileName,
+          age: report.profileSnapshot.age,
+          city: report.profileSnapshot.city,
+          vibe: report.profileSnapshot.vibe,
+          bio: report.profileSnapshot.bio,
+          relationshipGoal: report.profileSnapshot.relationshipGoal,
+        },
+        language: appLanguage,
+      })
+      if (verdict) {
+        setSafetyReports((current) =>
+          current.map((item) =>
+            item.id === report.id
+              ? {
+                  ...item,
+                  aiRiskLevel: verdict.riskLevel,
+                  aiCategories: verdict.categories,
+                  aiSummary: verdict.summary,
+                }
+              : item,
+          ),
+        )
+      }
+    })()
     pushNotification({
       title: `Report submitted for ${reportDraftProfile.name}`,
       body: `Category: ${reportDraftCategory}`,
@@ -3242,10 +3277,16 @@ function App() {
     { key: 'settings', label: copy.nav.settings, badge: unreadNotificationCount },
   ]
 
-  const moderationReportsSorted = useMemo(
-    () => safetyReports.slice().sort((a, b) => b.createdAt - a.createdAt),
-    [safetyReports],
-  )
+  const moderationReportsSorted = useMemo(() => {
+    // Sort: AI risk DESC (high → medium → low → untriaged), then createdAt DESC.
+    const riskRank: Record<string, number> = { high: 3, medium: 2, low: 1 }
+    return safetyReports.slice().sort((a, b) => {
+      const aRank = a.aiRiskLevel ? riskRank[a.aiRiskLevel] ?? 0 : 0
+      const bRank = b.aiRiskLevel ? riskRank[b.aiRiskLevel] ?? 0 : 0
+      if (aRank !== bRank) return bRank - aRank
+      return b.createdAt - a.createdAt
+    })
+  }, [safetyReports])
   const moderationReportsFiltered = useMemo(() => {
     const query = moderationSearchQuery.trim().toLowerCase()
     return moderationReportsSorted.filter((report) => {

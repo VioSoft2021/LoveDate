@@ -117,8 +117,18 @@ export const ModerationScreen: React.FC<ModerationScreenProps> = ({
                 <div className="chat-item-body">
                   <div className="chat-meta">
                     <strong>{report.profileName}</strong>
+                    {report.aiRiskLevel ? (
+                      <span className={`mod-risk-badge mod-risk-badge--${report.aiRiskLevel}`}>
+                        {report.aiRiskLevel.toUpperCase()}
+                      </span>
+                    ) : null}
                     <span>{report.category}</span>
                   </div>
+                  {report.aiSummary ? (
+                    <p className="mod-ai-summary" title={report.aiSummary}>
+                      {report.aiSummary}
+                    </p>
+                  ) : null}
                   <div className="chat-status">
                     <small>{report.status}</small>
                   </div>
@@ -162,6 +172,28 @@ export const ModerationScreen: React.FC<ModerationScreenProps> = ({
             <p>
               <strong>{ro ? 'Categorie' : 'Category'}:</strong> {selectedModerationReport.category}
             </p>
+            {selectedModerationReport.aiRiskLevel ? (
+              <div className="mod-ai-block">
+                <p>
+                  <strong>{ro ? 'Risc AI' : 'AI risk'}:</strong>{' '}
+                  <span className={`mod-risk-badge mod-risk-badge--${selectedModerationReport.aiRiskLevel}`}>
+                    {selectedModerationReport.aiRiskLevel.toUpperCase()}
+                  </span>
+                  {selectedModerationReport.aiCategories?.length ? (
+                    <span className="mod-ai-categories">
+                      {' • '}
+                      {selectedModerationReport.aiCategories.join(', ')}
+                    </span>
+                  ) : null}
+                </p>
+                {selectedModerationReport.aiSummary ? (
+                  <p>
+                    <strong>{ro ? 'Rezumat AI' : 'AI summary'}:</strong>{' '}
+                    {selectedModerationReport.aiSummary}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
             <p>
               <strong>{ro ? 'Raportat de' : 'Reporter'}:</strong>{' '}
               {selectedModerationReport.reporterEmail}
