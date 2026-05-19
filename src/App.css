@@ -3607,8 +3607,22 @@ details.profile-settings.settings-card[open] > summary {
     min-width: 0;
   }
 
+  /* Nuclear option: at any viewport <=1024px (including Chrome Desktop-Site
+     mode which reports ~980px) drop the discover-stage out of CSS grid
+     entirely. Block layout means the deck-column and side-panel stack in
+     DOM order with no minmax(20rem) holding the side panel open at a
+     fixed width. !important because later rules in the file otherwise
+     keep restoring the 2-column grid. */
   .discover-stage {
-    grid-template-columns: 1fr;
+    display: block !important;
+    grid-template-columns: none !important;
+  }
+  .discover-stage > .discover-deck-column,
+  .discover-stage > .discover-side-panel {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
   }
 
   .discover-primary-actions.actions {
