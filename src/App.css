@@ -5774,6 +5774,16 @@ details.profile-settings.settings-card[open] > summary {
   .discover-deck .card-photo {
     max-width: 100% !important;
   }
+
+  /* Hide the "View full profile" button on phone: it duplicated the
+     tap-on-card behavior, AND it kept colliding with the floating
+     action bar regardless of how much padding-bottom we set. With the
+     pointer-cancel fix that lets vertical scroll work without firing
+     the tap, the card itself is now the canonical "open profile"
+     surface. Less UI, less collision. */
+  .discover-side-panel .details-link {
+    display: none !important;
+  }
   /* On phone, switch the deck photo from object-fit: cover (which crops
      the sides off wide non-portrait images, clipping text/content) to
      contain (full image visible, letterboxed on top/bottom for wide
