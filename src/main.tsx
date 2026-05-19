@@ -4,6 +4,11 @@ import { createRoot } from 'react-dom/client'
 import './styles/tokens.css'
 import './index.css'
 import App from './App.tsx'
+// Mobile rules come LAST so they win the cascade for phone viewports.
+// (App.tsx's import of App.css resolves before this side-effect import,
+// so mobile.css cleanly overrides App.css's older @media (max-width: 768px)
+// block during this transition phase.)
+import './styles/mobile.css'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { registerSW } from 'virtual:pwa-register'
 import { showUpdateBanner } from './components/UpdateBanner'
