@@ -1,6 +1,4 @@
-import { PLAN_OPTIONS, PRODUCT_FEATURE_FLAGS, type PlanTier } from '../spec/lovedateConfig'
-
-export type FeatureName = keyof typeof PRODUCT_FEATURE_FLAGS
+import { PLAN_OPTIONS, type PlanTier } from '../spec/lovedateConfig'
 
 const PLAN_STORAGE_KEY = 'lovedate:active-plan'
 
@@ -14,10 +12,6 @@ export const getActivePlan = (): PlanTier => {
 
 export const setActivePlan = (plan: PlanTier): void => {
   window.localStorage.setItem(PLAN_STORAGE_KEY, plan)
-}
-
-export const isFeatureEnabled = (feature: FeatureName): boolean => {
-  return PRODUCT_FEATURE_FLAGS[feature]
 }
 
 export const getLikeLimitPer24Hours = (plan: PlanTier): number | null => {

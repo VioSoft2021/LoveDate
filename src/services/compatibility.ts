@@ -166,13 +166,3 @@ export const compatibilityFromCodes = (
   // 4-of-4 = 99, 0-of-4 = 1, linear between.
   return Math.max(1, Math.min(99, Math.round((matches / 4) * 98 + 1)))
 }
-
-export const generateAnswersFromSeed = (seed: number): PersonalityAnswer[] => {
-  let value = Math.abs(seed) || 1
-  const nextBit = () => {
-    value = (value * 1103515245 + 12345) % 2147483647
-    return value % 2 === 0 ? 'A' : 'B'
-  }
-
-  return PERSONALITY_QUESTIONS.map(() => nextBit())
-}

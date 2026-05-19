@@ -125,12 +125,8 @@ export const PLAN_OPTIONS: Record<PlanTier, {
   },
 }
 
-export const PRODUCT_FEATURE_FLAGS = {
-  profilePromptsEnabled: true,
-  readReceiptsEnabled: false,
-  voiceMessagesEnabled: true,
-  exploreFeedEnabled: false,
-  aiIcebreakersEnabled: true,
-  safetyCenterEnabled: true,
-  hiddenWordsEnabled: true,
-} as const
+// PRODUCT_FEATURE_FLAGS was declared but never read anywhere in the app —
+// removed 2026-05-19 as part of the Phase F cleanup. The features either
+// shipped unconditionally (profilePrompts, voiceMessages, aiIcebreakers,
+// safetyCenter, hiddenWords) or never landed (readReceipts, exploreFeed)
+// and would be reintroduced as real toggles if/when they ship.
