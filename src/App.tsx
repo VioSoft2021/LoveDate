@@ -17,6 +17,7 @@ import { useChatState } from './hooks/useChatState'
 import { useProfileEditor } from './hooks/useProfileEditor'
 import { useReports } from './hooks/useReports'
 import { useToasts } from './hooks/useToasts'
+import { useEngagement } from './hooks/useEngagement'
 import { ActivityScreen } from './screens/ActivityScreen'
 import { ChatScreen } from './screens/ChatScreen'
 import { CirclesScreen } from './screens/CirclesScreen'
@@ -410,8 +411,7 @@ function App() {
     moderationSearchQuery, setModerationSearchQuery,
   } = reports
   // notifications + toasts state now live in useToasts (above).
-  const [boostsLeft, setBoostsLeft] = useState(3)
-  const [rewindsLeft, setRewindsLeft] = useState(5)
+  // boostsLeft + rewindsLeft now in useEngagement.
 
   const [settings, setSettings] = useState<SettingsPayload>({
     pushNotifications: true,
@@ -424,9 +424,16 @@ function App() {
   const [lightboxZoom, setLightboxZoom] = useState(1)
 
   const backendMode = getBackendMode()
-  const [activePlan, setActivePlan] = useState<PlanTier>(() => getActivePlan())
-  const [likeUsage, setLikeUsage] = useState(() => getLikeUsage(activePlan))
-  const [superLikeUsage, setSuperLikeUsage] = useState(() => getSuperLikeUsage(activePlan))
+  // Engagement state (plan tier, like/super-like usage, boost/rewind
+  // counters) moves into useEngagement.
+  const engagement = useEngagement()
+  const {
+    activePlan, setActivePlan,
+    likeUsage, superLikeUsage,
+    refreshEngagementUsage,
+    boostsLeft, setBoostsLeft,
+    rewindsLeft, setRewindsLeft,
+  } = engagement
   const moderationAdminEmails = useMemo(() => {
     const envRaw = (import.meta.env.VITE_MODERATION_ADMIN_EMAILS as string | undefined) ?? ''
     const fallbackAdmins = ['viomediere@gmail.com', 'viorelbox1@gmail.com']
@@ -490,10 +497,7 @@ function App() {
     [copy],
   )
 
-  const refreshEngagementUsage = useCallback((plan: PlanTier) => {
-    setLikeUsage(getLikeUsage(plan))
-    setSuperLikeUsage(getSuperLikeUsage(plan))
-  }, [])
+  // refreshEngagementUsage + its initial effect now live in useEngagement.
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
