@@ -99,6 +99,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const copy = UI_TEXT[appLanguage]
   const composerInputRef = React.useRef<HTMLInputElement | null>(null)
   const [chatToolsOpen, setChatToolsOpen] = React.useState(false)
+  // TEMP diagnostic: count back-button taps so we can SEE if the click
+  // is even reaching the handler. If this counter increments visibly
+  // on tap, the click fires; if it doesn't, the click is being eaten
+  // somewhere upstream.
+  const [backTapCount, setBackTapCount] = React.useState(0)
   React.useEffect(() => {
     setChatToolsOpen(false)
   }, [activeChatId])
@@ -191,12 +196,24 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                 className="chat-back-btn"
                 aria-label="Back to chats"
                 onClick={() => {
-                  // Plain onClick, no preventDefault/stopPropagation. The
-                  // earlier defensive handlers may have been preventing the
-                  // synthesized click from firing on Android Chrome.
+                  setBackTapCount((c) => c + 1)
                   setActiveChatId(null)
                 }}
               >
+                <span style={{
+                  position: 'absolute',
+                  top: '-1.4rem',
+                  left: 0,
+                  background: 'rgba(255, 200, 80, 0.9)',
+                  color: '#1a1a2c',
+                  fontSize: '0.65rem',
+                  padding: '0.1rem 0.35rem',
+                  borderRadius: '0.3rem',
+                  fontWeight: 700,
+                  pointerEvents: 'none',
+                }}>
+                  taps:{backTapCount}
+                </span>
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
