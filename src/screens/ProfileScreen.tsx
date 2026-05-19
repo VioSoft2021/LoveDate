@@ -309,6 +309,47 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
       <article className="profile-settings profile-editor">
         <h2>{copy.profile.editProfile}</h2>
+        {(() => {
+          const draftAge = Number.parseInt(profileDraft.age, 10)
+          const checks = [
+            { label: copy.profile.completenessName, ok: profileDraft.name.trim().length > 0 },
+            {
+              label: copy.profile.completenessAge,
+              ok: Number.isFinite(draftAge) && draftAge >= 18 && draftAge <= 99,
+            },
+            { label: copy.profile.completenessCity, ok: profileDraft.city.trim().length > 0 },
+            {
+              label: copy.profile.completenessGender,
+              ok: GENDER_OPTIONS.includes(profileDraft.gender as (typeof GENDER_OPTIONS)[number]),
+            },
+            {
+              label: copy.profile.completenessPhoto,
+              ok: profileDraft.photos.length >= 1,
+            },
+          ]
+          const missing = checks.filter((c) => !c.ok)
+          if (missing.length === 0) {
+            return (
+              <div className="profile-completeness profile-completeness--done">
+                <strong>{copy.profile.completenessHeading}:</strong>{' '}
+                {copy.profile.completenessAllDone}
+              </div>
+            )
+          }
+          return (
+            <div className="profile-completeness profile-completeness--missing">
+              <strong>{copy.profile.completenessHeading}</strong>
+              <p className="soft">{copy.profile.completenessIntro}</p>
+              <ul>
+                {checks.map((c) => (
+                  <li key={c.label} className={c.ok ? 'is-done' : 'is-missing'}>
+                    <span aria-hidden="true">{c.ok ? '✓' : '○'}</span> {c.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        })()}
         <form onSubmit={saveMyProfile}>
           <details className="profile-editor-section" open>
             <summary>{copy.profile.identity}</summary>

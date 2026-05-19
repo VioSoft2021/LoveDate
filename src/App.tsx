@@ -2945,6 +2945,16 @@ function App() {
         // fails (offline or bucket misconfig) so the draft is never blocked.
         const uploaded = await backendUploadProfilePhoto(editedPhoto)
         const finalPhoto = uploaded ?? editedPhoto
+        if (!uploaded) {
+          // C6: silent fallback was invisible; now surface it so the user
+          // knows the photo is local-only and will retry on next save.
+          pushToast(
+            appLanguage === 'ro'
+              ? 'Poză salvată local — nu s-a putut încărca pe server, vom reîncerca la următoarea salvare.'
+              : "Photo saved locally — couldn't upload, will retry on next save.",
+            'info',
+          )
+        }
 
         setProfileDraft((current) => {
           if (current.photos.includes(finalPhoto)) {

@@ -49,7 +49,8 @@
     "Adaugă", "orice", "detaliu", "echipa", "Anulează", "raportarea",
     "Configurarea", "necesara", "incorporata", "incarca", "activa",
     "Conectam", "privata", "Copiaza", "invitatia", "Activeaza",
-    "microfonul", "Opreste", "Porneste", "Inchide", "Intrebare", "Reactie"
+    "microfonul", "Opreste", "Porneste", "Inchide", "Intrebare", "Reactie",
+    "Poză", "salvată", "încărca", "reîncerca", "salvare", "Ștergere", "ȘTERGE"
   ],
   "ignorePaths": [
     "node_modules",
