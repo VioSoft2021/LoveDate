@@ -905,6 +905,29 @@ export const backendSubmitReport = async (input: {
 }
 
 /**
+ * Phase C4 — user-initiated account deletion. Calls the
+ * delete_self_account() SECURITY DEFINER RPC which removes the
+ * auth.users row for auth.uid() and cascades through every user-owned
+ * table. Returns true on success, false on any failure (caller should
+ * surface the error and keep the user signed in if false).
+ *
+ * NOTE: the caller is responsible for clearing local state (matches,
+ * chat threads, profile draft, etc.) and signing out AFTER this returns
+ * true. The signOut() call may itself fail because the user no longer
+ * exists — that's expected.
+ */
+export const backendDeleteSelfAccount = async (): Promise<boolean> => {
+  if (!supabase) return false
+  const { error } = await supabase.rpc('delete_self_account')
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Account deletion failed:', error.message)
+    return false
+  }
+  return true
+}
+
+/**
  * Phase C3 — record a swipe in the cloud ledger so users_are_matched() can
  * verify mutual interest before allowing chat. Fire-and-forget: the in-app
  * deck state is updated synchronously by the caller; this is the durable

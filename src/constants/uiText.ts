@@ -123,6 +123,16 @@ export const UI_TEXT = {
       openReports: 'Open reports',
       noReports: 'No safety reports yet.',
       openModeration: 'Open Moderation Center',
+      dangerZone: 'Danger zone',
+      deleteAccount: 'Delete my account',
+      deleteAccountWarning:
+        'This permanently removes your profile, photos, matches, messages, and settings. This cannot be undone.',
+      deleteAccountConfirmPrompt: 'Type DELETE to confirm:',
+      deleteAccountConfirmWord: 'DELETE',
+      deleteAccountConfirmButton: 'Delete forever',
+      deleteAccountCancel: 'Cancel',
+      deleteAccountDeleting: 'Deleting account...',
+      deleteAccountFailed: "Couldn't delete account. Please try again.",
     },
     activity: {
       overview: 'Activity overview',
@@ -423,6 +433,16 @@ export const UI_TEXT = {
       openReports: 'Raportări deschise',
       noReports: 'Nu există încă raportări de siguranță.',
       openModeration: 'Deschide centrul de moderare',
+      dangerZone: 'Zonă sensibilă',
+      deleteAccount: 'Șterge contul meu',
+      deleteAccountWarning:
+        'Acțiunea elimină definitiv profilul, pozele, potrivirile, mesajele și setările. Nu poate fi anulată.',
+      deleteAccountConfirmPrompt: 'Scrie ȘTERGE pentru a confirma:',
+      deleteAccountConfirmWord: 'ȘTERGE',
+      deleteAccountConfirmButton: 'Șterge definitiv',
+      deleteAccountCancel: 'Anulează',
+      deleteAccountDeleting: 'Se șterge contul...',
+      deleteAccountFailed: 'Nu s-a putut șterge contul. Mai încearcă.',
     },
     activity: {
       overview: 'Prezentare activitate',

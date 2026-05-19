@@ -46,6 +46,12 @@ export type SettingsScreenProps = {
   profileById: Map<number, Profile>
   isModerationAdmin: boolean
   onOpenModeration: () => void
+  /**
+   * User-initiated account deletion. Resolves true if the server confirmed
+   * deletion (caller has already signed out by then); false on any failure
+   * so the UI can re-enable the button and show an error.
+   */
+  onDeleteAccount: () => Promise<boolean>
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
@@ -78,7 +84,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   profileById,
   isModerationAdmin,
   onOpenModeration,
+  onDeleteAccount,
 }) => {
+  const [confirmingDelete, setConfirmingDelete] = React.useState(false)
+  const [deleteConfirmInput, setDeleteConfirmInput] = React.useState('')
+  const [deleteLoading, setDeleteLoading] = React.useState(false)
+  const [deleteError, setDeleteError] = React.useState<string | null>(null)
   const copy = UI_TEXT[appLanguage]
 
   const formatStatusLabel = (status: SaveStatus): string =>
@@ -301,6 +312,78 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             {copy.settings.openModeration}
           </button>
         ) : null}
+
+        <hr className="setting-separator" />
+        <div className="danger-zone">
+          <strong>{copy.settings.dangerZone}</strong>
+          <p className="soft">{copy.settings.deleteAccountWarning}</p>
+          {!confirmingDelete ? (
+            <button
+              type="button"
+              className="danger"
+              onClick={() => {
+                setConfirmingDelete(true)
+                setDeleteConfirmInput('')
+                setDeleteError(null)
+              }}
+            >
+              {copy.settings.deleteAccount}
+            </button>
+          ) : (
+            <div className="danger-zone-confirm">
+              <label>
+                {copy.settings.deleteAccountConfirmPrompt}
+                <input
+                  type="text"
+                  value={deleteConfirmInput}
+                  onChange={(event) => setDeleteConfirmInput(event.target.value)}
+                  autoCapitalize="characters"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </label>
+              {deleteError ? <p className="bio-writer-error soft">{deleteError}</p> : null}
+              <div className="summary-actions">
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={() => {
+                    setConfirmingDelete(false)
+                    setDeleteConfirmInput('')
+                    setDeleteError(null)
+                  }}
+                  disabled={deleteLoading}
+                >
+                  {copy.settings.deleteAccountCancel}
+                </button>
+                <button
+                  type="button"
+                  className="danger"
+                  disabled={
+                    deleteLoading ||
+                    deleteConfirmInput.trim().toUpperCase() !==
+                      copy.settings.deleteAccountConfirmWord
+                  }
+                  onClick={async () => {
+                    setDeleteError(null)
+                    setDeleteLoading(true)
+                    const ok = await onDeleteAccount()
+                    if (!ok) {
+                      setDeleteError(copy.settings.deleteAccountFailed)
+                      setDeleteLoading(false)
+                    }
+                    // On success the parent has already signed us out; this
+                    // component is about to unmount, no need to reset state.
+                  }}
+                >
+                  {deleteLoading
+                    ? copy.settings.deleteAccountDeleting
+                    : copy.settings.deleteAccountConfirmButton}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </details>
     </section>
   )

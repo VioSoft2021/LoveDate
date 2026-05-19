@@ -47,6 +47,7 @@ import {
   backendRepairDiscoverableProfile,
   backendSubmitReport,
   backendRecordSwipe,
+  backendDeleteSelfAccount,
   backendSendChatMessage,
   backendLoadChatHistory,
   backendSubscribeToInbox,
@@ -3681,6 +3682,16 @@ function App() {
             profileById={profileById}
             isModerationAdmin={isModerationAdmin}
             onOpenModeration={() => navigate('moderation')}
+            onDeleteAccount={async () => {
+              const ok = await backendDeleteSelfAccount()
+              if (!ok) return false
+              try {
+                await handleSignOut()
+              } catch {
+                // Sign-out can fail because the user is already gone — fine.
+              }
+              return true
+            }}
           />
         )}
         {screen === 'moderation' && (
