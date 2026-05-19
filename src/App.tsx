@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import './App.css'
-import { getMyMatches, getProfiles, resolveMatch, type Profile } from './services/loveDateApi'
+import { getMyMatches, resolveMatch, type Profile } from './services/loveDateApi'
 import { backendInvokeIcebreaker } from './services/ai/icebreaker'
 import { enablePushNotifications, disablePushNotifications } from './services/push'
 import { FilterScreen } from './components/FilterScreen'
@@ -12,6 +12,7 @@ import { Logo } from './components/Logo'
 import { BuildChip } from './components/BuildChip'
 import { UpdateBanner } from './components/UpdateBanner'
 import { useAuth } from './hooks/useAuth'
+import { useDeck } from './hooks/useDeck'
 import { ActivityScreen } from './screens/ActivityScreen'
 import { ChatScreen } from './screens/ChatScreen'
 import { CirclesScreen } from './screens/CirclesScreen'
@@ -151,7 +152,6 @@ import {
   WORKOUT_OPTIONS,
   ZODIAC_COMPATIBILITY,
   ZODIAC_OPTIONS,
-  initialFilters,
   CIRCLE_SEED,
   PERSONALITY_COGNITIVE_FUNCTIONS,
   PERSONALITY_DIMENSIONS,
@@ -309,18 +309,36 @@ function App() {
   })
   const [photoStudioBusy, setPhotoStudioBusy] = useState(false)
 
-  const [allProfiles, setAllProfiles] = useState<Profile[]>([])
-  const [loadingProfiles, setLoadingProfiles] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
-
-  const [index, setIndex] = useState(0)
-  const [filters, setFilters] = useState<Filters>(initialFilters)
-  const [dragX, setDragX] = useState(0)
-  const [dragY, setDragY] = useState(0)
-  const [isDragging, setIsDragging] = useState(false)
-  const [isResolvingSwipe, setIsResolvingSwipe] = useState(false)
-  const [exitDirection, setExitDirection] = useState<SwipeDirection | null>(null)
-  const [lastIntent, setLastIntent] = useState<SwipeIntent | null>(null)
+  // Deck state + drag gesture + pure derivations now live in useDeck.
+  const deck = useDeck()
+  const {
+    allProfiles,
+    loadingProfiles,
+    loadError,
+    index,
+    filters,
+    dragX,
+    dragY,
+    isDragging,
+    isResolvingSwipe,
+    exitDirection,
+    lastIntent,
+    rightBadgeOpacity,
+    leftBadgeOpacity,
+    setAllProfiles,
+    setIndex,
+    setFilters,
+    setDragX,
+    setDragY,
+    setIsDragging,
+    setIsResolvingSwipe,
+    setExitDirection,
+    setLastIntent,
+    loadProfiles,
+    resetDrag,
+    getCardStyle,
+  } = deck
+  const dragStart = deck.dragStart
   const [history, setHistory] = useState<SwipeHistory>(() => readHistory())
   const [activeMatch, setActiveMatch] = useState<Profile | null>(null)
   const [swipeLog, setSwipeLog] = useState<SwipeLog[]>([])
@@ -406,7 +424,7 @@ function App() {
   // isModerationAdmin moved below useAuth() — userEmail is now sourced
   // from there and isn't in scope until after the destructure.
 
-  const dragStart = useRef<{ x: number; y: number } | null>(null)
+  // dragStart ref now lives in useDeck — see deck.dragStart above.
   const attachmentInputRef = useRef<HTMLInputElement | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const recordedChunksRef = useRef<Blob[]>([])
@@ -1146,18 +1164,7 @@ function App() {
     }
   }, [isAuthenticated, userEmail])
 
-  const loadProfiles = useCallback(async () => {
-    try {
-      setLoadingProfiles(true)
-      const incoming = await getProfiles()
-      setAllProfiles(incoming.map(normalizeProfilePhotos))
-      setLoadError(null)
-    } catch {
-      setLoadError('Could not load profiles. Please retry.')
-    } finally {
-      setLoadingProfiles(false)
-    }
-  }, [])
+  // loadProfiles now lives in useDeck.
 
   useEffect(() => {
     void loadProfiles()
@@ -1527,12 +1534,7 @@ function App() {
   )
   const upcoming = useMemo(() => filteredProfiles.slice(index + 1, index + 3), [filteredProfiles, index])
 
-  const resetDrag = useCallback(() => {
-    setIsDragging(false)
-    setDragX(0)
-    setDragY(0)
-    dragStart.current = null
-  }, [])
+  // resetDrag now lives in useDeck.
 
   const openProfileDetail = (profileId: number, fromScreen: AppScreen) => {
     setPreviousScreen(fromScreen)
@@ -2872,29 +2874,7 @@ function App() {
     pushToast('Profile updated.', 'success')
   }
 
-  const getCardStyle = () => {
-    if (exitDirection === 'right') {
-      return {
-        transform: `translate3d(520px, ${dragY}px, 0) rotate(24deg)`,
-        opacity: 0,
-      }
-    }
-
-    if (exitDirection === 'left') {
-      return {
-        transform: `translate3d(-520px, ${dragY}px, 0) rotate(-24deg)`,
-        opacity: 0,
-      }
-    }
-
-    return {
-      transform: `translate3d(${dragX}px, ${dragY * 0.35}px, 0) rotate(${dragX / 16}deg)`,
-      opacity: 1,
-    }
-  }
-
-  const rightBadgeOpacity = Math.max(0, Math.min(1, dragX / 130))
-  const leftBadgeOpacity = Math.max(0, Math.min(1, -dragX / 130))
+  // getCardStyle + rightBadgeOpacity + leftBadgeOpacity now live in useDeck.
   const likeLimitReached = !canLikeNow(activePlan)
   const superLikeLimitReached = !canSuperLikeNow(activePlan)
 
