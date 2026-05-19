@@ -44,9 +44,11 @@ export type ChatScreenProps = {
   aiCoachSuggestions: string[]
   aiCoachLoading: boolean
   generateAiCoachSuggestions: () => void
+  clearAiCoachSuggestions: () => void
   aiDatePlans: DatePlan[]
   aiDatePlannerLoading: boolean
   generateAiDatePlans: () => void
+  clearAiDatePlans: () => void
   chatDraft: string
   setChatDraft: (value: string) => void
   chatAttachmentDraft: ChatMessage['attachment'] | null
@@ -81,9 +83,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   aiCoachSuggestions,
   aiCoachLoading,
   generateAiCoachSuggestions,
+  clearAiCoachSuggestions,
   aiDatePlans,
   aiDatePlannerLoading,
   generateAiDatePlans,
+  clearAiDatePlans,
   chatDraft,
   setChatDraft,
   chatAttachmentDraft,
@@ -277,6 +281,17 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                 >
                   {aiCoachLoading ? copy.chats.thinking : copy.chats.generateSuggestions}
                 </button>
+                {aiCoachSuggestions.length > 0 ? (
+                  <button
+                    type="button"
+                    className="chat-ai-dismiss"
+                    onClick={clearAiCoachSuggestions}
+                    aria-label={copy.chats.closeSuggestions}
+                    title={copy.chats.closeSuggestions}
+                  >
+                    ×
+                  </button>
+                ) : null}
               </div>
               {aiCoachSuggestions.length > 0 ? (
                 <div className="chat-ai-suggestion-list">
@@ -306,6 +321,17 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                 >
                   {aiDatePlannerLoading ? copy.chats.planning : copy.chats.planDate}
                 </button>
+                {aiDatePlans.length > 0 ? (
+                  <button
+                    type="button"
+                    className="chat-ai-dismiss"
+                    onClick={clearAiDatePlans}
+                    aria-label={copy.chats.closePlans}
+                    title={copy.chats.closePlans}
+                  >
+                    ×
+                  </button>
+                ) : null}
               </div>
               {aiDatePlans.length > 0 ? (
                 <div className="chat-date-plan-list">

@@ -330,6 +330,32 @@
     font-size: 0.85rem !important;
     margin: 0 !important;
   }
+  /* Dismiss (×) for the AI panels, only shown when the panel has content.
+     Compact square sits inside the panel head so the user can collapse
+     suggestions/plans and reclaim the messages area below. */
+  .chat-thread > .chat-ai-coach .chat-ai-coach-head .chat-ai-dismiss,
+  .chat-thread > .chat-date-planner .chat-date-planner-head .chat-ai-dismiss {
+    width: auto !important;
+    position: absolute !important;
+    right: 0.55rem !important;
+    top: 0.35rem !important;
+    padding: 0 !important;
+    min-width: 1.7rem !important;
+    height: 1.7rem !important;
+    border-radius: 0.5rem !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #f0d99b !important;
+    font-size: 1.15rem !important;
+    line-height: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .chat-thread > .chat-ai-coach .chat-ai-coach-head,
+  .chat-thread > .chat-date-planner .chat-date-planner-head {
+    position: relative !important;
+  }
   /* When AI panels generate content (suggestion list, date plan list),
      the cards used to push the messages off-screen with no way to
      scroll back to them. Constrain each panel as a whole (header +

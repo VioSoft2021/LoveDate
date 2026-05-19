@@ -3523,9 +3523,11 @@ function App() {
             aiCoachSuggestions={aiCoachSuggestions}
             aiCoachLoading={aiCoachLoading}
             generateAiCoachSuggestions={generateAiCoachSuggestions}
+            clearAiCoachSuggestions={() => setAiCoachSuggestions([])}
             aiDatePlans={aiDatePlans}
             aiDatePlannerLoading={aiDatePlannerLoading}
             generateAiDatePlans={generateAiDatePlans}
+            clearAiDatePlans={() => setAiDatePlans([])}
             chatDraft={chatDraft}
             setChatDraft={setChatDraft}
             chatAttachmentDraft={chatAttachmentDraft}
