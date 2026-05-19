@@ -97,8 +97,18 @@ self.addEventListener('notificationclick', (event) => {
   )
 })
 
-// Take control of pages as soon as the new SW activates so updates apply
-// without a hard refresh.
+// Jump the "waiting" queue the instant we install. Without this, the new SW
+// sits idle until every open tab/PWA window of the site closes — a stuck
+// PWA never picks up new deploys. With injectManifest we own the lifecycle,
+// so we have to call skipWaiting ourselves (registerType: 'autoUpdate' in
+// vite.config only handles registration, not SW lifecycle).
+self.addEventListener('install', () => {
+  self.skipWaiting()
+})
+
+// Take control of open pages as soon as we activate. Pairs with the
+// controllerchange listener in main.tsx, which reloads the page so the
+// fresh JS/CSS actually renders instead of the in-memory old bundle.
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim())
 })
