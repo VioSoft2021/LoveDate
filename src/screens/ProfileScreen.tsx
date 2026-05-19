@@ -25,6 +25,10 @@ import {
   backendInvokePhotoCoach,
   type AiPhotoCoachResult,
 } from '../services/ai/photoCoach'
+import {
+  backendInvokeProfileWriter,
+  type AiProfileWriterResult,
+} from '../services/ai/profileWriter'
 import type {
   AppLanguage,
   PhotoStudioAnalysis,
@@ -128,6 +132,51 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     React.useState<AiPhotoCoachResult | null>(null)
   const [photoCoachLoading, setPhotoCoachLoading] = React.useState(false)
   const [photoCoachError, setPhotoCoachError] = React.useState<string | null>(null)
+
+  // AI Profile Writer — same pattern, scoped to the bio field.
+  const [bioWriterResult, setBioWriterResult] =
+    React.useState<AiProfileWriterResult | null>(null)
+  const [bioWriterLoading, setBioWriterLoading] = React.useState(false)
+  const [bioWriterError, setBioWriterError] = React.useState<string | null>(null)
+
+  const runBioWriter = React.useCallback(async () => {
+    setBioWriterError(null)
+    setBioWriterLoading(true)
+    try {
+      const result = await backendInvokeProfileWriter({
+        currentBio: profileDraft.bio,
+        interests: profileDraft.interests
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
+        vibe: profileDraft.vibe,
+        age: Number.parseInt(profileDraft.age, 10) || undefined,
+        city: profileDraft.city,
+        relationshipGoal: profileDraft.relationshipIntent,
+        language: appLanguage,
+      })
+      if (!result) {
+        setBioWriterError(copy.profile.bioWriterError)
+        setBioWriterResult(null)
+      } else {
+        setBioWriterResult(result)
+      }
+    } catch {
+      setBioWriterError(copy.profile.bioWriterError)
+      setBioWriterResult(null)
+    } finally {
+      setBioWriterLoading(false)
+    }
+  }, [
+    profileDraft.bio,
+    profileDraft.interests,
+    profileDraft.vibe,
+    profileDraft.age,
+    profileDraft.city,
+    profileDraft.relationshipIntent,
+    appLanguage,
+    copy.profile.bioWriterError,
+  ])
 
   const runPhotoCoach = React.useCallback(async () => {
     if (!profileDraft.photos.length) {
@@ -410,6 +459,78 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   onChange={(event) => handleProfileDraftChange('bio', event.target.value)}
                 />
               </label>
+              <div className="bio-writer-block full-width">
+                <div className="bio-writer-actions">
+                  <button
+                    type="button"
+                    className="ghost bio-writer-cta"
+                    onClick={() => void runBioWriter()}
+                    disabled={bioWriterLoading}
+                  >
+                    {bioWriterLoading
+                      ? copy.profile.bioWriterLoading
+                      : copy.profile.bioWriterCta}
+                  </button>
+                  {bioWriterResult || bioWriterError ? (
+                    <button
+                      type="button"
+                      className="mini-btn"
+                      onClick={() => {
+                        setBioWriterResult(null)
+                        setBioWriterError(null)
+                      }}
+                      aria-label={copy.profile.bioWriterClose}
+                    >
+                      {copy.profile.bioWriterClose}
+                    </button>
+                  ) : null}
+                  {bioWriterError ? (
+                    <button
+                      type="button"
+                      className="mini-btn"
+                      onClick={() => void runBioWriter()}
+                    >
+                      {copy.profile.bioWriterRetry}
+                    </button>
+                  ) : null}
+                </div>
+                {bioWriterError ? (
+                  <p className="bio-writer-error soft">{bioWriterError}</p>
+                ) : null}
+                {bioWriterResult ? (
+                  <div className="bio-writer-result">
+                    {bioWriterResult.critiques.length > 0 ? (
+                      <div className="bio-writer-critiques">
+                        <em>{copy.profile.bioWriterCritiques}</em>
+                        <ul>
+                          {bioWriterResult.critiques.map((c, i) => (
+                            <li key={`bw-c-${i}`}>{c}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                    <div className="bio-writer-rewrites">
+                      <em>{copy.profile.bioWriterRewrites}</em>
+                      <ul>
+                        {bioWriterResult.rewrites.map((rewrite, i) => (
+                          <li key={`bw-r-${i}`} className="bio-writer-rewrite-card">
+                            <p>{rewrite}</p>
+                            <button
+                              type="button"
+                              className="mini-btn"
+                              onClick={() => {
+                                handleProfileDraftChange('bio', rewrite)
+                              }}
+                            >
+                              {copy.profile.bioWriterUseThis}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </details>
 
