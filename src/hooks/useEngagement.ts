@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getLikeUsage, getSuperLikeUsage } from '../services/engagementLimits'
-import { getActivePlan, type PlanTier } from '../services/planGate'
+import { getActivePlan } from '../services/planGate'
+import type { PlanTier } from '../spec/lovedateConfig'
 
 type EngagementUsage = ReturnType<typeof getLikeUsage>
 
