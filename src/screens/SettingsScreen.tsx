@@ -154,14 +154,17 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       </details>
 
       <details className="profile-settings settings-card settings-card--social">
-        <summary>Social Connect &amp; Share</summary>
+        <summary>{copy.settings.socialTitle}</summary>
         <p className="soft">{socialMotivationLine}</p>
         <p>
-          Connected: <strong>{socialConnectedCount}</strong> / {SOCIAL_PLATFORM_META.length}
+          {formatUiText(copy.settings.socialConnectedCount, {
+            count: socialConnectedCount,
+            total: SOCIAL_PLATFORM_META.length,
+          })}
         </p>
-        <p className="soft">Simple mode: for each platform, users just pick Yes or No.</p>
+        <p className="soft">{copy.settings.socialSimpleMode}</p>
         <label className="setting-row">
-          Prompt me to share LoveDate socially
+          {copy.settings.socialPromptOptIn}
           <input
             type="checkbox"
             checked={selfProfile.socialPromotionOptIn}
@@ -176,11 +179,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 <div className="social-item-head">
                   <strong>{platform.label}</strong>
                   <span className={`social-status ${entry.connected ? 'is-connected' : ''}`}>
-                    {entry.connected ? 'Connected' : 'Not connected'}
+                    {entry.connected
+                      ? copy.settings.socialConnected
+                      : copy.settings.socialNotConnected}
                   </span>
                 </div>
                 <label className="setting-row">
-                  Connect this account (Yes)
+                  {copy.settings.socialConnectAccount}
                   <input
                     type="checkbox"
                     checked={entry.connected}
@@ -196,7 +201,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     onClick={() => void shareLoveDateOnPlatform(platform.id)}
                     disabled={!entry.connected || !selfProfile.socialPromotionOptIn}
                   >
-                    Share LoveDate
+                    {copy.settings.socialShare}
                   </button>
                 </div>
               </article>
@@ -206,9 +211,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       </details>
 
       <details className="profile-settings settings-card settings-card--plan">
-        <summary>Plan &amp; Session</summary>
+        <summary>{copy.settings.planTitle}</summary>
         <div className="plan-picker">
-          <label htmlFor="plan-tier">Plan</label>
+          <label htmlFor="plan-tier">{copy.settings.planLabel}</label>
           <select
             id="plan-tier"
             value={activePlan}
@@ -227,22 +232,30 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </select>
         </div>
         <p>
-          Likes used: {likeUsage.used}/{likeUsage.limit === Infinity ? 'Unlimited' : likeUsage.limit}
+          {copy.settings.planLikesUsed}: {likeUsage.used}/
+          {likeUsage.limit === Infinity ? copy.settings.planUnlimited : likeUsage.limit}
         </p>
         <p>
-          Super Likes used: {superLikeUsage.used}/
-          {superLikeUsage.limit === Infinity ? 'Unlimited' : superLikeUsage.limit}
+          {copy.settings.planSuperLikesUsed}: {superLikeUsage.used}/
+          {superLikeUsage.limit === Infinity ? copy.settings.planUnlimited : superLikeUsage.limit}
         </p>
-        <p>Boosts left: {boostsLeft}</p>
-        <p>Rewinds left: {rewindsLeft}</p>
-        <p>Passport access: {canUsePassport(activePlan) ? 'Enabled' : 'Upgrade required'}</p>
-        <p>Backend mode: {backendMode}</p>
-        <p className="soft">Sign out and Exit App live in the top header.</p>
+        <p>{copy.settings.planBoostsLeft}: {boostsLeft}</p>
+        <p>{copy.settings.planRewindsLeft}: {rewindsLeft}</p>
+        <p>
+          {copy.settings.planPassportAccess}:{' '}
+          {canUsePassport(activePlan)
+            ? copy.settings.planEnabled
+            : copy.settings.planUpgradeRequired}
+        </p>
+        <p>{copy.settings.planBackendMode}: {backendMode}</p>
+        <p className="soft">{copy.settings.planSessionNote}</p>
       </details>
 
       <details className="profile-settings settings-card settings-card--notifications">
-        <summary>Notifications</summary>
-        {notifications.length === 0 ? <p className="soft">No notifications yet.</p> : null}
+        <summary>{copy.settings.notificationsTitle}</summary>
+        {notifications.length === 0 ? (
+          <p className="soft">{copy.settings.noNotifications}</p>
+        ) : null}
         <div className="notification-list">
           {notifications.slice(0, 8).map((item) => (
             <p key={item.id} className={`notification-item ${item.read ? 'read' : ''}`}>
@@ -253,20 +266,20 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           ))}
         </div>
         <button type="button" className="ghost" onClick={markAllNotificationsRead}>
-          Mark all as read
+          {copy.settings.markAllRead}
         </button>
       </details>
 
       <details className="profile-settings settings-card settings-card--safety">
-        <summary>Safety</summary>
+        <summary>{copy.settings.safetyTitle}</summary>
         <p>
-          {appLanguage === 'ro' ? 'Profiluri blocate' : 'Blocked profiles'}: {blockedProfileIds.length}
+          {copy.settings.blockedProfiles}: {blockedProfileIds.length}
         </p>
         <p>
-          {appLanguage === 'ro' ? 'Raportări trimise' : 'Reports submitted'}: {safetyReports.length}
+          {copy.settings.reportsSubmitted}: {safetyReports.length}
         </p>
         <p>
-          {appLanguage === 'ro' ? 'Raportări deschise' : 'Open reports'}:{' '}
+          {copy.settings.openReports}:{' '}
           {safetyReports.filter((report) => report.status === 'open').length}
         </p>
         {safetyReports.length > 0 ? (
@@ -281,13 +294,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             })}
           </ul>
         ) : (
-          <p className="soft">
-            {appLanguage === 'ro' ? 'Nu există încă raportări de siguranță.' : 'No safety reports yet.'}
-          </p>
+          <p className="soft">{copy.settings.noReports}</p>
         )}
         {isModerationAdmin ? (
           <button type="button" className="ghost" onClick={onOpenModeration}>
-            {appLanguage === 'ro' ? 'Deschide centrul de moderare' : 'Open Moderation Center'}
+            {copy.settings.openModeration}
           </button>
         ) : null}
       </details>
