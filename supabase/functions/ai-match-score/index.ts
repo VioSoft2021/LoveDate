@@ -33,6 +33,7 @@ type ProfileSummary = {
 type RequestBody = {
   selfProfile: ProfileSummary
   candidateProfile: ProfileSummary & { id: number }
+  language?: 'en' | 'ro'
 }
 
 const corsHeaders = {
@@ -72,14 +73,22 @@ const buildUserPrompt = (body: RequestBody): string =>
     'Assess how compatible these two are as a potential dating match. Score 0..100 (50 = neutral, 70+ = strong, 85+ = exceptional). Give exactly 3 short, specific reasons tied to actual profile details. List 0..3 red flags ONLY if there is a real concrete mismatch (age gap >15 years, opposing children plans, opposing relationship goals, etc.) — never invent flags to fill the list.',
   ].join('\n')
 
-const SYSTEM_PROMPT = `You are a thoughtful matchmaker for a dating app called LoveDate.
+const buildSystemPrompt = (language: 'en' | 'ro'): string => {
+  const baseRules = `You are a thoughtful matchmaker for a dating app called LoveDate.
 
 Rules:
 - score: integer 0..100. 50 is genuinely neutral. Reserve 85+ for matches with multiple concrete points of alignment.
 - reasons: exactly 3, each one short sentence (max ~120 chars), referencing at least one specific detail from BOTH profiles. Never use generic platitudes ("they could really hit it off"); name the specifics.
 - redFlags: 0..3 entries. Only include real, concrete mismatches such as: age gap > 15 years, opposing relationship goals (one wants casual, the other long-term), opposing children plans, irreconcilable lifestyle (one strict vegetarian + one vocal hunter, etc.). Do NOT include speculative flags. An empty array is the correct answer when there are no real mismatches.
-- Write in the same language as the bios when both profiles' bios are clearly in the same non-English language; otherwise English.
 - Output JSON only matching the supplied schema. No prose.`
+
+  if (language === 'ro') {
+    return `${baseRules}
+- Write the reasons and redFlags strings in NATURAL ROMANIAN — not literal English-to-Romanian translation, but the way a native Romanian speaker would actually phrase it. Use diacritics (ă, â, î, ș, ț) correctly. Avoid Anglicisms when a clean Romanian equivalent exists. If a profile name or city is in English in the source bio, keep that name as written; everything else is Romanian.`
+  }
+  return `${baseRules}
+- Write the reasons and redFlags in English.`
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -126,10 +135,11 @@ Deno.serve(async (req: Request) => {
   const client = new Anthropic({ apiKey })
 
   try {
+    const language = body.language === 'ro' ? 'ro' : 'en'
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 800,
-      system: SYSTEM_PROMPT,
+      system: buildSystemPrompt(language),
       messages: [{ role: 'user', content: buildUserPrompt(body) }],
       output_config: {
         format: {

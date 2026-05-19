@@ -24,11 +24,11 @@ export type AiMatchScoreResult = {
   redFlags: string[]
 }
 
-type CacheEntry = AiMatchScoreResult & { storedAt: number; v: number }
+type CacheEntry = AiMatchScoreResult & { storedAt: number; v: number; lang: string }
 
 const CACHE_KEY_PREFIX = 'lovedate:ai-match-score:'
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7 // 7 days
-const CACHE_VERSION = 1
+const CACHE_VERSION = 2 // bumped: language parameter added; v=1 entries are stale
 
 // Stable hash of the profile fields the model actually sees. Lets us
 // invalidate the cache automatically when EITHER profile is edited:
@@ -61,7 +61,9 @@ const hashProfile = (p: AiMatchProfileInput): string => {
 const cacheKey = (
   self: AiMatchProfileInput,
   candidate: AiMatchProfileInput & { id: number },
-): string => `${CACHE_KEY_PREFIX}${hashProfile(self)}:${candidate.id}:${hashProfile(candidate)}`
+  language: string,
+): string =>
+  `${CACHE_KEY_PREFIX}${language}:${hashProfile(self)}:${candidate.id}:${hashProfile(candidate)}`
 
 const readCache = (key: string): AiMatchScoreResult | null => {
   try {
@@ -83,9 +85,9 @@ const readCache = (key: string): AiMatchScoreResult | null => {
   }
 }
 
-const writeCache = (key: string, result: AiMatchScoreResult): void => {
+const writeCache = (key: string, result: AiMatchScoreResult, lang: string): void => {
   try {
-    const entry: CacheEntry = { ...result, storedAt: Date.now(), v: CACHE_VERSION }
+    const entry: CacheEntry = { ...result, storedAt: Date.now(), v: CACHE_VERSION, lang }
     window.localStorage.setItem(key, JSON.stringify(entry))
   } catch {
     // best-effort
@@ -97,17 +99,20 @@ const writeCache = (key: string, result: AiMatchScoreResult): void => {
  * compatibility assessment (score + 3 reasons + 0..3 red flags), or null
  * on any failure so the caller falls back to the heuristic math.
  *
- * Cached client-side per (selfHash, candidateId, candidateHash) for 7 days.
- * Editing either profile changes its hash and invalidates the cache.
+ * Cached client-side per (language, selfHash, candidateId, candidateHash)
+ * for 7 days. Editing either profile changes its hash and invalidates the
+ * cache. Switching languages also invalidates (different cache key per lang).
  */
 export const backendInvokeMatchScore = async (input: {
   selfProfile: AiMatchProfileInput
   candidateProfile: AiMatchProfileInput & { id: number }
+  language?: 'en' | 'ro'
 }): Promise<AiMatchScoreResult | null> => {
   const supabase = createSupabaseClient()
   if (!supabase) return null
 
-  const key = cacheKey(input.selfProfile, input.candidateProfile)
+  const language = input.language ?? 'en'
+  const key = cacheKey(input.selfProfile, input.candidateProfile, language)
   const cached = readCache(key)
   if (cached) return cached
 
@@ -121,6 +126,7 @@ export const backendInvokeMatchScore = async (input: {
       body: {
         selfProfile: input.selfProfile,
         candidateProfile: input.candidateProfile,
+        language,
       },
     })
     if (
@@ -138,7 +144,7 @@ export const backendInvokeMatchScore = async (input: {
       reasons: data.reasons,
       redFlags: Array.isArray(data.redFlags) ? data.redFlags : [],
     }
-    writeCache(key, result)
+    writeCache(key, result, language)
     return result
   } catch (error) {
     // eslint-disable-next-line no-console

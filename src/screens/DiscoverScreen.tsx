@@ -305,7 +305,7 @@ export const DiscoverScreen: React.FC<DiscoverScreenProps> = ({
                           {copy.discover.activeNow}
                         </p>
                         <p className="discover-location-line">
-                          {'📍'} {topProfile.city} {'•'} {topProfile.distanceKm} miles away
+                          {'📍'} {topProfile.city} {'•'} {topProfile.distanceKm} km
                         </p>
                       </div>
                     </div>
@@ -321,7 +321,7 @@ export const DiscoverScreen: React.FC<DiscoverScreenProps> = ({
                         {copy.discover.activeNow}
                       </p>
                       <p className="discover-location-line">
-                        {'📍'} {topProfile.city} {'•'} {topProfile.distanceKm} miles away
+                        {'📍'} {topProfile.city} {'•'} {topProfile.distanceKm} km
                       </p>
                     </div>
                   </>

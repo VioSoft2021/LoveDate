@@ -1574,6 +1574,7 @@ function App() {
             relationshipGoal: candidate.relationshipGoal,
             zodiac: candidate.zodiac,
           },
+          language: appLanguage,
         })
         if (cancelled || !result) return
         setAiMatchScores((prev) =>
