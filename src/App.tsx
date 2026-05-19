@@ -13,6 +13,7 @@ import { BuildChip } from './components/BuildChip'
 import { UpdateBanner } from './components/UpdateBanner'
 import { useAuth } from './hooks/useAuth'
 import { useDeck } from './hooks/useDeck'
+import { useChatState } from './hooks/useChatState'
 import { ActivityScreen } from './screens/ActivityScreen'
 import { ChatScreen } from './screens/ChatScreen'
 import { CirclesScreen } from './screens/CirclesScreen'
@@ -343,26 +344,33 @@ function App() {
   const [activeMatch, setActiveMatch] = useState<Profile | null>(null)
   const [swipeLog, setSwipeLog] = useState<SwipeLog[]>([])
 
-  const [chatThreads, setChatThreads] = useState<Record<number, ChatMessage[]>>(() => readChatThreads())
+  // Chat state moves into useChatState. callHistory stays in App.tsx
+  // for now (used by both chat + call modal coordination).
+  const chat = useChatState()
+  const {
+    chatThreads, setChatThreads,
+    activeChatId, setActiveChatId,
+    chatDraft, setChatDraft,
+    chatSearch, setChatSearch,
+    chatAttachmentDraft, setChatAttachmentDraft,
+    isRecordingVoice, setIsRecordingVoice,
+    showFullChatHistory, setShowFullChatHistory,
+    aiCoachSuggestions, setAiCoachSuggestions,
+    aiCoachLoading, setAiCoachLoading,
+    aiDatePlans, setAiDatePlans,
+    aiDatePlannerLoading, setAiDatePlannerLoading,
+    unreadChats, setUnreadChats,
+    matchQueueIds, setMatchQueueIds,
+  } = chat
   const [callHistory, setCallHistory] = useState<CallLogEntry[]>(() => readCallHistory())
-  const [activeChatId, setActiveChatId] = useState<number | null>(null)
-  const [chatDraft, setChatDraft] = useState('')
-  const [chatSearch, setChatSearch] = useState('')
-  const [aiCoachSuggestions, setAiCoachSuggestions] = useState<string[]>([])
-  const [aiCoachLoading, setAiCoachLoading] = useState(false)
-  const [aiDatePlans, setAiDatePlans] = useState<DatePlan[]>([])
-  const [aiDatePlannerLoading, setAiDatePlannerLoading] = useState(false)
   const [circleSearch, setCircleSearch] = useState('')
   const [joinedCircleIds, setJoinedCircleIds] = useState<string[]>(() => readJoinedCircles())
   const [circlePosts, setCirclePosts] = useState<CirclePost[]>(() => readCirclePosts())
   const [circlePostDraft, setCirclePostDraft] = useState('')
   const [selectedCircleId, setSelectedCircleId] = useState<string>('design-lounge')
   const [circleRsvps, setCircleRsvps] = useState<Record<string, boolean>>(() => readCircleRsvps())
-  const [unreadChats, setUnreadChats] = useState<Record<number, number>>({})
-  const [matchQueueIds, setMatchQueueIds] = useState<number[]>([])
-  const [chatAttachmentDraft, setChatAttachmentDraft] = useState<ChatMessage['attachment'] | null>(null)
-  const [showFullChatHistory, setShowFullChatHistory] = useState(false)
-  const [isRecordingVoice, setIsRecordingVoice] = useState(false)
+  // unreadChats / matchQueueIds / chatAttachmentDraft / showFullChatHistory /
+  // isRecordingVoice now live in useChatState above.
   const [callState, setCallState] = useState<CallState>({
     active: false,
     type: null,
