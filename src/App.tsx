@@ -2007,40 +2007,50 @@ function App() {
       const anchorInterest = sharedInterests[0] ?? selectedChatProfile.interests[0] ?? 'coffee'
       const anchorInterestTwo = sharedInterests[1] ?? selectedChatProfile.interests[1] ?? 'music'
 
+      const dp = UI_TEXT[appLanguage].chats
       const vibeTone =
         chemistry >= 78
-          ? 'playful and flirty'
+          ? dp.datePlanTonePlayful
           : chemistry >= 62
-            ? 'warm and curious'
-            : 'light and low-pressure'
+            ? dp.datePlanToneWarm
+            : dp.datePlanToneLight
+
+      const fill = (template: string, vars: Record<string, string>): string =>
+        Object.entries(vars).reduce(
+          (acc, [key, value]) => acc.replaceAll(`{${key}}`, value),
+          template,
+        )
+      const goldenVars = { anchor: anchorInterest, tone: vibeTone, city }
+      const cultureVars = { anchorTwo: anchorInterestTwo }
+      const signatureVars = { anchor: anchorInterest }
 
       const plans: DatePlan[] = [
         {
           id: `micro-date-${selectedChatProfile.id}`,
-          title: 'Golden Hour Micro-Date',
-          placeType: `${anchorInterest} + scenic walk`,
+          title: dp.datePlanGoldenTitle,
+          placeType: fill(dp.datePlanGoldenPlace, goldenVars),
           budget: '$',
-          duration: '60-90 min',
-          pitch: `A ${vibeTone} first meetup: quick ${anchorInterest} stop, then a short walk in ${city}.`,
-          message: `I have an idea: a ${vibeTone} first meetup this week - ${anchorInterest} and a short golden-hour walk in ${city}. 60-90 minutes, easy vibe. What day works for you?`,
+          duration: dp.datePlanGoldenDuration,
+          pitch: fill(dp.datePlanGoldenPitch, goldenVars),
+          message: fill(dp.datePlanGoldenMessage, goldenVars),
         },
         {
           id: `culture-date-${selectedChatProfile.id}`,
-          title: 'Culture + Conversation',
-          placeType: `gallery or museum + ${anchorInterestTwo}`,
+          title: dp.datePlanCultureTitle,
+          placeType: fill(dp.datePlanCulturePlace, cultureVars),
           budget: '$$',
-          duration: '2-3 hours',
-          pitch: `A deeper date with conversation moments and shared taste around ${anchorInterestTwo}.`,
-          message: `Would you be up for a culture date? We could do a gallery/museum stop and then ${anchorInterestTwo} after. I think that would fit our vibe really well.`,
+          duration: dp.datePlanCultureDuration,
+          pitch: fill(dp.datePlanCulturePitch, cultureVars),
+          message: fill(dp.datePlanCultureMessage, cultureVars),
         },
         {
           id: `signature-date-${selectedChatProfile.id}`,
-          title: 'Signature Night Plan',
-          placeType: `${anchorInterest} experience + dinner`,
+          title: dp.datePlanSignatureTitle,
+          placeType: fill(dp.datePlanSignaturePlace, signatureVars),
           budget: '$$$',
-          duration: '3-4 hours',
-          pitch: `A more curated date flow designed around your chemistry and shared energy.`,
-          message: `I want to plan a proper signature date: start with a ${anchorInterest} experience and continue with dinner. If you like, I can send you two concrete options and you pick your favorite.`,
+          duration: dp.datePlanSignatureDuration,
+          pitch: fill(dp.datePlanSignaturePitch, signatureVars),
+          message: fill(dp.datePlanSignatureMessage, signatureVars),
         },
       ]
 

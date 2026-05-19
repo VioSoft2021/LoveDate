@@ -327,6 +327,16 @@
     font-size: 0.85rem !important;
     margin: 0 !important;
   }
+  /* When AI panels generate content (suggestion list, date plan list),
+     the cards used to push the messages off-screen with no way to
+     scroll back to them. Cap each generated list at ~32vh with its
+     own scroll so the chat messages remain reachable below. */
+  .chat-thread > .chat-ai-coach .chat-ai-suggestion-list,
+  .chat-thread > .chat-date-planner .chat-date-plan-list {
+    max-height: 32vh !important;
+    overflow-y: auto !important;
+    margin-top: 0.4rem !important;
+  }
 
   /* Compatibility + Calls hidden by default, revealed via sparkle. */
   .chat-thread > .chat-compatibility-panel,
