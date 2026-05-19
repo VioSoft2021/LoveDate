@@ -1,10 +1,23 @@
 import React from 'react'
 
 // Tiny version pill in the bottom-right so the user (and I) can verify
-// which build is actually rendering in their browser. Without this we keep
-// guessing whether the PWA cache served a stale bundle.
+// which build is actually rendering in their browser AND what the browser
+// thinks the CSS viewport width is. If width > 768px on a phone, the
+// "Desktop site" toggle is on in Chrome and every mobile media query is
+// being skipped — diagnostic that explains a lot of "fix didn't work".
 export const BuildChip: React.FC = () => {
   const [copied, setCopied] = React.useState(false)
+  const [viewport, setViewport] = React.useState({
+    w: typeof window !== 'undefined' ? window.innerWidth : 0,
+    h: typeof window !== 'undefined' ? window.innerHeight : 0,
+  })
+
+  React.useEffect(() => {
+    const onResize = () =>
+      setViewport({ w: window.innerWidth, h: window.innerHeight })
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const time = React.useMemo(() => {
     try {
@@ -20,8 +33,9 @@ export const BuildChip: React.FC = () => {
     }
   }, [])
 
+  const isPhoneWidth = viewport.w > 0 && viewport.w <= 768
   const handleClick = () => {
-    const text = `${__BUILD_HASH__} · ${time}`
+    const text = `${__BUILD_HASH__} · ${time} · ${viewport.w}×${viewport.h}`
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text).catch(() => {})
     }
@@ -33,8 +47,8 @@ export const BuildChip: React.FC = () => {
     <button
       type="button"
       onClick={handleClick}
-      aria-label="Build version (tap to copy)"
-      title="Build version (tap to copy)"
+      aria-label="Build version + viewport (tap to copy)"
+      title="Build version + viewport (tap to copy)"
       style={{
         position: 'fixed',
         right: '0.5rem',
@@ -57,7 +71,16 @@ export const BuildChip: React.FC = () => {
         transition: 'opacity 180ms ease',
       }}
     >
-      {copied ? 'copied' : `${__BUILD_HASH__} · ${time}`}
+      {copied ? (
+        'copied'
+      ) : (
+        <>
+          {__BUILD_HASH__} · {time}{' '}
+          <span style={{ color: isPhoneWidth ? 'rgba(180, 230, 180, 0.85)' : 'rgba(255, 150, 150, 0.9)' }}>
+            · {viewport.w}px
+          </span>
+        </>
+      )}
     </button>
   )
 }
