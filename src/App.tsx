@@ -9,6 +9,8 @@ import { enablePushNotifications, disablePushNotifications } from './services/pu
 import { FilterScreen } from './components/FilterScreen'
 import { EmbeddedCallStage } from './components/EmbeddedCallStage'
 import { Logo } from './components/Logo'
+import { BuildChip } from './components/BuildChip'
+import { UpdateBanner } from './components/UpdateBanner'
 import { ActivityScreen } from './screens/ActivityScreen'
 import { ChatScreen } from './screens/ChatScreen'
 import { CirclesScreen } from './screens/CirclesScreen'
@@ -3336,6 +3338,8 @@ function App() {
   }
   return (
     <main className={`app-shell app-shell--${screen}`}>
+      <UpdateBanner />
+      <BuildChip />
       <div className="grain" aria-hidden="true" />
       <header className="top-bar">
         <div>

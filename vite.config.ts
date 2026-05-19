@@ -1,10 +1,26 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { execSync } from 'node:child_process'
+
+// Build identity: short git hash + ISO timestamp. Exposed to the app via
+// the BuildChip in the corner so the user can verify which version they're
+// seeing in their browser — no more "did my deploy actually land?" guesswork.
+let buildHash = 'dev'
+try {
+  buildHash = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim()
+} catch {
+  // No git available (CI without history, etc.) — leave as 'dev'.
+}
+const buildTime = new Date().toISOString()
 
 // https://vite.dev/config/
 export default defineConfig({
   base: './',
+  define: {
+    __BUILD_HASH__: JSON.stringify(buildHash),
+    __BUILD_TIME__: JSON.stringify(buildTime),
+  },
   plugins: [
     react(),
     VitePWA({
