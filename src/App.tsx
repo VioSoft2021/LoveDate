@@ -1968,6 +1968,7 @@ function App() {
             zodiac: target.zodiac,
           },
           chatExcerpt: recent,
+          language: appLanguage,
         })
         const next = aiSuggestions && aiSuggestions.length > 0
           ? aiSuggestions.slice(0, 3)

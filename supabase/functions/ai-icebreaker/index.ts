@@ -27,6 +27,7 @@ type RequestBody = {
   selfProfile: ProfileSummary
   otherProfile: ProfileSummary
   chatExcerpt?: ChatTurn[]
+  language?: 'en' | 'ro'
 }
 
 const corsHeaders = {
@@ -74,7 +75,8 @@ const buildUserPrompt = (body: RequestBody): string => {
   return lines.join('\n')
 }
 
-const SYSTEM_PROMPT = `You are a warm, witty chat coach inside a dating app called LoveDate.
+const buildSystemPrompt = (language: 'en' | 'ro'): string => {
+  const baseRules = `You are a warm, witty chat coach inside a dating app called LoveDate.
 You write short messages on behalf of the Sender to the Recipient.
 
 Rules:
@@ -85,8 +87,15 @@ Rules:
 - Vary the three: one warm/curious, one playful, one that proposes a next step (a question, a small plan, a vivid micro-detail).
 - Never invent facts about the Sender or Recipient. Never claim shared memories.
 - No emoji unless the Recipient used emoji first.
-- No greeting like "Hi" or "Hello" — start with substance.
-- Write in English unless both profiles' bios are clearly in another language, in which case mirror it.`
+- No greeting like "Hi" or "Hello" — start with substance.`
+
+  if (language === 'ro') {
+    return `${baseRules}
+- Write all three suggestions in NATURAL ROMANIAN — not literal English-to-Romanian translation, but the way a native Romanian speaker would actually phrase it in a flirty chat. Use diacritics (ă, â, î, ș, ț) correctly. Avoid Anglicisms when a clean Romanian equivalent exists. If the Recipient's bio includes English words for places, names, or specific interests (e.g. "Coffee", "Live music", "Some Happy days"), you may keep those exact words; everything else is Romanian.`
+  }
+  return `${baseRules}
+- Write all three suggestions in English.`
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -134,10 +143,11 @@ Deno.serve(async (req: Request) => {
   const client = new Anthropic({ apiKey })
 
   try {
+    const language = body.language === 'ro' ? 'ro' : 'en'
     const response = await client.messages.create({
       model: 'claude-haiku-4-5',
       max_tokens: 600,
-      system: SYSTEM_PROMPT,
+      system: buildSystemPrompt(language),
       messages: [{ role: 'user', content: buildUserPrompt(body) }],
       output_config: {
         format: {

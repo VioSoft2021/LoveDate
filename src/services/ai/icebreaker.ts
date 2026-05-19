@@ -13,13 +13,19 @@ export type AiProfileSummary = {
 
 export type AiChatTurn = { sender: 'me' | 'them'; text: string }
 
-type CacheEntry = { openers: string[]; storedAt: number }
+type CacheEntry = { openers: string[]; storedAt: number; v: number }
 
 const CACHE_KEY_PREFIX = 'lovedate:ai-icebreaker:'
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24
+const CACHE_VERSION = 2 // bumped: language parameter added; v=1 entries are stale
 
-const cacheKey = (selfName: string, otherProfileId: number, hasHistory: boolean): string =>
-  `${CACHE_KEY_PREFIX}${selfName}:${otherProfileId}:${hasHistory ? 'coach' : 'opener'}`
+const cacheKey = (
+  selfName: string,
+  otherProfileId: number,
+  hasHistory: boolean,
+  language: string,
+): string =>
+  `${CACHE_KEY_PREFIX}${language}:${selfName}:${otherProfileId}:${hasHistory ? 'coach' : 'opener'}`
 
 const readCache = (key: string): string[] | null => {
   try {
@@ -28,6 +34,9 @@ const readCache = (key: string): string[] | null => {
       return null
     }
     const parsed = JSON.parse(raw) as CacheEntry
+    if (parsed?.v !== CACHE_VERSION) {
+      return null
+    }
     if (!parsed?.openers || !Array.isArray(parsed.openers)) {
       return null
     }
@@ -42,7 +51,7 @@ const readCache = (key: string): string[] | null => {
 
 const writeCache = (key: string, openers: string[]): void => {
   try {
-    const entry: CacheEntry = { openers, storedAt: Date.now() }
+    const entry: CacheEntry = { openers, storedAt: Date.now(), v: CACHE_VERSION }
     window.localStorage.setItem(key, JSON.stringify(entry))
   } catch {
     // best-effort; localStorage quota issues fall through
@@ -61,14 +70,16 @@ export const backendInvokeIcebreaker = async (input: {
   selfProfile: AiProfileSummary
   otherProfile: AiProfileSummary & { id: number }
   chatExcerpt?: AiChatTurn[]
+  language?: 'en' | 'ro'
 }): Promise<string[] | null> => {
   const supabase = createSupabaseClient()
   if (!supabase) {
     return null
   }
 
+  const language = input.language ?? 'en'
   const hasHistory = (input.chatExcerpt?.length ?? 0) > 0
-  const key = cacheKey(input.selfProfile.name, input.otherProfile.id, hasHistory)
+  const key = cacheKey(input.selfProfile.name, input.otherProfile.id, hasHistory, language)
   const cached = readCache(key)
   if (cached) {
     return cached
@@ -91,6 +102,7 @@ export const backendInvokeIcebreaker = async (input: {
             zodiac: input.otherProfile.zodiac,
           },
           chatExcerpt: input.chatExcerpt ?? [],
+          language,
         },
       },
     )

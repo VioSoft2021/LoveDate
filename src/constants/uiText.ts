@@ -427,7 +427,7 @@ export const UI_TEXT = {
     },
     chats: {
       searchPlaceholder: 'Caută în conversații...',
-      online: 'Online',
+      online: 'Activ acum',
       audioCall: 'Apel audio',
       videoCall: 'Apel video',
       moreOptions: 'Mai multe opțiuni',
