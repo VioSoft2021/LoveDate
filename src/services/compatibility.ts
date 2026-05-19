@@ -147,6 +147,26 @@ export const compatibilityFromAnswers = (
   return Math.max(1, Math.min(99, Math.round(normalized)))
 }
 
+// Code-only fallback used when we have the OTHER user's personalityCode
+// but not their raw answers — which is the case after the 2026-05-19
+// privacy migration that moved answers into a server-only table.
+// Lower fidelity than compatibilityFromAnswers (binary per axis vs.
+// 3-level), but adequate for ranking the deck before E3 AI score lands.
+export const compatibilityFromCodes = (
+  mine: PersonalityAnswer[],
+  theirCode: string,
+): number => {
+  if (!theirCode || theirCode.length !== 4) return 50
+  const myCode = personalityCodeFromAnswers(mine)
+  if (myCode.length !== 4) return 50
+  let matches = 0
+  for (let i = 0; i < 4; i++) {
+    if (myCode[i] === theirCode[i]) matches += 1
+  }
+  // 4-of-4 = 99, 0-of-4 = 1, linear between.
+  return Math.max(1, Math.min(99, Math.round((matches / 4) * 98 + 1)))
+}
+
 export const generateAnswersFromSeed = (seed: number): PersonalityAnswer[] => {
   let value = Math.abs(seed) || 1
   const nextBit = () => {

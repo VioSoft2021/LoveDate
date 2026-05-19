@@ -18,6 +18,11 @@ export type Profile = {
   relationshipGoal: 'Long-term' | 'Short-term' | 'Friends' | 'Figuring it out'
   zodiac: string
   personalityAnswers: PersonalityAnswer[]
+  // 4-letter code (e.g. CSOA) derived server-side from the OWNER's
+  // private quiz answers, exposed publicly so other clients can rank.
+  // Undefined when the row predates the 2026-05-19 migration; callers
+  // fall back to deriving from `personalityAnswers` in that case.
+  personalityCode?: string
 }
 
 type SeedProfile = Omit<
@@ -559,6 +564,10 @@ const mapProfileRow = (row: Record<string, unknown>): Profile | null => {
       ? (row.extras as Record<string, unknown>)
       : {}
   const personalityAnswers = sanitizeAnswers(extras.personalityAnswers)
+  const personalityCode =
+    typeof row.personality_code === 'string' && row.personality_code.length === 4
+      ? row.personality_code
+      : undefined
 
   return {
     id,
@@ -578,6 +587,7 @@ const mapProfileRow = (row: Record<string, unknown>): Profile | null => {
     zodiac: String(row.zodiac ?? 'Libra'),
     personalityAnswers:
       personalityAnswers.length === 8 ? personalityAnswers : generateAnswersFromSeed(id),
+    personalityCode,
   }
 }
 
@@ -614,7 +624,7 @@ export const getProfiles = async (): Promise<Profile[]> => {
     const query = supabase
       .from('profiles')
       .select(
-        'id, name, age, city, vibe, bio, interests, palette, photos, gender, distance_km, verified, relationship_goal, zodiac, extras, is_active, auth_user_id',
+        'id, name, age, city, vibe, bio, interests, palette, photos, gender, distance_km, verified, relationship_goal, zodiac, extras, personality_code, is_active, auth_user_id',
       )
       .eq('is_active', true)
       .not('auth_user_id', 'is', null)

@@ -77,6 +77,7 @@ import { canUsePassport, getActivePlan, setActivePlan as persistActivePlan } fro
 import {
   PERSONALITY_QUESTIONS,
   compatibilityFromAnswers,
+  compatibilityFromCodes,
   personalityCodeFromAnswers,
   sanitizeAnswers,
   type PersonalityAnswer,
@@ -544,7 +545,13 @@ function App() {
         myInterests.some((mine) => mine.includes(interest.toLowerCase()) || interest.toLowerCase().includes(mine)),
       )
       const ageGap = Math.abs(selfProfile.age - profile.age)
-      const personalityScore = compatibilityFromAnswers(selfProfile.personalityAnswers, profile.personalityAnswers)
+      // Other users' raw answers are no longer publicly readable as of the
+      // 2026-05-19 privacy migration. Fall back to the code-based heuristic
+      // — lower fidelity but doesn't require their raw answers. E3 AI
+      // scoring then overlays the real assessment on the top card.
+      const personalityScore = profile.personalityCode
+        ? compatibilityFromCodes(selfProfile.personalityAnswers, profile.personalityCode)
+        : compatibilityFromAnswers(selfProfile.personalityAnswers, profile.personalityAnswers)
       const myZodiacCompat = ZODIAC_COMPATIBILITY[selfProfile.zodiac] ?? []
       const zodiacAligned = myZodiacCompat.includes(profile.zodiac)
       const intentAligned =
@@ -561,7 +568,7 @@ function App() {
       const finalScore = Math.max(1, Math.min(99, Math.round(score)))
 
       const myCode = personalityCodeFromAnswers(selfProfile.personalityAnswers)
-      const theirCode = personalityCodeFromAnswers(profile.personalityAnswers)
+      const theirCode = profile.personalityCode || personalityCodeFromAnswers(profile.personalityAnswers)
       const reasons: string[] = []
       if (personalityScore >= 82) {
         reasons.push('Your personality rhythm is strongly aligned.')
@@ -618,7 +625,7 @@ function App() {
       const match = getMatchAnalysis(profile)
       const myCode = personalityCodeFromAnswers(selfProfile.personalityAnswers)
       const myStack = PERSONALITY_COGNITIVE_FUNCTIONS[myCode]
-      const theirCode = personalityCodeFromAnswers(profile.personalityAnswers)
+      const theirCode = profile.personalityCode || personalityCodeFromAnswers(profile.personalityAnswers)
       const theirStack = PERSONALITY_COGNITIVE_FUNCTIONS[theirCode]
 
       let cognitiveOverlapScore = 48
@@ -1919,7 +1926,7 @@ function App() {
       const interest = target.interests[0] ?? 'coffee'
       const interestTwo = target.interests[1] ?? 'music'
       const chemistry = getChemistryInsights(target).chemistryScore
-      const localTypeCode = personalityCodeFromAnswers(target.personalityAnswers)
+      const localTypeCode = target.personalityCode || personalityCodeFromAnswers(target.personalityAnswers)
       const typeLabel =
         PERSONALITY_TYPE_GUIDE.find((type) => type.code === localTypeCode)?.label ?? localTypeCode
       const zodiac = target.zodiac
@@ -3292,7 +3299,11 @@ function App() {
     [profileDraft.personalityAnswers],
   )
   const selectedDetailPersonalityCode = useMemo(
-    () => (selectedDetailProfile ? personalityCodeFromAnswers(selectedDetailProfile.personalityAnswers) : null),
+    () =>
+      selectedDetailProfile
+        ? selectedDetailProfile.personalityCode ||
+          personalityCodeFromAnswers(selectedDetailProfile.personalityAnswers)
+        : null,
     [selectedDetailProfile],
   )
   const selectedDetailTypeGuide = useMemo(
@@ -3307,7 +3318,11 @@ function App() {
     [selectedDetailPersonalityCode],
   )
   const selectedChatPersonalityCode = useMemo(
-    () => (selectedChatProfile ? personalityCodeFromAnswers(selectedChatProfile.personalityAnswers) : null),
+    () =>
+      selectedChatProfile
+        ? selectedChatProfile.personalityCode ||
+          personalityCodeFromAnswers(selectedChatProfile.personalityAnswers)
+        : null,
     [selectedChatProfile],
   )
   const selectedChatTypeGuide = useMemo(
