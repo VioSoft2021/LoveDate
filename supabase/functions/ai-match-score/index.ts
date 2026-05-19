@@ -137,7 +137,10 @@ Deno.serve(async (req: Request) => {
           schema: {
             type: 'object',
             properties: {
-              score: { type: 'integer', minimum: 0, maximum: 100 },
+              // No minimum/maximum here — Anthropic's structured-output
+              // schema validator rejects them on integer type. We clamp
+              // to 0..100 in the parsing block below.
+              score: { type: 'integer' },
               reasons: { type: 'array', items: { type: 'string' } },
               redFlags: { type: 'array', items: { type: 'string' } },
             },
