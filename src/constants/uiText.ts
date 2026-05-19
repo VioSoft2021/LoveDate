@@ -76,6 +76,10 @@ export const UI_TEXT = {
       noMoreProfiles: 'No more profiles for these filters',
       startAgain: 'Start Again',
       clearHistory: 'Clear History',
+      deeperWhyShow: 'Show deeper why',
+      deeperWhyHide: 'Hide deeper why',
+      frictionPoints: 'Possible friction',
+      tips: 'Tips to navigate',
     },
     settings: {
       controlCenter: 'Control Center',
@@ -372,6 +376,10 @@ export const UI_TEXT = {
       noMoreProfiles: 'Nu mai sunt profile care să corespundă filtrelor',
       startAgain: 'Începe din nou',
       clearHistory: 'Șterge istoricul',
+      deeperWhyShow: 'Arată detalii mai adânci',
+      deeperWhyHide: 'Ascunde detaliile',
+      frictionPoints: 'Posibile fricțiuni',
+      tips: 'Sfaturi pentru navigare',
     },
     settings: {
       controlCenter: 'Centru de control',

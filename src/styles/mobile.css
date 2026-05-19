@@ -734,3 +734,48 @@
 .bio-writer-rewrite-card .mini-btn {
   align-self: flex-end;
 }
+
+/* ── Discover "Show deeper why" disclosure (all viewports) ──────────── */
+.discover-deeper-why {
+  margin: 0.35rem 0 0.2rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(126, 223, 246, 0.22);
+  border-radius: 0.7rem;
+  padding: 0.5rem 0.7rem;
+}
+.discover-deeper-why > summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: rgba(126, 223, 246, 0.92);
+  list-style: none;
+  user-select: none;
+}
+.discover-deeper-why > summary::-webkit-details-marker {
+  display: none;
+}
+.discover-deeper-why > summary .discover-deeper-why-hide,
+.discover-deeper-why[open] > summary .discover-deeper-why-show {
+  display: none;
+}
+.discover-deeper-why[open] > summary .discover-deeper-why-hide {
+  display: inline;
+}
+.discover-deeper-section {
+  margin-top: 0.55rem;
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+.discover-deeper-section em {
+  font-style: normal;
+  opacity: 0.72;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.discover-deeper-section ul {
+  margin: 0.25rem 0 0;
+  padding-left: 1.05rem;
+}
+.discover-deeper-section li {
+  margin: 0.12rem 0;
+}

@@ -70,7 +70,7 @@ const buildUserPrompt = (body: RequestBody): string =>
   [
     profileBlock('Viewer', body.selfProfile),
     profileBlock('Candidate', body.candidateProfile),
-    'Assess how compatible these two are as a potential dating match. Score 0..100 (50 = neutral, 70+ = strong, 85+ = exceptional). Give exactly 3 short, specific reasons tied to actual profile details. List 0..3 red flags ONLY if there is a real concrete mismatch (age gap >15 years, opposing children plans, opposing relationship goals, etc.) — never invent flags to fill the list.',
+    'Assess how compatible these two are as a potential dating match. Score 0..100 (50 = neutral, 70+ = strong, 85+ = exceptional). Give exactly 3 short, specific reasons tied to actual profile details. List 0..3 red flags ONLY if there is a real concrete mismatch (age gap >15 years, opposing children plans, opposing relationship goals, etc.) — never invent flags to fill the list. Then list 0..3 predicted FRICTION POINTS — soft tensions that are NOT dealbreakers but real friction the pair would likely hit (different paces, communication-style mismatches, hobby-time conflicts). Finally, list 0..3 ACTIONABLE TIPS the Viewer can use to navigate this match well — first-conversation moves grounded in the actual profiles (e.g. "ask about her travel pace early" / "share your weeknight rhythm upfront").',
   ].join('\n')
 
 const buildSystemPrompt = (language: 'en' | 'ro'): string => {
@@ -80,14 +80,16 @@ Rules:
 - score: integer 0..100. 50 is genuinely neutral. Reserve 85+ for matches with multiple concrete points of alignment.
 - reasons: exactly 3, each one short sentence (max ~120 chars), referencing at least one specific detail from BOTH profiles. Never use generic platitudes ("they could really hit it off"); name the specifics.
 - redFlags: 0..3 entries. Only include real, concrete mismatches such as: age gap > 15 years, opposing relationship goals (one wants casual, the other long-term), opposing children plans, irreconcilable lifestyle (one strict vegetarian + one vocal hunter, etc.). Do NOT include speculative flags. An empty array is the correct answer when there are no real mismatches.
+- frictionPoints: 0..3 entries. SOFT predicted tensions — NOT dealbreakers. Different paces, communication-style differences, hobby-time conflicts, energy mismatches, city-vs-distance issues, intensity differences. These should be REAL frictions you can point to in the profiles, not made up. An empty array is the correct answer when both profiles look frictionless.
+- tips: 0..3 entries. Each is one short sentence the Viewer can act on in the first few messages or first date — grounded in the actual profiles. Examples: "ask about her weeknight rhythm before suggesting late plans"; "share your work-travel pattern upfront so it doesn't surprise her"; "her bio mentions hiking — propose a daytime walk for date #1, not a club". NEVER write generic platitudes ("be yourself", "be authentic").
 - Output JSON only matching the supplied schema. No prose.`
 
   if (language === 'ro') {
     return `${baseRules}
-- Write the reasons and redFlags strings in NATURAL ROMANIAN — not literal English-to-Romanian translation, but the way a native Romanian speaker would actually phrase it. Use diacritics (ă, â, î, ș, ț) correctly. Avoid Anglicisms when a clean Romanian equivalent exists. If a profile name or city is in English in the source bio, keep that name as written; everything else is Romanian.`
+- Write reasons, redFlags, frictionPoints, and tips in NATURAL ROMANIAN — not literal English-to-Romanian translation, but the way a native Romanian speaker would actually phrase it. Use diacritics (ă, â, î, ș, ț) correctly. Avoid Anglicisms when a clean Romanian equivalent exists. If a profile name or city is in English in the source bio, keep that name as written; everything else is Romanian.`
   }
   return `${baseRules}
-- Write the reasons and redFlags in English.`
+- Write reasons, redFlags, frictionPoints, and tips in English.`
 }
 
 Deno.serve(async (req: Request) => {
@@ -138,7 +140,7 @@ Deno.serve(async (req: Request) => {
     const language = body.language === 'ro' ? 'ro' : 'en'
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 800,
+      max_tokens: 1400,
       system: buildSystemPrompt(language),
       messages: [{ role: 'user', content: buildUserPrompt(body) }],
       output_config: {
@@ -153,8 +155,10 @@ Deno.serve(async (req: Request) => {
               score: { type: 'integer' },
               reasons: { type: 'array', items: { type: 'string' } },
               redFlags: { type: 'array', items: { type: 'string' } },
+              frictionPoints: { type: 'array', items: { type: 'string' } },
+              tips: { type: 'array', items: { type: 'string' } },
             },
-            required: ['score', 'reasons', 'redFlags'],
+            required: ['score', 'reasons', 'redFlags', 'frictionPoints', 'tips'],
             additionalProperties: false,
           },
         },
@@ -163,7 +167,13 @@ Deno.serve(async (req: Request) => {
 
     const block = response.content.find((b) => b.type === 'text')
     const raw = block && 'text' in block ? block.text : ''
-    let parsed: { score?: unknown; reasons?: unknown; redFlags?: unknown }
+    let parsed: {
+      score?: unknown
+      reasons?: unknown
+      redFlags?: unknown
+      frictionPoints?: unknown
+      tips?: unknown
+    }
     try {
       parsed = JSON.parse(raw)
     } catch {
@@ -185,11 +195,17 @@ Deno.serve(async (req: Request) => {
           .filter((r): r is string => typeof r === 'string' && r.trim().length > 0)
           .slice(0, 3)
       : []
-    const redFlags = Array.isArray(parsed.redFlags)
-      ? parsed.redFlags
-          .filter((r): r is string => typeof r === 'string' && r.trim().length > 0)
-          .slice(0, 3)
-      : []
+    const cleanList = (raw: unknown, max: number, maxLen: number): string[] =>
+      Array.isArray(raw)
+        ? raw
+            .filter((r): r is string => typeof r === 'string' && r.trim().length > 0)
+            .map((s) => s.trim().slice(0, maxLen))
+            .slice(0, max)
+        : []
+
+    const redFlags = cleanList(parsed.redFlags, 3, 240)
+    const frictionPoints = cleanList(parsed.frictionPoints, 3, 240)
+    const tips = cleanList(parsed.tips, 3, 240)
 
     if (!Number.isFinite(score) || reasons.length === 0) {
       return new Response(
@@ -201,10 +217,13 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    return new Response(JSON.stringify({ score, reasons, redFlags }), {
-      status: 200,
-      headers: { ...corsHeaders, 'content-type': 'application/json' },
-    })
+    return new Response(
+      JSON.stringify({ score, reasons, redFlags, frictionPoints, tips }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'content-type': 'application/json' },
+      },
+    )
   } catch (error) {
     const message = error instanceof Error ? error.message : 'unknown error'
     return new Response(JSON.stringify({ error: message }), {

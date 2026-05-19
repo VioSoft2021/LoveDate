@@ -22,13 +22,15 @@ export type AiMatchScoreResult = {
   score: number
   reasons: string[]
   redFlags: string[]
+  frictionPoints: string[]
+  tips: string[]
 }
 
 type CacheEntry = AiMatchScoreResult & { storedAt: number; v: number; lang: string }
 
 const CACHE_KEY_PREFIX = 'lovedate:ai-match-score:'
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7 // 7 days
-const CACHE_VERSION = 2 // bumped: language parameter added; v=1 entries are stale
+const CACHE_VERSION = 3 // bumped: frictionPoints + tips added; v<=2 entries are stale
 
 // Stable hash of the profile fields the model actually sees. Lets us
 // invalidate the cache automatically when EITHER profile is edited:
@@ -79,6 +81,8 @@ const readCache = (key: string): AiMatchScoreResult | null => {
       score: parsed.score,
       reasons: parsed.reasons,
       redFlags: parsed.redFlags ?? [],
+      frictionPoints: parsed.frictionPoints ?? [],
+      tips: parsed.tips ?? [],
     }
   } catch {
     return null
@@ -121,6 +125,8 @@ export const backendInvokeMatchScore = async (input: {
       score?: number
       reasons?: string[]
       redFlags?: string[]
+      frictionPoints?: string[]
+      tips?: string[]
       error?: string
     }>('ai-match-score', {
       body: {
@@ -143,6 +149,8 @@ export const backendInvokeMatchScore = async (input: {
       score: data.score,
       reasons: data.reasons,
       redFlags: Array.isArray(data.redFlags) ? data.redFlags : [],
+      frictionPoints: Array.isArray(data.frictionPoints) ? data.frictionPoints : [],
+      tips: Array.isArray(data.tips) ? data.tips : [],
     }
     writeCache(key, result, language)
     return result

@@ -1599,6 +1599,8 @@ function App() {
       score: ai.score,
       reasons: ai.reasons,
       caution: ai.redFlags.length > 0 ? ai.redFlags.join(' · ') : base.caution,
+      frictionPoints: ai.frictionPoints ?? [],
+      tips: ai.tips ?? [],
     }
   }, [topProfile, getMatchAnalysis, aiMatchScores])
   const topProfileChemistry = useMemo(
@@ -1615,6 +1617,8 @@ function App() {
       score: ai.score,
       reasons: ai.reasons,
       caution: ai.redFlags.length > 0 ? ai.redFlags.join(' · ') : base.caution,
+      frictionPoints: ai.frictionPoints ?? [],
+      tips: ai.tips ?? [],
     }
   }, [selectedDetailProfile, getMatchAnalysis, aiMatchScores])
   const selectedDetailChemistry = useMemo(

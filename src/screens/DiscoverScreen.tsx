@@ -365,6 +365,42 @@ export const DiscoverScreen: React.FC<DiscoverScreenProps> = ({
                   ))}
                 </ul>
               ) : null}
+              {(topProfileMatchAnalysis?.frictionPoints?.length ?? 0) > 0 ||
+              (topProfileMatchAnalysis?.tips?.length ?? 0) > 0 ? (
+                <details
+                  className="discover-deeper-why"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <summary>
+                    <span className="discover-deeper-why-show">
+                      {copy.discover.deeperWhyShow}
+                    </span>
+                    <span className="discover-deeper-why-hide">
+                      {copy.discover.deeperWhyHide}
+                    </span>
+                  </summary>
+                  {(topProfileMatchAnalysis?.frictionPoints?.length ?? 0) > 0 ? (
+                    <div className="discover-deeper-section">
+                      <em>{copy.discover.frictionPoints}</em>
+                      <ul>
+                        {topProfileMatchAnalysis!.frictionPoints!.map((point, i) => (
+                          <li key={`fp-${i}`}>{point}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                  {(topProfileMatchAnalysis?.tips?.length ?? 0) > 0 ? (
+                    <div className="discover-deeper-section">
+                      <em>{copy.discover.tips}</em>
+                      <ul>
+                        {topProfileMatchAnalysis!.tips!.map((tip, i) => (
+                          <li key={`tip-${i}`}>{tip}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </details>
+              ) : null}
               <p className="mini-label discover-spotlight-pill">{topProfile.vibe}</p>
               <p className="vibe">{topProfile.vibe}</p>
               <div className="discover-interest-chips">
