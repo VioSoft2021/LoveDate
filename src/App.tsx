@@ -2294,12 +2294,24 @@ function App() {
     setDragY(event.clientY - dragStart.current.y)
   }
 
+  // Separate pointercancel handler: when the browser hijacks the gesture
+  // for native scrolling (touch-action: pan-y on phone), it fires
+  // pointercancel — NOT pointerup. Treating that as a tap and opening
+  // the full profile is the cause of the 'every scroll attempt opens the
+  // profile' bug. Just reset drag state, don't navigate.
+  const handlePointerCancel = () => {
+    if (!dragStart.current) return
+    resetDrag()
+  }
+
   const handlePointerUp = () => {
     if (!dragStart.current) {
       return
     }
 
-    const tapThreshold = 14
+    // Tighter threshold (was 14): a real intentional tap moves <6px,
+    // anything more is the user attempting to scroll/swipe.
+    const tapThreshold = 6
     if (
       Math.abs(dragX) < tapThreshold &&
       Math.abs(dragY) < tapThreshold &&
@@ -3428,6 +3440,7 @@ function App() {
             handlePointerDown={handlePointerDown}
             handlePointerMove={handlePointerMove}
             handlePointerUp={handlePointerUp}
+            handlePointerCancel={handlePointerCancel}
             getCardStyle={getCardStyle}
             getDiscoverCardBackground={getDiscoverCardBackground}
             getCompatibilityScore={getCompatibilityScore}

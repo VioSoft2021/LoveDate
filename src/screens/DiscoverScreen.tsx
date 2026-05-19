@@ -44,6 +44,7 @@ export type DiscoverScreenProps = {
   handlePointerDown: (event: React.PointerEvent<HTMLElement>) => void
   handlePointerMove: (event: React.PointerEvent<HTMLElement>) => void
   handlePointerUp: (event: React.PointerEvent<HTMLElement>) => void
+  handlePointerCancel: (event: React.PointerEvent<HTMLElement>) => void
   getCardStyle: () => React.CSSProperties
   getDiscoverCardBackground: (profile: Profile, tone?: 'front' | 'back') => string
   getCompatibilityScore: (profile: Profile) => number
@@ -96,6 +97,7 @@ export const DiscoverScreen: React.FC<DiscoverScreenProps> = ({
   handlePointerDown,
   handlePointerMove,
   handlePointerUp,
+  handlePointerCancel,
   getCardStyle,
   getDiscoverCardBackground,
   getCompatibilityScore,
@@ -264,7 +266,7 @@ export const DiscoverScreen: React.FC<DiscoverScreenProps> = ({
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
-                onPointerCancel={handlePointerUp}
+                onPointerCancel={handlePointerCancel}
               >
                 <div className="badge like" style={{ opacity: rightBadgeOpacity }}>
                   LIKE
