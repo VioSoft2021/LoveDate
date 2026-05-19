@@ -5598,7 +5598,9 @@ details.profile-settings.settings-card[open] > summary {
 
   /* Only the panel scrolls, horizontally clipped, with room for tab bar.
      Tab bar buttons are 3.2rem min-height + 0.75rem×2 padding ≈ 4.7rem.
-     5.75rem gives ~1rem visual breathing room above the bar. */
+     7rem gives 2.3rem visual breathing room above the bar — needed because
+     some screens (Profile photos, Chat composer) have actionable controls
+     at the bottom that were getting hidden behind the fixed nav. */
   .screen-panel,
   .screen-panel--discover {
     min-height: 0;
@@ -5606,7 +5608,39 @@ details.profile-settings.settings-card[open] > summary {
     overflow-y: auto !important;
     padding-left: 0.5rem !important;
     padding-right: 0.5rem !important;
-    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0.5rem)) !important;
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0.5rem)) !important;
+  }
+
+  /* Discover hint footer = keyboard shortcuts (← Pass ↑ Super Like → Like)
+     + "U (undo), Esc (close match)". Useless on a phone with no keyboard,
+     and it bleeds into the tab bar. Hide on phone widths. */
+  .discover-hint {
+    display: none !important;
+  }
+
+  /* Chat AI panels were eating the whole chat thread on phone because
+     each section runs ~5rem (title + huge button + description). Squeeze
+     them: smaller button, hide the description; the user opens these
+     intentionally and doesn't need explainer copy every time. */
+  .chat-ai-coach,
+  .chat-date-planner {
+    padding: 0.45rem 0.8rem 0.55rem !important;
+  }
+  .chat-ai-coach .compatibility-score,
+  .chat-date-planner .compatibility-score {
+    font-size: 0.7rem;
+  }
+  .chat-ai-coach-head > button,
+  .chat-date-planner-head > button {
+    padding: 0.5rem 0.7rem !important;
+    font-size: 0.88rem !important;
+  }
+  /* The descriptive copy under each section's button is the long
+     "Generate personalized opener ideas based on your chemistry..." text.
+     Useful on first encounter, dead weight after that — hide on phone. */
+  .chat-ai-coach > p.soft,
+  .chat-date-planner > p.soft {
+    display: none;
   }
 
   /* HARD CLAMP — every direct screen container fits the viewport.
