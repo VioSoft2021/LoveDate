@@ -226,7 +226,10 @@
   }
   .chats-layout[data-mobile-view='thread'] .chat-thread > .messages {
     flex: 1 1 0 !important;
-    min-height: 0 !important;
+    /* Guarantee at least ~25% of the viewport for messages so the AI
+       panels never crush this region to zero. If panels overflow, they
+       scroll internally instead of eating the message area. */
+    min-height: 25vh !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
   }
@@ -329,12 +332,23 @@
   }
   /* When AI panels generate content (suggestion list, date plan list),
      the cards used to push the messages off-screen with no way to
-     scroll back to them. Cap each generated list at ~32vh with its
-     own scroll so the chat messages remain reachable below. */
+     scroll back to them. Constrain each panel as a whole (header +
+     list) AND cap the inner list so taps inside scroll only the cards
+     while the rest of the page stays reachable. Together with the
+     min-height on .messages above, this guarantees both regions are
+     usable when AI content is generated. */
+  .chat-thread > .chat-ai-coach,
+  .chat-thread > .chat-date-planner {
+    max-height: 38vh !important;
+    overflow: hidden !important;
+  }
   .chat-thread > .chat-ai-coach .chat-ai-suggestion-list,
   .chat-thread > .chat-date-planner .chat-date-plan-list {
-    max-height: 32vh !important;
+    max-height: 28vh !important;
     overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
     margin-top: 0.4rem !important;
   }
 
