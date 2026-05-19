@@ -2748,11 +2748,12 @@ details.profile-settings.settings-card[open] > summary {
 
 .photo-input-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.5rem;
 }
 
 .photo-input-row input {
+  min-width: 0;
   border-radius: 0.72rem;
   border: 1px solid rgba(112, 130, 216, 0.34);
   background: rgba(20, 25, 55, 0.62);
@@ -5618,29 +5619,55 @@ details.profile-settings.settings-card[open] > summary {
     display: none !important;
   }
 
-  /* Chat AI panels were eating the whole chat thread on phone because
-     each section runs ~5rem (title + huge button + description). Squeeze
-     them: smaller button, hide the description; the user opens these
-     intentionally and doesn't need explainer copy every time. */
-  .chat-ai-coach,
-  .chat-date-planner {
+  /* On phone, hide the four insight panels (compatibility, AI coach,
+     AI planner, call history) by default. They eat the entire chat
+     thread, pushing the actual messages off-screen. The new sparkle
+     icon in the chat header toggles them back on via .chat-thread--tools-open. */
+  .chat-thread > .chat-compatibility-panel,
+  .chat-thread > .chat-ai-coach,
+  .chat-thread > .chat-date-planner,
+  .chat-thread > .chat-call-history {
+    display: none;
+  }
+  .chat-thread.chat-thread--tools-open > .chat-compatibility-panel,
+  .chat-thread.chat-thread--tools-open > .chat-ai-coach,
+  .chat-thread.chat-thread--tools-open > .chat-date-planner,
+  .chat-thread.chat-thread--tools-open > .chat-call-history {
+    display: block;
+  }
+  /* When tools are revealed, compact them so they don't dominate the
+     viewport either: smaller padding, smaller buttons, hide explainer copy. */
+  .chat-thread.chat-thread--tools-open > .chat-ai-coach,
+  .chat-thread.chat-thread--tools-open > .chat-date-planner {
     padding: 0.45rem 0.8rem 0.55rem !important;
   }
-  .chat-ai-coach .compatibility-score,
-  .chat-date-planner .compatibility-score {
+  .chat-thread.chat-thread--tools-open > .chat-ai-coach .compatibility-score,
+  .chat-thread.chat-thread--tools-open > .chat-date-planner .compatibility-score {
     font-size: 0.7rem;
   }
-  .chat-ai-coach-head > button,
-  .chat-date-planner-head > button {
+  .chat-thread.chat-thread--tools-open > .chat-ai-coach .chat-ai-coach-head > button,
+  .chat-thread.chat-thread--tools-open > .chat-date-planner .chat-date-planner-head > button {
     padding: 0.5rem 0.7rem !important;
     font-size: 0.88rem !important;
   }
-  /* The descriptive copy under each section's button is the long
-     "Generate personalized opener ideas based on your chemistry..." text.
-     Useful on first encounter, dead weight after that — hide on phone. */
-  .chat-ai-coach > p.soft,
-  .chat-date-planner > p.soft {
+  .chat-thread.chat-thread--tools-open > .chat-ai-coach > p.soft,
+  .chat-thread.chat-thread--tools-open > .chat-date-planner > p.soft {
     display: none;
+  }
+  /* Active state for the sparkle toggle when tools are visible. */
+  .chat-tools-toggle.is-active {
+    background: rgba(231, 178, 92, 0.22) !important;
+    color: #f7d68b !important;
+    border-color: rgba(231, 178, 92, 0.55) !important;
+  }
+
+  /* Photos input: stack vertically on phone so the URL field gets the
+     full width and the "Add URL" button stays fully inside the viewport. */
+  .photo-input-row {
+    grid-template-columns: 1fr !important;
+  }
+  .photo-input-row > button {
+    width: 100%;
   }
 
   /* HARD CLAMP — every direct screen container fits the viewport.

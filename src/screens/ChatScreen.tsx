@@ -98,6 +98,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 }) => {
   const copy = UI_TEXT[appLanguage]
   const composerInputRef = React.useRef<HTMLInputElement | null>(null)
+  const [chatToolsOpen, setChatToolsOpen] = React.useState(false)
+  React.useEffect(() => {
+    setChatToolsOpen(false)
+  }, [activeChatId])
 
   const applyDraftAndFocus = (text: string) => {
     setChatDraft(text)
@@ -156,7 +160,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           </button>
         ))}
       </article>
-      <article className="chat-thread">
+      <article className={`chat-thread${chatToolsOpen ? ' chat-thread--tools-open' : ''}`}>
         {selectedChatProfile ? (
           <>
             <header>
@@ -187,6 +191,19 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                 </div>
               </div>
               <div className="chat-header-actions">
+                <button
+                  type="button"
+                  className={`chat-icon-btn chat-tools-toggle${chatToolsOpen ? ' is-active' : ''}`}
+                  aria-label="Toggle AI tools"
+                  aria-pressed={chatToolsOpen}
+                  onClick={() => setChatToolsOpen((open) => !open)}
+                  title="Toggle AI tools"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+                    <circle cx="12" cy="12" r="3.4" stroke="currentColor" strokeWidth="1.6" fill="none" />
+                  </svg>
+                </button>
                 <button
                   type="button"
                   className="chat-icon-btn"
