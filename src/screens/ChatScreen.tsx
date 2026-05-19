@@ -103,6 +103,25 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     setChatToolsOpen(false)
   }, [activeChatId])
 
+  // Phone-vs-desktop detection for layout. On phone we render ONLY the
+  // active pane (list OR thread, never both) so the back button works
+  // reliably via React unmount instead of CSS display:none. On desktop
+  // both panes render side-by-side in the chats-layout grid as before.
+  const [isPhone, setIsPhone] = React.useState(() =>
+    typeof window !== 'undefined'
+      ? window.matchMedia('(max-width: 768px)').matches
+      : false,
+  )
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mql = window.matchMedia('(max-width: 768px)')
+    const handler = (event: MediaQueryListEvent) => setIsPhone(event.matches)
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
+  }, [])
+  const showList = !isPhone || !activeChatId
+  const showThread = !isPhone || Boolean(activeChatId)
+
   const applyDraftAndFocus = (text: string) => {
     setChatDraft(text)
     // After React commits the new draft, scroll the composer into view
@@ -121,45 +140,48 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       className="chats-layout"
       data-mobile-view={activeChatId ? 'thread' : 'list'}
     >
-      <article className="chat-list">
-        <div className="chat-tools">
-          <input
-            type="text"
-            placeholder={copy.chats.searchPlaceholder}
-            value={chatSearch}
-            onChange={(event) => setChatSearch(event.target.value)}
-          />
-        </div>
-        {filteredChatPreviews.map((preview) => (
-          <button
-            key={preview.profile.id}
-            type="button"
-            className={`chat-item ${activeChatId === preview.profile.id ? 'active' : ''}`}
-            onClick={() => setActiveChatId(preview.profile.id)}
-          >
-            <div className="chat-avatar-wrap">
-              <img
-                className="chat-avatar"
-                src={preview.profile.photos[0]}
-                alt={preview.profile.name}
-                loading="lazy"
-                decoding="async"
-              />
-              <span className="chat-online-dot" aria-hidden="true" />
-            </div>
-            <div className="chat-item-body">
-              <div className="chat-meta">
-                <strong>{preview.profile.name}</strong>
-                <span>{preview.lastText}</span>
+      {showList && (
+        <article className="chat-list">
+          <div className="chat-tools">
+            <input
+              type="text"
+              placeholder={copy.chats.searchPlaceholder}
+              value={chatSearch}
+              onChange={(event) => setChatSearch(event.target.value)}
+            />
+          </div>
+          {filteredChatPreviews.map((preview) => (
+            <button
+              key={preview.profile.id}
+              type="button"
+              className={`chat-item ${activeChatId === preview.profile.id ? 'active' : ''}`}
+              onClick={() => setActiveChatId(preview.profile.id)}
+            >
+              <div className="chat-avatar-wrap">
+                <img
+                  className="chat-avatar"
+                  src={preview.profile.photos[0]}
+                  alt={preview.profile.name}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <span className="chat-online-dot" aria-hidden="true" />
               </div>
-              <div className="chat-status">
-                <small>{preview.lastTime}</small>
-                {preview.unread > 0 ? <span className="badge-count">{preview.unread}</span> : null}
+              <div className="chat-item-body">
+                <div className="chat-meta">
+                  <strong>{preview.profile.name}</strong>
+                  <span>{preview.lastText}</span>
+                </div>
+                <div className="chat-status">
+                  <small>{preview.lastTime}</small>
+                  {preview.unread > 0 ? <span className="badge-count">{preview.unread}</span> : null}
+                </div>
               </div>
-            </div>
-          </button>
-        ))}
-      </article>
+            </button>
+          ))}
+        </article>
+      )}
+      {showThread && (
       <article className={`chat-thread${chatToolsOpen ? ' chat-thread--tools-open' : ''}`}>
         {selectedChatProfile ? (
           <>
@@ -523,6 +545,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           </section>
         )}
       </article>
+      )}
     </section>
   )
 }
