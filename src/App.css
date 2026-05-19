@@ -5624,7 +5624,7 @@ details.profile-settings.settings-card[open] > summary {
     overflow-y: auto !important;
     padding-left: 0.5rem !important;
     padding-right: 0.5rem !important;
-    padding-bottom: calc(11rem + env(safe-area-inset-bottom, 0.5rem)) !important;
+    padding-bottom: calc(14rem + env(safe-area-inset-bottom, 0.5rem)) !important;
   }
 
   /* DISCOVER REDESIGN: replace the 3 oversized full-width Pass/SuperLike/
@@ -5678,42 +5678,50 @@ details.profile-settings.settings-card[open] > summary {
     touch-action: pan-y !important;
   }
 
-  /* CHAT REDESIGN: kill the double-scroll. Previously both .chats-layout
-     AND .chat-thread (overflow-y: auto) AND .messages were scrollable,
-     producing two visible scrollbars and an empty space below the last
-     message. New model: chat-thread is a flex column that fills the
-     screen-panel exactly; ONLY .messages scrolls; header and composer
-     stay pinned at top/bottom by flex layout. */
+  /* CHAT REDESIGN v2: pin chat-thread with position:fixed between the
+     top-bar (top: 4.6rem) and the mobile tab bar (bottom: 4.7rem + safe).
+     Eliminates every height-calc race against the screen-panel grid.
+     Inside, flex column with header pinned at top, AI buttons + messages
+     in the middle (messages flex:1 + scrollable), composer pinned at
+     bottom. Only applies when actually viewing a thread (data-mobile-view
+     attribute on chats-layout). */
   .chats-layout {
-    height: calc(100dvh - 4.6rem - env(safe-area-inset-bottom, 0px)) !important;
+    height: auto !important;
     min-height: 0 !important;
-    max-height: none !important;
-    overflow: hidden !important;
+    overflow: visible !important;
   }
-  .chat-thread {
+  .chats-layout[data-mobile-view='thread'] .chat-thread {
+    position: fixed !important;
+    top: 4.6rem !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 4.7rem) !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 50 !important;
     display: flex !important;
     flex-direction: column !important;
-    height: 100% !important;
+    height: auto !important;
     max-height: none !important;
     overflow: hidden !important;
+    border-radius: 0 !important;
   }
-  .chat-thread > header {
+  .chats-layout[data-mobile-view='thread'] .chat-thread > header {
     flex: 0 0 auto !important;
   }
-  .chat-thread > .messages {
+  .chats-layout[data-mobile-view='thread'] .chat-thread > .messages {
     flex: 1 1 0 !important;
     min-height: 0 !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
   }
-  .chat-thread > .chat-input,
-  .chat-thread > .chat-attachment-preview,
-  .chat-thread > .messages-toolbar {
+  .chats-layout[data-mobile-view='thread'] .chat-thread > .chat-input,
+  .chats-layout[data-mobile-view='thread'] .chat-thread > .chat-attachment-preview,
+  .chats-layout[data-mobile-view='thread'] .chat-thread > .messages-toolbar,
+  .chats-layout[data-mobile-view='thread'] .chat-thread > .chat-ai-coach,
+  .chats-layout[data-mobile-view='thread'] .chat-thread > .chat-date-planner {
     flex: 0 0 auto !important;
   }
   /* The screen-panel hosting the chats no longer needs to scroll on phone
-     — the chat-thread manages its own scroll internally — and removing the
-     panel's bottom padding eliminates the dead space below the composer. */
+     — the chat-thread is fixed-positioned to its own area. */
   .app-shell--chats .screen-panel,
   .screen-panel--chats {
     overflow: hidden !important;

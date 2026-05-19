@@ -51,8 +51,8 @@ export const BuildChip: React.FC = () => {
       title="Build version + viewport (tap to copy)"
       style={{
         position: 'fixed',
-        right: '0.5rem',
-        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.4rem)',
+        right: '0.4rem',
+        top: 'calc(env(safe-area-inset-top, 0px) + 0.35rem)',
         zIndex: 9999,
         padding: '0.2rem 0.45rem',
         fontSize: '0.62rem',
