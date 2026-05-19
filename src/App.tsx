@@ -18,6 +18,7 @@ import { useProfileEditor } from './hooks/useProfileEditor'
 import { useReports } from './hooks/useReports'
 import { useToasts } from './hooks/useToasts'
 import { useEngagement } from './hooks/useEngagement'
+import { useAppSettings } from './hooks/useAppSettings'
 import { ActivityScreen } from './screens/ActivityScreen'
 import { ChatScreen } from './screens/ChatScreen'
 import { CirclesScreen } from './screens/CirclesScreen'
@@ -413,13 +414,14 @@ function App() {
   // notifications + toasts state now live in useToasts (above).
   // boostsLeft + rewindsLeft now in useEngagement.
 
-  const [settings, setSettings] = useState<SettingsPayload>({
-    pushNotifications: true,
-    emailNotifications: false,
-  })
-  const [settingsSaveStatus, setSettingsSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
-  const [preferenceSaveStatus, setPreferenceSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
-  const [appLanguage, setAppLanguage] = useState<AppLanguage>(() => readAppLanguage())
+  // App settings + language + save-status state moves into useAppSettings.
+  const appSettings = useAppSettings()
+  const {
+    settings, setSettings,
+    settingsSaveStatus, setSettingsSaveStatus,
+    preferenceSaveStatus, setPreferenceSaveStatus,
+    appLanguage, setAppLanguage,
+  } = appSettings
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null)
   const [lightboxZoom, setLightboxZoom] = useState(1)
 
