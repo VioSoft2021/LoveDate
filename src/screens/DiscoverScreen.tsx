@@ -1,5 +1,5 @@
 import React from 'react'
-import { UI_TEXT, ZODIAC_EMOJI, initialFilters } from '../constants'
+import { UI_TEXT, ZODIAC_EMOJI, initialFilters, translateInterest } from '../constants'
 import { buildHighResImageUrl } from '../utils'
 import { compatibilityFromAnswers } from '../services/compatibility'
 import type {
@@ -369,7 +369,9 @@ export const DiscoverScreen: React.FC<DiscoverScreenProps> = ({
               <p className="vibe">{topProfile.vibe}</p>
               <div className="discover-interest-chips">
                 {topProfile.interests.slice(0, 3).map((interest) => (
-                  <span key={`${topProfile.id}-${interest}`}>{interest}</span>
+                  <span key={`${topProfile.id}-${interest}`}>
+                    {translateInterest(interest, appLanguage)}
+                  </span>
                 ))}
               </div>
               <button

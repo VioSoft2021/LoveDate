@@ -16,6 +16,7 @@ import {
   WORKOUT_OPTIONS,
   ZODIAC_DESCRIPTIONS,
   ZODIAC_OPTIONS,
+  translateInterest,
 } from '../constants'
 import { PERSONALITY_QUESTIONS, type PersonalityAnswer } from '../services/compatibility'
 import { toProfileDraft } from '../persistence'
@@ -183,7 +184,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <h3>{copy.profile.interests}</h3>
           <div className="chips profile-interest-chips">
             {selfProfile.interests.map((interest) => (
-              <span key={interest}>{interest}</span>
+              <span key={interest}>{translateInterest(interest, appLanguage)}</span>
             ))}
           </div>
         </article>

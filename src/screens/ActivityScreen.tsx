@@ -1,5 +1,5 @@
 import React from 'react'
-import { UI_TEXT } from '../constants'
+import { UI_TEXT, translateRelationshipIntent } from '../constants'
 import type { AppLanguage } from '../domain'
 import type { Profile } from '../services/loveDateApi'
 
@@ -59,7 +59,7 @@ export const ActivityScreen: React.FC<ActivityScreenProps> = ({
                   </div>
                   <div className="activity-item-meta">
                     <strong>{profile.name}</strong>
-                    <span>{profile.relationshipGoal}</span>
+                    <span>{translateRelationshipIntent(profile.relationshipGoal, appLanguage)}</span>
                   </div>
                 </div>
                 <button type="button" className="mini-btn" onClick={() => onChatWith(profile.id)}>

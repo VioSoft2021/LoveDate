@@ -168,6 +168,7 @@ import {
   ZODIAC_DEEP_DIVE,
   ZODIAC_DESCRIPTIONS,
   ZODIAC_EMOJI,
+  translateInterestForSentence,
 } from './constants'
 import {
   analyzePhoto,
@@ -2005,8 +2006,10 @@ function App() {
             interest.toLowerCase().includes(mine.toLowerCase()),
         ),
       )
-      const anchorInterest = sharedInterests[0] ?? selectedChatProfile.interests[0] ?? 'coffee'
-      const anchorInterestTwo = sharedInterests[1] ?? selectedChatProfile.interests[1] ?? 'music'
+      const anchorInterestRaw = sharedInterests[0] ?? selectedChatProfile.interests[0] ?? 'coffee'
+      const anchorInterestTwoRaw = sharedInterests[1] ?? selectedChatProfile.interests[1] ?? 'music'
+      const anchorInterest = translateInterestForSentence(anchorInterestRaw, appLanguage)
+      const anchorInterestTwo = translateInterestForSentence(anchorInterestTwoRaw, appLanguage)
 
       const dp = UI_TEXT[appLanguage].chats
       const vibeTone =
@@ -2058,7 +2061,7 @@ function App() {
       setAiDatePlans(plans)
       setAiDatePlannerLoading(false)
     }, 520)
-  }, [selectedChatProfile, getChemistryInsights, selfProfile.city, selfProfile.interests, setAiDatePlannerLoading, setAiDatePlans])
+  }, [selectedChatProfile, getChemistryInsights, selfProfile.city, selfProfile.interests, appLanguage, setAiDatePlannerLoading, setAiDatePlans])
 
   useEffect(() => {
     setAiCoachSuggestions([])
