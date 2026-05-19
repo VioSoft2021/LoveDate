@@ -99,11 +99,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const copy = UI_TEXT[appLanguage]
   const composerInputRef = React.useRef<HTMLInputElement | null>(null)
   const [chatToolsOpen, setChatToolsOpen] = React.useState(false)
-  // TEMP diagnostic: count back-button taps so we can SEE if the click
-  // is even reaching the handler. If this counter increments visibly
-  // on tap, the click fires; if it doesn't, the click is being eaten
-  // somewhere upstream.
-  const [backTapCount, setBackTapCount] = React.useState(0)
   React.useEffect(() => {
     setChatToolsOpen(false)
   }, [activeChatId])
@@ -145,26 +140,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       className="chats-layout"
       data-mobile-view={activeChatId ? 'thread' : 'list'}
     >
-      {/* TEMP diagnostic overlay — fixed-position so it's always visible.
-          backTapCount increments each time the chat back button's onClick
-          fires. activeChatId shows the current state. */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 'calc(env(safe-area-inset-top, 0px) + 0.35rem)',
-          left: '0.4rem',
-          zIndex: 9999,
-          padding: '0.25rem 0.5rem',
-          background: 'rgba(255, 200, 80, 0.95)',
-          color: '#1a1a2c',
-          fontSize: '0.72rem',
-          fontWeight: 700,
-          borderRadius: '0.35rem',
-          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-        }}
-      >
-        taps:{backTapCount} · active:{activeChatId === null ? 'null' : String(activeChatId)}
-      </div>
       {showList && (
         <article className="chat-list">
           <div className="chat-tools">
@@ -215,10 +190,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                 type="button"
                 className="chat-back-btn"
                 aria-label="Back to chats"
-                onClick={() => {
-                  setBackTapCount((c) => c + 1)
-                  setActiveChatId(null)
-                }}
+                onClick={() => setActiveChatId(null)}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

@@ -1406,9 +1406,20 @@ function App() {
       return
     }
 
+    // On phone, allow activeChatId to be null — null means "show the
+    // chat list view". Auto-selecting the first match here is what
+    // makes the chat back button appear broken: user taps back, this
+    // effect resets activeChatId to matchedProfiles[0].id, user never
+    // sees the list. On desktop the right pane needs something to
+    // show, so the auto-select still applies.
+    const isPhone =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(max-width: 768px)').matches
+    if (isPhone && activeChatId === null) return
+
     const stillExists = matchedProfiles.some((profile) => profile.id === activeChatId)
     if (!stillExists) {
-      setActiveChatId(matchedProfiles[0].id)
+      setActiveChatId(isPhone ? null : matchedProfiles[0].id)
     }
   }, [matchedProfiles, activeChatId])
 
