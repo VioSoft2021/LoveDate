@@ -19,6 +19,7 @@ import { useReports } from './hooks/useReports'
 import { useToasts } from './hooks/useToasts'
 import { useEngagement } from './hooks/useEngagement'
 import { useAppSettings } from './hooks/useAppSettings'
+import { useCirclesState } from './hooks/useCirclesState'
 import { ActivityScreen } from './screens/ActivityScreen'
 import { ChatScreen } from './screens/ChatScreen'
 import { CirclesScreen } from './screens/CirclesScreen'
@@ -371,12 +372,16 @@ function App() {
     matchQueueIds, setMatchQueueIds,
   } = chat
   const [callHistory, setCallHistory] = useState<CallLogEntry[]>(() => readCallHistory())
-  const [circleSearch, setCircleSearch] = useState('')
-  const [joinedCircleIds, setJoinedCircleIds] = useState<string[]>(() => readJoinedCircles())
-  const [circlePosts, setCirclePosts] = useState<CirclePost[]>(() => readCirclePosts())
-  const [circlePostDraft, setCirclePostDraft] = useState('')
-  const [selectedCircleId, setSelectedCircleId] = useState<string>('design-lounge')
-  const [circleRsvps, setCircleRsvps] = useState<Record<string, boolean>>(() => readCircleRsvps())
+  // Circles UI state moves into useCirclesState.
+  const circles = useCirclesState()
+  const {
+    circleSearch, setCircleSearch,
+    joinedCircleIds, setJoinedCircleIds,
+    circlePosts, setCirclePosts,
+    circlePostDraft, setCirclePostDraft,
+    selectedCircleId, setSelectedCircleId,
+    circleRsvps, setCircleRsvps,
+  } = circles
   // unreadChats / matchQueueIds / chatAttachmentDraft / showFullChatHistory /
   // isRecordingVoice now live in useChatState above.
   const [callState, setCallState] = useState<CallState>({
