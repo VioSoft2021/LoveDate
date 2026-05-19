@@ -17,6 +17,14 @@
 */
 
 @media (max-width: 768px) {
+  /* ── App shell padding-top: status-bar safe area ─────────────
+     1.75rem ≈ 28px covers every Android status bar (24-48 dp).
+     env(safe-area-inset-top) takes over when the browser reports a
+     larger value (notches, edge-to-edge devices). */
+  .app-shell {
+    padding-top: max(env(safe-area-inset-top, 1.75rem), 1.75rem) !important;
+  }
+
   /* ── Top bar ───────────────────────────────────────────────── */
   .top-bar .bottom-nav { display: none !important; }
   .top-bar .top-exit-group {
