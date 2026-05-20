@@ -15,6 +15,7 @@ import { BuildChip } from './components/BuildChip'
 import { TopBar } from './components/TopBar'
 import { MobileTabBar, type MobileTabBarItem } from './components/MobileTabBar'
 import { ToastStack } from './components/ToastStack'
+import { PhotoLightbox } from './components/PhotoLightbox'
 import { UpdateBanner } from './components/UpdateBanner'
 import { useAuth } from './hooks/useAuth'
 import { useDeck } from './hooks/useDeck'
@@ -2902,34 +2903,13 @@ function App() {
           </article>
         </div>
       ) : null}
-      {lightboxPhoto ? (
-        <div className="photo-lightbox" role="dialog" aria-modal="true" aria-label="Photo lightbox">
-          <article className="photo-lightbox-panel">
-            <div className="photo-lightbox-toolbar">
-              <button type="button" className="ghost" onClick={closeLightbox}>
-                Close
-              </button>
-              <input
-                type="range"
-                min={1}
-                max={3}
-                step={0.1}
-                value={lightboxZoom}
-                onChange={(event) => setLightboxZoom(Number(event.target.value))}
-              />
-              <button type="button" className="ghost" onClick={() => zoomLightbox(-0.2)}>
-                -
-              </button>
-              <button type="button" className="ghost" onClick={() => zoomLightbox(0.2)}>
-                +
-              </button>
-            </div>
-            <div className="photo-lightbox-canvas">
-              <img src={lightboxPhoto} alt="Expanded profile" decoding="async" style={{ transform: `scale(${lightboxZoom})` }} />
-            </div>
-          </article>
-        </div>
-      ) : null}
+      <PhotoLightbox
+        photoUrl={lightboxPhoto}
+        zoom={lightboxZoom}
+        setZoom={setLightboxZoom}
+        zoomBy={zoomLightbox}
+        onClose={closeLightbox}
+      />
       <ToastStack toasts={toasts} />
       <MobileTabBar
         currentScreen={screen}
