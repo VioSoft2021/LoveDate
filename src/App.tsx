@@ -16,6 +16,7 @@ import { TopBar } from './components/TopBar'
 import { MobileTabBar, type MobileTabBarItem } from './components/MobileTabBar'
 import { ToastStack } from './components/ToastStack'
 import { PhotoLightbox } from './components/PhotoLightbox'
+import { MatchCelebrationModal } from './components/MatchCelebrationModal'
 import { UpdateBanner } from './components/UpdateBanner'
 import { useAuth } from './hooks/useAuth'
 import { useDeck } from './hooks/useDeck'
@@ -2755,30 +2756,17 @@ function App() {
           />
         )}
       </section>
-      {activeMatch ? (
-        <div className="match-modal" role="dialog" aria-modal="true" aria-label={appLanguage === 'ro' ? 'Potrivire găsită' : 'Match found'}>
-          <article className="match-card">
-            <p className="pill">{appLanguage === 'ro' ? 'Este o potrivire' : "It's a match"}</p>
-            <h2>{appLanguage === 'ro' ? `Tu și ${activeMatch.name} v-ați apreciat reciproc` : `You and ${activeMatch.name} liked each other`}</h2>
-            <p>{appLanguage === 'ro' ? 'Trimite un mesaj acum sau continuă să descoperi profile.' : 'Send a message now or keep swiping.'}</p>
-            <div className="match-actions">
-              <button type="button" className="ghost" onClick={() => setActiveMatch(null)}>
-                {appLanguage === 'ro' ? 'Continuă descoperirea' : 'Keep Swiping'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveChatId(activeMatch.id)
-                  setActiveMatch(null)
-                  navigate('chats')
-                }}
-              >
-                {appLanguage === 'ro' ? 'Deschide chatul' : 'Open Chat'}
-              </button>
-            </div>
-          </article>
-        </div>
-      ) : null}
+      <MatchCelebrationModal
+        match={activeMatch}
+        appLanguage={appLanguage}
+        onDismiss={() => setActiveMatch(null)}
+        onOpenChat={() => {
+          if (!activeMatch) return
+          setActiveChatId(activeMatch.id)
+          setActiveMatch(null)
+          navigate('chats')
+        }}
+      />
       {callState.active ? (
         <div className="match-modal" role="dialog" aria-modal="true" aria-label={appLanguage === 'ro' ? 'Apel în desfășurare' : 'Call in progress'}>
           <article className="match-card call-card call-card--embedded">
