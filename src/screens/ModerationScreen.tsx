@@ -2,6 +2,7 @@ import React from 'react'
 import { UI_TEXT } from '../constants'
 import type { AppLanguage, ModerationFilter } from '../domain'
 import type { ModerationStatus, SafetyReport } from '../services/moderation'
+import { backendListClientErrors, type ClientErrorRow } from '../services/backendApi'
 
 export type ModerationScreenProps = {
   appLanguage: AppLanguage
@@ -38,6 +39,28 @@ export const ModerationScreen: React.FC<ModerationScreenProps> = ({
 }) => {
   const copy = UI_TEXT[appLanguage]
   const ro = appLanguage === 'ro'
+
+  // MED-15 crash inbox — fetched only for admins. RLS returns 0 rows for
+  // anyone else so the call is harmless if the gate ever drifts. We
+  // refetch on demand via the Refresh button; no auto-poll to keep the
+  // server load predictable.
+  const [crashRows, setCrashRows] = React.useState<ClientErrorRow[]>([])
+  const [crashLoading, setCrashLoading] = React.useState(false)
+  const [crashLoadedAt, setCrashLoadedAt] = React.useState<number | null>(null)
+  const [expandedCrashId, setExpandedCrashId] = React.useState<string | null>(null)
+
+  const loadCrashes = React.useCallback(async () => {
+    setCrashLoading(true)
+    const rows = await backendListClientErrors(50)
+    setCrashRows(rows)
+    setCrashLoadedAt(Date.now())
+    setCrashLoading(false)
+  }, [])
+
+  React.useEffect(() => {
+    if (!isModerationAdmin) return
+    void loadCrashes()
+  }, [isModerationAdmin, loadCrashes])
 
   if (!isModerationAdmin) {
     return (
@@ -239,6 +262,102 @@ export const ModerationScreen: React.FC<ModerationScreenProps> = ({
           </>
         ) : (
           <p className="soft">{ro ? 'Selectează o raportare din coadă.' : 'Select a report from the queue.'}</p>
+        )}
+      </article>
+
+      <article className="profile-settings crash-inbox">
+        <div className="crash-inbox-head">
+          <h2>{ro ? 'Erori client (recente)' : 'Client crashes (recent)'}</h2>
+          <button
+            type="button"
+            className="ghost"
+            onClick={() => void loadCrashes()}
+            disabled={crashLoading}
+          >
+            {crashLoading
+              ? ro ? 'Se încarcă…' : 'Loading…'
+              : ro ? 'Reîmprospătează' : 'Refresh'}
+          </button>
+        </div>
+        <p className="soft">
+          {ro
+            ? 'Erorile React, promise rejections și window.onerror raportate de aplicații instalate. RLS limitează vizibilitatea la administratori.'
+            : 'React errors, promise rejections, and window.onerror events from installed clients. RLS limits visibility to admins.'}
+        </p>
+        {crashLoadedAt ? (
+          <p className="soft">
+            {ro ? 'Ultima încărcare' : 'Last loaded'}: {new Date(crashLoadedAt).toLocaleTimeString()}
+            {' • '}
+            {ro ? 'rânduri' : 'rows'}: {crashRows.length}
+          </p>
+        ) : null}
+        {crashRows.length === 0 && !crashLoading ? (
+          <p className="soft">
+            {ro
+              ? 'Niciun crash înregistrat — sau tabela public.client_errors nu este încă aplicată.'
+              : 'No crashes logged — or public.client_errors is not yet applied.'}
+          </p>
+        ) : (
+          <ul className="crash-list">
+            {crashRows.map((row) => {
+              const isOpen = expandedCrashId === row.id
+              return (
+                <li key={row.id} className={`crash-row crash-row--${row.severity}`}>
+                  <button
+                    type="button"
+                    className="crash-row-head"
+                    onClick={() => setExpandedCrashId(isOpen ? null : row.id)}
+                  >
+                    <span className={`mod-risk-badge mod-risk-badge--${
+                      row.severity === 'react-render' ? 'high'
+                      : row.severity === 'unhandled-rejection' ? 'medium'
+                      : 'low'
+                    }`}>
+                      {row.severity.replace('-', ' ').toUpperCase()}
+                    </span>
+                    <span className="crash-row-message">{row.message}</span>
+                    <small className="crash-row-meta">
+                      {new Date(row.created_at).toLocaleString()}
+                      {row.app_version ? ` • ${row.app_version}` : ''}
+                    </small>
+                  </button>
+                  {isOpen ? (
+                    <div className="crash-row-detail">
+                      {row.user_id ? (
+                        <p>
+                          <strong>user_id:</strong> <code>{row.user_id}</code>
+                        </p>
+                      ) : (
+                        <p className="soft">{ro ? '(utilizator anonim — pre-autentificare)' : '(anonymous user — pre-auth)'}</p>
+                      )}
+                      {row.url ? (
+                        <p>
+                          <strong>URL:</strong> <code>{row.url}</code>
+                        </p>
+                      ) : null}
+                      {row.user_agent ? (
+                        <p className="crash-row-ua">
+                          <strong>UA:</strong> {row.user_agent}
+                        </p>
+                      ) : null}
+                      {row.stack ? (
+                        <details>
+                          <summary>{ro ? 'Stack' : 'Stack'}</summary>
+                          <pre className="crash-row-stack">{row.stack}</pre>
+                        </details>
+                      ) : null}
+                      {row.component_stack ? (
+                        <details>
+                          <summary>{ro ? 'Component stack (React)' : 'Component stack (React)'}</summary>
+                          <pre className="crash-row-stack">{row.component_stack}</pre>
+                        </details>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </li>
+              )
+            })}
+          </ul>
         )}
       </article>
     </section>

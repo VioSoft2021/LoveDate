@@ -939,6 +939,37 @@ export const backendDeleteSelfAccount = async (): Promise<boolean> => {
  */
 export type ClientErrorSeverity = 'react-render' | 'unhandled-rejection' | 'window-error'
 
+export type ClientErrorRow = {
+  id: string
+  user_id: string | null
+  severity: ClientErrorSeverity
+  message: string
+  stack: string | null
+  component_stack: string | null
+  url: string | null
+  user_agent: string | null
+  app_version: string | null
+  created_at: string
+}
+
+/**
+ * Admin-only read of recent crash reports. RLS allows the query only for
+ * users in public.admins; for everyone else the SELECT returns 0 rows.
+ * The crash inbox in ModerationScreen calls this on mount + refresh.
+ */
+export const backendListClientErrors = async (limit = 50): Promise<ClientErrorRow[]> => {
+  if (!supabase) return []
+  const { data, error } = await supabase
+    .from('client_errors')
+    .select('id, user_id, severity, message, stack, component_stack, url, user_agent, app_version, created_at')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error || !data) {
+    return []
+  }
+  return data as ClientErrorRow[]
+}
+
 export const backendLogClientError = (input: {
   severity: ClientErrorSeverity
   message: string
