@@ -68,7 +68,7 @@ export type DiscoverScreenProps = {
   }) => void
 }
 
-export const DiscoverScreen: React.FC<DiscoverScreenProps> = ({
+const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
   appLanguage,
   selfProfile,
   filteredProfiles,
@@ -508,3 +508,5 @@ export const DiscoverScreen: React.FC<DiscoverScreenProps> = ({
     </section>
   )
 }
+
+export const DiscoverScreen = React.memo(DiscoverScreenInner)

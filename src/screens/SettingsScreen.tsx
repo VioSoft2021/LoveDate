@@ -54,7 +54,7 @@ export type SettingsScreenProps = {
   onDeleteAccount: () => Promise<boolean>
 }
 
-export const SettingsScreen: React.FC<SettingsScreenProps> = ({
+const SettingsScreenInner: React.FC<SettingsScreenProps> = ({
   appLanguage,
   setAppLanguage,
   settings,
@@ -388,3 +388,5 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     </section>
   )
 }
+
+export const SettingsScreen = React.memo(SettingsScreenInner)

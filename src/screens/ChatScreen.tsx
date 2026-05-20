@@ -62,7 +62,7 @@ export type ChatScreenProps = {
   openProfileDetail: (profileId: number, source: 'chats' | 'activity') => void
 }
 
-export const ChatScreen: React.FC<ChatScreenProps> = ({
+const ChatScreenInner: React.FC<ChatScreenProps> = ({
   appLanguage,
   chatSearch,
   setChatSearch,
@@ -566,3 +566,5 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     </section>
   )
 }
+
+export const ChatScreen = React.memo(ChatScreenInner)

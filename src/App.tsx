@@ -2813,21 +2813,30 @@ function App() {
     }
   }
 
-  const handleProfileDraftChange = (key: keyof typeof profileDraft, value: string) => {
-    setProfileDraft((current) => ({
-      ...current,
-      [key]: value,
-    }))
-    setProfileSaveStatus('idle')
-  }
+  // useCallback'd so ProfileScreen (React.memo'd) skips renders when only
+  // unrelated parent state changes. Without this, every keystroke triggers
+  // a full re-render of the ~1300-line editor.
+  const handleProfileDraftChange = useCallback(
+    (key: keyof typeof profileDraft, value: string) => {
+      setProfileDraft((current) => ({
+        ...current,
+        [key]: value,
+      }))
+      setProfileSaveStatus('idle')
+    },
+    [setProfileDraft, setProfileSaveStatus],
+  )
 
-  const handleProfileDraftToggle = (key: 'travelMode', checked: boolean) => {
-    setProfileDraft((current) => ({
-      ...current,
-      [key]: checked,
-    }))
-    setProfileSaveStatus('idle')
-  }
+  const handleProfileDraftToggle = useCallback(
+    (key: 'travelMode', checked: boolean) => {
+      setProfileDraft((current) => ({
+        ...current,
+        [key]: checked,
+      }))
+      setProfileSaveStatus('idle')
+    },
+    [setProfileDraft, setProfileSaveStatus],
+  )
 
   const handlePersonalityAnswerChange = (questionIndex: number, answer: PersonalityAnswer) => {
     setProfileDraft((current) => {

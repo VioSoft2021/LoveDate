@@ -86,7 +86,7 @@ export type ProfileScreenProps = {
   onOpenSettings: () => void
 }
 
-export const ProfileScreen: React.FC<ProfileScreenProps> = ({
+const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
   appLanguage,
   selfProfile,
   profileDraft,
@@ -1342,3 +1342,5 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     </section>
   )
 }
+
+export const ProfileScreen = React.memo(ProfileScreenInner)
