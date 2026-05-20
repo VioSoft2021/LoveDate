@@ -268,16 +268,40 @@ export const ModerationScreen: React.FC<ModerationScreenProps> = ({
       <article className="profile-settings crash-inbox">
         <div className="crash-inbox-head">
           <h2>{ro ? 'Erori client (recente)' : 'Client crashes (recent)'}</h2>
-          <button
-            type="button"
-            className="ghost"
-            onClick={() => void loadCrashes()}
-            disabled={crashLoading}
-          >
-            {crashLoading
-              ? ro ? 'Se încarcă…' : 'Loading…'
-              : ro ? 'Reîmprospătează' : 'Refresh'}
-          </button>
+          <div className="crash-inbox-actions">
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => {
+                // Diagnostic — fires an unhandled rejection AND a delayed
+                // throw on the macrotask queue. Both are caught by the
+                // global listeners in main.tsx (unhandledrejection +
+                // window error) so the UI does not crash. After ~1s
+                // tap Refresh and you should see 2 new rows.
+                void Promise.reject(new Error('[diagnostic] test unhandled rejection'))
+                window.setTimeout(() => {
+                  throw new Error('[diagnostic] test window error')
+                }, 0)
+              }}
+              title={
+                ro
+                  ? 'Inserează 2 erori de test (rejection + window) ca să verifici pipeline-ul.'
+                  : 'Insert 2 diagnostic errors (rejection + window) to verify the pipeline.'
+              }
+            >
+              {ro ? 'Test' : 'Test'}
+            </button>
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => void loadCrashes()}
+              disabled={crashLoading}
+            >
+              {crashLoading
+                ? ro ? 'Se încarcă…' : 'Loading…'
+                : ro ? 'Reîmprospătează' : 'Refresh'}
+            </button>
+          </div>
         </div>
         <p className="soft">
           {ro

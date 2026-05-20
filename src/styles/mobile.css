@@ -843,6 +843,10 @@
 .crash-inbox-head h2 {
   margin: 0;
 }
+.crash-inbox-actions {
+  display: flex;
+  gap: 0.4rem;
+}
 .crash-list {
   list-style: none;
   margin: 0.5rem 0 0;
