@@ -142,7 +142,14 @@
 }
 
 /* ── Exit group (right) — icon-only sign-out + optional native quit. */
+/* Pin to grid column 3 explicitly. When the .bottom-nav is hidden on
+   phone (display: none), grid auto-flow would otherwise place the
+   exit-group in column 2 (the 1fr middle), making it drift toward
+   the center. grid-column: 3 + justify-self: end keeps it locked to
+   the right edge at every viewport. */
 .top-bar.top-bar .top-exit-group {
+  grid-column: 3;
+  justify-self: end;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
