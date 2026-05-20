@@ -7,12 +7,13 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        // AGP pinned to 8.13.0 to match Capacitor 8's bundled version
-        // (@capacitor/android and @capacitor-cordova-android-plugins both
-        // declare 8.13.0). AGP 9.x bumps issued by Android Studio Panda 4
-        // are unsupported by Capacitor 8 and break the merged build.
-        // Keep at 8.13.0 until Capacitor ships a release that supports AGP 9.
-        classpath 'com.android.tools.build:gradle:8.13.0'
+        // AGP 9.2.1 (root) + Capacitor's bundled AGP 8.13.0 (in
+        // node_modules/@capacitor/...) is currently building cleanly,
+        // but the version skew is fragile. If a future Capacitor sync
+        // or APK assemble breaks with a missing-API or duplicate-class
+        // error, downgrade this back to 8.13.0 and pin the Gradle
+        // wrapper to 8.13-all.zip to match Capacitor 8's tested combo.
+        classpath 'com.android.tools.build:gradle:9.2.1'
         classpath 'com.google.gms:google-services:4.4.4'
 
         // NOTE: Do not place your application dependencies here; they belong
