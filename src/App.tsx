@@ -17,6 +17,7 @@ import { MobileTabBar, type MobileTabBarItem } from './components/MobileTabBar'
 import { ToastStack } from './components/ToastStack'
 import { PhotoLightbox } from './components/PhotoLightbox'
 import { MatchCelebrationModal } from './components/MatchCelebrationModal'
+import { ReportProfileDialog } from './components/ReportProfileDialog'
 import { UpdateBanner } from './components/UpdateBanner'
 import { useAuth } from './hooks/useAuth'
 import { useDeck } from './hooks/useDeck'
@@ -2853,44 +2854,16 @@ function App() {
           </article>
         </div>
       ) : null}
-      {reportDraftProfile ? (
-        <div className="match-modal" role="dialog" aria-modal="true" aria-label={appLanguage === 'ro' ? `Raportează ${reportDraftProfile.name}` : `Report ${reportDraftProfile.name}`}>
-          <article className="match-card report-modal-card">
-            <p className="pill">{appLanguage === 'ro' ? 'Siguranță' : 'Safety'}</p>
-            <h2>{appLanguage === 'ro' ? `Raportează ${reportDraftProfile.name}` : `Report ${reportDraftProfile.name}`}</h2>
-            <p>{appLanguage === 'ro' ? 'Spune-ne ce s-a întâmplat. Raportarea ta va apărea în Centrul de Moderare pentru analiză.' : 'Tell us what happened. Your report will appear in the Moderation Center for review.'}</p>
-            <label className="report-field">
-              <span>{appLanguage === 'ro' ? 'Categorie' : 'Category'}</span>
-              <select
-                value={reportDraftCategory}
-                onChange={(event) => setReportDraftCategory(event.target.value as SafetyCategory)}
-              >
-                {SAFETY_CATEGORIES.map((category) => (
-                  <option key={category} value={category}>
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="report-field report-field--textarea">
-              <span>{appLanguage === 'ro' ? 'Detalii' : 'Details'}</span>
-              <textarea
-                value={reportDraftDetails}
-                onChange={(event) => setReportDraftDetails(event.target.value)}
-                placeholder={appLanguage === 'ro' ? 'Adaugă orice detaliu util pentru echipa de moderare.' : 'Add any useful detail for the moderation team.'}
-              />
-            </label>
-            <div className="match-actions">
-              <button type="button" className="ghost" onClick={closeReportProfileDialog}>
-                {appLanguage === 'ro' ? 'Anulează' : 'Cancel'}
-              </button>
-              <button type="button" className="danger" onClick={submitProfileReport}>
-                {appLanguage === 'ro' ? 'Trimite raportarea' : 'Submit report'}
-              </button>
-            </div>
-          </article>
-        </div>
-      ) : null}
+      <ReportProfileDialog
+        profile={reportDraftProfile}
+        appLanguage={appLanguage}
+        category={reportDraftCategory}
+        setCategory={setReportDraftCategory}
+        details={reportDraftDetails}
+        setDetails={setReportDraftDetails}
+        onCancel={closeReportProfileDialog}
+        onSubmit={submitProfileReport}
+      />
       <PhotoLightbox
         photoUrl={lightboxPhoto}
         zoom={lightboxZoom}
