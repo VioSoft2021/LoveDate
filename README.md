@@ -55,6 +55,11 @@ A Tinder-style swipe interface built with React, TypeScript, and Vite.
 
 Without env values, the app uses a local fallback mode.
 
+## Architecture
+
+- AI features (icebreaker, match score, date planner, photo coach, profile writer, safety triage) are documented with Mermaid flow diagrams in [docs/AI_ARCHITECTURE.md](docs/AI_ARCHITECTURE.md). Renders natively on GitHub and in VS Code 1.121+.
+- Security posture + RLS audit + custom-domain walkthrough live in [SECURITY.md](SECURITY.md).
+
 ## Project Notes
 
 - Main UI logic lives in src/App.tsx
