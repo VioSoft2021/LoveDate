@@ -14,6 +14,7 @@ import { Logo } from './components/Logo'
 import { BuildChip } from './components/BuildChip'
 import { TopBar } from './components/TopBar'
 import { MobileTabBar, type MobileTabBarItem } from './components/MobileTabBar'
+import { ToastStack } from './components/ToastStack'
 import { UpdateBanner } from './components/UpdateBanner'
 import { useAuth } from './hooks/useAuth'
 import { useDeck } from './hooks/useDeck'
@@ -2929,15 +2930,7 @@ function App() {
           </article>
         </div>
       ) : null}
-      {toasts.length > 0 ? (
-        <div className="toast-stack" aria-live="polite">
-          {toasts.map((toast) => (
-            <p key={toast.id} className={`toast ${toast.tone}`}>
-              {toast.message}
-            </p>
-          ))}
-        </div>
-      ) : null}
+      <ToastStack toasts={toasts} />
       <MobileTabBar
         currentScreen={screen}
         onNavigate={navigate}
