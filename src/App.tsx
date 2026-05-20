@@ -18,6 +18,7 @@ import { useAuth } from './hooks/useAuth'
 import { useDeck } from './hooks/useDeck'
 import { useChatState } from './hooks/useChatState'
 import { useProfileEditor } from './hooks/useProfileEditor'
+import { usePhotoStudio } from './hooks/usePhotoStudio'
 import { useReports } from './hooks/useReports'
 import { useToasts } from './hooks/useToasts'
 import { useEngagement } from './hooks/useEngagement'
@@ -106,7 +107,6 @@ import type {
   ChemistryInsights,
   Circle,
   CirclePost,
-  CropHandle,
   DatePlan,
   Filters,
   MatchAnalysis,
@@ -433,6 +433,44 @@ function App() {
     preferenceSaveStatus, setPreferenceSaveStatus,
     appLanguage, setAppLanguage,
   } = appSettings
+
+  // Phase D2.1 — photo studio (refs, crop state, 11 handlers) lives in
+  // usePhotoStudio. Consumes the source/controls/busy/dragging slots
+  // owned by useProfileEditor, plus pushToast and appLanguage.
+  const photoStudio = usePhotoStudio({
+    photoUrlInput,
+    setPhotoUrlInput,
+    profileDraft,
+    setProfileDraft,
+    setProfileSaveStatus,
+    photoStudioSource,
+    setPhotoStudioSource,
+    photoStudioAnalysis,
+    setPhotoStudioAnalysis,
+    photoStudioControls,
+    setPhotoStudioControls,
+    setPhotoStudioBusy,
+    isDraggingCrop,
+    setIsDraggingCrop,
+    pushToast,
+    appLanguage,
+  })
+  const {
+    studioFrameRef,
+    isRedrawCropMode,
+    setIsRedrawCropMode,
+    addPhotoFromUrl,
+    removeDraftPhoto,
+    setPrimaryDraftPhoto,
+    resetPhotoStudioControls,
+    closePhotoStudio,
+    handlePhotoUpload,
+    applyPhotoStudio,
+    handleStudioPointerDown,
+    handleStudioPointerMove,
+    handleStudioPointerUp,
+  } = photoStudio
+
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null)
   const [lightboxZoom, setLightboxZoom] = useState(1)
 
@@ -488,20 +526,10 @@ function App() {
   const allProfilesRef = useRef<Profile[]>([])
   const screenRef = useRef<AppScreen>('login')
   const activeChatIdRef = useRef<number | null>(null)
-  const studioFrameRef = useRef<HTMLDivElement | null>(null)
-  const cropDragStartRef = useRef<{ x: number; y: number } | null>(null)
-  const cropResizeStartRef = useRef<{
-    pointer: { x: number; y: number }
-    rect: { x: number; y: number; width: number; height: number }
-  } | null>(null)
-  const cropMoveStartRef = useRef<{
-    pointer: { x: number; y: number }
-    rect: { x: number; y: number; width: number; height: number }
-  } | null>(null)
-  // isDraggingCrop now in useProfileEditor.
-  const [activeCropHandle, setActiveCropHandle] = useState<CropHandle | null>(null)
-  const [isMovingCrop, setIsMovingCrop] = useState(false)
-  const [isRedrawCropMode, setIsRedrawCropMode] = useState(false)
+  // Phase D2.1 — all photo-studio refs, crop interaction state, and the
+  // ~390 lines of pointer/crop/upload/apply handlers moved into
+  // src/hooks/usePhotoStudio.ts. The hook is constructed below alongside
+  // the rest of the editor state.
 
   const copy = UI_TEXT[appLanguage]
   const formatStatusLabel = useCallback(
@@ -704,249 +732,6 @@ function App() {
     setLightboxZoom((current) => Math.min(3, Math.max(1, Number((current + delta).toFixed(2)))))
   }
 
-  const clampPercent = (value: number): number => Math.max(0, Math.min(100, value))
-  const clampRange = (value: number, min: number, max: number): number => Math.max(min, Math.min(max, value))
-
-  const getStudioPointerPercent = (
-    event: React.PointerEvent<HTMLDivElement>,
-  ): { x: number; y: number } | null => {
-    const frame = studioFrameRef.current
-    if (!frame) {
-      return null
-    }
-
-    const rect = frame.getBoundingClientRect()
-    if (rect.width <= 0 || rect.height <= 0) {
-      return null
-    }
-
-    const x = clampPercent(((event.clientX - rect.left) / rect.width) * 100)
-    const y = clampPercent(((event.clientY - rect.top) / rect.height) * 100)
-    return { x, y }
-  }
-
-  const handleStudioPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (photoStudioControls.cropAspect !== 'free') {
-      return
-    }
-
-    event.preventDefault()
-
-    const point = getStudioPointerPercent(event)
-    if (!point) {
-      return
-    }
-
-    const handleAttr = (event.target as HTMLElement)
-      .closest('[data-crop-handle]')
-      ?.getAttribute('data-crop-handle') as CropHandle | undefined
-    const isCropBox = Boolean((event.target as HTMLElement).closest('[data-crop-box="true"]'))
-
-    const currentRect = {
-      x: photoStudioControls.freeCropX,
-      y: photoStudioControls.freeCropY,
-      width: photoStudioControls.freeCropWidth,
-      height: photoStudioControls.freeCropHeight,
-    }
-    const insideCurrentCrop =
-      point.x >= currentRect.x &&
-      point.x <= currentRect.x + currentRect.width &&
-      point.y >= currentRect.y &&
-      point.y <= currentRect.y + currentRect.height
-
-    if (handleAttr) {
-      cropResizeStartRef.current = {
-        pointer: point,
-        rect: {
-          x: photoStudioControls.freeCropX,
-          y: photoStudioControls.freeCropY,
-          width: photoStudioControls.freeCropWidth,
-          height: photoStudioControls.freeCropHeight,
-        },
-      }
-      setActiveCropHandle(handleAttr)
-      setIsDraggingCrop(true)
-      ;(event.currentTarget as HTMLDivElement).setPointerCapture(event.pointerId)
-      return
-    }
-
-    if (isCropBox) {
-      cropMoveStartRef.current = {
-        pointer: point,
-        rect: {
-          x: photoStudioControls.freeCropX,
-          y: photoStudioControls.freeCropY,
-          width: photoStudioControls.freeCropWidth,
-          height: photoStudioControls.freeCropHeight,
-        },
-      }
-      cropDragStartRef.current = null
-      cropResizeStartRef.current = null
-      setActiveCropHandle(null)
-      setIsMovingCrop(true)
-      setIsDraggingCrop(true)
-      ;(event.currentTarget as HTMLDivElement).setPointerCapture(event.pointerId)
-      return
-    }
-
-    if (insideCurrentCrop) {
-      cropMoveStartRef.current = {
-        pointer: point,
-        rect: currentRect,
-      }
-      cropDragStartRef.current = null
-      cropResizeStartRef.current = null
-      setActiveCropHandle(null)
-      setIsMovingCrop(true)
-      setIsDraggingCrop(true)
-      ;(event.currentTarget as HTMLDivElement).setPointerCapture(event.pointerId)
-      return
-    }
-
-    if (!isRedrawCropMode) {
-      return
-    }
-
-    cropDragStartRef.current = point
-    cropResizeStartRef.current = null
-    cropMoveStartRef.current = null
-    setActiveCropHandle(null)
-    setIsMovingCrop(false)
-    setPhotoStudioControls((current) => ({
-      ...current,
-      freeCropX: point.x,
-      freeCropY: point.y,
-      freeCropWidth: 5,
-      freeCropHeight: 5,
-    }))
-    setIsDraggingCrop(true)
-    ;(event.currentTarget as HTMLDivElement).setPointerCapture(event.pointerId)
-  }
-
-  const handleStudioPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDraggingCrop || photoStudioControls.cropAspect !== 'free') {
-      return
-    }
-
-    event.preventDefault()
-
-    const start = cropDragStartRef.current
-    const point = getStudioPointerPercent(event)
-    if (!point) {
-      return
-    }
-
-    if (isMovingCrop && cropMoveStartRef.current) {
-      const initial = cropMoveStartRef.current
-      const deltaX = point.x - initial.pointer.x
-      const deltaY = point.y - initial.pointer.y
-      const nextX = clampRange(initial.rect.x + deltaX, 0, 100 - initial.rect.width)
-      const nextY = clampRange(initial.rect.y + deltaY, 0, 100 - initial.rect.height)
-
-      setPhotoStudioControls((current) => ({
-        ...current,
-        freeCropX: nextX,
-        freeCropY: nextY,
-      }))
-      return
-    }
-
-    if (activeCropHandle && cropResizeStartRef.current) {
-      const initial = cropResizeStartRef.current
-      const deltaX = point.x - initial.pointer.x
-      const deltaY = point.y - initial.pointer.y
-      const minSize = 5
-
-      if (activeCropHandle === 'nw') {
-        const nextDx = clampRange(deltaX, -initial.rect.x, initial.rect.width - minSize)
-        const nextDy = clampRange(deltaY, -initial.rect.y, initial.rect.height - minSize)
-        setPhotoStudioControls((current) => ({
-          ...current,
-          freeCropX: initial.rect.x + nextDx,
-          freeCropY: initial.rect.y + nextDy,
-          freeCropWidth: initial.rect.width - nextDx,
-          freeCropHeight: initial.rect.height - nextDy,
-        }))
-        return
-      }
-
-      if (activeCropHandle === 'ne') {
-        const nextDx = clampRange(
-          deltaX,
-          -(initial.rect.width - minSize),
-          100 - (initial.rect.x + initial.rect.width),
-        )
-        const nextDy = clampRange(deltaY, -initial.rect.y, initial.rect.height - minSize)
-        setPhotoStudioControls((current) => ({
-          ...current,
-          freeCropY: initial.rect.y + nextDy,
-          freeCropWidth: initial.rect.width + nextDx,
-          freeCropHeight: initial.rect.height - nextDy,
-        }))
-        return
-      }
-
-      if (activeCropHandle === 'sw') {
-        const nextDx = clampRange(deltaX, -initial.rect.x, initial.rect.width - minSize)
-        const nextDy = clampRange(
-          deltaY,
-          -(initial.rect.height - minSize),
-          100 - (initial.rect.y + initial.rect.height),
-        )
-        setPhotoStudioControls((current) => ({
-          ...current,
-          freeCropX: initial.rect.x + nextDx,
-          freeCropWidth: initial.rect.width - nextDx,
-          freeCropHeight: initial.rect.height + nextDy,
-        }))
-        return
-      }
-
-      const nextDx = clampRange(
-        deltaX,
-        -(initial.rect.width - minSize),
-        100 - (initial.rect.x + initial.rect.width),
-      )
-      const nextDy = clampRange(
-        deltaY,
-        -(initial.rect.height - minSize),
-        100 - (initial.rect.y + initial.rect.height),
-      )
-      setPhotoStudioControls((current) => ({
-        ...current,
-        freeCropWidth: initial.rect.width + nextDx,
-        freeCropHeight: initial.rect.height + nextDy,
-      }))
-      return
-    }
-
-    if (!start) {
-      return
-    }
-
-    const left = Math.min(start.x, point.x)
-    const top = Math.min(start.y, point.y)
-    const width = Math.max(5, Math.abs(point.x - start.x))
-    const height = Math.max(5, Math.abs(point.y - start.y))
-
-    setPhotoStudioControls((current) => ({
-      ...current,
-      freeCropX: left,
-      freeCropY: top,
-      freeCropWidth: Math.min(width, 100 - left),
-      freeCropHeight: Math.min(height, 100 - top),
-    }))
-  }
-
-  const handleStudioPointerUp = () => {
-    cropDragStartRef.current = null
-    cropResizeStartRef.current = null
-    cropMoveStartRef.current = null
-    setActiveCropHandle(null)
-    setIsMovingCrop(false)
-    setIsDraggingCrop(false)
-    setIsRedrawCropMode(false)
-  }
 
   const navigate = useCallback(
     (nextScreen: AppScreen, options?: { profileId?: number | null; replace?: boolean }) => {
@@ -2848,146 +2633,6 @@ function App() {
       }
     })
     setProfileSaveStatus('idle')
-  }
-
-  const addPhotoFromUrl = () => {
-    const nextUrl = photoUrlInput.trim()
-    if (!nextUrl) {
-      return
-    }
-
-    setProfileDraft((current) => {
-      if (current.photos.includes(nextUrl)) {
-        return current
-      }
-
-      return {
-        ...current,
-        photos: [nextUrl, ...current.photos].slice(0, 9),
-      }
-    })
-    setPhotoUrlInput('')
-    setProfileSaveStatus('idle')
-  }
-
-  const removeDraftPhoto = (photoUrl: string) => {
-    setProfileDraft((current) => ({
-      ...current,
-      photos: current.photos.filter((photo) => photo !== photoUrl),
-    }))
-    setProfileSaveStatus('idle')
-  }
-
-  const setPrimaryDraftPhoto = (photoIndex: number) => {
-    setProfileDraft((current) => {
-      if (photoIndex <= 0 || photoIndex >= current.photos.length) {
-        return current
-      }
-
-      const selectedPhoto = current.photos[photoIndex]
-      const remainingPhotos = current.photos.filter((_, index) => index !== photoIndex)
-
-      return {
-        ...current,
-        photos: [selectedPhoto, ...remainingPhotos],
-      }
-    })
-    setProfileSaveStatus('idle')
-  }
-
-  const resetPhotoStudioControls = () => {
-    setPhotoStudioControls({
-      cropAspect: 'free',
-      zoom: 1,
-      rotate: 0,
-      brightness: 100,
-      contrast: 100,
-      saturate: 100,
-      offsetX: 0,
-      offsetY: 0,
-      freeCropX: 10,
-      freeCropY: 10,
-      freeCropWidth: 80,
-      freeCropHeight: 80,
-    })
-  }
-
-  const closePhotoStudio = () => {
-    setPhotoStudioSource(null)
-    setPhotoStudioAnalysis(null)
-    setPhotoStudioBusy(false)
-    resetPhotoStudioControls()
-  }
-
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file || !file.type.startsWith('image/')) {
-      return
-    }
-
-    setPhotoStudioBusy(true)
-    void readFileAsDataUrl(file)
-      .then(async (source) => {
-        const analysis = await analyzePhoto(source, file.size)
-        setPhotoStudioSource(source)
-        setPhotoStudioAnalysis(analysis)
-        resetPhotoStudioControls()
-      })
-      .catch(() => {
-        pushToast('Unable to open photo editor for this file.', 'error')
-      })
-      .finally(() => {
-        event.target.value = ''
-        setPhotoStudioBusy(false)
-      })
-  }
-
-  const applyPhotoStudio = () => {
-    if (!photoStudioSource) {
-      return
-    }
-
-    setPhotoStudioBusy(true)
-    void renderEditedPhoto(photoStudioSource, photoStudioControls)
-      .then(async (editedPhoto) => {
-        // Upload to Supabase Storage; fall back to the data URL if upload
-        // fails (offline or bucket misconfig) so the draft is never blocked.
-        const uploaded = await backendUploadProfilePhoto(editedPhoto)
-        const finalPhoto = uploaded ?? editedPhoto
-        if (!uploaded) {
-          // C6: silent fallback was invisible; now surface it so the user
-          // knows the photo is local-only and will retry on next save.
-          pushToast(
-            appLanguage === 'ro'
-              ? 'Poză salvată local — nu s-a putut încărca pe server, vom reîncerca la următoarea salvare.'
-              : "Photo saved locally — couldn't upload, will retry on next save.",
-            'info',
-          )
-        }
-
-        setProfileDraft((current) => {
-          if (current.photos.includes(finalPhoto)) {
-            return current
-          }
-
-          return {
-            ...current,
-            photos: [finalPhoto, ...current.photos].slice(0, 9),
-          }
-        })
-        setProfileSaveStatus('idle')
-        closePhotoStudio()
-        pushToast(
-          uploaded ? 'Photo uploaded and added to draft.' : 'Photo added (offline mode — will sync on next save).',
-          'success',
-        )
-      })
-      .catch(() => {
-        pushToast('Photo processing failed. Please try another image.', 'error')
-      })
-      .finally(() => {
-        setPhotoStudioBusy(false)
-      })
   }
 
   const saveMyProfile = (event: React.FormEvent<HTMLFormElement>) => {
