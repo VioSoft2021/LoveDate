@@ -6,7 +6,6 @@ import './App.css'
 import { getMyMatches, resolveMatch, type Profile } from './services/loveDateApi'
 import { backendInvokeDatePlanner } from './services/ai/datePlanner'
 import { backendInvokeIcebreaker } from './services/ai/icebreaker'
-import { backendInvokeMatchScore, type AiMatchScoreResult } from './services/ai/matchScore'
 import { backendInvokeSafetyTriage } from './services/ai/safetyTriage'
 import { enablePushNotifications, disablePushNotifications } from './services/push'
 import { FilterScreen } from './components/FilterScreen'
@@ -18,6 +17,7 @@ import { useAuth } from './hooks/useAuth'
 import { useDeck } from './hooks/useDeck'
 import { useChatState } from './hooks/useChatState'
 import { useChatAiActions } from './hooks/useChatAiActions'
+import { useMatchScoring } from './hooks/useMatchScoring'
 import { useProfileEditor } from './hooks/useProfileEditor'
 import { usePhotoStudio } from './hooks/usePhotoStudio'
 import { useReports } from './hooks/useReports'
@@ -80,8 +80,6 @@ import {
 import { canUsePassport, getActivePlan, setActivePlan as persistActivePlan } from './services/planGate'
 import {
   PERSONALITY_QUESTIONS,
-  compatibilityFromAnswers,
-  compatibilityFromCodes,
   personalityCodeFromAnswers,
   sanitizeAnswers,
   type PersonalityAnswer,
@@ -180,7 +178,6 @@ import {
   buildCallRoom,
   buildHighResImageUrl,
   buildPath,
-  cognitiveFunctionTokens,
   formatShortTime,
   formatUiText,
   getCallDurationLabel,
@@ -475,10 +472,10 @@ function App() {
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null)
   const [lightboxZoom, setLightboxZoom] = useState(1)
 
-  // Phase E3 — AI match scoring overlay. Keyed by profile id. The
-  // matchScore service caches results 7 days in localStorage, so even
-  // after a reload we only pay the API cost once per profile pair.
-  const [aiMatchScores, setAiMatchScores] = useState<Record<number, AiMatchScoreResult>>({})
+  // Phase D2.3 — match scoring (heuristic + AI overlay) moved into
+  // useMatchScoring. aiMatchScores state, getMatchAnalysis/
+  // getChemistryInsights/getCompatibilityScore, the AI fetch effect,
+  // and the 4 per-candidate memos all live there now.
 
   const backendMode = getBackendMode()
   // Engagement state (plan tier, like/super-like usage, boost/rewind
@@ -569,135 +566,6 @@ function App() {
 
   // pushToast / pushNotification / markAllNotificationsRead now live in useToasts.
 
-  const getMatchAnalysis = useCallback(
-    (profile: Profile): MatchAnalysis => {
-      const myInterests = selfProfile.interests.map((interest) => interest.toLowerCase())
-      const sharedInterests = profile.interests.filter((interest) =>
-        myInterests.some((mine) => mine.includes(interest.toLowerCase()) || interest.toLowerCase().includes(mine)),
-      )
-      const ageGap = Math.abs(selfProfile.age - profile.age)
-      // Other users' raw answers are no longer publicly readable as of the
-      // 2026-05-19 privacy migration. Fall back to the code-based heuristic
-      // — lower fidelity but doesn't require their raw answers. E3 AI
-      // scoring then overlays the real assessment on the top card.
-      const personalityScore = profile.personalityCode
-        ? compatibilityFromCodes(selfProfile.personalityAnswers, profile.personalityCode)
-        : compatibilityFromAnswers(selfProfile.personalityAnswers, profile.personalityAnswers)
-      const myZodiacCompat = ZODIAC_COMPATIBILITY[selfProfile.zodiac] ?? []
-      const zodiacAligned = myZodiacCompat.includes(profile.zodiac)
-      const intentAligned =
-        selfProfile.lookingFor.toLowerCase().includes('long') && profile.relationshipGoal === 'Long-term'
-
-      let score = 34
-      score += Math.round(personalityScore * 0.32)
-      score += Math.min(sharedInterests.length * 6, 18)
-      score += Math.max(0, Math.round(8 - ageGap * 1.2))
-      score += selfProfile.city.toLowerCase() === profile.city.toLowerCase() ? 8 : profile.distanceKm <= 12 ? 6 : profile.distanceKm <= 30 ? 3 : 0
-      score += intentAligned ? 8 : 0
-      score += zodiacAligned ? 5 : 0
-      score += profile.verified ? 3 : 0
-      const finalScore = Math.max(1, Math.min(99, Math.round(score)))
-
-      const myCode = personalityCodeFromAnswers(selfProfile.personalityAnswers)
-      const theirCode = profile.personalityCode || personalityCodeFromAnswers(profile.personalityAnswers)
-      const reasons: string[] = []
-      if (personalityScore >= 82) {
-        reasons.push('Your personality rhythm is strongly aligned.')
-      } else if (personalityScore >= 68) {
-        reasons.push('Your personalities are compatible with a good balance of similarity and contrast.')
-      } else {
-        reasons.push('You have complementary personality differences that can create spark.')
-      }
-      if (sharedInterests.length >= 2) {
-        reasons.push(`Shared interests: ${sharedInterests.slice(0, 2).join(' and ')}.`)
-      }
-      if (intentAligned) {
-        reasons.push('Both of you are clearly oriented toward long-term connection.')
-      }
-      if (selfProfile.city.toLowerCase() === profile.city.toLowerCase()) {
-        reasons.push('You are in the same city, which makes meeting easier.')
-      } else if (profile.distanceKm <= 12) {
-        reasons.push('You are close enough for spontaneous plans.')
-      }
-      if (zodiacAligned) {
-        reasons.push(`Zodiac chemistry: ${selfProfile.zodiac} and ${profile.zodiac}.`)
-      }
-      if (profile.verified) {
-        reasons.push('Verified account adds trust signal.')
-      }
-
-      const caution =
-        !intentAligned && personalityScore < 65
-          ? 'Possible mismatch risk: different relationship pace and intent.'
-          : null
-
-      return {
-        score: finalScore,
-        personalityScore,
-        sharedInterests,
-        intentAligned,
-        zodiacAligned,
-        ageGap,
-        reasons: reasons.slice(0, 4),
-        caution,
-        pairCode: `${myCode} x ${theirCode}`,
-      }
-    },
-    [selfProfile],
-  )
-
-  const getCompatibilityScore = useCallback(
-    (profile: Profile): number => getMatchAnalysis(profile).score,
-    [getMatchAnalysis],
-  )
-
-  const getChemistryInsights = useCallback(
-    (profile: Profile): ChemistryInsights => {
-      const match = getMatchAnalysis(profile)
-      const myCode = personalityCodeFromAnswers(selfProfile.personalityAnswers)
-      const myStack = PERSONALITY_COGNITIVE_FUNCTIONS[myCode]
-      const theirCode = profile.personalityCode || personalityCodeFromAnswers(profile.personalityAnswers)
-      const theirStack = PERSONALITY_COGNITIVE_FUNCTIONS[theirCode]
-
-      let cognitiveOverlapScore = 48
-      if (myStack && theirStack) {
-        const mine = cognitiveFunctionTokens(myStack)
-        const theirs = cognitiveFunctionTokens(theirStack)
-        const overlapCount = mine.filter((token) => theirs.includes(token)).length
-        const primaryMatch = mine[0] && theirs[0] && mine[0] === theirs[0]
-        const supportMatch = mine[1] && theirs[1] && mine[1] === theirs[1]
-        cognitiveOverlapScore = Math.min(
-          98,
-          36 + overlapCount * 14 + (primaryMatch ? 18 : 0) + (supportMatch ? 8 : 0),
-        )
-      }
-
-      const chemistryScore = Math.max(
-        1,
-        Math.min(
-          99,
-          Math.round(
-            match.score * 0.58 +
-              cognitiveOverlapScore * 0.27 +
-              (match.zodiacAligned ? 12 : 0) +
-              (match.intentAligned ? 3 : 0),
-          ),
-        ),
-      )
-
-      const summary = match.zodiacAligned
-        ? 'Strong chemistry signal from cognitive overlap and zodiac alignment.'
-        : 'Good chemistry driven mostly by cognitive-function overlap and compatibility.'
-
-      return {
-        chemistryScore,
-        cognitiveOverlapScore,
-        zodiacAligned: match.zodiacAligned,
-        summary,
-      }
-    },
-    [getMatchAnalysis, selfProfile.personalityAnswers],
-  )
 
   const profileCompletion = useMemo(() => {
     const checks = [
@@ -809,6 +677,18 @@ function App() {
   const handleExitApp = auth.exitApp
   const handleUseDevAccount = auth.useDevAccount
   const handleResetDevAccount = auth.resetDevAccount
+
+  // Phase D2.3 — match scoring lives here so the heuristic functions
+  // are available BEFORE filteredProfiles uses getCompatibilityScore
+  // in its sort, and BEFORE useChatAiActions consumes
+  // getChemistryInsights.
+  const {
+    aiMatchScores,
+    getMatchAnalysis,
+    getCompatibilityScore,
+    getChemistryInsights,
+    fetchAiScoreFor,
+  } = useMatchScoring({ selfProfile, isAuthenticated, appLanguage })
 
   const isModerationAdmin = useMemo(
     () => moderationAdminEmails.includes(userEmail.trim().toLowerCase()),
@@ -1319,21 +1199,6 @@ function App() {
     return profileById.get(activeChatId) ?? null
   }, [activeChatId, profileById])
 
-  // Phase D2.2 — chat-AI surfaces (icebreaker generator + date planner
-  // generator + the active-chat-change reset effect) live in
-  // useChatAiActions. App.tsx just hands it the state slots it needs.
-  const { generateAiCoachSuggestions, generateAiDatePlans } = useChatAiActions({
-    selectedChatProfile,
-    chatThreads,
-    selfProfile,
-    appLanguage,
-    getChemistryInsights,
-    setAiCoachLoading,
-    setAiCoachSuggestions,
-    setAiDatePlannerLoading,
-    setAiDatePlans,
-  })
-
   const selectedDetailProfile = useMemo(() => {
     if (!selectedProfileId) {
       return null
@@ -1343,62 +1208,18 @@ function App() {
 
   const topProfile = filteredProfiles[index]
 
-  // Phase E3 — fetch AI score for the currently-visible candidates.
-  // Only the topProfile (Discover front card) and selectedDetailProfile
-  // (full-profile modal) actually display match analysis; everything
-  // else uses the heuristic sort score. Fetch fires once per profile
-  // and caches in service-level localStorage for 7 days.
+  // Phase D2.3 — fire the AI overlay fetch once topProfile +
+  // selectedDetailProfile are known. The cache-and-set logic lives
+  // in useMatchScoring.fetchAiScoreFor.
   useEffect(() => {
-    if (!isAuthenticated) return
-    const candidates = [topProfile, selectedDetailProfile].filter(
-      (p): p is Profile => Boolean(p),
-    )
-    let cancelled = false
-    for (const candidate of candidates) {
-      if (aiMatchScores[candidate.id]) continue
-      void (async () => {
-        const result = await backendInvokeMatchScore({
-          selfProfile: {
-            name: selfProfile.name,
-            age: selfProfile.age,
-            city: selfProfile.city,
-            vibe: selfProfile.vibe,
-            bio: selfProfile.bio,
-            interests: selfProfile.interests,
-            relationshipGoal: selfProfile.lookingFor,
-            zodiac: selfProfile.zodiac,
-            workout: selfProfile.workout,
-            drinking: selfProfile.drinking,
-            smoking: selfProfile.smoking,
-            pets: selfProfile.pets,
-            religion: selfProfile.religion,
-            politics: selfProfile.politics,
-            childrenPlan: selfProfile.childrenPlan,
-          },
-          candidateProfile: {
-            id: candidate.id,
-            name: candidate.name,
-            age: candidate.age,
-            city: candidate.city,
-            vibe: candidate.vibe,
-            bio: candidate.bio,
-            interests: candidate.interests,
-            relationshipGoal: candidate.relationshipGoal,
-            zodiac: candidate.zodiac,
-          },
-          language: appLanguage,
-        })
-        if (cancelled || !result) return
-        setAiMatchScores((prev) =>
-          prev[candidate.id] ? prev : { ...prev, [candidate.id]: result },
-        )
-      })()
-    }
-    return () => {
-      cancelled = true
-    }
-  }, [topProfile, selectedDetailProfile, selfProfile, isAuthenticated, aiMatchScores])
+    if (topProfile) void fetchAiScoreFor(topProfile)
+    if (selectedDetailProfile) void fetchAiScoreFor(selectedDetailProfile)
+  }, [topProfile, selectedDetailProfile, fetchAiScoreFor])
 
+  // Per-candidate overlays — heuristic from useMatchScoring + AI overlay
+  // merged. If the AI fetch hasn't landed yet, the user sees the pure
+  // heuristic; once it resolves these memos recompute with the richer
+  // payload.
   const topProfileMatchAnalysis = useMemo(() => {
     if (!topProfile) return null
     const base = getMatchAnalysis(topProfile)
@@ -1435,6 +1256,21 @@ function App() {
     () => (selectedDetailProfile ? getChemistryInsights(selectedDetailProfile) : null),
     [selectedDetailProfile, getChemistryInsights],
   )
+
+  // Phase D2.2 — chat-AI surfaces (icebreaker + date planner generators
+  // + reset effect). Consumes getChemistryInsights declared above.
+  const { generateAiCoachSuggestions, generateAiDatePlans } = useChatAiActions({
+    selectedChatProfile,
+    chatThreads,
+    selfProfile,
+    appLanguage,
+    getChemistryInsights,
+    setAiCoachLoading,
+    setAiCoachSuggestions,
+    setAiDatePlannerLoading,
+    setAiDatePlans,
+  })
+
   const upcoming = useMemo(() => filteredProfiles.slice(index + 1, index + 3), [filteredProfiles, index])
 
   // resetDrag now lives in useDeck.
