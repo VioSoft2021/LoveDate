@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { backendLogClientError } from '../services/backendApi'
 
 type Props = {
   children: ReactNode
@@ -19,9 +20,16 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({ errorInfo })
     if (typeof window !== 'undefined') {
-      // Surface to native logcat / devtools console
       console.error('[LoveDate] Render error:', error, errorInfo)
     }
+    // Fire-and-forget cloud log. backendLogClientError swallows any
+    // throw so the already-broken UI never compounds.
+    backendLogClientError({
+      severity: 'react-render',
+      message: error.message || String(error),
+      stack: error.stack ?? null,
+      componentStack: errorInfo.componentStack ?? null,
+    })
   }
 
   handleReload = () => {

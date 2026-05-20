@@ -920,11 +920,78 @@ export const backendDeleteSelfAccount = async (): Promise<boolean> => {
   if (!supabase) return false
   const { error } = await supabase.rpc('delete_self_account')
   if (error) {
-     
+
     console.warn('Account deletion failed:', error.message)
     return false
   }
   return true
+}
+
+/**
+ * MED-15 — fire-and-forget crash logging. Captures React render errors
+ * (via ErrorBoundary), unhandled promise rejections, and window errors
+ * to the public.client_errors table. Anonymous inserts are allowed so a
+ * crash that happens before auth can still self-report.
+ *
+ * The caller MUST NOT await this in error-path code — a logging failure
+ * must never compound the already-broken state. We catch every throw and
+ * swallow it silently.
+ */
+export type ClientErrorSeverity = 'react-render' | 'unhandled-rejection' | 'window-error'
+
+export const backendLogClientError = (input: {
+  severity: ClientErrorSeverity
+  message: string
+  stack?: string | null
+  componentStack?: string | null
+}): void => {
+  if (!supabase) return
+  if (typeof window === 'undefined') return
+
+  // Truncate any unbounded fields so a giant stack can't blow up the
+  // insert. Postgres text is unlimited but the network round-trip and
+  // the operator UI both prefer reasonable sizes.
+  const cap = (value: string | null | undefined, limit: number): string | null => {
+    if (!value) return null
+    return value.length > limit ? value.slice(0, limit) : value
+  }
+
+  const payload = {
+    severity: input.severity,
+    message: cap(input.message, 2000) ?? '(no message)',
+    stack: cap(input.stack ?? null, 8000),
+    component_stack: cap(input.componentStack ?? null, 8000),
+    url: cap(window.location?.href ?? null, 2000),
+    user_agent: cap(window.navigator?.userAgent ?? null, 500),
+    app_version:
+      typeof __BUILD_HASH__ === 'string' && __BUILD_HASH__.length > 0
+        ? __BUILD_HASH__
+        : null,
+  }
+
+  // user_id is auto-populated by Postgres from the request JWT via the
+  // anon key — actually no, we don't have a default value or trigger. We
+  // attach auth.uid() manually below so the FK to auth.users resolves.
+  void getCurrentUserId()
+    .then(async (userId) => {
+      const insertPayload: Record<string, unknown> = { ...payload }
+      if (userId) insertPayload.user_id = userId
+      try {
+        await supabase.from('client_errors').insert(insertPayload)
+      } catch {
+        // Silently drop — the page is already broken; don't recurse.
+      }
+    })
+    .catch(() => {
+      // Same as above — getCurrentUserId() can throw if the network is
+      // gone. We still try the insert without a user_id; if that also
+      // fails it just disappears.
+      try {
+        void supabase.from('client_errors').insert(payload)
+      } catch {
+        /* noop */
+      }
+    })
 }
 
 /**

@@ -12,6 +12,47 @@ import './styles/mobile.css'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { registerSW } from 'virtual:pwa-register'
 import { showUpdateBanner } from './components/UpdateBanner'
+import { backendLogClientError } from './services/backendApi'
+
+// MED-15 — global crash reporting. React render errors are caught by
+// ErrorBoundary; this catches the two channels React can't:
+//   1. window.onerror — synchronous errors outside the React tree
+//      (async setTimeout callbacks, third-party scripts, event handlers
+//      that throw without bubbling).
+//   2. window.onunhandledrejection — promise rejections that nobody
+//      .catch()'d. The most common silent failure source in a React app.
+// Both are fire-and-forget. backendLogClientError swallows any throw.
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', (event) => {
+    const err = event.error as Error | undefined
+    backendLogClientError({
+      severity: 'window-error',
+      message: err?.message ?? event.message ?? '(no message)',
+      stack: err?.stack ?? null,
+    })
+  })
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason as unknown
+    const message =
+      reason instanceof Error
+        ? reason.message
+        : typeof reason === 'string'
+          ? reason
+          : (() => {
+              try {
+                return JSON.stringify(reason)
+              } catch {
+                return String(reason)
+              }
+            })()
+    const stack = reason instanceof Error ? (reason.stack ?? null) : null
+    backendLogClientError({
+      severity: 'unhandled-rejection',
+      message,
+      stack,
+    })
+  })
+}
 
 // Safety net: when control transfers to a freshly-activated SW the open
 // page is still running OLD JS in memory, so reload to pick up the new
