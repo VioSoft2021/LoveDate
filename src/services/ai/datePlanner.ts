@@ -124,7 +124,7 @@ export const backendInvokeDatePlanner = async (input: {
       },
     })
     if (error || !Array.isArray(data?.plans) || data.plans.length === 0) {
-      // eslint-disable-next-line no-console
+       
       console.warn(
         'ai-date-planner failed:',
         error?.message ?? data?.error ?? 'no plans',
@@ -134,7 +134,7 @@ export const backendInvokeDatePlanner = async (input: {
     writeCache(key, data.plans)
     return data.plans
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.warn('ai-date-planner threw:', error)
     return null
   }

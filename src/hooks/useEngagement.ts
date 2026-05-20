@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { getLikeUsage, getSuperLikeUsage } from '../services/engagementLimits'
 import { getActivePlan } from '../services/planGate'
 import type { PlanTier } from '../spec/lovedateConfig'
@@ -22,19 +22,29 @@ export const useEngagement = () => {
   const [rewindsLeft, setRewindsLeft] = useState(5)
 
   // Recompute usage counters from service whenever a swipe lands or
-  // the plan tier changes. Called explicitly from swipeCard etc.
+  // the plan tier changes. Called explicitly from swipeCard and from
+  // setActivePlan below.
   const refreshEngagementUsage = useCallback((plan: PlanTier) => {
     setLikeUsage(getLikeUsage(plan))
     setSuperLikeUsage(getSuperLikeUsage(plan))
   }, [])
 
-  useEffect(() => {
-    refreshEngagementUsage(activePlan)
-  }, [activePlan, refreshEngagementUsage])
+  // Plan change triggers an immediate usage refresh. Doing this in the
+  // setter (instead of a useEffect on activePlan) avoids the cascading-
+  // render lint warning and removes a redundant render: the previous
+  // useEffect ran synchronously after every mount/plan change to set
+  // values that the useState initializer had already computed.
+  const setActivePlan = useCallback(
+    (plan: PlanTier) => {
+      setActivePlanState(plan)
+      refreshEngagementUsage(plan)
+    },
+    [refreshEngagementUsage],
+  )
 
   return {
     activePlan,
-    setActivePlan: setActivePlanState,
+    setActivePlan,
     likeUsage,
     superLikeUsage,
     setLikeUsage,

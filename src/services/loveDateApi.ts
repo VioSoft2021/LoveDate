@@ -178,7 +178,7 @@ export const getProfiles = async (): Promise<Profile[]> => {
       selfUid = user?.id ?? null
     }
     if (!selfUid) {
-      // eslint-disable-next-line no-console
+       
       console.warn('[getProfiles] no auth uid — refusing to load deck')
       return []
     }
@@ -225,7 +225,7 @@ export const getMyMatches = async (): Promise<Profile[]> => {
   }
   const { data, error } = await supabase.rpc('get_my_matches')
   if (error || !Array.isArray(data)) {
-    // eslint-disable-next-line no-console
+     
     console.warn('get_my_matches failed:', error?.message ?? 'no data')
     return []
   }

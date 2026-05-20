@@ -141,7 +141,7 @@ export const backendInvokeMatchScore = async (input: {
       !Array.isArray(data?.reasons) ||
       data.reasons.length === 0
     ) {
-      // eslint-disable-next-line no-console
+       
       console.warn('ai-match-score failed:', error?.message ?? data?.error ?? 'no result')
       return null
     }
@@ -155,7 +155,7 @@ export const backendInvokeMatchScore = async (input: {
     writeCache(key, result, language)
     return result
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.warn('ai-match-score threw:', error)
     return null
   }

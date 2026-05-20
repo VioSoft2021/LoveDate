@@ -123,7 +123,7 @@ Deno.serve(async (req: Request) => {
         if (status === 404 || status === 410) {
           deadEndpointIds.push(sub.id as string)
         } else {
-          // eslint-disable-next-line no-console
+           
           console.warn('webpush send failed', status, (err as Error).message)
         }
       }

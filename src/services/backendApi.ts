@@ -520,7 +520,7 @@ export const backendUploadProfilePhoto = async (dataUrl: string): Promise<string
     })
 
   if (uploadError) {
-    // eslint-disable-next-line no-console
+     
     console.warn('Profile photo upload failed:', uploadError.message)
     return null
   }
@@ -577,7 +577,7 @@ export const backendAddBlock = async (profileId: number): Promise<void> => {
       { onConflict: 'user_id,blocked_profile_id' },
     )
   if (error) {
-    // eslint-disable-next-line no-console
+     
     console.warn('Block sync failed:', error.message)
   }
 }
@@ -596,7 +596,7 @@ export const backendRemoveBlock = async (profileId: number): Promise<void> => {
     .eq('user_id', userId)
     .eq('blocked_profile_id', profileId)
   if (error) {
-    // eslint-disable-next-line no-console
+     
     console.warn('Unblock sync failed:', error.message)
   }
 }
@@ -619,7 +619,7 @@ export const backendBackfillBlocks = async (profileIds: number[]): Promise<void>
     .from('user_blocks')
     .upsert(rows, { onConflict: 'user_id,blocked_profile_id' })
   if (error) {
-    // eslint-disable-next-line no-console
+     
     console.warn('Block backfill failed:', error.message)
   }
 }
@@ -705,7 +705,7 @@ export const backendEnsureDiscoverableProfile = async (
 
   if (error) {
     // Non-fatal: self-profile already saved.
-    // eslint-disable-next-line no-console
+     
     console.warn('Discoverable profile sync skipped:', error.message)
   }
 }
@@ -736,7 +736,7 @@ export const backendRepairDiscoverableProfile = async (email: string): Promise<v
     }
     await backendEnsureDiscoverableProfile(userId, profile)
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.warn('Discoverable-profile bridge repair skipped:', error)
   }
 }
@@ -896,7 +896,7 @@ export const backendSubmitReport = async (input: {
     .single()
 
   if (error || !data?.id) {
-    // eslint-disable-next-line no-console
+     
     console.warn('Safety report cloud insert skipped:', error?.message ?? 'no row id')
     return null
   }
@@ -920,7 +920,7 @@ export const backendDeleteSelfAccount = async (): Promise<boolean> => {
   if (!supabase) return false
   const { error } = await supabase.rpc('delete_self_account')
   if (error) {
-    // eslint-disable-next-line no-console
+     
     console.warn('Account deletion failed:', error.message)
     return false
   }
@@ -954,7 +954,7 @@ export const backendRecordSwipe = async (
     { onConflict: 'liker_id,target_id' },
   )
   if (error) {
-    // eslint-disable-next-line no-console
+     
     console.warn('Swipe cloud record skipped:', error.message)
   }
 }
@@ -1028,7 +1028,7 @@ export const backendSendChatMessage = async (input: {
     .single()
 
   if (error || !data) {
-    // eslint-disable-next-line no-console
+     
     console.warn('Chat message send failed:', error?.message ?? 'no data')
     return null
   }
@@ -1063,7 +1063,7 @@ export const backendLoadChatHistory = async (
     .limit(500)
 
   if (error || !Array.isArray(data)) {
-    // eslint-disable-next-line no-console
+     
     console.warn('Chat history load failed:', error?.message ?? 'no data')
     return []
   }

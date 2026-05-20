@@ -107,14 +107,14 @@ export const backendInvokeIcebreaker = async (input: {
       },
     )
     if (error || !data?.openers?.length) {
-      // eslint-disable-next-line no-console
+       
       console.warn('ai-icebreaker failed:', error?.message ?? data?.error ?? 'no openers')
       return null
     }
     writeCache(key, data.openers)
     return data.openers
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.warn('ai-icebreaker threw:', error)
     return null
   }

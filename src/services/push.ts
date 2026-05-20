@@ -62,7 +62,7 @@ export const enablePushNotifications = async (): Promise<
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
       })
     } catch (err) {
-      // eslint-disable-next-line no-console
+       
       console.warn('pushManager.subscribe failed:', err)
       return { ok: false, reason: 'no-subscription' }
     }
@@ -89,7 +89,7 @@ export const enablePushNotifications = async (): Promise<
       { onConflict: 'user_id,endpoint' },
     )
   if (error) {
-    // eslint-disable-next-line no-console
+     
     console.warn('push_subscriptions upsert failed:', error.message)
     return { ok: false, reason: 'save-failed' }
   }

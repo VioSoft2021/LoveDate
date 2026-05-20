@@ -112,7 +112,7 @@ export const backendInvokeProfileWriter = async (
       !Array.isArray(data?.rewrites) ||
       data.rewrites.length === 0
     ) {
-      // eslint-disable-next-line no-console
+       
       console.warn(
         'ai-profile-writer failed:',
         error?.message ?? data?.error ?? 'no rewrites',
@@ -126,7 +126,7 @@ export const backendInvokeProfileWriter = async (
     writeCache(key, result)
     return result
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.warn('ai-profile-writer threw:', error)
     return null
   }

@@ -62,7 +62,7 @@ export const backendInvokeSafetyTriage = async (
       typeof data.summary !== 'string' ||
       !data.summary
     ) {
-      // eslint-disable-next-line no-console
+       
       console.warn(
         'ai-safety-triage failed:',
         error?.message ?? data?.error ?? 'no result',
@@ -83,7 +83,7 @@ export const backendInvokeSafetyTriage = async (
       summary: data.summary,
     }
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.warn('ai-safety-triage threw:', error)
     return null
   }

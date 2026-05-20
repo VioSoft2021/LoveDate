@@ -123,7 +123,7 @@ export const backendInvokePhotoCoach = async (
       data.perPhoto.length === 0 ||
       typeof data.overall !== 'string'
     ) {
-      // eslint-disable-next-line no-console
+       
       console.warn(
         'ai-photo-coach failed:',
         error?.message ?? data?.error ?? 'no result',
@@ -139,7 +139,7 @@ export const backendInvokePhotoCoach = async (
     writeCache(key, result)
     return result
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.warn('ai-photo-coach threw:', error)
     return null
   }
