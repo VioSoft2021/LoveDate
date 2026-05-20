@@ -11,6 +11,21 @@
         "path": "C:\\Windows\\System32\\cmd.exe"
     },
     "task.allowAutomaticTasks": "off",
-    "java.configuration.updateBuildConfiguration": "automatic",
-    "claudeCode.preferredLocation": "sidebar"
+    "claudeCode.preferredLocation": "sidebar",
+
+    // LoveDate is a TypeScript app; Android Studio handles all Java/Gradle
+    // tooling for the android/ side. Telling VS Code's Java extension to
+    // stay out of android/ + node_modules/ stops the "phased action failed
+    // / Minimum supported Gradle version is 9.4.1 / Current version is
+    // 8.9" errors in the Problems tab. They came from extHost1 (Red Hat
+    // Java extension) re-parsing build.gradle with its own system-
+    // installed Gradle 8.9, independent of Android Studio's healthy
+    // wrapper-based sync.
+    "java.configuration.updateBuildConfiguration": "disabled",
+    "java.import.gradle.enabled": false,
+    "java.import.maven.enabled": false,
+    "java.import.exclusions": [
+        "**/node_modules/**",
+        "**/android/**"
+    ]
 }
