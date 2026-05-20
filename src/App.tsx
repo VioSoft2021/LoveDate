@@ -19,6 +19,7 @@ import { useChatState } from './hooks/useChatState'
 import { useChatAiActions } from './hooks/useChatAiActions'
 import { useMatchScoring } from './hooks/useMatchScoring'
 import { useCallScreen } from './hooks/useCallScreen'
+import { useUiModals } from './hooks/useUiModals'
 import { useProfileEditor } from './hooks/useProfileEditor'
 import { usePhotoStudio } from './hooks/usePhotoStudio'
 import { useReports } from './hooks/useReports'
@@ -354,7 +355,8 @@ function App() {
   } = deck
   const dragStart = deck.dragStart
   const [history, setHistory] = useState<SwipeHistory>(() => readHistory())
-  const [activeMatch, setActiveMatch] = useState<Profile | null>(null)
+  // activeMatch (match-found celebration) + lightbox state now in
+  // useUiModals (D2.5).
   const [swipeLog, setSwipeLog] = useState<SwipeLog[]>([])
 
   // Chat state moves into useChatState. callHistory stays in App.tsx
@@ -454,8 +456,18 @@ function App() {
     handleStudioPointerUp,
   } = photoStudio
 
-  const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null)
-  const [lightboxZoom, setLightboxZoom] = useState(1)
+  // Phase D2.5 — small app-level modal slots (lightbox + activeMatch
+  // celebration) live in useUiModals.
+  const {
+    lightboxPhoto,
+    lightboxZoom,
+    setLightboxZoom,
+    openLightbox,
+    closeLightbox,
+    zoomLightbox,
+    activeMatch,
+    setActiveMatch,
+  } = useUiModals()
 
   // Phase D2.3 — match scoring (heuristic + AI overlay) moved into
   // useMatchScoring. aiMatchScores state, getMatchAnalysis/
@@ -559,20 +571,7 @@ function App() {
 
   const isProfileVerified = useMemo(() => selfProfile.photos.length >= 3 && profileCompletion >= 80, [selfProfile.photos.length, profileCompletion])
 
-  const openLightbox = (photoUrl: string) => {
-    setLightboxPhoto(photoUrl)
-    setLightboxZoom(1)
-  }
-
-  const closeLightbox = useCallback(() => {
-    setLightboxPhoto(null)
-    setLightboxZoom(1)
-  }, [])
-
-  const zoomLightbox = (delta: number) => {
-    setLightboxZoom((current) => Math.min(3, Math.max(1, Number((current + delta).toFixed(2)))))
-  }
-
+  // openLightbox / closeLightbox / zoomLightbox now in useUiModals (D2.5).
 
   const navigate = useCallback(
     (nextScreen: AppScreen, options?: { profileId?: number | null; replace?: boolean }) => {
