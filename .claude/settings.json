@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(adb logcat *)",
+      "Bash(adb devices *)",
+      "Bash(curl -sL https://viosoft2021.github.io/*)",
+      "Bash(curl -s https://viosoft2021.github.io/*)",
+      "Bash(npm run build)",
+      "Bash(npm run test)",
+      "Bash(adb shell screencap *)",
+      "Bash(adb shell uiautomator dump *)",
+      "Bash(adb pull *)",
+      "PowerShell(adb pull *)",
+      "Bash(npx eslint *)",
+      "Bash(npx cspell *)"
+    ]
+  }
+}

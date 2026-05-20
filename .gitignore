@@ -49,7 +49,10 @@ desktop-dist-fresh/
 /vite-dev.err.log
 /vite-dev.log
 
-# Claude Code local state
-.claude/
+# Claude Code local state — ignore everything except the project-shared
+# allowlist (settings.json). settings.local.json is per-user and stays
+# ignored; conversation transcripts live in ~/.claude/projects/, not here.
+.claude/*
+!.claude/settings.json
 
 __*.png
