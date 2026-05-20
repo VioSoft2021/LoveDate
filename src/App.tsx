@@ -20,6 +20,7 @@ import { useChatAiActions } from './hooks/useChatAiActions'
 import { useMatchScoring } from './hooks/useMatchScoring'
 import { useCallScreen } from './hooks/useCallScreen'
 import { useUiModals } from './hooks/useUiModals'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useProfileEditor } from './hooks/useProfileEditor'
 import { usePhotoStudio } from './hooks/usePhotoStudio'
 import { useReports } from './hooks/useReports'
@@ -1807,57 +1808,19 @@ function App() {
     resetDrag()
   }
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null
-      const isTypingTarget =
-        target?.tagName === 'INPUT' || target?.tagName === 'SELECT' || target?.tagName === 'TEXTAREA'
-
-      if (isTypingTarget) {
-        return
-      }
-
-      if (event.key === 'Escape' && activeMatch) {
-        setActiveMatch(null)
-        return
-      }
-
-      if (event.key === 'Escape' && reportDraftProfile) {
-        closeReportProfileDialog()
-        return
-      }
-
-      if (event.key === 'Escape' && lightboxPhoto) {
-        closeLightbox()
-        return
-      }
-
-      if (screen !== 'discover') {
-        return
-      }
-
-      if (event.key === 'ArrowLeft') {
-        swipeCard('left')
-      }
-
-      if (event.key === 'ArrowRight') {
-        swipeCard('right')
-      }
-
-      if (event.key === 'ArrowUp') {
-        swipeCard('right', 'super-like')
-      }
-
-      if (event.key.toLowerCase() === 'u') {
-        undoSwipe()
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [activeMatch, reportDraftProfile, lightboxPhoto, closeReportProfileDialog, closeLightbox, screen, swipeCard, undoSwipe])
+  // Phase D2.6 — keyboard shortcuts (Escape closes overlays + Discover
+  // arrow/u shortcuts) now in useKeyboardShortcuts.
+  useKeyboardShortcuts({
+    screen,
+    activeMatch,
+    setActiveMatch,
+    reportDraftProfile,
+    closeReportProfileDialog,
+    lightboxPhoto,
+    closeLightbox,
+    swipeCard,
+    undoSwipe,
+  })
 
   const handleSettingsToggle = (key: keyof SettingsPayload, checked: boolean) => {
     const nextValue = {
