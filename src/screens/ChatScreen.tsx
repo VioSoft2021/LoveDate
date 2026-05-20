@@ -150,6 +150,7 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
             <input
               type="text"
               placeholder={copy.chats.searchPlaceholder}
+              aria-label={copy.chats.searchPlaceholder}
               value={chatSearch}
               onChange={(event) => setChatSearch(event.target.value)}
             />
@@ -508,6 +509,7 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
                 ref={composerInputRef}
                 type="text"
                 placeholder={copy.chats.typeMessage}
+                aria-label={copy.chats.typeMessage}
                 value={chatDraft}
                 onChange={(event) => setChatDraft(event.target.value)}
               />

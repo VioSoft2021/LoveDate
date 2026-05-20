@@ -56,3 +56,6 @@ desktop-dist-fresh/
 !.claude/settings.json
 
 __*.png
+
+# Personal planning docs that happen to live alongside the repo
+notes/plans/LoveDate-Plan.*

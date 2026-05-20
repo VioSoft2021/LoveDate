@@ -129,7 +129,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 onClick={() => setShowPassword((s) => !s)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
                 aria-pressed={showPassword}
-                tabIndex={-1}
               >
                 <EyeIcon open={showPassword} />
               </button>
