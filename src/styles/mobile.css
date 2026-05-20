@@ -26,27 +26,30 @@
   }
 
   /* ── Top bar ───────────────────────────────────────────────── */
+  /* Hide the desktop nav row on phone — the mobile tab bar at the
+     bottom of the screen replaces it. */
   .top-bar .bottom-nav { display: none !important; }
   .top-bar .top-exit-group {
     display: inline-flex !important;
     margin-left: auto;
   }
+  /* Tighter sizing on phone. TopBar.css already renders the sign-out
+     button as an icon-only square; here we just shrink the dimensions
+     so it doesn't dominate the narrow header. The old ::before {
+     content: '↩' } hack from when the button was text-only was
+     removed — it was painting an extra glyph over the new SVG. */
   .top-bar .top-exit-btn {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    padding: 0.42rem 0.6rem;
-    font-size: 0;
-    min-width: 2.1rem;
-    min-height: 2.1rem;
+    width: 2.2rem !important;
+    height: 2.2rem !important;
+    min-width: 2.2rem !important;
+    padding: 0 !important;
   }
-  .top-bar .top-exit-btn:not(.top-exit-btn--quit)::before {
-    content: '↩';
-    font-size: 1rem;
-    line-height: 1;
+  .top-bar .top-exit-btn svg {
+    width: 1rem !important;
+    height: 1rem !important;
   }
   .top-bar .top-exit-btn--quit {
-    font-size: 1.05rem !important;
+    font-size: 1rem !important;
   }
 
   /* ── App shell — lock to viewport so children manage their own scroll ── */
