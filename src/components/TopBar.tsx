@@ -1,6 +1,7 @@
 import React from 'react'
 import { Logo } from './Logo'
 import type { AppScreen } from '../domain'
+import './TopBar.css'
 
 export type TopBarNavItem = {
   key: AppScreen
@@ -12,16 +13,30 @@ export type TopBarProps = {
   navItems: TopBarNavItem[]
   currentScreen: AppScreen
   onNavigate: (key: AppScreen) => void
+  /**
+   * Accessible label for the sign-out button (aria-label + title).
+   * The button is now icon-only; the label is no longer visible text.
+   */
   exitToLoginLabel: string
   onSignOut: () => void
   showExitAppButton: boolean
   onExitApp: () => void
 }
 
-// LoveDate header: logo + nav tabs + exit-to-login + (native-only) quit
-// button. Rendered above every screen in the app shell. Extracted from
-// App.tsx to stop the god-file from owning chrome JSX. Pure presentation —
-// the parent computes navItems and passes the handlers in.
+// Sign-out glyph: door with an arrow pointing right. Pure SVG so the
+// CSS can recolor it via currentColor on hover / focus.
+const SignOutIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M16 17l5-5-5-5" />
+    <path d="M21 12H9" />
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+  </svg>
+)
+
+// LoveDate header: logo + nav tabs + icon-only sign-out + (native-only)
+// quit button. Rendered above every screen in the app shell. Extracted
+// from App.tsx; pure presentation — the parent computes navItems and
+// passes the handlers in. Visual styling lives in TopBar.css.
 export const TopBar: React.FC<TopBarProps> = ({
   navItems,
   currentScreen,
@@ -52,8 +67,14 @@ export const TopBar: React.FC<TopBarProps> = ({
         ))}
       </nav>
       <div className="top-exit-group">
-        <button type="button" className="top-exit-btn" onClick={onSignOut}>
-          {exitToLoginLabel}
+        <button
+          type="button"
+          className="top-exit-btn"
+          onClick={onSignOut}
+          aria-label={exitToLoginLabel}
+          title={exitToLoginLabel}
+        >
+          <SignOutIcon />
         </button>
         {showExitAppButton ? (
           <button

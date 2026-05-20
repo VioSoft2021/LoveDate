@@ -1,0 +1,229 @@
+/* LoveDate TopBar — refined visual pass.
+   Co-located with the component. Loaded after App.css via the import
+   chain (App.tsx -> TopBar -> TopBar.css), so these rules override the
+   older .top-bar / .bottom-nav cascade without needing !important.
+   Mobile rules in src/styles/mobile.css load last and still win on
+   phone viewports. */
+
+/* ── Header bar ────────────────────────────────────────────────── */
+/* Slight backdrop blur + thin gold separator at the bottom makes the
+   bar feel grounded against any screen content scrolling beneath it. */
+.top-bar.top-bar {
+  width: min(100%, 78rem);
+  margin: 0 auto;
+  padding: 0.6rem 0.9rem 0.85rem;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1.1rem;
+  position: relative;
+}
+.top-bar.top-bar::after {
+  content: '';
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(216, 184, 109, 0.32) 22%,
+    rgba(216, 184, 109, 0.4) 50%,
+    rgba(216, 184, 109, 0.32) 78%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* ── Logo column (left) ─────────────────────────────────────────── */
+.top-bar.top-bar > div:first-child {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.6rem;
+}
+
+/* ── Nav column (center) ────────────────────────────────────────── */
+/* Override the old chunky button styling. The tabs are now compact
+   pills with a soft surface, ample tap target, and a refined gold
+   underline + tint when active — no more solid yellow rectangles. */
+.top-bar.top-bar .bottom-nav {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  z-index: 1;
+}
+
+.top-bar.top-bar .bottom-nav button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0.52rem 0.95rem;
+  border-radius: 0.7rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: rgba(229, 241, 255, 0.78);
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    transform 120ms ease;
+}
+
+.top-bar.top-bar .bottom-nav button:hover {
+  background: rgba(216, 184, 109, 0.08);
+  border-color: rgba(216, 184, 109, 0.32);
+  color: rgba(247, 230, 188, 0.96);
+  filter: none;
+  box-shadow: none;
+  transform: translateY(-1px);
+}
+
+.top-bar.top-bar .bottom-nav button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(216, 184, 109, 0.55);
+}
+
+.top-bar.top-bar .bottom-nav button.active {
+  color: #f7e6bc;
+  background: rgba(216, 184, 109, 0.13);
+  border-color: rgba(216, 184, 109, 0.5);
+  font-weight: 600;
+}
+.top-bar.top-bar .bottom-nav button.active::after {
+  content: '';
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: -0.32rem;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(216, 184, 109, 0) 0%,
+    #e0c789 50%,
+    rgba(216, 184, 109, 0) 100%
+  );
+  box-shadow: 0 0 12px rgba(216, 184, 109, 0.4);
+}
+
+/* Refined badge — smaller, more elegant, sits at the top-right corner. */
+.top-bar.top-bar .bottom-nav button .badge-count {
+  position: absolute;
+  top: -0.32rem;
+  right: -0.3rem;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  padding: 0 0.28rem;
+  border-radius: 999px;
+  background: linear-gradient(160deg, #f0b260 0%, #d8b86d 100%);
+  color: #1a1024;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 1px 4px rgba(216, 184, 109, 0.45),
+    0 0 0 1.5px rgba(10, 13, 35, 0.85);
+}
+
+/* ── Exit group (right) — icon-only sign-out + optional native quit. */
+.top-bar.top-bar .top-exit-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+/* Override the old gold-filled text button with a refined icon-button
+   pattern. The aria-label / title still announce "Exit to Login" so
+   screen readers + tooltips keep working. */
+.top-bar.top-bar .top-exit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  min-width: 2.6rem;
+  padding: 0;
+  border-radius: 0.7rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(229, 241, 255, 0.78);
+  font-size: 0;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    transform 120ms ease;
+}
+
+.top-bar.top-bar .top-exit-btn svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  display: block;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.top-bar.top-bar .top-exit-btn:hover {
+  background: rgba(216, 184, 109, 0.12);
+  border-color: rgba(216, 184, 109, 0.45);
+  color: #f7e6bc;
+  box-shadow: none;
+  transform: translateY(-1px);
+}
+
+.top-bar.top-bar .top-exit-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(216, 184, 109, 0.55);
+}
+
+/* Native-only quit button: same shape, danger tint on hover. */
+.top-bar.top-bar .top-exit-btn--quit {
+  color: rgba(247, 178, 178, 0.82);
+  border-color: rgba(247, 178, 178, 0.18);
+  padding: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+.top-bar.top-bar .top-exit-btn--quit:hover {
+  background: rgba(255, 91, 107, 0.12);
+  border-color: rgba(255, 91, 107, 0.45);
+  color: #ff8a8a;
+}
+
+/* ── Compact widths — drop tab font size + tighten gaps so all
+   destinations still fit in one row before hitting the mobile
+   breakpoint. The phone @media in mobile.css owns ≤768px. ────── */
+@media (max-width: 1024px) {
+  .top-bar.top-bar {
+    padding: 0.45rem 0.6rem 0.7rem;
+    gap: 0.7rem;
+  }
+  .top-bar.top-bar .bottom-nav {
+    gap: 0.25rem;
+  }
+  .top-bar.top-bar .bottom-nav button {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.82rem;
+  }
+}
