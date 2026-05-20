@@ -18,6 +18,7 @@ import { useDeck } from './hooks/useDeck'
 import { useChatState } from './hooks/useChatState'
 import { useChatAiActions } from './hooks/useChatAiActions'
 import { useMatchScoring } from './hooks/useMatchScoring'
+import { useCallScreen } from './hooks/useCallScreen'
 import { useProfileEditor } from './hooks/useProfileEditor'
 import { usePhotoStudio } from './hooks/usePhotoStudio'
 import { useReports } from './hooks/useReports'
@@ -84,7 +85,6 @@ import {
   sanitizeAnswers,
   type PersonalityAnswer,
 } from './services/compatibility'
-import { createJitsiProviderConfig } from './services/jitsiEmbedConfig'
 import {
   SAFETY_CATEGORIES,
   createSafetyReport,
@@ -388,26 +388,11 @@ function App() {
   } = circles
   // unreadChats / matchQueueIds / chatAttachmentDraft / showFullChatHistory /
   // isRecordingVoice now live in useChatState above.
-  const [callState, setCallState] = useState<CallState>({
-    active: false,
-    type: null,
-    status: 'connecting',
-    startedAt: 0,
-    targetProfileId: null,
-    muted: false,
-    cameraOff: false,
-    roomId: null,
-    roomUrl: null,
-  })
-  const jitsiProvider = useMemo(
-    () =>
-      createJitsiProviderConfig({
-        domain: runtimeConfig.calls.jitsiDomain,
-        appId: runtimeConfig.calls.jitsiAppId,
-        jwt: runtimeConfig.calls.jitsiJwt,
-      }),
-    [],
-  )
+  //
+  // Phase D2.4 — callState, callStateRef, jitsiProvider, and all 9
+  // call handlers moved into useCallScreen. The hook is constructed
+  // below alongside the other late hooks.
+
   // Reports / moderation state moves into useReports.
   const reports = useReports()
   const {
@@ -506,18 +491,7 @@ function App() {
   const attachmentInputRef = useRef<HTMLInputElement | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const recordedChunksRef = useRef<Blob[]>([])
-  const activeCallLogIdRef = useRef<string | null>(null)
-  const callStateRef = useRef<CallState>({
-    active: false,
-    type: null,
-    status: 'connecting',
-    startedAt: 0,
-    targetProfileId: null,
-    muted: false,
-    cameraOff: false,
-    roomId: null,
-    roomUrl: null,
-  })
+  // activeCallLogIdRef + callStateRef moved into useCallScreen (D2.4).
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
   const preserveScrollOnExpandRef = useRef<{ top: number; height: number } | null>(null)
   const shouldStickToBottomRef = useRef(true)
@@ -552,9 +526,7 @@ function App() {
     }
   }, [])
 
-  useEffect(() => {
-    callStateRef.current = callState
-  }, [callState])
+  // callStateRef sync effect moved into useCallScreen (D2.4).
 
   useEffect(() => {
     persistAppLanguage(appLanguage)
@@ -639,17 +611,8 @@ function App() {
     onSignedOut: () => {
       setActiveMatch(null)
       setActiveChatId(null)
-      setCallState({
-        active: false,
-        type: null,
-        status: 'connecting',
-        startedAt: 0,
-        targetProfileId: null,
-        muted: false,
-        cameraOff: false,
-        roomId: null,
-        roomUrl: null,
-      })
+      // useCallScreen watches isAuthenticated and resets call state
+      // itself when it drops to false — no inline reset needed here.
     },
   })
   const {
@@ -1199,6 +1162,34 @@ function App() {
     return profileById.get(activeChatId) ?? null
   }, [activeChatId, profileById])
 
+  // Phase D2.4 — call/Jitsi lifecycle (callState + ref + 9 handlers).
+  // Watches isAuthenticated and resets itself on sign-out.
+  const {
+    callState,
+    jitsiProvider,
+    startCall,
+    markCallConnected,
+    markCallFailed,
+    setCallMuted,
+    setCallCameraOff,
+    endCall,
+    openCallRoom,
+    copyCallInvite,
+    rejoinCallFromHistory,
+  } = useCallScreen({
+    isAuthenticated,
+    selectedChatProfile,
+    userEmail,
+    runtimeCalls: {
+      jitsiDomain: runtimeConfig.calls.jitsiDomain,
+      jitsiAppId: runtimeConfig.calls.jitsiAppId,
+      jitsiJwt: runtimeConfig.calls.jitsiJwt,
+    },
+    setCallHistory,
+    setChatThreads,
+    pushToast,
+  })
+
   const selectedDetailProfile = useMemo(() => {
     if (!selectedProfileId) {
       return null
@@ -1618,210 +1609,6 @@ function App() {
     }
   }
 
-  const startCall = (type: 'audio' | 'video') => {
-    if (!selectedChatProfile) {
-      return
-    }
-    const rawRoomId = buildCallRoom(userEmail || 'guest@lovedate.app', selectedChatProfile.id, type)
-    const roomId = jitsiProvider.formatRoomName(rawRoomId)
-    const roomUrl = jitsiProvider.buildRoomUrl(rawRoomId)
-    const now = Date.now()
-    const logId = `call_${now}_${selectedChatProfile.id}`
-    const nextCallEntry: CallLogEntry = {
-      id: logId,
-      profileId: selectedChatProfile.id,
-      profileName: selectedChatProfile.name,
-      type,
-      roomId,
-      roomUrl,
-      startedAt: now,
-      answeredAt: null,
-      endedAt: null,
-      outcome: 'initiated',
-    }
-    activeCallLogIdRef.current = logId
-    setCallHistory((current) => [nextCallEntry, ...current].slice(0, 200))
-    setCallState({
-      active: true,
-      type,
-      status: 'connecting',
-      startedAt: now,
-      targetProfileId: selectedChatProfile.id,
-      muted: false,
-      cameraOff: type === 'audio',
-      roomId,
-      roomUrl,
-    })
-    setChatThreads((current) => {
-      const currentThread = current[selectedChatProfile.id] ?? []
-      return {
-        ...current,
-        [selectedChatProfile.id]: [
-          ...currentThread,
-          {
-            id: now,
-            sender: 'me',
-            text: `Private ${type} call invite (no phone number): ${roomUrl}`,
-            callMeta: {
-              type,
-              roomId,
-              roomUrl,
-              event: 'invite',
-            },
-            createdAt: now,
-            status: 'sent',
-          },
-        ],
-      }
-    })
-    pushToast(
-      jitsiProvider.needsModeratorAuth
-        ? 'Private call link created, but meet.jit.si may require a moderator login. Configure JaaS for reliable calls.'
-        : 'Private call link created and shared in chat.',
-      jitsiProvider.needsModeratorAuth ? 'info' : 'success',
-    )
-  }
-
-  const markCallConnected = useCallback(() => {
-    const connectedAt = Date.now()
-    const logId = activeCallLogIdRef.current
-    if (logId) {
-      setCallHistory((current) =>
-        current.map((entry) =>
-          entry.id === logId && !entry.answeredAt
-            ? {
-                ...entry,
-                outcome: 'connected',
-                answeredAt: connectedAt,
-              }
-            : entry,
-        ),
-      )
-    }
-    setCallState((current) => (current.active ? { ...current, status: 'live' } : current))
-  }, [])
-
-  const markCallFailed = useCallback(() => {
-    const logId = activeCallLogIdRef.current
-    if (logId) {
-      setCallHistory((current) =>
-        current.map((entry) =>
-          entry.id === logId && entry.outcome !== 'connected' && entry.outcome !== 'ended'
-            ? {
-                ...entry,
-                outcome: 'failed',
-              }
-            : entry,
-        ),
-      )
-    }
-    setCallState((current) => (current.active ? { ...current, status: 'error' } : current))
-  }, [])
-
-  const setCallMuted = useCallback((muted: boolean) => {
-    setCallState((current) => (current.active ? { ...current, muted } : current))
-  }, [])
-
-  const setCallCameraOff = useCallback((cameraOff: boolean) => {
-    setCallState((current) => (current.active ? { ...current, cameraOff } : current))
-  }, [])
-
-  const endCall = useCallback(() => {
-    const snapshot = callStateRef.current
-    const activeType = snapshot.type
-    const activeTargetProfileId = snapshot.targetProfileId
-    const activeRoomId = snapshot.roomId
-    const activeRoomUrl = snapshot.roomUrl
-    const activeStatus = snapshot.status
-    const endedAt = Date.now()
-    const logId = activeCallLogIdRef.current
-    if (logId) {
-      setCallHistory((current) =>
-        current.map((entry) =>
-          entry.id === logId
-            ? {
-                ...entry,
-                outcome: entry.answeredAt ? 'ended' : entry.outcome === 'failed' ? 'failed' : 'missed',
-                endedAt,
-              }
-            : entry,
-        ),
-      )
-    }
-    if (activeTargetProfileId && activeType && activeRoomId && activeRoomUrl) {
-      const callMetaEvent: 'ended' | 'missed' = activeStatus === 'live' ? 'ended' : 'missed'
-      setChatThreads((current) => {
-        const currentThread = current[activeTargetProfileId] ?? []
-        return {
-          ...current,
-          [activeTargetProfileId]: [
-            ...currentThread,
-            {
-              id: endedAt,
-              sender: 'me',
-              text: activeStatus === 'live' ? `${activeType} call ended.` : `${activeType} call was missed.`,
-              callMeta: {
-                type: activeType,
-                roomId: activeRoomId,
-                roomUrl: activeRoomUrl,
-                event: callMetaEvent,
-              },
-              createdAt: endedAt,
-              status: 'sent',
-            },
-          ],
-        }
-      })
-    }
-    activeCallLogIdRef.current = null
-    setCallState({
-      active: false,
-      type: null,
-      status: 'connecting',
-      startedAt: 0,
-      targetProfileId: null,
-      muted: false,
-      cameraOff: false,
-      roomId: null,
-      roomUrl: null,
-    })
-  }, [setChatThreads])
-
-  const openCallRoom = useCallback(() => {
-    if (!callState.roomUrl) {
-      return
-    }
-    markCallConnected()
-    window.open(callState.roomUrl, '_blank', 'noopener,noreferrer')
-  }, [callState.roomUrl, markCallConnected])
-
-  const copyCallInvite = async () => {
-    if (!callState.roomUrl) {
-      return
-    }
-    try {
-      await navigator.clipboard.writeText(callState.roomUrl)
-      pushToast('Call invite link copied.', 'success')
-    } catch {
-      pushToast('Copy failed. Please copy the link manually from chat.', 'error')
-    }
-  }
-
-  const rejoinCallFromHistory = (entry: CallLogEntry) => {
-    activeCallLogIdRef.current = entry.id
-    setCallState({
-      active: true,
-      type: entry.type,
-      status: 'connecting',
-      startedAt: entry.startedAt,
-      targetProfileId: entry.profileId,
-      muted: false,
-      cameraOff: entry.type === 'audio',
-      roomId: entry.roomId,
-      roomUrl: entry.roomUrl,
-    })
-    pushToast(`Rejoining ${entry.type} call with ${entry.profileName}.`, 'info')
-  }
 
   const closeReportProfileDialog = useCallback(() => {
     setReportDraftProfile(null)
