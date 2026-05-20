@@ -9,7 +9,6 @@ import { backendInvokeIcebreaker } from './services/ai/icebreaker'
 import { backendInvokeSafetyTriage } from './services/ai/safetyTriage'
 import { enablePushNotifications, disablePushNotifications } from './services/push'
 import { FilterScreen } from './components/FilterScreen'
-import { EmbeddedCallStage } from './components/EmbeddedCallStage'
 import { Logo } from './components/Logo'
 import { BuildChip } from './components/BuildChip'
 import { TopBar } from './components/TopBar'
@@ -18,6 +17,7 @@ import { ToastStack } from './components/ToastStack'
 import { PhotoLightbox } from './components/PhotoLightbox'
 import { MatchCelebrationModal } from './components/MatchCelebrationModal'
 import { ReportProfileDialog } from './components/ReportProfileDialog'
+import { CallModal } from './components/CallModal'
 import { UpdateBanner } from './components/UpdateBanner'
 import { useAuth } from './hooks/useAuth'
 import { useDeck } from './hooks/useDeck'
@@ -2768,92 +2768,27 @@ function App() {
           navigate('chats')
         }}
       />
-      {callState.active ? (
-        <div className="match-modal" role="dialog" aria-modal="true" aria-label={appLanguage === 'ro' ? 'Apel în desfășurare' : 'Call in progress'}>
-          <article className="match-card call-card call-card--embedded">
-            <p className="pill">{callState.type === 'video' ? copy.chats.videoCallLabel : copy.chats.audioCallLabel}</p>
-            <h2>
-              {callState.targetProfileId ? profileById.get(callState.targetProfileId)?.name ?? (appLanguage === 'ro' ? 'Potrivire' : 'Match') : (appLanguage === 'ro' ? 'Potrivire' : 'Match')}
-            </h2>
-            <p>
-              {callState.status === 'connecting'
-                ? (appLanguage === 'ro' ? 'Pregătim camera ta privată LoveDate...' : 'Preparing your private LoveDate room...')
-                : callState.status === 'error'
-                  ? (appLanguage === 'ro' ? 'Camera privată nu a putut fi pregătită.' : 'The private room could not be prepared.')
-                  : appLanguage === 'ro'
-                    ? `Camera privată este gata | ${formatShortTime(callState.startedAt)}`
-                    : `Private room ready | ${formatShortTime(callState.startedAt)}`}
-            </p>
-            {callState.roomUrl ? (
-              <p className="call-room-link">
-                {appLanguage === 'ro' ? 'Cameră' : 'Room'}: <strong>{callState.roomId}</strong>
-              </p>
-            ) : null}
-            {callState.type && callState.roomId && callState.roomUrl ? (
-              <EmbeddedCallStage
-                key={callState.roomId}
-                callType={callState.type}
-                domain={jitsiProvider.domain}
-                scriptUrl={jitsiProvider.scriptUrl}
-                jwt={jitsiProvider.jwt}
-                setupMessage={jitsiProvider.setupMessage}
-                roomId={callState.roomId}
-                roomUrl={callState.roomUrl}
-                displayName={selfProfile.name || userEmail.split('@')[0] || 'LoveDate guest'}
-                matchName={
-                  callState.targetProfileId
-                    ? profileById.get(callState.targetProfileId)?.name ?? (appLanguage === 'ro' ? 'Potrivire' : 'Match')
-                    : appLanguage === 'ro' ? 'Potrivire' : 'Match'
-                }
-                startedAtLabel={formatShortTime(callState.startedAt)}
-                muted={callState.muted}
-                cameraOff={callState.cameraOff}
-                language={appLanguage}
-                onConnected={markCallConnected}
-                onEnded={endCall}
-                onFailed={markCallFailed}
-                onMuteChange={setCallMuted}
-                onCameraChange={setCallCameraOff}
-                onCopyInvite={() => void copyCallInvite()}
-                onOpenFallback={openCallRoom}
-              />
-            ) : null}
-            {/* Legacy branded placeholder replaced by EmbeddedCallStage.
-            <div className={`call-embed-frame ${callState.type === 'audio' ? 'audio-only' : ''}`}>
-              <div className="call-brand-shell">
-                <div className="call-orb" aria-hidden="true" />
-                <div className="call-shell-copy">
-                  <h3>{callState.type === 'video'
-                    ? (appLanguage === 'ro' ? 'Apel video LoveDate' : 'LoveDate video call')
-                    : (appLanguage === 'ro' ? 'Apel audio LoveDate' : 'LoveDate audio call')}</h3>
-                  <p>
-                    {appLanguage === 'ro'
-                      ? 'Camera ta privată este gata. Deschide-o în browser atunci când vrei să începi conversația, păstrându-ți numărul personal de telefon privat.'
-                      : 'Your private room is ready. Open it in your browser when you want to start talking, while keeping your personal phone number private.'}
-                  </p>
-                  <div className="call-shell-status">
-                    <span>{callState.status === 'live' ? (appLanguage === 'ro' ? 'Cameră activă' : 'Room active') : (appLanguage === 'ro' ? 'Cameră în așteptare' : 'Room standby')}</span>
-                    <span>{callState.type === 'video' ? (appLanguage === 'ro' ? 'Compatibil cameră' : 'Camera capable') : (appLanguage === 'ro' ? 'Doar audio' : 'Audio only')}</span>
-                    <span>{appLanguage === 'ro' ? 'Link privat generat' : 'Private invite link generated'}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            */}
-            <div className="match-actions call-actions call-actions-primary">
-              <button type="button" className="ghost" onClick={openCallRoom} disabled={!callState.roomUrl}>
-                {appLanguage === 'ro' ? 'Deschide camera privată' : 'Open Private Room'}
-              </button>
-              <button type="button" className="ghost" onClick={() => void copyCallInvite()} disabled={!callState.roomUrl}>
-                {appLanguage === 'ro' ? 'Copiază invitația' : 'Copy Invite'}
-              </button>
-              <button type="button" className="danger" onClick={endCall}>
-                {appLanguage === 'ro' ? 'Închide apelul' : 'End Call'}
-              </button>
-            </div>
-          </article>
-        </div>
-      ) : null}
+      <CallModal
+        callState={callState}
+        appLanguage={appLanguage}
+        videoCallLabel={copy.chats.videoCallLabel}
+        audioCallLabel={copy.chats.audioCallLabel}
+        matchName={
+          callState.targetProfileId
+            ? profileById.get(callState.targetProfileId)?.name ??
+              (appLanguage === 'ro' ? 'Potrivire' : 'Match')
+            : appLanguage === 'ro' ? 'Potrivire' : 'Match'
+        }
+        displayName={selfProfile.name || userEmail.split('@')[0] || 'LoveDate guest'}
+        jitsiProvider={jitsiProvider}
+        onConnected={markCallConnected}
+        onEnded={endCall}
+        onFailed={markCallFailed}
+        setMuted={setCallMuted}
+        setCameraOff={setCallCameraOff}
+        onCopyInvite={() => void copyCallInvite()}
+        onOpenRoom={openCallRoom}
+      />
       <ReportProfileDialog
         profile={reportDraftProfile}
         appLanguage={appLanguage}
