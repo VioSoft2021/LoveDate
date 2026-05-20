@@ -830,8 +830,14 @@
 }
 
 /* ── Crash Inbox (admin Moderation Center, MED-15) ──────────────────── */
+/* Span both columns of the .settings-screen grid so the row layout has
+   room to breathe. Without this, the inbox is squeezed into a ~30rem
+   column and the message text wraps per character (overflow-wrap +
+   narrow column forces single-char lines). */
 .crash-inbox {
+  grid-column: 1 / -1;
   margin-top: 1.2rem;
+  min-width: 0;
 }
 .crash-inbox-head {
   display: flex;
@@ -839,6 +845,7 @@
   align-items: center;
   gap: 0.6rem;
   margin-bottom: 0.4rem;
+  flex-wrap: wrap;
 }
 .crash-inbox-head h2 {
   margin: 0;
@@ -867,9 +874,12 @@
 .crash-row--unhandled-rejection {
   border-color: rgba(255, 179, 122, 0.4);
 }
+/* Row head: flex with wrap so a long message reflows onto a new line
+   without forcing per-character wrapping. The badge stays on the first
+   row; message + meta wrap below it if the viewport is narrow. */
 .crash-row-head {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
   width: 100%;
@@ -885,16 +895,19 @@
   background: rgba(255, 255, 255, 0.03);
 }
 .crash-row-message {
+  flex: 1 1 14rem;
+  min-width: 0;
   font-size: 0.88rem;
   line-height: 1.3;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  min-width: 0;
+  /* overflow-wrap normal: only break at word boundaries. anywhere is
+     too aggressive when the column is narrow. */
+  overflow-wrap: normal;
 }
 .crash-row-meta {
   opacity: 0.65;
   font-size: 0.72rem;
   white-space: nowrap;
+  margin-left: auto;
 }
 .crash-row-detail {
   padding: 0.55rem 0.75rem 0.7rem;
