@@ -2,6 +2,7 @@ import React from 'react'
 import type { AppLanguage } from '../domain'
 import type { Profile } from '../services/loveDateApi'
 import { SAFETY_CATEGORIES, type SafetyCategory } from '../services/moderation'
+import { translateSafetyCategory } from '../constants'
 
 export type ReportProfileDialogProps = {
   profile: Profile | null
@@ -55,7 +56,7 @@ export const ReportProfileDialog: React.FC<ReportProfileDialogProps> = ({
           >
             {SAFETY_CATEGORIES.map((cat) => (
               <option key={cat} value={cat}>
-                {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                {translateSafetyCategory(cat, appLanguage)}
               </option>
             ))}
           </select>

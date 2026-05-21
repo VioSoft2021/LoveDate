@@ -1,5 +1,5 @@
 import React from 'react'
-import { UI_TEXT, translateRelationshipIntent } from '../constants'
+import { UI_TEXT, translateRelationshipIntent, translateSafetyCategory } from '../constants'
 import type { AppLanguage, ModerationFilter } from '../domain'
 import type { ModerationStatus, SafetyReport } from '../services/moderation'
 import { backendListClientErrors, type ClientErrorRow } from '../services/backendApi'
@@ -145,7 +145,7 @@ export const ModerationScreen: React.FC<ModerationScreenProps> = ({
                         {report.aiRiskLevel.toUpperCase()}
                       </span>
                     ) : null}
-                    <span>{report.category}</span>
+                    <span>{translateSafetyCategory(report.category, appLanguage)}</span>
                   </div>
                   {report.aiSummary ? (
                     <p className="mod-ai-summary" title={report.aiSummary}>
@@ -196,7 +196,8 @@ export const ModerationScreen: React.FC<ModerationScreenProps> = ({
               {selectedModerationReport.profileSnapshot.bio}
             </p>
             <p>
-              <strong>{ro ? 'Categorie' : 'Category'}:</strong> {selectedModerationReport.category}
+              <strong>{ro ? 'Categorie' : 'Category'}:</strong>{' '}
+              {translateSafetyCategory(selectedModerationReport.category, appLanguage)}
             </p>
             {selectedModerationReport.aiRiskLevel ? (
               <div className="mod-ai-block">

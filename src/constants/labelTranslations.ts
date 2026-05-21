@@ -202,6 +202,39 @@ const LIFESTYLE_LABELS_RO: Record<string, string> = {
   'New friends': 'Prieteni noi',
 }
 
+// Safety report categories (src/services/moderation.ts). Each value is
+// a lowercase identifier (spam, scam, harassment, hate, nudity, underage,
+// impersonation, other). The UI capitalizes the first letter for
+// display, so the keys here match the lowercase form.
+const SAFETY_CATEGORY_LABELS_RO: Record<string, string> = {
+  spam: 'Spam',
+  scam: 'Înșelătorie',
+  harassment: 'Hărțuire',
+  hate: 'Ură / discriminare',
+  nudity: 'Nuditate',
+  underage: 'Minor',
+  impersonation: 'Furt de identitate',
+  other: 'Altele',
+}
+const SAFETY_CATEGORY_LABELS_EN: Record<string, string> = {
+  spam: 'Spam',
+  scam: 'Scam',
+  harassment: 'Harassment',
+  hate: 'Hate',
+  nudity: 'Nudity',
+  underage: 'Underage',
+  impersonation: 'Impersonation',
+  other: 'Other',
+}
+
+export const translateSafetyCategory = (
+  category: string,
+  language: AppLanguage,
+): string => {
+  const map = language === 'ro' ? SAFETY_CATEGORY_LABELS_RO : SAFETY_CATEGORY_LABELS_EN
+  return map[category] ?? (category.charAt(0).toUpperCase() + category.slice(1))
+}
+
 export const translateInterest = (label: string, language: AppLanguage): string => {
   if (language !== 'ro') return label
   return INTEREST_LABELS_RO[label] ?? INTEREST_LABELS_RO[label.trim()] ?? label
