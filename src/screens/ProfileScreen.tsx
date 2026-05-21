@@ -14,7 +14,7 @@ import {
   SOCIAL_PLATFORM_META,
   UI_TEXT,
   WORKOUT_OPTIONS,
-  ZODIAC_DESCRIPTIONS,
+  getZodiacDescription,
   ZODIAC_OPTIONS,
   translateInterest,
   translateRelationshipIntent,
@@ -338,7 +338,7 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
           ) : null}
           <p className="soft">
             {copy.profile.zodiacNote}:{' '}
-            {ZODIAC_DESCRIPTIONS[selfProfile.zodiac]?.overview ??
+            {getZodiacDescription(selfProfile.zodiac, appLanguage)?.overview ??
               copy.profile.uniqueCosmicSignature}
           </p>
           <button

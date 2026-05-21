@@ -204,3 +204,191 @@ export const ZODIAC_DEEP_DIVE: Record<
     idealDateEnergy: 'Dreamy, creative, and emotionally safe.',
   },
 }
+
+// Romanian translations of ZODIAC_DESCRIPTIONS. Zodiac sign keys are
+// kept in English (Aries, Taurus...) because they're used as data
+// identifiers throughout the app. The DISPLAYED sign name in RO is
+// handled separately by zodiac-name translation helpers.
+export const ZODIAC_DESCRIPTIONS_RO: typeof ZODIAC_DESCRIPTIONS = {
+  Aries: {
+    overview: 'Inițiator curajos cu impuls pasional. Berbecul se mișcă rapid când chimia se simte reală.',
+    loveStyle: 'Direct, jucăuș și orientat spre acțiune. Iubește întâlnirile vii și aventuroase.',
+    communication: 'Sincer și imediat. Preferă claritatea în locul semnalelor amestecate.',
+    greenFlags: 'Curaj, loialitate în conflict și disponibilitate de a apărea rapid.',
+    growthEdge: 'Poate grăbi ritmul emoțional înainte de stabilirea unei alinieri mai profunde.',
+    bestMatches: 'Leu, Săgetător, Gemeni, Vărsător, Balanță',
+  },
+  Taurus: {
+    overview: 'Senzual constant care construiește iubirea prin consistență, atingere și încredere.',
+    loveStyle: 'Cu ardere lentă și devotat. Investește profund odată ce siguranța e stabilită.',
+    communication: 'Ancorat și practic. Apreciază fiabilitatea în vorbe și fapte.',
+    greenFlags: 'Stabilitate emoțională, răbdare și urmărire de încredere.',
+    growthEdge: 'Poate rezista schimbării sau se poate agăța prea mult de confort.',
+    bestMatches: 'Fecioară, Capricorn, Rac, Pești',
+  },
+  Gemini: {
+    overview: 'Conector curios care leagă prin idei, umor și scânteie mentală.',
+    loveStyle: 'Jucăuș, sociabil și în căutare de noutate. Înflorește în conversații dinamice.',
+    communication: 'Rapid, expresiv și spiritual. Iubește dialogul receptiv.',
+    greenFlags: 'Deschidere mentală, adaptabilitate și inteligență socială.',
+    growthEdge: 'Se poate lupta cu consistența emoțională când se plictisește.',
+    bestMatches: 'Balanță, Vărsător, Berbec, Leu',
+  },
+  Cancer: {
+    overview: 'Inimă protectoare, cu intuiție emoțională puternică și instincte de grijă.',
+    loveStyle: 'Hrănitor, orientat spre atașament și profund sentimental.',
+    communication: 'Întâi emoția, apoi cuvintele. Citește tonul și intenția cu atenție.',
+    greenFlags: 'Loialitate, compasiune și dedicare relațională.',
+    growthEdge: 'Se poate retrage sau pune scuturi când simte că nu e în siguranță.',
+    bestMatches: 'Scorpion, Pești, Taur, Fecioară',
+  },
+  Leo: {
+    overview: 'Cel care îți dăruiește lumina reflectoarelor — iubește romantismul expresiv și conexiunea încrezătoare.',
+    loveStyle: 'Generos, loial și afectuos. Se bucură de aprecierea vizibilă.',
+    communication: 'Deschis și carismatic. Răspunde bine la admirația sinceră.',
+    greenFlags: 'Devotament cu suflet mare, instinct protector și consistență în afecțiune.',
+    growthEdge: 'Poate supra-investi în validare când se simte invizibil.',
+    bestMatches: 'Berbec, Săgetător, Gemeni, Balanță',
+  },
+  Virgo: {
+    overview: 'Partener intenționat care își exprimă iubirea prin grijă, precizie și efort.',
+    loveStyle: 'Devotament practic. Construiește încredere prin detalii care contează.',
+    communication: 'Clar, chibzuit și orientat spre soluții.',
+    greenFlags: 'Fiabilitate, responsabilitate emoțională și standarde solide.',
+    growthEdge: 'Poate supra-analiza sau deveni prea autocritic.',
+    bestMatches: 'Taur, Capricorn, Rac, Scorpion',
+  },
+  Libra: {
+    overview: 'Căutător de armonie care valorizează echilibrul emoțional, estetica și reciprocitatea.',
+    loveStyle: 'Romantic, grațios social și axat pe parteneriat.',
+    communication: 'Diplomatic și relațional. Preferă tonul colaborativ.',
+    greenFlags: 'Corectitudine, farmec și angajament pentru respect reciproc.',
+    growthEdge: 'Poate amâna decizii dificile pentru a evita conflictul.',
+    bestMatches: 'Gemeni, Vărsător, Leu, Săgetător',
+  },
+  Scorpio: {
+    overview: 'Semnul intensității și al profunzimii. Leagă prin încredere, loialitate și adevăr emoțional.',
+    loveStyle: 'Atașament total cu energie protectoare și transformatoare puternică.',
+    communication: 'Privat, dar pătrunzător de sincer odată ce încrederea e construită.',
+    greenFlags: 'Curaj emoțional, loialitate și angajament profund.',
+    growthEdge: 'Poate deveni reticent sau controlant în incertitudine.',
+    bestMatches: 'Rac, Pești, Fecioară, Capricorn',
+  },
+  Sagittarius: {
+    overview: 'Explorator iubitor de libertate cu energie de întâlnire optimistă și curioasă.',
+    loveStyle: 'Înclinat spre aventură și sincer. Are nevoie de spațiu și de creștere comună.',
+    communication: 'Direct, candid și orientat spre viitor.',
+    greenFlags: 'Autenticitate, pozitivitate și deschidere către explorare.',
+    growthEdge: 'Poate evita greutatea emoțională dacă ritmul îi pare restrictiv.',
+    bestMatches: 'Berbec, Leu, Balanță, Vărsător',
+  },
+  Capricorn: {
+    overview: 'Constructor ancorat care ia angajamentul în serios și planifică pe termen lung.',
+    loveStyle: 'Stabil, intenționat și centrat pe loialitate.',
+    communication: 'Măsurat și practic. Preferă substanța în locul dramei.',
+    greenFlags: 'Fiabilitate, ambiție și responsabilitate relațională puternică.',
+    growthEdge: 'Poate părea rezervat emoțional în etapele timpurii.',
+    bestMatches: 'Taur, Fecioară, Scorpion, Pești',
+  },
+  Aquarius: {
+    overview: 'Vizionar independent care caută autenticitate, idei și libertate reciprocă.',
+    loveStyle: 'Intimitate condusă de prietenie cu individualitate puternică.',
+    communication: 'Conceptual, deschis la minte și cu privirea în viitor.',
+    greenFlags: 'Respect pentru limite, originalitate și onestitate intelectuală.',
+    growthEdge: 'Poate intelectualiza emoțiile în loc să le simtă deplin.',
+    bestMatches: 'Gemeni, Balanță, Săgetător, Berbec',
+  },
+  Pisces: {
+    overview: 'Visător empatic cu intuiție bogată și imaginație romantică.',
+    loveStyle: 'Tandru, profund și imersiv emoțional.',
+    communication: 'Sensibil și simbolic. Are nevoie de siguranță emoțională.',
+    greenFlags: 'Compasiune, creativitate și acordare emoțională.',
+    growthEdge: 'Poate estompa limitele când idealizează conexiunea.',
+    bestMatches: 'Rac, Scorpion, Taur, Capricorn',
+  },
+}
+
+// Romanian translations of ZODIAC_DEEP_DIVE.
+export const ZODIAC_DEEP_DIVE_RO: typeof ZODIAC_DEEP_DIVE = {
+  Aries: {
+    emotionalNeeds: 'Respect, ritm și un partener care întâmpină intensitatea cu sinceritate.',
+    intimacyStyle: 'Pasional și direct. Atracția crește prin acțiune comună și provocare.',
+    conflictStyle: 'Rapid și aprins, apoi gata să resetezi când ajungeți la claritate.',
+    idealDateEnergy: 'Activ, îndrăzneț și spontan.',
+  },
+  Taurus: {
+    emotionalNeeds: 'Siguranță, consistență și ritualuri de încredere.',
+    intimacyStyle: 'Senzual, loial și adâncindu-se treptat prin fiabilitate.',
+    conflictStyle: 'Răbdător, dar încăpățânat când limitele sau valorile sunt împinse.',
+    idealDateEnergy: 'Cald, tactil și ancorat.',
+  },
+  Gemini: {
+    emotionalNeeds: 'Stimulare mentală, joacă și libertate de a explora idei.',
+    intimacyStyle: 'Curios și conversațional. Atracția crește prin spirit comun și noutate.',
+    conflictStyle: 'Discută rapid lucrurile, dar poate schimba subiectul când emoțiile devin grele.',
+    idealDateEnergy: 'Ușor, social și intelectual amuzant.',
+  },
+  Cancer: {
+    emotionalNeeds: 'Siguranță emoțională, asigurări și grijă autentică.',
+    intimacyStyle: 'Legătură profundă, gesturi hrănitoare și vulnerabilitate bazată pe încredere.',
+    conflictStyle: 'Protector și sensibil. Are nevoie de căldură și răbdare pentru a se redeschide.',
+    idealDateEnergy: 'Tandru, privat și plin de inimă.',
+  },
+  Leo: {
+    emotionalNeeds: 'Apreciere, loialitate și admirație emoțională.',
+    intimacyStyle: 'Cald, afectuos și expresiv, cu efort romantic generos.',
+    conflictStyle: 'Mândru, dar sincer. Se rezolvă cel mai bine prin recunoaștere respectuoasă.',
+    idealDateEnergy: 'Jucăuș, glamuros și de sărbătoare.',
+  },
+  Virgo: {
+    emotionalNeeds: 'Fiabilitate, grijă practică și sinceritate emoțională.',
+    intimacyStyle: 'Devotament axat pe detalii. Iubirea se arată prin consistență chibzuită.',
+    conflictStyle: 'Analitic și orientat spre soluții; preferă reparația calmă și constructivă.',
+    idealDateEnergy: 'Intenționat, axat pe calitate și plin de sens.',
+  },
+  Libra: {
+    emotionalNeeds: 'Respect reciproc, armonie emoțională și parteneriat echilibrat.',
+    intimacyStyle: 'Conexiune romantică, atentă și estetică.',
+    conflictStyle: 'Diplomatic, dar poate amâna tensiunea dacă tonul pare aspru.',
+    idealDateEnergy: 'Elegant, social și echilibrat emoțional.',
+  },
+  Scorpio: {
+    emotionalNeeds: 'Încredere, loialitate și profunzime emoțională fără jocuri.',
+    intimacyStyle: 'Intens și transformator. Leagă prin sinceritate și prezență totală.',
+    conflictStyle: 'Totul-sau-nimic când încrederea e amenințată; reparare prin adevăr și asumare.',
+    idealDateEnergy: 'Privat, magnetic și profund emoțional.',
+  },
+  Sagittarius: {
+    emotionalNeeds: 'Libertate, onestitate și creștere comună.',
+    intimacyStyle: 'Legătură condusă de aventură, cu conexiune autentică, nefiltrată.',
+    conflictStyle: 'Direct și fără ocolișuri; are nevoie de spațiu plus perspectivă pentru a se reconecta.',
+    idealDateEnergy: 'Exploratoriu, optimist și expansiv.',
+  },
+  Capricorn: {
+    emotionalNeeds: 'Respect, aliniere pe termen lung și fiabilitate dovedită.',
+    intimacyStyle: 'Angajament constant care se adâncește prin încredere câștigată.',
+    conflictStyle: 'Controlat și pragmatic; preferă soluții și asumare.',
+    idealDateEnergy: 'Structurat, axat pe calitate și cu scop.',
+  },
+  Aquarius: {
+    emotionalNeeds: 'Autenticitate, spațiu și egalitate intelectuală.',
+    intimacyStyle: 'Intimitate cu prietenia pe primul loc și individualitate puternică.',
+    conflictStyle: 'Detașat la început; se reconectează prin logică și corectitudine.',
+    idealDateEnergy: 'Original, neconvențional și bogat în idei.',
+  },
+  Pisces: {
+    emotionalNeeds: 'Tandrețe emoțională, empatie și claritate blândă.',
+    intimacyStyle: 'Profund și plin de imaginație. Iubirea curge prin rezonanță emoțională.',
+    conflictStyle: 'Evitant sub presiune, dar profund receptiv la onestitatea blândă.',
+    idealDateEnergy: 'Visător, creativ și sigur emoțional.',
+  },
+}
+
+// Language-aware lookup helpers.
+import type { AppLanguage } from '../domain'
+
+export const getZodiacDescription = (sign: string, language: AppLanguage) =>
+  language === 'ro' ? ZODIAC_DESCRIPTIONS_RO[sign] : ZODIAC_DESCRIPTIONS[sign]
+
+export const getZodiacDeepDive = (sign: string, language: AppLanguage) =>
+  language === 'ro' ? ZODIAC_DEEP_DIVE_RO[sign] : ZODIAC_DEEP_DIVE[sign]

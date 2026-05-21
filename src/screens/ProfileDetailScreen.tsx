@@ -1,10 +1,10 @@
 import React from 'react'
 import {
-  PERSONALITY_COGNITIVE_FUNCTIONS,
-  PERSONALITY_TYPE_GUIDE,
   UI_TEXT,
-  ZODIAC_DEEP_DIVE,
-  ZODIAC_DESCRIPTIONS,
+  getPersonalityCognitiveFunctions,
+  getPersonalityTypeGuide,
+  getZodiacDeepDive,
+  getZodiacDescription,
   ZODIAC_EMOJI,
 } from '../constants'
 import { getProfilePhotos, getProfilePrompts } from '../utils'
@@ -70,11 +70,13 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
   const selectedDetailPersonalityCode = personalityCodeFromAnswers(
     selectedDetailProfile.personalityAnswers,
   )
-  const selectedDetailTypeGuide = PERSONALITY_TYPE_GUIDE.find(
+  const selectedDetailTypeGuide = getPersonalityTypeGuide(appLanguage).find(
     (item) => item.code === selectedDetailPersonalityCode,
   )
   const selectedDetailCognitiveFunctions =
-    PERSONALITY_COGNITIVE_FUNCTIONS[selectedDetailPersonalityCode]
+    getPersonalityCognitiveFunctions(appLanguage)[selectedDetailPersonalityCode]
+  const zodiacDescription = getZodiacDescription(selectedDetailProfile.zodiac, appLanguage)
+  const zodiacDeepDive = getZodiacDeepDive(selectedDetailProfile.zodiac, appLanguage)
 
   return (
     <section className="profile-detail">
@@ -117,58 +119,49 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
           {ZODIAC_EMOJI[selectedDetailProfile.zodiac] ?? ''}
         </p>
         <p className="soft">
-          {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac]?.overview ??
-            copy.profile.uniqueCosmicSignature}
+          {zodiacDescription?.overview ?? copy.profile.uniqueCosmicSignature}
         </p>
-        {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac] ? (
+        {zodiacDescription ? (
           <section className="match-insights zodiac-reading">
             <h3>{copy.profile.zodiacProfileTitle}</h3>
             <p>
               <strong>
                 {selectedDetailProfile.zodiac} {copy.profile.zodiacOverview}:
               </strong>{' '}
-              {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].overview}
+              {zodiacDescription.overview}
             </p>
             <ul>
               <li>
-                <strong>{copy.profile.zodiacLoveStyle}:</strong>{' '}
-                {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].loveStyle}
+                <strong>{copy.profile.zodiacLoveStyle}:</strong> {zodiacDescription.loveStyle}
               </li>
               <li>
                 <strong>{copy.profile.zodiacCommunication}:</strong>{' '}
-                {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].communication}
+                {zodiacDescription.communication}
               </li>
               <li>
-                <strong>{copy.profile.zodiacGreenFlags}:</strong>{' '}
-                {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].greenFlags}
+                <strong>{copy.profile.zodiacGreenFlags}:</strong> {zodiacDescription.greenFlags}
               </li>
               <li>
-                <strong>{copy.profile.zodiacGrowthEdge}:</strong>{' '}
-                {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].growthEdge}
+                <strong>{copy.profile.zodiacGrowthEdge}:</strong> {zodiacDescription.growthEdge}
               </li>
               <li>
                 <strong>{copy.profile.zodiacEmotionalNeeds}:</strong>{' '}
-                {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.emotionalNeeds ??
-                  copy.profile.defaultEmotionalNeeds}
+                {zodiacDeepDive?.emotionalNeeds ?? copy.profile.defaultEmotionalNeeds}
               </li>
               <li>
                 <strong>{copy.profile.zodiacIntimacyStyle}:</strong>{' '}
-                {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.intimacyStyle ??
-                  copy.profile.defaultIntimacyStyle}
+                {zodiacDeepDive?.intimacyStyle ?? copy.profile.defaultIntimacyStyle}
               </li>
               <li>
                 <strong>{copy.profile.zodiacConflictStyle}:</strong>{' '}
-                {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.conflictStyle ??
-                  copy.profile.defaultConflictStyle}
+                {zodiacDeepDive?.conflictStyle ?? copy.profile.defaultConflictStyle}
               </li>
               <li>
                 <strong>{copy.profile.zodiacIdealDateEnergy}:</strong>{' '}
-                {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.idealDateEnergy ??
-                  copy.profile.defaultIdealDateEnergy}
+                {zodiacDeepDive?.idealDateEnergy ?? copy.profile.defaultIdealDateEnergy}
               </li>
               <li>
-                <strong>{copy.profile.zodiacBestMatches}:</strong>{' '}
-                {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].bestMatches}
+                <strong>{copy.profile.zodiacBestMatches}:</strong> {zodiacDescription.bestMatches}
               </li>
             </ul>
             <p className="soft">{copy.profile.zodiacReadingFooter}</p>

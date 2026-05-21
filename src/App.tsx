@@ -183,6 +183,8 @@ import {
   ZODIAC_DEEP_DIVE,
   ZODIAC_DESCRIPTIONS,
   ZODIAC_EMOJI,
+  getPersonalityCognitiveFunctions,
+  getPersonalityTypeGuide,
   translateInterestForSentence,
 } from './constants'
 import {
@@ -2514,12 +2516,14 @@ function App() {
     [selfProfile.personalityAnswers],
   )
   const selfTypeGuide = useMemo(
-    () => PERSONALITY_TYPE_GUIDE.find((type) => type.code === selfPersonalityCode) ?? null,
-    [selfPersonalityCode],
+    () =>
+      getPersonalityTypeGuide(appLanguage).find((type) => type.code === selfPersonalityCode) ??
+      null,
+    [appLanguage, selfPersonalityCode],
   )
   const selfCognitiveFunctions = useMemo(
-    () => PERSONALITY_COGNITIVE_FUNCTIONS[selfPersonalityCode] ?? null,
-    [selfPersonalityCode],
+    () => getPersonalityCognitiveFunctions(appLanguage)[selfPersonalityCode] ?? null,
+    [appLanguage, selfPersonalityCode],
   )
   const draftPersonalityCode = useMemo(
     () => personalityCodeFromAnswers(profileDraft.personalityAnswers),
@@ -2536,13 +2540,18 @@ function App() {
   const selectedDetailTypeGuide = useMemo(
     () =>
       selectedDetailPersonalityCode
-        ? PERSONALITY_TYPE_GUIDE.find((type) => type.code === selectedDetailPersonalityCode) ?? null
+        ? getPersonalityTypeGuide(appLanguage).find(
+            (type) => type.code === selectedDetailPersonalityCode,
+          ) ?? null
         : null,
-    [selectedDetailPersonalityCode],
+    [appLanguage, selectedDetailPersonalityCode],
   )
   const selectedDetailCognitiveFunctions = useMemo(
-    () => (selectedDetailPersonalityCode ? PERSONALITY_COGNITIVE_FUNCTIONS[selectedDetailPersonalityCode] ?? null : null),
-    [selectedDetailPersonalityCode],
+    () =>
+      selectedDetailPersonalityCode
+        ? getPersonalityCognitiveFunctions(appLanguage)[selectedDetailPersonalityCode] ?? null
+        : null,
+    [appLanguage, selectedDetailPersonalityCode],
   )
   const selectedChatPersonalityCode = useMemo(
     () =>
@@ -2555,13 +2564,18 @@ function App() {
   const selectedChatTypeGuide = useMemo(
     () =>
       selectedChatPersonalityCode
-        ? PERSONALITY_TYPE_GUIDE.find((type) => type.code === selectedChatPersonalityCode) ?? null
+        ? getPersonalityTypeGuide(appLanguage).find(
+            (type) => type.code === selectedChatPersonalityCode,
+          ) ?? null
         : null,
-    [selectedChatPersonalityCode],
+    [appLanguage, selectedChatPersonalityCode],
   )
   const selectedChatCognitiveFunctions = useMemo(
-    () => (selectedChatPersonalityCode ? PERSONALITY_COGNITIVE_FUNCTIONS[selectedChatPersonalityCode] ?? null : null),
-    [selectedChatPersonalityCode],
+    () =>
+      selectedChatPersonalityCode
+        ? getPersonalityCognitiveFunctions(appLanguage)[selectedChatPersonalityCode] ?? null
+        : null,
+    [appLanguage, selectedChatPersonalityCode],
   )
   const selectedChatChemistry = useMemo(
     () => (selectedChatProfile ? getChemistryInsights(selectedChatProfile) : null),

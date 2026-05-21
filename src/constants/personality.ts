@@ -77,6 +77,81 @@ export const PERSONALITY_TYPE_GUIDE: Array<{
   { code: 'CMFR', label: 'Deep Anchor', summary: 'Reserved, consistent, and deeply loyal. Strong foundation for stable love.' },
 ]
 
+// Romanian translations of PERSONALITY_DIMENSIONS. Letter codes stay
+// identical to the English version (D/C/S/M/O/F/A/R) so personality
+// codes like "DMFR" remain stable across languages — only the displayed
+// title/meaning/opposite strings change.
+export const PERSONALITY_DIMENSIONS_RO: typeof PERSONALITY_DIMENSIONS = [
+  {
+    letter: 'D',
+    title: 'Dinamic',
+    meaning: 'Energie ridicată, orientat spre acțiune, proactiv în dinamica socială și romantică.',
+    opposite: 'C (Calm)',
+  },
+  {
+    letter: 'C',
+    title: 'Calm',
+    meaning: 'Energie echilibrată, stil reflexiv, preferă un ritm constant și profunzime emoțională.',
+    opposite: 'D (Dinamic)',
+  },
+  {
+    letter: 'S',
+    title: 'Spontan',
+    meaning: 'Îi plac planurile flexibile, noutatea și deciziile de moment.',
+    opposite: 'M (Măsurat)',
+  },
+  {
+    letter: 'M',
+    title: 'Măsurat',
+    meaning: 'Preferă un ritm deliberat, claritate și progres bine gândit.',
+    opposite: 'S (Spontan)',
+  },
+  {
+    letter: 'O',
+    title: 'Sociabil',
+    meaning: 'Expresiv social, capătă energie din oameni și din interacțiunea activă.',
+    opposite: 'F (Focusat)',
+  },
+  {
+    letter: 'F',
+    title: 'Focusat',
+    meaning: 'Selectiv cu energia socială, preferă conexiuni mai puține, dar mai profunde.',
+    opposite: 'O (Sociabil)',
+  },
+  {
+    letter: 'A',
+    title: 'Adaptabil',
+    meaning: 'Confortabil cu incertitudinea; se ajustează rapid când planurile se schimbă.',
+    opposite: 'R (Constant)',
+  },
+  {
+    letter: 'R',
+    title: 'Constant',
+    meaning: 'Valorizează structura, consistența și siguranța emoțională previzibilă.',
+    opposite: 'A (Adaptabil)',
+  },
+]
+
+// Romanian translations of PERSONALITY_TYPE_GUIDE. Codes unchanged.
+export const PERSONALITY_TYPE_GUIDE_RO: typeof PERSONALITY_TYPE_GUIDE = [
+  { code: 'DSOA', label: 'Explorator Scânteie', summary: 'Mișcare rapidă, sociabil și flexibil. Înflorește în noutate și ritm.' },
+  { code: 'DSOR', label: 'Deschizător de Drumuri', summary: 'Curajos și sociabil, dar cu o coloană solidă în relații.' },
+  { code: 'DSFA', label: 'Aventurier Focusat', summary: 'Energic și spontan, cu un stil social selectiv, axat pe profunzime.' },
+  { code: 'DSFR', label: 'Aprinzător Intenționat', summary: 'Energie mare și direct, dar loial structurii acolo unde contează.' },
+  { code: 'DMOA', label: 'Catalizator de Viziune', summary: 'Ambițios și sociabil, cu ritm chibzuit și execuție adaptabilă.' },
+  { code: 'DMOR', label: 'Strateg Fermecător', summary: 'Orientat spre oameni și încrezător; îmbină planificarea cu carisma.' },
+  { code: 'DMFA', label: 'Inconformist Calibrat', summary: 'Intensitate cu sens, profunzime discretă și navigare flexibilă în viață.' },
+  { code: 'DMFR', label: 'Inimă de Arhitect', summary: 'Ambițios, intenționat și loial. Construiește relații cu profunzime și structură.' },
+  { code: 'CSOA', label: 'Călător Cald', summary: 'Energie blândă cu spontaneitate socială și deschidere către schimbare.' },
+  { code: 'CSOR', label: 'Conector Constant', summary: 'Calm și sociabil, cu un stil relațional de încredere, care îți dă rădăcini.' },
+  { code: 'CSFA', label: 'Rătăcitor Tăcut', summary: 'Reflexiv și selectiv, dar jucăuș și deschis surprizelor.' },
+  { code: 'CSFR', label: 'Romantic Așezat', summary: 'Cu glas blând și intenții clare, valorizează încrederea, consistența și profunzimea emoțională.' },
+  { code: 'CMOA', label: 'Diplomat Echilibrat', summary: 'Reflexiv și sociabil, preferă un ritm de calitate și o minte adaptabilă.' },
+  { code: 'CMOR', label: 'Constructor de Armonie', summary: 'De încredere, axat pe oameni și stabil emoțional în relații pe termen lung.' },
+  { code: 'CMFA', label: 'Creator Reflexiv', summary: 'Calm, întors spre interior și flexibil. Construiește legături puternice unu-la-unu.' },
+  { code: 'CMFR', label: 'Ancoră Profundă', summary: 'Rezervat, consistent și profund loial. Fundament solid pentru o iubire stabilă.' },
+]
+
 export const PERSONALITY_COGNITIVE_FUNCTIONS: Record<
   string,
   { primary: string; support: string; tertiary: string; shadow: string }
@@ -178,3 +253,125 @@ export const PERSONALITY_COGNITIVE_FUNCTIONS: Record<
     shadow: 'Ne Drift: Hesitates with ambiguous or rapidly changing dynamics.',
   },
 }
+
+// Romanian translations of PERSONALITY_COGNITIVE_FUNCTIONS. Function
+// codes (Ni, Fe, Se, Te, etc.) stay as-is since they are technical
+// labels from the personality model — only the descriptive text is
+// localized.
+export const PERSONALITY_COGNITIVE_FUNCTIONS_RO: typeof PERSONALITY_COGNITIVE_FUNCTIONS = {
+  DSOA: {
+    primary: 'Se Vision: Acționează rapid pe baza chimiei și a momentului real.',
+    support: 'Fe Sync: Citește energia socială și se adaptează dinamicii de grup.',
+    tertiary: 'Ne Spark: Generează idei noi de întâlnire și posibilități jucăușe.',
+    shadow: 'Ti Check: Poate sări peste reflecție când se mișcă prea repede.',
+  },
+  DSOR: {
+    primary: 'Se Vision: Acțiune încrezătoare și inițiativă romantică directă.',
+    support: 'Te Structuring: Transformă atracția în planuri clare.',
+    tertiary: 'Fe Warmth: Lejeritate socială și stil expresiv de conectare.',
+    shadow: 'Ni Overfocus: Se poate fixa prea devreme pe rezultate.',
+  },
+  DSFA: {
+    primary: 'Se Vision: Iubește chimia imediată și experiențele împărtășite.',
+    support: 'Fi Depth: Valori interioare puternice și autenticitate emoțională.',
+    tertiary: 'Ne Spark: Întorsături creative și explorare spontană.',
+    shadow: 'Te Rigidity: Poate rezista structurii externe.',
+  },
+  DSFR: {
+    primary: 'Se Vision: Condus de acțiune și prezent fizic în conexiune.',
+    support: 'Si Loyalty: Construiește încredere prin consistență și ritualuri.',
+    tertiary: 'Fi Depth: Deschidere emoțională selectivă.',
+    shadow: 'Ne Drift: Se poate simți copleșit de prea multe opțiuni.',
+  },
+  DMOA: {
+    primary: 'Te Structuring: Orientat spre obiective, clar și axat pe execuție.',
+    support: 'Ne Spark: Extinde opțiunile și vede oportunități viitoare.',
+    tertiary: 'Fe Warmth: Se implică social cu încredere.',
+    shadow: 'Fi Doubt: Poate amâna exprimarea emoțională vulnerabilă.',
+  },
+  DMOR: {
+    primary: 'Te Structuring: Organizează relațiile cu claritate și intenție.',
+    support: 'Si Loyalty: Urmărire de încredere și grijă practică.',
+    tertiary: 'Fe Warmth: Încredere socială cu stabilitate emoțională.',
+    shadow: 'Ne Drift: Poate supra-controla incertitudinea.',
+  },
+  DMFA: {
+    primary: 'Ni Patterning: Gânditor strategic care vede direcții mai profunde.',
+    support: 'Te Structuring: Transformă intuiția în acțiune reală.',
+    tertiary: 'Fi Depth: Valori interioare protejate și intimitate selectivă.',
+    shadow: 'Se Overload: Se poate simți epuizat de medii haotice.',
+  },
+  DMFR: {
+    primary: 'Ni Patterning: Citește compatibilitatea pe termen lung și traiectoria relațională.',
+    support: 'Te Structuring: Creează sisteme relaționale sigure și practice.',
+    tertiary: 'Fi Depth: Valorizează loialitatea, integritatea și adevărul emoțional.',
+    shadow: 'Se Overload: Poate subestima spontaneitatea momentului prezent.',
+  },
+  CSOA: {
+    primary: 'Fe Sync: Cultivă armonia socială și incluziunea emoțională.',
+    support: 'Ne Spark: Curios, jucăuș și deschis ideilor în întâlniri.',
+    tertiary: 'Si Loyalty: Consistență caldă în timp.',
+    shadow: 'Ti Detach: Poate amâna limitele dificile.',
+  },
+  CSOR: {
+    primary: 'Fe Sync: Centrat pe relație și atent emoțional.',
+    support: 'Si Loyalty: Grijă de încredere și ritualuri relaționale constante.',
+    tertiary: 'Ne Spark: Deschis aventurilor comune când încrederea e mare.',
+    shadow: 'Ti Detach: Poate prioritiza pacea în defavoarea clarității.',
+  },
+  CSFA: {
+    primary: 'Fi Depth: Valorizează autenticitatea emoțională și adevărul unu-la-unu.',
+    support: 'Ne Spark: Exprimare romantică creativă.',
+    tertiary: 'Si Loyalty: Stil de atașament stabil, bogat în amintiri.',
+    shadow: 'Te Push: Poate evita confruntarea directă.',
+  },
+  CSFR: {
+    primary: 'Fi Depth: Valorizează profund sinceritatea și siguranța emoțională.',
+    support: 'Si Loyalty: Prezență ancorată, hrănitoare și de încredere.',
+    tertiary: 'Ne Spark: Curiozitate blândă în conexiune.',
+    shadow: 'Te Push: Poate avea nevoie de timp înainte de o acțiune decisivă.',
+  },
+  CMOA: {
+    primary: 'Ti Check: Analiză reflexivă înainte de angajament.',
+    support: 'Ne Spark: Se bucură de conversații bogate în idei și de noutate.',
+    tertiary: 'Fe Sync: Se încălzește treptat prin înțelegere comună.',
+    shadow: 'Si Stuck: Poate referenția prea mult tipare din trecut.',
+  },
+  CMOR: {
+    primary: 'Si Loyalty: Stabilitate ca prioritate și construire de încredere în timp.',
+    support: 'Te Structuring: Standarde clare și consistență practică.',
+    tertiary: 'Fe Warmth: Grijă blândă cu fiabilitate socială.',
+    shadow: 'Ne Drift: Poate rezista schimbării rapide.',
+  },
+  CMFA: {
+    primary: 'Fi Depth: Condus de valori interioare și nuanțat emoțional.',
+    support: 'Ni Patterning: Vede semnificația și dinamica pe termen lung.',
+    tertiary: 'Se Presence: Se exprimă prin momente trăite.',
+    shadow: 'Te Push: Poate sub-comunica nevoile concrete.',
+  },
+  CMFR: {
+    primary: 'Si Loyalty: Consistent, ancorat și de încredere emoțional.',
+    support: 'Fi Depth: Sinceritate emoțională discretă, dar profundă.',
+    tertiary: 'Te Structuring: Sprijin practic și fiabilitate pe termen lung.',
+    shadow: 'Ne Drift: Ezită în dinamici ambigue sau care se schimbă rapid.',
+  },
+}
+
+// Language-aware lookup helpers. These let consumers fetch the right
+// variant in one call instead of branching on appLanguage everywhere.
+import type { AppLanguage } from '../domain'
+
+export const getPersonalityDimensions = (
+  language: AppLanguage,
+): typeof PERSONALITY_DIMENSIONS =>
+  language === 'ro' ? PERSONALITY_DIMENSIONS_RO : PERSONALITY_DIMENSIONS
+
+export const getPersonalityTypeGuide = (
+  language: AppLanguage,
+): typeof PERSONALITY_TYPE_GUIDE =>
+  language === 'ro' ? PERSONALITY_TYPE_GUIDE_RO : PERSONALITY_TYPE_GUIDE
+
+export const getPersonalityCognitiveFunctions = (
+  language: AppLanguage,
+): typeof PERSONALITY_COGNITIVE_FUNCTIONS =>
+  language === 'ro' ? PERSONALITY_COGNITIVE_FUNCTIONS_RO : PERSONALITY_COGNITIVE_FUNCTIONS

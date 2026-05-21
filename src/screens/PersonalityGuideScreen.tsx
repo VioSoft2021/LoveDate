@@ -1,9 +1,9 @@
 import React from 'react'
 import {
-  PERSONALITY_COGNITIVE_FUNCTIONS,
-  PERSONALITY_DIMENSIONS,
-  PERSONALITY_TYPE_GUIDE,
   UI_TEXT,
+  getPersonalityCognitiveFunctions,
+  getPersonalityDimensions,
+  getPersonalityTypeGuide,
 } from '../constants'
 import type { AppLanguage } from '../domain'
 
@@ -19,6 +19,9 @@ export const PersonalityGuideScreen: React.FC<PersonalityGuideScreenProps> = ({
   onBackToProfile,
 }) => {
   const copy = UI_TEXT[appLanguage]
+  const dimensions = getPersonalityDimensions(appLanguage)
+  const typeGuide = getPersonalityTypeGuide(appLanguage)
+  const cognitiveFunctions = getPersonalityCognitiveFunctions(appLanguage)
   return (
     <section className="settings-screen personality-guide-screen" aria-label={copy.profile.personalityGuide}>
       <article className="profile-settings personality-guide-intro">
@@ -36,7 +39,7 @@ export const PersonalityGuideScreen: React.FC<PersonalityGuideScreenProps> = ({
       <article className="profile-settings personality-dimensions">
         <h2>{copy.profile.letterMeanings}</h2>
         <div className="personality-dimension-grid">
-          {PERSONALITY_DIMENSIONS.map((item) => (
+          {dimensions.map((item) => (
             <div key={item.letter} className="personality-dimension-card">
               <p className="compatibility-score">{item.letter}</p>
               <h3>{item.title}</h3>
@@ -52,7 +55,7 @@ export const PersonalityGuideScreen: React.FC<PersonalityGuideScreenProps> = ({
       <article className="profile-settings personality-types">
         <h2>{copy.profile.allPersonalityTypes}</h2>
         <div className="personality-types-grid">
-          {PERSONALITY_TYPE_GUIDE.map((type) => (
+          {typeGuide.map((type) => (
             <div
               key={type.code}
               className={`personality-type-card ${type.code === selfPersonalityCode ? 'is-user-type' : ''}`}
@@ -60,23 +63,23 @@ export const PersonalityGuideScreen: React.FC<PersonalityGuideScreenProps> = ({
               <p className="compatibility-score">{type.code}</p>
               <h3>{type.label}</h3>
               <p>{type.summary}</p>
-              {PERSONALITY_COGNITIVE_FUNCTIONS[type.code] ? (
+              {cognitiveFunctions[type.code] ? (
                 <ul className="profile-cognitive-list">
                   <li>
                     <strong>{copy.profile.primary}:</strong>{' '}
-                    {PERSONALITY_COGNITIVE_FUNCTIONS[type.code].primary}
+                    {cognitiveFunctions[type.code].primary}
                   </li>
                   <li>
                     <strong>{copy.profile.support}:</strong>{' '}
-                    {PERSONALITY_COGNITIVE_FUNCTIONS[type.code].support}
+                    {cognitiveFunctions[type.code].support}
                   </li>
                   <li>
                     <strong>{copy.profile.tertiary}:</strong>{' '}
-                    {PERSONALITY_COGNITIVE_FUNCTIONS[type.code].tertiary}
+                    {cognitiveFunctions[type.code].tertiary}
                   </li>
                   <li>
                     <strong>{copy.profile.shadow}:</strong>{' '}
-                    {PERSONALITY_COGNITIVE_FUNCTIONS[type.code].shadow}
+                    {cognitiveFunctions[type.code].shadow}
                   </li>
                 </ul>
               ) : null}

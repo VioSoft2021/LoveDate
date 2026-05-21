@@ -1,5 +1,5 @@
 import React from 'react'
-import { UI_TEXT, ZODIAC_DESCRIPTIONS, ZODIAC_EMOJI } from '../constants'
+import { UI_TEXT, ZODIAC_EMOJI, getZodiacDescription } from '../constants'
 import { formatShortTime, formatUiText, getCallDurationLabel, getCallOutcomeLabel } from '../utils'
 import type {
   AppLanguage,
@@ -261,7 +261,7 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
               <p className="chat-compatibility-line">
                 <strong>{copy.chats.zodiac}:</strong> {selectedChatProfile.zodiac}{' '}
                 {ZODIAC_EMOJI[selectedChatProfile.zodiac] ?? ''} {'•'}{' '}
-                {ZODIAC_DESCRIPTIONS[selectedChatProfile.zodiac]?.overview ??
+                {getZodiacDescription(selectedChatProfile.zodiac, appLanguage)?.overview ??
                   copy.chats.uniqueCosmicSignature}
               </p>
               {selectedChatCognitiveFunctions ? (
