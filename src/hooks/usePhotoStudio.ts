@@ -193,6 +193,7 @@ export const usePhotoStudio = ({
       setPhotoStudioAnalysis,
       resetPhotoStudioControls,
       pushToast,
+      appLanguage,
     ],
   )
 
