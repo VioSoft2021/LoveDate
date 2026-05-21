@@ -324,30 +324,36 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
         <section className="state-box" aria-live="polite">
           <p className="pill">{copy.common.noResults}</p>
           <h1>{copy.discover.noProfilesMatch}</h1>
-          {renderHiddenPanel(hiddenBreakdown)}
-          <div className="summary-actions">
-            <button type="button" onClick={() => setFilters(initialFilters)}>
-              {copy.discover.resetFilters}
-            </button>
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => {
-                setHistory({ likedIds: [], passedIds: [], matchIds: [] })
-                setSwipeLog([])
-                setIndex(0)
-              }}
-            >
-              {ro ? 'Reset istoric swipe' : 'Reset swipe history'}
-            </button>
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => setBlockedProfileIds([])}
-            >
-              {ro ? 'Reset blocări' : 'Reset block list'}
-            </button>
-          </div>
+          {hiddenBreakdown.length > 0 ? (
+            // When the breakdown panel is shown it already contains the
+            // three reset buttons (Reset history / Reset block list /
+            // Reset filters) — no need to duplicate them below.
+            renderHiddenPanel(hiddenBreakdown)
+          ) : (
+            <div className="summary-actions">
+              <button type="button" onClick={() => setFilters(initialFilters)}>
+                {copy.discover.resetFilters}
+              </button>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => {
+                  setHistory({ likedIds: [], passedIds: [], matchIds: [] })
+                  setSwipeLog([])
+                  setIndex(0)
+                }}
+              >
+                {ro ? 'Resetează istoricul' : 'Reset swipe history'}
+              </button>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => setBlockedProfileIds([])}
+              >
+                {ro ? 'Resetează blocările' : 'Reset block list'}
+              </button>
+            </div>
+          )}
         </section>
       )}
       {!loadingProfiles && !loadError && topProfile && hiddenBreakdown.length > 0 && (

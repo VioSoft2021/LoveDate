@@ -74,6 +74,76 @@ export const PERSONALITY_QUESTIONS: PersonalityQuestion[] = [
   },
 ]
 
+// Romanian translations of PERSONALITY_QUESTIONS. Question id + axis
+// stay identical so personality codes (DMFR etc.) remain stable across
+// languages — only displayed prompts/options change.
+export const PERSONALITY_QUESTIONS_RO: PersonalityQuestion[] = [
+  {
+    id: 1,
+    axis: 'energy',
+    prompt: 'Weekendul ideal pentru tine este:',
+    optionA: 'Calm și odihnitor',
+    optionB: 'Dinamic și plin de planuri',
+  },
+  {
+    id: 2,
+    axis: 'energy',
+    prompt: 'Într-un loc nou, de obicei:',
+    optionA: 'Observi prima dată',
+    optionB: 'Te arunci direct în acțiune',
+  },
+  {
+    id: 3,
+    axis: 'pace',
+    prompt: 'Preferi întâlnirile care sunt:',
+    optionA: 'Gânditoare, cu ardere lentă',
+    optionB: 'Spontane și cu ritm rapid',
+  },
+  {
+    id: 4,
+    axis: 'pace',
+    prompt: 'Când iei decizii pentru planuri, ești mai mult:',
+    optionA: 'Chibzuit',
+    optionB: 'Impulsiv',
+  },
+  {
+    id: 5,
+    axis: 'social',
+    prompt: 'În conversații, de cele mai multe ori:',
+    optionA: 'Mergi în profunzime cu o singură persoană',
+    optionB: 'Aprinzi energia grupului',
+  },
+  {
+    id: 6,
+    axis: 'social',
+    prompt: 'La evenimente, de obicei:',
+    optionA: 'Stai cu oamenii familiari',
+    optionB: 'Cunoști pe toată lumea',
+  },
+  {
+    id: 7,
+    axis: 'planning',
+    prompt: 'În călătorii, stilul tău este:',
+    optionA: 'Planifici totul din timp',
+    optionB: 'Te descurci pe parcurs',
+  },
+  {
+    id: 8,
+    axis: 'planning',
+    prompt: 'Te simți cel mai bine când viața este:',
+    optionA: 'Structurată',
+    optionB: 'Deschisă, fără limite stricte',
+  },
+]
+
+// Language-aware lookup. Algorithms (compatibilityFromAnswers,
+// personalityCodeFromAnswers) continue to use PERSONALITY_QUESTIONS
+// directly because they only need axis + id — the displayed prompt
+// text is irrelevant to scoring. UI consumers should call this helper.
+import type { AppLanguage } from '../domain'
+export const getPersonalityQuestions = (language: AppLanguage): PersonalityQuestion[] =>
+  language === 'ro' ? PERSONALITY_QUESTIONS_RO : PERSONALITY_QUESTIONS
+
 const AXIS_QUESTION_COUNT = 2
 const DEFAULT_VECTOR: PersonalityVector = {
   energy: 50,

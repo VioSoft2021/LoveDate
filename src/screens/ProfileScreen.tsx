@@ -19,7 +19,10 @@ import {
   translateInterest,
   translateRelationshipIntent,
 } from '../constants'
-import { PERSONALITY_QUESTIONS, type PersonalityAnswer } from '../services/compatibility'
+import {
+  getPersonalityQuestions,
+  type PersonalityAnswer,
+} from '../services/compatibility'
 import { toProfileDraft } from '../persistence'
 import { formatUiText } from '../utils'
 import {
@@ -693,7 +696,7 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
               >
                 {copy.profile.openGuide}
               </button>
-              {PERSONALITY_QUESTIONS.map((question, index) => (
+              {getPersonalityQuestions(appLanguage).map((question, index) => (
                 <label key={question.id} className="full-width">
                   {question.prompt}
                   <select
