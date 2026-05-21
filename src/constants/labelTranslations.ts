@@ -94,6 +94,58 @@ const RELATIONSHIP_INTENT_LABELS_RO: Record<string, string> = {
   'Serious with playful energy': 'Serios, cu energie jucăușă',
 }
 
+// Lifestyle option labels (drinking, smoking, pets, children, religion,
+// politics, workout, education). Used wherever profile select-option
+// values display as text. The common "Prefer not to say" + edge cases
+// like "Allergic" / "Trying to quit" are covered so profile detail
+// stays consistent.
+const LIFESTYLE_LABELS_RO: Record<string, string> = {
+  // Common / shared
+  'Prefer not to say': 'Prefer să nu spun',
+  // DRINKING
+  Often: 'Des',
+  Socially: 'Social',
+  Rarely: 'Rar',
+  Never: 'Niciodată',
+  Sober: 'Sobru',
+  // SMOKING
+  'Trying to quit': 'Încerc să mă las',
+  // PETS
+  'Have a dog': 'Am un câine',
+  'Have a cat': 'Am o pisică',
+  'Have other pets': 'Am alte animale',
+  'Want pets': 'Vreau animale',
+  'No pets': 'Fără animale',
+  Allergic: 'Alergic',
+  // CHILDREN
+  'Have kids': 'Am copii',
+  'Want kids': 'Vreau copii',
+  "Don't want kids": 'Nu vreau copii',
+  'Open to kids': 'Deschis la copii',
+  // RELIGION
+  Spiritual: 'Spiritual',
+  Religious: 'Religios',
+  'Not religious': 'Nereligios',
+  Agnostic: 'Agnostic',
+  Atheist: 'Ateu',
+  // POLITICS
+  Liberal: 'Liberal',
+  Conservative: 'Conservator',
+  Moderate: 'Moderat',
+  Apolitical: 'Apolitic',
+  // WORKOUT
+  Daily: 'Zilnic',
+  Weekly: 'Săptămânal',
+  'Now and then': 'Din când în când',
+  // EDUCATION
+  'High school': 'Liceu',
+  'Some college': 'Studii universitare începute',
+  Bachelors: 'Licență',
+  Masters: 'Master',
+  PhD: 'Doctorat',
+  Other: 'Altele',
+}
+
 export const translateInterest = (label: string, language: AppLanguage): string => {
   if (language !== 'ro') return label
   return INTEREST_LABELS_RO[label] ?? INTEREST_LABELS_RO[label.trim()] ?? label
@@ -102,6 +154,14 @@ export const translateInterest = (label: string, language: AppLanguage): string 
 export const translateRelationshipIntent = (label: string, language: AppLanguage): string => {
   if (language !== 'ro') return label
   return RELATIONSHIP_INTENT_LABELS_RO[label] ?? label
+}
+
+// Translates lifestyle option values (drinking, smoking, pets, children,
+// religion, politics, workout, education). Falls back to the original
+// English label if no translation exists.
+export const translateLifestyleOption = (label: string, language: AppLanguage): string => {
+  if (language !== 'ro') return label
+  return LIFESTYLE_LABELS_RO[label] ?? LIFESTYLE_LABELS_RO[label.trim()] ?? label
 }
 
 export const translateInterestForSentence = (label: string, language: AppLanguage): string => {

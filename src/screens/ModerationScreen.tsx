@@ -1,5 +1,5 @@
 import React from 'react'
-import { UI_TEXT } from '../constants'
+import { UI_TEXT, translateRelationshipIntent } from '../constants'
 import type { AppLanguage, ModerationFilter } from '../domain'
 import type { ModerationStatus, SafetyReport } from '../services/moderation'
 import { backendListClientErrors, type ClientErrorRow } from '../services/backendApi'
@@ -183,7 +183,10 @@ export const ModerationScreen: React.FC<ModerationScreenProps> = ({
             <p>
               <strong>{ro ? 'Context' : 'Context'}:</strong>{' '}
               {selectedModerationReport.profileSnapshot.city} {'•'}{' '}
-              {selectedModerationReport.profileSnapshot.relationshipGoal}
+              {translateRelationshipIntent(
+                selectedModerationReport.profileSnapshot.relationshipGoal,
+                appLanguage,
+              )}
             </p>
             <p>
               <strong>{copy.profile.vibe}:</strong> {selectedModerationReport.profileSnapshot.vibe}
