@@ -94,56 +94,107 @@ const RELATIONSHIP_INTENT_LABELS_RO: Record<string, string> = {
   'Serious with playful energy': 'Serios, cu energie jucăușă',
 }
 
-// Lifestyle option labels (drinking, smoking, pets, children, religion,
-// politics, workout, education). Used wherever profile select-option
-// values display as text. The common "Prefer not to say" + edge cases
-// like "Allergic" / "Trying to quit" are covered so profile detail
-// stays consistent.
+// Lifestyle / profile option labels — every select-option value the
+// app renders as text. Single map covers gender, orientation, pronouns,
+// looking-for, drinking, smoking, workout, pets, children, religion,
+// politics, and the common "Prefer not to say" / "Other" fallbacks.
+// Source-of-truth lists live in src/constants/profile.ts.
 const LIFESTYLE_LABELS_RO: Record<string, string> = {
-  // Common / shared
+  // ── Shared fallbacks ─────────────────────────────────────────────
   'Prefer not to say': 'Prefer să nu spun',
-  // DRINKING
-  Often: 'Des',
-  Socially: 'Social',
-  Rarely: 'Rar',
+  Other: 'Altele',
   Never: 'Niciodată',
+
+  // ── GENDER (Woman, Man, Non-binary) ──────────────────────────────
+  Woman: 'Femeie',
+  Man: 'Bărbat',
+  'Non-binary': 'Non-binar',
+
+  // ── PRONOUNS (She/Her, He/Him, They/Them, She/They, He/They, Other)
+  'She/Her': 'Ea/A ei',
+  'He/Him': 'El/Al lui',
+  'They/Them': 'Ei/Lor',
+  'She/They': 'Ea/Ei',
+  'He/They': 'El/Ei',
+
+  // ── ORIENTATION ──────────────────────────────────────────────────
+  Straight: 'Heterosexual(ă)',
+  Gay: 'Gay',
+  Lesbian: 'Lesbiană',
+  Bisexual: 'Bisexual(ă)',
+  Pansexual: 'Pansexual(ă)',
+  Asexual: 'Asexual(ă)',
+  Queer: 'Queer',
+  Open: 'Deschis(ă)',
+
+  // ── DRINKING (Never, Rarely, Socially, Often, Prefer not to say) ─
+  Rarely: 'Rar',
+  Socially: 'Social',
+  Often: 'Des',
   Sober: 'Sobru',
-  // SMOKING
+
+  // ── SMOKING (Regularly, Trying to quit) ──────────────────────────
+  Regularly: 'Regulat',
   'Trying to quit': 'Încerc să mă las',
-  // PETS
-  'Have a dog': 'Am un câine',
-  'Have a cat': 'Am o pisică',
-  'Have other pets': 'Am alte animale',
-  'Want pets': 'Vreau animale',
-  'No pets': 'Fără animale',
-  Allergic: 'Alergic',
-  // CHILDREN
-  'Have kids': 'Am copii',
-  'Want kids': 'Vreau copii',
-  "Don't want kids": 'Nu vreau copii',
-  'Open to kids': 'Deschis la copii',
-  // RELIGION
-  Spiritual: 'Spiritual',
-  Religious: 'Religios',
-  'Not religious': 'Nereligios',
-  Agnostic: 'Agnostic',
-  Atheist: 'Ateu',
-  // POLITICS
-  Liberal: 'Liberal',
-  Conservative: 'Conservator',
-  Moderate: 'Moderat',
-  Apolitical: 'Apolitic',
-  // WORKOUT
+
+  // ── WORKOUT (Sometimes, 1-2x per week, 3x per week, 4-5x per week, Daily)
+  Sometimes: 'Uneori',
+  '1-2x per week': 'De 1-2 ori pe săptămână',
+  '3x per week': 'De 3 ori pe săptămână',
+  '4-5x per week': 'De 4-5 ori pe săptămână',
   Daily: 'Zilnic',
   Weekly: 'Săptămânal',
   'Now and then': 'Din când în când',
-  // EDUCATION
+
+  // ── PETS (Dog person, Cat person, Both, Allergic, Want one) ──────
+  'Dog person': 'Iubitor de câini',
+  'Cat person': 'Iubitor de pisici',
+  Both: 'Ambele',
+  Allergic: 'Alergic',
+  'Want one': 'Vreau unul',
+
+  // ── CHILDREN_PLAN ────────────────────────────────────────────────
+  'Want someday': 'Vreau cândva',
+  'Maybe someday': 'Poate cândva',
+  'Don’t want': 'Nu vreau',
+  'Have and want more': 'Am și mai vreau',
+  'Have, don’t want more': 'Am, nu mai vreau',
+  // ASCII apostrophe fallbacks in case data uses straight apostrophes
+  "Don't want": 'Nu vreau',
+  "Have, don't want more": 'Am, nu mai vreau',
+
+  // ── RELIGION ─────────────────────────────────────────────────────
+  Agnostic: 'Agnostic',
+  Atheist: 'Ateu',
+  Buddhist: 'Budist',
+  Christian: 'Creștin',
+  Hindu: 'Hindus',
+  Jewish: 'Evreu',
+  Muslim: 'Musulman',
+  Spiritual: 'Spiritual',
+  Religious: 'Religios',
+  'Not religious': 'Nereligios',
+
+  // ── POLITICS ─────────────────────────────────────────────────────
+  Liberal: 'Liberal',
+  Moderate: 'Moderat',
+  Conservative: 'Conservator',
+  Apolitical: 'Apolitic',
+
+  // ── EDUCATION (in case data table grows) ─────────────────────────
   'High school': 'Liceu',
   'Some college': 'Studii universitare începute',
   Bachelors: 'Licență',
   Masters: 'Master',
   PhD: 'Doctorat',
-  Other: 'Altele',
+
+  // ── LOOKING FOR (already covered by RELATIONSHIP_INTENT_LABELS_RO,
+  //    but mirror here as fallback for any place that uses
+  //    translateLifestyleOption on this value) ──────────────────────
+  'Long-term': 'Pe termen lung',
+  'Short-term': 'Pe termen scurt',
+  Friends: 'Prietenie',
+  'Figuring it out': 'Mă caut',
 }
 
 export const translateInterest = (label: string, language: AppLanguage): string => {

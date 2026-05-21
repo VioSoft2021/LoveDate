@@ -42,6 +42,7 @@ const Harness: React.FC<{
       setFilters={setFilters}
       cityOptions={cities}
       ZODIAC_EMOJI={ZODIAC_EMOJI}
+      appLanguage="en"
     />
   )
 }

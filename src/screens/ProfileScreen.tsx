@@ -17,6 +17,7 @@ import {
   getZodiacDescription,
   ZODIAC_OPTIONS,
   translateInterest,
+  translateLifestyleOption,
   translateRelationshipIntent,
 } from '../constants'
 import {
@@ -452,10 +453,10 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                   value={profileDraft.pronouns}
                   onChange={(event) => handleProfileDraftChange('pronouns', event.target.value)}
                 >
-                  <option value="">Select...</option>
+                  <option value="">{copy.common.selectPlaceholder}</option>
                   {PRONOUNS_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {translateLifestyleOption(opt, appLanguage)}
                     </option>
                   ))}
                 </select>
@@ -466,10 +467,10 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                   value={profileDraft.gender}
                   onChange={(event) => handleProfileDraftChange('gender', event.target.value)}
                 >
-                  <option value="">Select...</option>
+                  <option value="">{copy.common.selectPlaceholder}</option>
                   {GENDER_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {translateLifestyleOption(opt, appLanguage)}
                     </option>
                   ))}
                 </select>
@@ -480,10 +481,10 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                   value={profileDraft.orientation}
                   onChange={(event) => handleProfileDraftChange('orientation', event.target.value)}
                 >
-                  <option value="">Select...</option>
+                  <option value="">{copy.common.selectPlaceholder}</option>
                   {ORIENTATION_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {translateLifestyleOption(opt, appLanguage)}
                     </option>
                   ))}
                 </select>
@@ -567,10 +568,10 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                   value={profileDraft.lookingFor}
                   onChange={(event) => handleProfileDraftChange('lookingFor', event.target.value)}
                 >
-                  <option value="">Select...</option>
+                  <option value="">{copy.common.selectPlaceholder}</option>
                   {LOOKING_FOR_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {translateLifestyleOption(opt, appLanguage)}
                     </option>
                   ))}
                 </select>
@@ -583,10 +584,10 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                     handleProfileDraftChange('relationshipIntent', event.target.value)
                   }
                 >
-                  <option value="">Select...</option>
+                  <option value="">{copy.common.selectPlaceholder}</option>
                   {RELATIONSHIP_INTENT_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {translateLifestyleOption(opt, appLanguage)}
                     </option>
                   ))}
                 </select>
@@ -757,10 +758,10 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                   value={profileDraft.drinking}
                   onChange={(event) => handleProfileDraftChange('drinking', event.target.value)}
                 >
-                  <option value="">Select...</option>
+                  <option value="">{copy.common.selectPlaceholder}</option>
                   {DRINKING_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {translateLifestyleOption(opt, appLanguage)}
                     </option>
                   ))}
                 </select>
@@ -771,10 +772,10 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                   value={profileDraft.smoking}
                   onChange={(event) => handleProfileDraftChange('smoking', event.target.value)}
                 >
-                  <option value="">Select...</option>
+                  <option value="">{copy.common.selectPlaceholder}</option>
                   {SMOKING_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {translateLifestyleOption(opt, appLanguage)}
                     </option>
                   ))}
                 </select>
@@ -785,10 +786,10 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                   value={profileDraft.workout}
                   onChange={(event) => handleProfileDraftChange('workout', event.target.value)}
                 >
-                  <option value="">Select...</option>
+                  <option value="">{copy.common.selectPlaceholder}</option>
                   {WORKOUT_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {translateLifestyleOption(opt, appLanguage)}
                     </option>
                   ))}
                 </select>
@@ -799,10 +800,10 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                   value={profileDraft.pets}
                   onChange={(event) => handleProfileDraftChange('pets', event.target.value)}
                 >
-                  <option value="">Select...</option>
+                  <option value="">{copy.common.selectPlaceholder}</option>
                   {PETS_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {translateLifestyleOption(opt, appLanguage)}
                     </option>
                   ))}
                 </select>
@@ -815,10 +816,10 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                     handleProfileDraftChange('childrenPlan', event.target.value)
                   }
                 >
-                  <option value="">Select...</option>
+                  <option value="">{copy.common.selectPlaceholder}</option>
                   {CHILDREN_PLAN_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {translateLifestyleOption(opt, appLanguage)}
                     </option>
                   ))}
                 </select>
@@ -829,10 +830,10 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                   value={profileDraft.religion}
                   onChange={(event) => handleProfileDraftChange('religion', event.target.value)}
                 >
-                  <option value="">Select...</option>
+                  <option value="">{copy.common.selectPlaceholder}</option>
                   {RELIGION_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {translateLifestyleOption(opt, appLanguage)}
                     </option>
                   ))}
                 </select>
@@ -843,10 +844,10 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                   value={profileDraft.politics}
                   onChange={(event) => handleProfileDraftChange('politics', event.target.value)}
                 >
-                  <option value="">Select...</option>
+                  <option value="">{copy.common.selectPlaceholder}</option>
                   {POLITICS_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {translateLifestyleOption(opt, appLanguage)}
                     </option>
                   ))}
                 </select>
@@ -857,10 +858,10 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                   value={profileDraft.zodiac}
                   onChange={(event) => handleProfileDraftChange('zodiac', event.target.value)}
                 >
-                  <option value="">Select...</option>
+                  <option value="">{copy.common.selectPlaceholder}</option>
                   {ZODIAC_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {translateLifestyleOption(opt, appLanguage)}
                     </option>
                   ))}
                 </select>

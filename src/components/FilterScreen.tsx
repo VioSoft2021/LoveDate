@@ -1,6 +1,8 @@
 import React from 'react';
 import './FilterScreen.css';
 import type { Filters } from '../App';
+import type { AppLanguage } from '../domain';
+import { UI_TEXT } from '../constants';
 
 export interface FilterScreenProps {
   filters: Filters;
@@ -11,6 +13,7 @@ export interface FilterScreenProps {
   /** Kept for backwards-compat; relationship goals are now a fixed list. */
   relationshipGoalOptions?: string[];
   ZODIAC_EMOJI: Record<string, string>;
+  appLanguage: AppLanguage;
 }
 
 export const FilterScreen: React.FC<FilterScreenProps> = ({
@@ -21,14 +24,17 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
   // the deck-derived lists hid options for genders that hadn't yet been
   // loaded. We now render fixed lists matching the schema CHECK constraints.
   ZODIAC_EMOJI,
+  appLanguage,
 }) => {
+  const copy = UI_TEXT[appLanguage];
+  const f = copy.filters;
+  const any = copy.common.any;
   return (
     <div className="filter-screen">
-      <h1>Filters</h1>
-      <section className="filters" aria-label="Profile filters">
-        {/* All filter controls, same as before */}
+      <h1>{f.title}</h1>
+      <section className="filters" aria-label={f.title}>
         <label>
-          Zodiac Compatibility
+          {f.zodiacCompatibility}
           <select
             value={filters.zodiacCompatibility}
             onChange={(event) =>
@@ -38,7 +44,7 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
               }))
             }
           >
-            <option value="">Any</option>
+            <option value="">{any}</option>
             {Object.keys(ZODIAC_EMOJI).map((sign) => (
               <option key={sign} value={sign}>
                 {sign} {ZODIAC_EMOJI[sign]}
@@ -47,7 +53,7 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
           </select>
         </label>
         <label>
-          Min Age
+          {f.minAge}
           <input
             type="number"
             min={18}
@@ -65,7 +71,7 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
           />
         </label>
         <label>
-          Max Age
+          {f.maxAge}
           <input
             type="number"
             min={18}
@@ -83,7 +89,7 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
           />
         </label>
         <label>
-          City
+          {f.city}
           <select
             value={filters.city}
             onChange={(event) =>
@@ -93,7 +99,7 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
               }))
             }
           >
-            <option value="">Any</option>
+            <option value="">{any}</option>
             {cityOptions.map((city) => (
               <option key={city} value={city}>
                 {city}
@@ -102,10 +108,10 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
           </select>
         </label>
         <label>
-          Interest
+          {f.interest}
           <input
             type="text"
-            placeholder="e.g. brunch"
+            placeholder={f.interestPlaceholder}
             value={filters.interest}
             onChange={(event) =>
               setFilters((current) => ({
@@ -116,7 +122,7 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
           />
         </label>
         <label>
-          Gender
+          {f.gender}
           <select
             value={filters.gender}
             onChange={(event) =>
@@ -126,14 +132,14 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
               }))
             }
           >
-            <option value="any">Any</option>
-            <option value="woman">Woman</option>
-            <option value="man">Man</option>
-            <option value="non-binary">Non-binary</option>
+            <option value="any">{any}</option>
+            <option value="woman">{f.genderWoman}</option>
+            <option value="man">{f.genderMan}</option>
+            <option value="non-binary">{f.genderNonBinary}</option>
           </select>
         </label>
         <label>
-          Looking For
+          {f.lookingFor}
           <select
             value={filters.relationshipGoal}
             onChange={(event) =>
@@ -143,15 +149,15 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
               }))
             }
           >
-            <option value="any">Any</option>
-            <option value="Long-term">Long-term</option>
-            <option value="Short-term">Short-term</option>
-            <option value="Friends">Friends</option>
-            <option value="Figuring it out">Figuring it out</option>
+            <option value="any">{any}</option>
+            <option value="Long-term">{f.goalLongTerm}</option>
+            <option value="Short-term">{f.goalShortTerm}</option>
+            <option value="Friends">{f.goalFriends}</option>
+            <option value="Figuring it out">{f.goalFiguringItOut}</option>
           </select>
         </label>
         <label>
-          Max Distance (km)
+          {f.maxDistance}
           <input
             type="range"
             min={2}
@@ -168,7 +174,7 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
           <span>{filters.maxDistanceKm} km</span>
         </label>
         <label>
-          Sort By
+          {f.sortBy}
           <select
             value={filters.sortBy}
             onChange={(event) =>
@@ -178,14 +184,14 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
               }))
             }
           >
-            <option value="recommended">Recommended</option>
-            <option value="nearest">Nearest</option>
-            <option value="youngest">Youngest</option>
-            <option value="oldest">Oldest</option>
+            <option value="recommended">{f.sortRecommended}</option>
+            <option value="nearest">{f.sortNearest}</option>
+            <option value="youngest">{f.sortYoungest}</option>
+            <option value="oldest">{f.sortOldest}</option>
           </select>
         </label>
         <label className="toggle">
-          Verified Only
+          {f.verifiedOnly}
           <input
             type="checkbox"
             checked={filters.verifiedOnly}

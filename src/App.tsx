@@ -2655,6 +2655,7 @@ function App() {
               genderOptions={genderOptions}
               relationshipGoalOptions={relationshipGoalOptions}
               ZODIAC_EMOJI={ZODIAC_EMOJI}
+              appLanguage={appLanguage}
             />
           </section>
         )}
