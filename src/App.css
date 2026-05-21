@@ -4984,25 +4984,44 @@ details.profile-settings.settings-card[open] > summary {
   line-height: 0.9;
   display: inline-block;
   position: relative;
+  /* Isolate stacking context so the negative z-index on the accent's
+     ::before stays scoped to this wordmark — it sits behind the E,
+     not behind sibling content in the header. */
+  isolation: isolate;
 }
 
 /* The E in PRIVÉ — accent line sits above it via ::before pseudo-element.
    Line extends ~37% beyond the E on either side (the Direction-D
-   elongated accent the user approved). */
+   elongated accent the user approved).
+   The gradient must be reapplied here because -webkit-background-clip:
+   text on the parent .ld-logo-text doesn't always reach this child span
+   when it's inline-block (the child creates its own formatting context).
+   Reported by Master: on mobile, the E disappeared behind the line. */
 .ld-logo-text-e {
   position: relative;
   display: inline-block;
+  background: var(--prive-gold-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 .ld-logo-text-e::before {
   content: '';
   position: absolute;
-  top: -0.32em;
+  top: -0.42em;
   left: -38%;
   width: 175%;
   height: 0.08em;
   background: var(--prive-gold-grad);
   border-radius: 999px;
   filter: drop-shadow(var(--prive-gold-shadow));
+  /* The line must paint BELOW the parent's text rendering so the E
+     stays visible. Pseudo-elements default to z-index 0, which can
+     sit above the parent's text layer in some browsers. Force it
+     below with a negative z-index — the parent gets `isolation: isolate`
+     to create a stacking context so the negative z-index stays scoped. */
+  z-index: -1;
 }
 
 .ld-logo-slogan {

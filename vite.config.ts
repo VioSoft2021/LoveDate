@@ -28,7 +28,13 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'sw.ts',
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'pwa-icon-192.png', 'pwa-icon-512.png'],
+      includeAssets: [
+        'favicon.svg',
+        'favicon.png',
+        'apple-touch-icon.png',
+        'pwa-icon-192.png',
+        'pwa-icon-512.png',
+      ],
       manifest: {
         name: 'Privé',
         short_name: 'Privé',
