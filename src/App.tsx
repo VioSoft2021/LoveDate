@@ -58,6 +58,7 @@ import {
   backendRepairDiscoverableProfile,
   backendSubmitReport,
   backendRecordSwipe,
+  backendAdminSetProfileActive,
   backendDeleteSelfAccount,
   backendSendChatMessage,
   backendLoadChatHistory,
@@ -1872,6 +1873,45 @@ function App() {
     blockProfileById(profile.id, profile.name)
   }
 
+  // D5 admin moderation: deactivate (or reactivate) a profile via the
+  // admin_set_profile_active RPC. The server gates this on public.is_admin();
+  // we additionally hide the trigger in the UI when isModerationAdmin is
+  // false so a non-admin never sees the button. After success the user
+  // is bumped back to Discover so the now-hidden profile isn't lingering.
+  const handleToggleProfileActive = useCallback(
+    async (profile: Profile) => {
+      const nextActive = false // for the friend-test use case, only deactivation
+      const confirmMsg =
+        appLanguage === 'ro'
+          ? `Dezactivează profilul "${profile.name}"? Va dispărea din toate deck-urile.`
+          : `Deactivate "${profile.name}"? It will disappear from every deck.`
+      if (typeof window !== 'undefined' && !window.confirm(confirmMsg)) {
+        return
+      }
+      const ok = await backendAdminSetProfileActive(profile.id, nextActive)
+      if (!ok) {
+        pushToast(
+          appLanguage === 'ro'
+            ? 'Acțiunea de moderare a eșuat. Verifică drepturile de admin.'
+            : 'Moderation action failed. Check admin permissions.',
+          'error',
+        )
+        return
+      }
+      pushToast(
+        appLanguage === 'ro'
+          ? `${profile.name} a fost dezactivat.`
+          : `${profile.name} has been deactivated.`,
+        'success',
+      )
+      closeProfileDetail()
+      // Remove the deactivated profile from local deck immediately so the
+      // user doesn't have to wait for the next loadProfiles() refresh.
+      setAllProfiles((current) => current.filter((p) => p.id !== profile.id))
+    },
+    [appLanguage, pushToast, closeProfileDetail, setAllProfiles],
+  )
+
   const resolveAndBlockReport = (report: SafetyReport) => {
     updateReportStatus(report.id, 'resolved')
     blockProfileById(report.profileId, report.profileName)
@@ -2908,6 +2948,8 @@ function App() {
             openLightbox={openLightbox}
             closeProfileDetail={closeProfileDetail}
             onBackToDiscover={() => navigate('discover')}
+            isModerationAdmin={isModerationAdmin}
+            onToggleProfileActive={handleToggleProfileActive}
           />
         )}
       </section>

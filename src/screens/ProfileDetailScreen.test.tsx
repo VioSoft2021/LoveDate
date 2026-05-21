@@ -82,6 +82,8 @@ const baseProps: ProfileDetailScreenProps = {
   openLightbox: vi.fn(),
   closeProfileDetail: vi.fn(),
   onBackToDiscover: vi.fn(),
+  isModerationAdmin: false,
+  onToggleProfileActive: vi.fn(),
 }
 
 describe('ProfileDetailScreen — empty state', () => {

@@ -976,6 +976,31 @@ export const backendDeleteSelfAccount = async (): Promise<boolean> => {
 }
 
 /**
+ * D5 — admin moderation action: flip a profile's is_active flag.
+ * Server-side gated by public.is_admin() (checks public.admins table).
+ * When set to false, the profile disappears from every user's Discover
+ * deck immediately because getProfiles filters by is_active = true.
+ * Returns true on success, false on any failure (auth, no-such-profile,
+ * RPC unavailable). Caller surfaces an error toast on false.
+ */
+export const backendAdminSetProfileActive = async (
+  profileId: number,
+  active: boolean,
+): Promise<boolean> => {
+  if (!supabase) return false
+  const { data, error } = await supabase.rpc('admin_set_profile_active', {
+    p_profile_id: profileId,
+    p_active: active,
+  })
+  if (error) {
+
+    console.warn('admin_set_profile_active failed:', error.message)
+    return false
+  }
+  return data === true
+}
+
+/**
  * MED-15 — fire-and-forget crash logging. Captures React render errors
  * (via ErrorBoundary), unhandled promise rejections, and window errors
  * to the public.client_errors table. Anonymous inserts are allowed so a

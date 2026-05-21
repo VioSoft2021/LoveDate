@@ -34,6 +34,12 @@ export type ProfileDetailScreenProps = {
   openLightbox: (photo: string) => void
   closeProfileDetail: () => void
   onBackToDiscover: () => void
+  // D5 admin moderation: when true, an extra "Deactivate / Reactivate"
+  // button appears next to Report + Block. Hides the profile from
+  // every user's Discover deck server-side. Only rendered when the
+  // signed-in user is a moderation admin.
+  isModerationAdmin: boolean
+  onToggleProfileActive: (profile: Profile) => void
 }
 
 export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
@@ -49,6 +55,8 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
   openLightbox,
   closeProfileDetail,
   onBackToDiscover,
+  isModerationAdmin,
+  onToggleProfileActive,
 }) => {
   const copy = UI_TEXT[appLanguage]
   const ro = appLanguage === 'ro'
@@ -246,6 +254,16 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
           >
             {ro ? 'Blochează profilul' : 'Block profile'}
           </button>
+          {isModerationAdmin ? (
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => onToggleProfileActive(selectedDetailProfile)}
+              title={ro ? 'Acțiune de moderare' : 'Moderation action'}
+            >
+              {ro ? '🛠 Dezactivează (admin)' : '🛠 Deactivate (admin)'}
+            </button>
+          ) : null}
         </div>
         <ul>
           {getProfilePrompts(selectedDetailProfile).map((prompt, indexPrompt) => (
