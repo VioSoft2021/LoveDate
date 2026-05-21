@@ -1,17 +1,18 @@
-# LoveDate — security checklist
+# Privé — security checklist
 
-Last audited: 2026-05-19 (commit `058376f`). This is a one-page checklist for the operator (Master), not a policy doc. Items are sorted by severity.
+Last audited: 2026-05-21 (post custom-domain migration). This is a one-page checklist for the operator (Master), not a policy doc. Items are sorted by severity.
 
 ---
 
 ## What's exposed at the public URL
 
-The deploy URL `https://viosoft2021.github.io/LoveDate/` leaks:
-- **GitHub username** `viosoft2021` — anyone can find the GitHub account.
-- **Repo source** if `VioSoft2021/LoveDate` is public — every line of code, every commit message, every issue.
+The deploy URL is now **`https://prive-app.club`** (custom domain, HTTPS live as of 2026-05-21). The old `viosoft2021.github.io/LoveDate/` URL still works but auto-redirects to the custom domain — and no longer leaks the GitHub username in the address bar.
+
+What still leaks (lower-impact now):
+- **Repo source** if `VioSoft2021/LoveDate` is still public — every line of code, every commit message. The repo URL is no longer in the user-facing address bar, but anyone who runs `whois` or guesses the public-repo pattern can find it.
 - **Past commit authors** — git history may expose real names/emails of past contributors.
 
-This is a real concern for a dating app exposed to strangers. The dev's identity is a clear starting point for any hostile user. Mitigation: custom domain + private repo (see §5 below).
+Mitigation: privatize the repo (see §6 below). Less urgent now that the URL no longer fingerprints the operator.
 
 ---
 
@@ -62,27 +63,17 @@ A previous chat session pasted an Anthropic key in plain text. Per the memory no
 3. Supabase Dashboard → Project Settings → Edge Functions → Secrets → update `ANTHROPIC_API_KEY` to the new value.
 4. (No code changes; functions read the secret at request time.) Verify by calling any AI feature in the app — if it works, the new key is live.
 
-### 4. URL fingerprint — MEDIUM (privacy)
+### 4. URL fingerprint — ~~MEDIUM~~ ✅ RESOLVED 2026-05-21
 
-`viosoft2021.github.io` lets anyone correlate the app with the operator's GitHub identity. Fix via custom domain (§5).
+The deployed URL is now `https://prive-app.club` (custom domain on GitHub Pages, Let's Encrypt SSL auto-provisioned). The old `viosoft2021.github.io/LoveDate/` URL auto-redirects to the custom domain. The GitHub username is no longer exposed in the public address bar.
 
-### 5. Custom domain — MEDIUM (real privacy gain)
+### 5. Custom domain — ✅ DONE 2026-05-21
 
-**One-time setup, ~30 min, ~$10/year:**
+Migrated to `prive-app.club`. CNAME committed in `public/CNAME`. DNS A records point at the GitHub Pages IPs. HTTPS via Let's Encrypt. The "Enforce HTTPS" toggle is on in repo Pages settings.
 
-1. **Register a domain** at any registrar (Namecheap, Cloudflare Registrar — Cloudflare is cheapest, no markup). Suggested: a short brandable name like `lovedate.app`, `lovedate.ro`, `lovedate.io`.
-2. **Add a `CNAME` file** to this repo's `public/` folder containing just the domain on one line:
-   ```
-   lovedate.app
-   ```
-3. **DNS records** at the registrar (or Cloudflare DNS):
-   - For apex `lovedate.app`: four `A` records pointing to GitHub Pages IPs `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`.
-   - For `www.lovedate.app`: a `CNAME` record pointing to `viosoft2021.github.io`.
-4. **GitHub repo Settings → Pages**: set Custom domain to your new domain, enable "Enforce HTTPS" after the cert auto-provisions (~10 min).
-5. **vite.config.ts**: change the production `base` from `'/LoveDate/'` to `'/'` so paths resolve at the apex.
-6. **Update Supabase Auth redirect URLs** to the new domain so OAuth/magic-link flows still work.
-
-I can prep the CNAME file + the vite.config patch if you tell me the domain you registered.
+Remaining domain hygiene:
+- `prive.ro` not registered (deferred — international brand positioning doesn't require it; can grab defensively later if needed).
+- Supabase Auth redirect URLs may need updating to include `https://prive-app.club` if OAuth / magic-link flows fail. Master to verify in Supabase Dashboard → Authentication → URL Configuration.
 
 ### 6. Privatize the repo — LOW (defense in depth)
 
