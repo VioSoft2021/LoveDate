@@ -17,6 +17,7 @@ import {
   ZODIAC_DESCRIPTIONS,
   ZODIAC_OPTIONS,
   translateInterest,
+  translateRelationshipIntent,
 } from '../constants'
 import { PERSONALITY_QUESTIONS, type PersonalityAnswer } from '../services/compatibility'
 import { toProfileDraft } from '../persistence'
@@ -314,7 +315,8 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
           <h3>{copy.profile.aboutMe}</h3>
           <p>{selfProfile.bio}</p>
           <p className="profile-about-meta">
-            {selfProfile.jobTitle} at {selfProfile.company} {'•'} {selfProfile.lookingFor}
+            {selfProfile.jobTitle} {copy.profile.jobAtCompany} {selfProfile.company} {'•'}{' '}
+            {translateRelationshipIntent(selfProfile.lookingFor, appLanguage)}
           </p>
           <p className="compatibility-score">
             {copy.profile.personalityCode}: {selfPersonalityCode}

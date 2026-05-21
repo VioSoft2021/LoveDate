@@ -2809,6 +2809,7 @@ function App() {
 
         {screen === 'personality-guide' && (
           <PersonalityGuideScreen
+            appLanguage={appLanguage}
             selfPersonalityCode={selfPersonalityCode}
             onBackToProfile={() => navigate('profile')}
           />

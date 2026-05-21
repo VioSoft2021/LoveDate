@@ -86,18 +86,18 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
           {selectedDetailProfile.name}, {selectedDetailProfile.age}
         </h2>
         <p>
-          {ro ? 'Scor compatibilitate' : 'Compatibility score'}:{' '}
+          {copy.profile.compatibilityScore}:{' '}
           {selectedDetailMatchAnalysis?.score ?? getCompatibilityScore(selectedDetailProfile)}%
         </p>
         <p>
-          {ro ? 'Potrivire de personalitate' : 'Personality fit'}:{' '}
+          {copy.profile.personalityFit}:{' '}
           {selectedDetailMatchAnalysis?.personalityScore ??
             compatibilityFromAnswers(
               selfProfile.personalityAnswers,
               selectedDetailProfile.personalityAnswers,
             )}
           %{' • '}
-          {ro ? 'Pereche' : 'Pair'}:{' '}
+          {copy.profile.pair}:{' '}
           {selectedDetailMatchAnalysis?.pairCode ??
             `${selfPersonalityCode} x ${selectedDetailPersonalityCode}`}
         </p>
@@ -122,76 +122,75 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
         </p>
         {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac] ? (
           <section className="match-insights zodiac-reading">
-            <h3>{ro ? 'Profil zodiacal' : 'Zodiac Profile'}</h3>
+            <h3>{copy.profile.zodiacProfileTitle}</h3>
             <p>
               <strong>
-                {selectedDetailProfile.zodiac} {ro ? 'pe scurt' : 'overview'}:
+                {selectedDetailProfile.zodiac} {copy.profile.zodiacOverview}:
               </strong>{' '}
               {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].overview}
             </p>
             <ul>
               <li>
-                <strong>Love style:</strong>{' '}
+                <strong>{copy.profile.zodiacLoveStyle}:</strong>{' '}
                 {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].loveStyle}
               </li>
               <li>
-                <strong>Communication:</strong>{' '}
+                <strong>{copy.profile.zodiacCommunication}:</strong>{' '}
                 {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].communication}
               </li>
               <li>
-                <strong>Green flags:</strong>{' '}
+                <strong>{copy.profile.zodiacGreenFlags}:</strong>{' '}
                 {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].greenFlags}
               </li>
               <li>
-                <strong>Growth edge:</strong>{' '}
+                <strong>{copy.profile.zodiacGrowthEdge}:</strong>{' '}
                 {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].growthEdge}
               </li>
               <li>
-                <strong>Emotional needs:</strong>{' '}
+                <strong>{copy.profile.zodiacEmotionalNeeds}:</strong>{' '}
                 {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.emotionalNeeds ??
-                  'Connection, honesty, and safety.'}
+                  copy.profile.defaultEmotionalNeeds}
               </li>
               <li>
-                <strong>Intimacy style:</strong>{' '}
+                <strong>{copy.profile.zodiacIntimacyStyle}:</strong>{' '}
                 {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.intimacyStyle ??
-                  'Expressive and relational.'}
+                  copy.profile.defaultIntimacyStyle}
               </li>
               <li>
-                <strong>Conflict style:</strong>{' '}
+                <strong>{copy.profile.zodiacConflictStyle}:</strong>{' '}
                 {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.conflictStyle ??
-                  'Seeks resolution with care.'}
+                  copy.profile.defaultConflictStyle}
               </li>
               <li>
-                <strong>Ideal date energy:</strong>{' '}
+                <strong>{copy.profile.zodiacIdealDateEnergy}:</strong>{' '}
                 {ZODIAC_DEEP_DIVE[selectedDetailProfile.zodiac]?.idealDateEnergy ??
-                  'Balanced and authentic.'}
+                  copy.profile.defaultIdealDateEnergy}
               </li>
               <li>
-                <strong>Best matches:</strong>{' '}
+                <strong>{copy.profile.zodiacBestMatches}:</strong>{' '}
                 {ZODIAC_DESCRIPTIONS[selectedDetailProfile.zodiac].bestMatches}
               </li>
             </ul>
-            <p className="soft">
-              {ro
-                ? 'Lectură completă: acest semn tinde să se simtă cel mai împlinit atunci când ritmul relației, limbajul emoțional și comportamentul de zi cu zi se aliniază cu aceste trăsături, nu doar atracția.'
-                : 'Complete reading: This sign tends to feel most fulfilled when relationship pacing, emotional language, and daily behavior align with these traits, not just attraction.'}
-            </p>
+            <p className="soft">{copy.profile.zodiacReadingFooter}</p>
           </section>
         ) : null}
         {selectedDetailChemistry ? (
           <section className="match-insights">
-            <h3>{ro ? 'Chimia compatibilității' : 'Compatibility Chemistry'}</h3>
+            <h3>{copy.profile.compatibilityChemistryTitle}</h3>
             <ul>
               <li>
-                <strong>Total chemistry:</strong> {selectedDetailChemistry.chemistryScore}%
+                <strong>{copy.profile.totalChemistry}:</strong>{' '}
+                {selectedDetailChemistry.chemistryScore}%
               </li>
               <li>
-                <strong>Cognitive overlap:</strong>{' '}
+                <strong>{copy.profile.cognitiveOverlap}:</strong>{' '}
                 {selectedDetailChemistry.cognitiveOverlapScore}%
               </li>
               <li>
-                <strong>Zodiac:</strong>{' '}
-                {selectedDetailChemistry.zodiacAligned ? 'Aligned' : 'Neutral'}
+                <strong>{copy.profile.zodiac}:</strong>{' '}
+                {selectedDetailChemistry.zodiacAligned
+                  ? copy.discover.aligned
+                  : copy.discover.neutral}
               </li>
             </ul>
             <p className="soft">{selectedDetailChemistry.summary}</p>
@@ -199,32 +198,36 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
         ) : null}
         {selectedDetailTypeGuide ? (
           <p>
-            <strong>{copy.chats.type}:</strong> {selectedDetailPersonalityCode} -{' '}
+            <strong>{copy.profile.type}:</strong> {selectedDetailPersonalityCode} -{' '}
             {selectedDetailTypeGuide.label}
           </p>
         ) : null}
         {selectedDetailCognitiveFunctions ? (
           <section className="match-insights">
-            <h3>{ro ? 'Funcții cognitive' : 'Cognitive Functions'}</h3>
+            <h3>{copy.profile.cognitiveFunctionsTitle}</h3>
             <ul>
               <li>
-                <strong>Primary:</strong> {selectedDetailCognitiveFunctions.primary}
+                <strong>{copy.profile.primary}:</strong>{' '}
+                {selectedDetailCognitiveFunctions.primary}
               </li>
               <li>
-                <strong>Support:</strong> {selectedDetailCognitiveFunctions.support}
+                <strong>{copy.profile.support}:</strong>{' '}
+                {selectedDetailCognitiveFunctions.support}
               </li>
               <li>
-                <strong>Tertiary:</strong> {selectedDetailCognitiveFunctions.tertiary}
+                <strong>{copy.profile.tertiary}:</strong>{' '}
+                {selectedDetailCognitiveFunctions.tertiary}
               </li>
               <li>
-                <strong>Shadow:</strong> {selectedDetailCognitiveFunctions.shadow}
+                <strong>{copy.profile.shadow}:</strong>{' '}
+                {selectedDetailCognitiveFunctions.shadow}
               </li>
             </ul>
           </section>
         ) : null}
         {selectedDetailMatchAnalysis ? (
           <section className="match-insights">
-            <h3>{ro ? 'De ce vă potriviți' : 'Why you match'}</h3>
+            <h3>{copy.profile.whyYouMatchTitle}</h3>
             <ul>
               {selectedDetailMatchAnalysis.reasons.map((reason) => (
                 <li key={reason}>{reason}</li>
