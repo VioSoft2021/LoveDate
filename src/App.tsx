@@ -2023,7 +2023,7 @@ function App() {
     if (socialConnectedCount === 1) {
       return 'Nice start. Add another social account to improve trust and discoverability.'
     }
-    return 'Connect social accounts to build trust and help friends discover you faster on LoveDate.'
+    return 'Connect social accounts to build trust and help friends discover you faster on Privé.'
   }, [socialConnectedCount])
 
   const saveSelfProfilePatch = useCallback(
@@ -2044,7 +2044,7 @@ function App() {
 
   const suggestSocialHandle = (platform: SocialPlatform): string => {
     const baseFromName = selfProfile.name.toLowerCase().replace(/[^a-z0-9]+/g, '')
-    const fallback = baseFromName.length > 0 ? baseFromName : 'lovedateuser'
+    const fallback = baseFromName.length > 0 ? baseFromName : 'priveuser'
     if (platform === 'instagram') {
       return selfProfile.instagram.replace(/^@+/, '').trim() || fallback
     }
@@ -2088,7 +2088,7 @@ function App() {
     saveSelfProfilePatch(nextProfile, checked ? 'Social sharing prompts enabled.' : 'Social sharing prompts paused.')
   }
 
-  const shareLoveDateOnPlatform = async (platform: SocialPlatform) => {
+  const sharePriveOnPlatform = async (platform: SocialPlatform) => {
     if (!selfProfile.socialPromotionOptIn) {
       pushToast('Enable social sharing prompts first.', 'info')
       return
@@ -2847,7 +2847,7 @@ function App() {
             selfProfile={selfProfile}
             toggleSocialPromotionOptIn={toggleSocialPromotionOptIn}
             setSocialConnectionDecision={setSocialConnectionDecision}
-            shareLoveDateOnPlatform={shareLoveDateOnPlatform}
+            sharePriveOnPlatform={sharePriveOnPlatform}
             activePlan={activePlan}
             setActivePlan={setActivePlan}
             persistActivePlan={persistActivePlan}
@@ -2933,7 +2933,7 @@ function App() {
               (appLanguage === 'ro' ? 'Potrivire' : 'Match')
             : appLanguage === 'ro' ? 'Potrivire' : 'Match'
         }
-        displayName={selfProfile.name || userEmail.split('@')[0] || 'LoveDate guest'}
+        displayName={selfProfile.name || userEmail.split('@')[0] || 'Privé guest'}
         jitsiProvider={jitsiProvider}
         onConnected={markCallConnected}
         onEnded={endCall}

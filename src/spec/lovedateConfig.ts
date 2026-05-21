@@ -43,7 +43,7 @@ export type TinderEquivalentConfig = {
 
 export const TINDER_EQUIVALENT_CONFIG: TinderEquivalentConfig = {
   app: {
-    name: 'LoveDate',
+    name: 'Privé',
     environment: 'development',
     locale: 'en-US',
     discoveryCardAspectRatio: 0.74,

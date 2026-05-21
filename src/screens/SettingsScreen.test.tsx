@@ -61,7 +61,7 @@ const baseProps: SettingsScreenProps = {
   selfProfile: emptySelfProfile,
   toggleSocialPromotionOptIn: vi.fn(),
   setSocialConnectionDecision: vi.fn(),
-  shareLoveDateOnPlatform: vi.fn(),
+  sharePriveOnPlatform: vi.fn(),
   activePlan: 'free',
   setActivePlan: vi.fn(),
   persistActivePlan: vi.fn(),

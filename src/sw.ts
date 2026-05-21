@@ -63,11 +63,11 @@ self.addEventListener('push', (event) => {
     try {
       data = event.data.json()
     } catch {
-      data = { title: 'LoveDate', body: event.data.text() }
+      data = { title: 'Privé', body: event.data.text() }
     }
   }
 
-  const title = data.title ?? 'LoveDate'
+  const title = data.title ?? 'Privé'
   const options: NotificationOptions = {
     body: data.body ?? 'You have a new message',
     icon: 'pwa-icon-192.png',

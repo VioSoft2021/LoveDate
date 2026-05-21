@@ -51,8 +51,8 @@ export const CallModal: React.FC<CallModalProps> = ({
   let statusLine: string
   if (callState.status === 'connecting') {
     statusLine = ro
-      ? 'Pregătim camera ta privată LoveDate...'
-      : 'Preparing your private LoveDate room...'
+      ? 'Pregătim camera ta privată Privé...'
+      : 'Preparing your private Privé room...'
   } else if (callState.status === 'error') {
     statusLine = ro
       ? 'Camera privată nu a putut fi pregătită.'

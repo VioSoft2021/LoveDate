@@ -126,7 +126,7 @@ export const createJitsiEmbedOptions = ({
       TOOLBAR_BUTTONS: EMBED_TOOLBAR_BUTTONS,
     },
     userInfo: {
-      displayName: displayName.trim() || 'LoveDate guest',
+      displayName: displayName.trim() || 'Privé guest',
     },
   }
 }

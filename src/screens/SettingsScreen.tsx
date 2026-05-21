@@ -29,7 +29,7 @@ export type SettingsScreenProps = {
   selfProfile: SelfProfile
   toggleSocialPromotionOptIn: (value: boolean) => void
   setSocialConnectionDecision: (platform: SocialPlatform, connected: boolean) => void
-  shareLoveDateOnPlatform: (platform: SocialPlatform) => Promise<void> | void
+  sharePriveOnPlatform: (platform: SocialPlatform) => Promise<void> | void
   activePlan: PlanTier
   setActivePlan: (plan: PlanTier) => void
   persistActivePlan: (plan: PlanTier) => void
@@ -67,7 +67,7 @@ const SettingsScreenInner: React.FC<SettingsScreenProps> = ({
   selfProfile,
   toggleSocialPromotionOptIn,
   setSocialConnectionDecision,
-  shareLoveDateOnPlatform,
+  sharePriveOnPlatform,
   activePlan,
   setActivePlan,
   persistActivePlan,
@@ -209,7 +209,7 @@ const SettingsScreenInner: React.FC<SettingsScreenProps> = ({
                   <button
                     type="button"
                     className="mini-btn"
-                    onClick={() => void shareLoveDateOnPlatform(platform.id)}
+                    onClick={() => void sharePriveOnPlatform(platform.id)}
                     disabled={!entry.connected || !selfProfile.socialPromotionOptIn}
                   >
                     {copy.settings.socialShare}

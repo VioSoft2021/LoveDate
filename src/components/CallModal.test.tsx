@@ -75,7 +75,7 @@ describe('CallModal', () => {
     render(
       <CallModal {...baseProps} callState={{ ...baseCallState, status: 'connecting' }} />,
     )
-    expect(screen.getByText(/Preparing your private LoveDate room/i)).toBeInTheDocument()
+    expect(screen.getByText(/Preparing your private Privé room/i)).toBeInTheDocument()
   })
 
   it('shows the error status when the room failed', () => {

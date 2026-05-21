@@ -20,7 +20,7 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({ errorInfo })
     if (typeof window !== 'undefined') {
-      console.error('[LoveDate] Render error:', error, errorInfo)
+      console.error('[Privé] Render error:', error, errorInfo)
     }
     // Fire-and-forget cloud log. backendLogClientError swallows any
     // throw so the already-broken UI never compounds.
@@ -76,7 +76,7 @@ export class ErrorBoundary extends Component<Props, State> {
           Something went wrong
         </h1>
         <p style={{ margin: 0, opacity: 0.85, maxWidth: '32rem', lineHeight: 1.5 }}>
-          LoveDate ran into an unexpected error. You can try reloading, or reset
+          Privé ran into an unexpected error. You can try reloading, or reset
           local data if the problem keeps happening.
         </p>
         <pre
