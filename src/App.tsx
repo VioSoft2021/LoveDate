@@ -116,6 +116,8 @@ import type {
   CirclePost,
   DatePlan,
   Filters,
+  HiddenEntry,
+  HiddenReason,
   MatchAnalysis,
   ModerationFilter,
   NotificationItem,
@@ -1016,52 +1018,80 @@ function App() {
     return allProfiles.filter((profile) => toGenderKey(profile.gender) === filters.gender)
   }, [allProfiles, filters.gender])
 
-  const filteredProfiles = useMemo(() => {
+  // D4: single-pass filter that also records WHY each profile was hidden.
+  // hiddenBreakdown surfaces the invisible — so the next time a friend is
+  // missing from the deck, the user sees the reason inline (1 tap) instead
+  // of us guessing across 4 commits. Plan: yes-start-with-a-soft-candle.md D4.
+  const { filteredProfiles, hiddenBreakdown } = useMemo(() => {
     const interestFilter = filters.interest.trim().toLowerCase()
     const selectedGoal = filters.relationshipGoal.toLowerCase()
 
-    const filtered = genderFilteredProfiles.filter((profile) => {
-      if (blockedProfileIds.includes(profile.id)) {
-        return false
-      }
-      const byAge = profile.age >= filters.minAge && profile.age <= filters.maxAge
-      const byCity = filters.city.length === 0 || profile.city === filters.city
-      const byInterest =
-        interestFilter.length === 0 ||
-        profile.interests.some((interest) => interest.toLowerCase().includes(interestFilter))
-      const byGoal =
-        selectedGoal === 'any' || profile.relationshipGoal.toLowerCase() === selectedGoal
-      const byDistance = profile.distanceKm <= filters.maxDistanceKm
-      const byVerified = !filters.verifiedOnly || profile.verified
-      const byReviewed = !swipedIds.has(profile.id)
-      let byZodiac = true
-      if (filters.zodiacCompatibility && filters.zodiacCompatibility !== 'any') {
-        // Show only profiles compatible with the selected sign
-        const compat = ZODIAC_COMPATIBILITY[filters.zodiacCompatibility] || []
-        byZodiac = compat.includes(profile.zodiac)
-      }
-      return byAge && byCity && byInterest && byGoal && byDistance && byVerified && byReviewed && byZodiac
-    })
+    const kept: Profile[] = []
+    const hidden: HiddenEntry[] = []
 
-    let sorted = filtered
+    for (const profile of genderFilteredProfiles) {
+      const reasons: HiddenReason[] = []
+      if (blockedProfileIds.includes(profile.id)) {
+        reasons.push('blocked')
+      }
+      if (!(profile.age >= filters.minAge && profile.age <= filters.maxAge)) {
+        reasons.push('age')
+      }
+      if (!(filters.city.length === 0 || profile.city === filters.city)) {
+        reasons.push('city')
+      }
+      if (
+        !(
+          interestFilter.length === 0 ||
+          profile.interests.some((interest) => interest.toLowerCase().includes(interestFilter))
+        )
+      ) {
+        reasons.push('interest')
+      }
+      if (!(selectedGoal === 'any' || profile.relationshipGoal.toLowerCase() === selectedGoal)) {
+        reasons.push('goal')
+      }
+      if (!(profile.distanceKm <= filters.maxDistanceKm)) {
+        reasons.push('distance')
+      }
+      if (filters.verifiedOnly && !profile.verified) {
+        reasons.push('verified-only')
+      }
+      if (swipedIds.has(profile.id)) {
+        reasons.push('already-swiped')
+      }
+      if (filters.zodiacCompatibility && filters.zodiacCompatibility !== 'any') {
+        const compat = ZODIAC_COMPATIBILITY[filters.zodiacCompatibility] || []
+        if (!compat.includes(profile.zodiac)) {
+          reasons.push('zodiac')
+        }
+      }
+      if (reasons.length === 0) {
+        kept.push(profile)
+      } else {
+        hidden.push({ profile, reasons })
+      }
+    }
+
+    let sorted = kept
 
     if (filters.sortBy === 'recommended') {
-      sorted = filtered.slice().sort((a, b) => getCompatibilityScore(b) - getCompatibilityScore(a))
+      sorted = kept.slice().sort((a, b) => getCompatibilityScore(b) - getCompatibilityScore(a))
     }
 
     if (filters.sortBy === 'nearest') {
-      sorted = filtered.slice().sort((a, b) => a.distanceKm - b.distanceKm)
+      sorted = kept.slice().sort((a, b) => a.distanceKm - b.distanceKm)
     }
 
     if (filters.sortBy === 'youngest') {
-      sorted = filtered.slice().sort((a, b) => a.age - b.age)
+      sorted = kept.slice().sort((a, b) => a.age - b.age)
     }
 
     if (filters.sortBy === 'oldest') {
-      sorted = filtered.slice().sort((a, b) => b.age - a.age)
+      sorted = kept.slice().sort((a, b) => b.age - a.age)
     }
 
-    return sorted
+    return { filteredProfiles: sorted, hiddenBreakdown: hidden }
   }, [genderFilteredProfiles, filters, swipedIds, blockedProfileIds, getCompatibilityScore])
 
   useEffect(() => {
@@ -2545,6 +2575,7 @@ function App() {
             appLanguage={appLanguage}
             selfProfile={selfProfile}
             filteredProfiles={filteredProfiles}
+            hiddenBreakdown={hiddenBreakdown}
             matchedProfiles={matchedProfiles}
             topProfile={topProfile ?? null}
             upcoming={upcoming}
@@ -2582,6 +2613,7 @@ function App() {
             setUnreadChats={setUnreadChats}
             setMatchQueueIds={setMatchQueueIds}
             setActiveChatId={setActiveChatId}
+            setBlockedProfileIds={setBlockedProfileIds}
             navigate={navigate}
             openProfileDetail={openProfileDetail}
             pushToast={pushToast}

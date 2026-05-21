@@ -1175,3 +1175,55 @@
 .profile-completeness li.is-missing {
   color: rgba(255, 200, 162, 0.95);
 }
+
+/* ── Hidden-breakdown panel (D4, all viewports) ─────────────────────────
+   Shown inline on Discover when the filter cascade hides profiles. Makes
+   the deck self-diagnosing: tap to expand, see per-reason counts + names,
+   one tap to reset history / block list / filters. */
+.hidden-breakdown {
+  margin: 0.5rem 0 0.6rem;
+  padding: 0.5rem 0.7rem 0.7rem;
+  background: rgba(216, 184, 109, 0.05);
+  border: 1px solid rgba(216, 184, 109, 0.28);
+  border-radius: 0.7rem;
+  font-size: 0.88rem;
+}
+.hidden-breakdown > summary {
+  cursor: pointer;
+  list-style: none;
+  color: rgba(244, 220, 168, 0.94);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  user-select: none;
+}
+.hidden-breakdown > summary::-webkit-details-marker {
+  display: none;
+}
+.hidden-breakdown-list {
+  margin: 0.45rem 0 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: rgba(232, 242, 255, 0.88);
+}
+.hidden-breakdown-list strong {
+  color: #f0d99b;
+  letter-spacing: 0.02em;
+}
+.hidden-breakdown-names {
+  color: rgba(216, 230, 250, 0.65);
+  font-size: 0.84rem;
+}
+.hidden-breakdown-actions {
+  margin-top: 0.6rem;
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.hidden-breakdown-actions button {
+  flex: 1 1 auto;
+  min-height: 2.1rem;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.6rem;
+}

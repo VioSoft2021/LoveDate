@@ -28,3 +28,22 @@ export type Filters = {
   sortBy: 'recommended' | 'nearest' | 'youngest' | 'oldest'
   zodiacCompatibility: string
 }
+
+// One reason per filter clause that can hide a profile from the deck.
+// D4 surfaces these inline in DiscoverScreen so missing profiles are
+// never opaque again.
+export type HiddenReason =
+  | 'blocked'
+  | 'age'
+  | 'city'
+  | 'interest'
+  | 'goal'
+  | 'distance'
+  | 'verified-only'
+  | 'already-swiped'
+  | 'zodiac'
+
+export type HiddenEntry = {
+  profile: Profile
+  reasons: HiddenReason[]
+}

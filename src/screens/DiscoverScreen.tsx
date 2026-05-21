@@ -7,6 +7,8 @@ import type {
   AppLanguage,
   ChemistryInsights,
   Filters,
+  HiddenEntry,
+  HiddenReason,
   MatchAnalysis,
   SelfProfile,
   SwipeIntent,
@@ -58,6 +60,10 @@ export type DiscoverScreenProps = {
   setUnreadChats: (value: Record<number, number>) => void
   setMatchQueueIds: (value: number[]) => void
   setActiveChatId: (value: number | null) => void
+  setBlockedProfileIds: React.Dispatch<React.SetStateAction<number[]>>
+  // D4 — deck self-diagnosis: list of profiles hidden by the filter
+  // cascade with reasons. Lets the deck explain itself.
+  hiddenBreakdown: HiddenEntry[]
   // navigation + side effects
   navigate: (screen: 'filters') => void
   openProfileDetail: (profileId: number, source: 'discover') => void
@@ -110,6 +116,8 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
   setUnreadChats,
   setMatchQueueIds,
   setActiveChatId,
+  setBlockedProfileIds,
+  hiddenBreakdown,
   navigate,
   openProfileDetail,
   pushToast,
@@ -127,6 +135,106 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
     const real = distanceBetweenCities(selfProfile.city, other.city)
     if (real !== null) return formatDistance(real, { sameCityLabel: ro ? 'Același oraș' : 'Same city' })
     return `${other.distanceKm} km`
+  }
+
+  // D4 — deck self-diagnosis. When the filter cascade hides any profiles,
+  // surface the breakdown inline so the user can see exactly who and why,
+  // and act on it (reset swipes, reset block list, reset filters).
+  const reasonLabel = (reason: HiddenReason): string => {
+    if (ro) {
+      const map: Record<HiddenReason, string> = {
+        blocked: 'blocate',
+        age: 'vârstă în afara intervalului',
+        city: 'oraș diferit',
+        interest: 'fără potrivire pe interese',
+        goal: 'intenție de relație diferită',
+        distance: 'prea departe',
+        'verified-only': 'doar verificate activ',
+        'already-swiped': 'deja vizualizate',
+        zodiac: 'zodii incompatibile',
+      }
+      return map[reason]
+    }
+    const map: Record<HiddenReason, string> = {
+      blocked: 'blocked',
+      age: 'age range',
+      city: 'different city',
+      interest: 'no interest match',
+      goal: 'different relationship intent',
+      distance: 'too far',
+      'verified-only': 'verified-only on',
+      'already-swiped': 'already swiped',
+      zodiac: 'zodiac incompatible',
+    }
+    return map[reason]
+  }
+
+  // Group hidden profiles by their first reason for the breakdown summary.
+  const breakdownByReason = (entries: HiddenEntry[]): Map<HiddenReason, string[]> => {
+    const grouped = new Map<HiddenReason, string[]>()
+    for (const entry of entries) {
+      const primary = entry.reasons[0]
+      if (!primary) continue
+      const list = grouped.get(primary) ?? []
+      list.push(entry.profile.name)
+      grouped.set(primary, list)
+    }
+    return grouped
+  }
+
+  const renderHiddenPanel = (entries: HiddenEntry[]) => {
+    if (entries.length === 0) return null
+    const grouped = breakdownByReason(entries)
+    return (
+      <details className="hidden-breakdown">
+        <summary>
+          {ro
+            ? `ⓘ ${entries.length} profil${entries.length === 1 ? '' : 'e'} ascunse de filtrele tale — vezi de ce`
+            : `ⓘ ${entries.length} profile${entries.length === 1 ? '' : 's'} hidden by your filters — see why`}
+        </summary>
+        <ul className="hidden-breakdown-list">
+          {Array.from(grouped.entries()).map(([reason, names]) => (
+            <li key={reason}>
+              <strong>{names.length}</strong> {reasonLabel(reason)}
+              {names.length > 0 && (
+                <span className="hidden-breakdown-names">
+                  {' — '}
+                  {names.slice(0, 5).join(', ')}
+                  {names.length > 5 ? `, +${names.length - 5}` : ''}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+        <div className="hidden-breakdown-actions">
+          <button
+            type="button"
+            className="ghost"
+            onClick={() => {
+              setHistory({ likedIds: [], passedIds: [], matchIds: [] })
+              setSwipeLog([])
+              setIndex(0)
+            }}
+          >
+            {ro ? 'Resetează istoricul' : 'Reset swipe history'}
+          </button>
+          <button
+            type="button"
+            className="ghost"
+            onClick={() => setBlockedProfileIds([])}
+          >
+            {ro ? 'Resetează blocările' : 'Reset block list'}
+          </button>
+          <button
+            type="button"
+            className="ghost"
+            onClick={() => setFilters(initialFilters)}
+          >
+            {ro ? 'Resetează filtrele' : 'Reset filters'}
+          </button>
+        </div>
+      </details>
+    )
   }
 
   return (
@@ -216,6 +324,7 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
         <section className="state-box" aria-live="polite">
           <p className="pill">{copy.common.noResults}</p>
           <h1>{copy.discover.noProfilesMatch}</h1>
+          {renderHiddenPanel(hiddenBreakdown)}
           <div className="summary-actions">
             <button type="button" onClick={() => setFilters(initialFilters)}>
               {copy.discover.resetFilters}
@@ -231,8 +340,18 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
             >
               {ro ? 'Reset istoric swipe' : 'Reset swipe history'}
             </button>
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => setBlockedProfileIds([])}
+            >
+              {ro ? 'Reset blocări' : 'Reset block list'}
+            </button>
           </div>
         </section>
+      )}
+      {!loadingProfiles && !loadError && topProfile && hiddenBreakdown.length > 0 && (
+        renderHiddenPanel(hiddenBreakdown)
       )}
       {!loadingProfiles && !loadError && topProfile && (
         <section className="discover-stage">

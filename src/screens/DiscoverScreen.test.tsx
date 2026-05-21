@@ -110,6 +110,8 @@ const baseProps: DiscoverScreenProps = {
   setUnreadChats: vi.fn(),
   setMatchQueueIds: vi.fn(),
   setActiveChatId: vi.fn(),
+  setBlockedProfileIds: vi.fn(),
+  hiddenBreakdown: [],
   navigate: vi.fn(),
   openProfileDetail: vi.fn(),
   pushToast: vi.fn(),
