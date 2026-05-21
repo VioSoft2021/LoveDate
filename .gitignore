@@ -59,3 +59,29 @@ __*.png
 
 # Personal planning docs that happen to live alongside the repo
 notes/plans/LoveDate-Plan.*
+
+# Secrets that must NEVER ship to GitHub — domain registrar backup codes,
+# 2FA recovery codes, exported API keys, etc. Anything with "BACK-UP",
+# "BACKUP CODES", "RECOVERY", "API_KEY" in the filename.
+/BACK-UP*.txt
+/BACKUP*.txt
+/RECOVERY*.txt
+/*API_KEY*.txt
+/*-credentials.txt
+/secrets/
+
+# Ephemeral Supabase CLI local state (writes per-developer machine info)
+supabase/.temp/
+
+# Local audit + analysis artifacts that Master keeps in the repo root
+# but doesn't want committed (they're scratchpad files)
+/AI_COSTS.txt
+/AUDIT_*.txt
+/AUDIT_RESOLUTION_*.txt
+
+# Large local installers (Android Studio installer is ~1GB)
+android-studio*.exe
+*-installer.exe
+
+# Android IDE metadata that's per-developer
+android/.idea/

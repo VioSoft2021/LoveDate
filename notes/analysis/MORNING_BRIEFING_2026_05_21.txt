@@ -1,0 +1,459 @@
+================================================================
+LoveDate — Morning briefing
+Date: 2026-05-21
+Author: Theo (Claude Opus 4.7 via Claude Code)
+================================================================
+
+This file collects every analysis produced during the morning chat
+on 2026-05-21, before going back to building. Save it for reference.
+
+
+================================================================
+1. ROMANIAN DATING APP MARKET (April–May 2026)
+================================================================
+
+TOP 5 APPS — active users, weekly revenue (Q2 2025 → April 2026):
+
+  Rank | App      | Active users    | Weekly revenue
+  -----+----------+-----------------+----------------
+   1   | Tinder   | ~117K–137K      | ~$69.6K
+   2   | Bumble   | ~40K–54K        | ~$29.4K
+   3   | Boo      | (newcomer)      | —      *#1 in free Android DLs Apr 10
+   4   | Badoo    | ~24K–31K        | ~$14K  *declining
+   5   | Instinct | —               | —      *niche, top-5
+
+LOCAL ROMANIAN PLAYERS (web-first, NOT app-first):
+
+  1. badoo.com       — most visited dating site in RO (Feb 2026)
+  2. sentimente.ro   — Romanian-born, older demo 35+, serious LTR focus
+  3. matrimoniale.ro — matrimony-intent, traditional
+
+DEMOGRAPHICS:
+  - Sweet spot: 25–34 year olds
+  - Concentrated in Bucharest, Cluj, Iași, Timișoara
+  - Same cities the LoveDate beta filter already targets
+
+COMPETITIVE POSITIONING FOR LOVEDATE:
+
+  vs. Tinder    — Don't fight on casual swipe. They own it.
+                  Position LoveDate as the *opposite*: intentional,
+                  AI-grounded, depth-over-volume.
+  vs. Boo       — Direct competitor. Personality codes (Boo is
+                  MBTI-driven, LoveDate's DMFR/CMFR maps the same
+                  way). Boo is the rising threat. Moat = real LLM
+                  scoring + Romanian-language depth.
+  vs. Sentimente.ro
+                — Local opening. Web-only, dated UX, loyal RO
+                  audience that wants serious matches. A
+                  mobile-first PWA with native RO copy that beats
+                  them on UX would land.
+  vs. Badoo     — Declining. Opportunity to peel users off as they
+                  look for something with better signal.
+
+THREE HONEST OBSERVATIONS:
+  1. Boo is the threat. They lead in personality-driven matching
+     and just hit #1 free downloads in Romania. Master's moat has
+     to be the AI layer (real LLM scoring, not just personality
+     vectors) + Romanian-language depth.
+  2. Sentimente.ro is the local opening. They're web-only,
+     dated UX, but loyal Romanian users who want serious matches.
+  3. Tinder is unbeatable on casual. Don't try. Position LoveDate
+     as the *opposite* — intentional, AI-grounded, depth-over-
+     volume.
+
+Sources:
+  - https://www.similarweb.com/top-apps/google/romania/dating/
+  - https://www.similarweb.com/apps/top/google/store-rank/ro/dating/top-grossing/
+  - https://sensortower.com/blog/2025-q2-unified-top-5-dating-revenue-ro-64c9b6bbe1714cfff1c9d0e8
+  - https://www.similarweb.com/top-websites/romania/community-and-society/romance-and-relationships/
+
+
+================================================================
+2. BEAT_BOO ROADMAP — STATUS CHECK (2026-04-09 → 2026-05-21)
+================================================================
+
+Original roadmap file: notes/plans/BEAT_BOO_ROADMAP.txt
+Created at checkpoint: 20260409-214801-stable-call-shell (~6 weeks ago)
+
+  # | Goal                          | Status              | Evidence
+  --+-------------------------------+---------------------+----------
+  1 | Proper call flow              | PARTIAL             | EmbeddedCallStage + Jitsi rooms work.
+    |                               |                     | Lifecycle hooks (markCallConnected/
+    |                               |                     | endCall/markCallFailed) shipped.
+    |                               |                     | MISSING: incoming-call notification,
+    |                               |                     | accept/decline UI, missed-call log,
+    |                               |                     | auto-reconnect.
+  2 | Matching intelligence         | DONE                | E3 AI Match Scoring (Sonnet 4.6)
+    |                               |                     | with score + reasons + frictionPoints
+    |                               |                     | + tips. "Why you match" in
+    |                               |                     | ProfileDetailScreen.
+  3 | Community layer (Circles)     | DONE                | CirclesScreen + events + posts +
+    |                               |                     | RSVP. 16 tests yesterday.
+  4 | Real AI product value         | DONE                | 6 Edge Functions live: Icebreaker,
+    |                               |                     | Profile Writer, Photo Coach, Match
+    |                               |                     | Scoring, Date Planner, Safety
+    |                               |                     | Triage.
+  5 | Trust + safety                | MOSTLY DONE         | RLS, admins table, safety_reports
+    |                               |                     | + AI triage, Crash Inbox (MED-15
+    |                               |                     | yesterday). MISSING: profile
+    |                               |                     | verification flow (verified bool
+    |                               |                     | exists, no UI to earn it),
+    |                               |                     | anti-fake detection.
+  6 | Persistence + realtime        | MOSTLY DONE         | Chat realtime via Supabase channels
+    |                               |                     | (CRIT-3 verified), profile/photo
+    |                               |                     | save with toast on failure (C6).
+  7 | Media + comms                 | PARTIAL             | image/video/audio attachments +
+    |                               |                     | voice recording in composer.
+    |                               |                     | MISSING: higher-quality media
+    |                               |                     | storage workflow.
+  8 | Retention mechanics           | NOT STARTED         | No daily streaks, no event
+    |                               |                     | prompts, no activity feed
+    |                               |                     | beyond notifications.
+  9 | Polish premium experience     | IN PROGRESS         | TopBar refined yesterday.
+    |                               |                     | PENDING: LoginScreen, Profile
+    |                               |                     | editor headers (per Master's
+    |                               |                     | standing feedback).
+ 10 | Real-world testing            | HERE NOW            | Crash Inbox + 315 tests are the
+    |                               |                     | safety net. Friend test is the
+    |                               |                     | next bottleneck.
+
+OVERALL: ~70% of the BEAT_BOO roadmap is DONE.
+
+Items 2, 3, 4 are the moat against Boo — that's exactly where the
+investment went. Items 8 (retention) and 1's incoming-call UX are
+the only material gaps for a real friend test. Item 5's verification
+flow is needed before public launch but not for friend test.
+
+
+================================================================
+3. INFRASTRUCTURE COSTS AT EACH SCALING TIER
+================================================================
+
+CURRENT MONTHLY COST: ~$30–50
+
+  Service       | What it does                          | Cost
+  --------------+---------------------------------------+--------
+  Supabase Pro  | Postgres + Auth + Storage + Edge      | $25/mo
+                | Functions + Realtime + pg_net         |
+  Anthropic     | 6 AI Edge Functions (Haiku + Sonnet)  | <$5/mo
+                | Cap set to $25 on 2026-05-20          |
+  GitHub Pages  | PWA hosting + SSL + CDN               | $0
+  Jitsi         | Video/audio rooms (meet.jit.si)       | $0
+  VAPID push    | Web push via Supabase pg_net          | $0
+  Domain        | github.io subdomain                   | $0 (for now)
+
+SCALING TIERS:
+
+  Stage              | Users         | Total monthly | Why
+  -------------------+---------------+---------------+----------------
+  Friend test (now)  | 5–20          | $30–50        | Current setup
+                     |               |               | handles, zero strain
+  Closed beta        | 50–200        | $50–80        | Same Supabase Pro.
+                     |               |               | Anthropic creeps to $25–40
+  Soft launch        | 500–2,000     | $140–260      | Supabase still Pro.
+                     |               |               | Anthropic $100–200.
+                     |               |               | Real domain $1–2/mo.
+  Public launch      | 5,000–20,000  | $900–1,200    | Supabase Team ($599/mo).
+                     |               |               | Anthropic $200–500.
+                     |               |               | Sentry, analytics,
+                     |               |               | monitoring kick in.
+  Scale              | 50,000+       | $2,000–6,000  | Negotiate Supabase
+                     |               |               | Enterprise. Anthropic
+                     |               |               | with prompt caching saves
+                     |               |               | ~90% on input.
+
+WHAT TO ADD AT LAUNCH (NOT NOW):
+
+  At ~500 users:
+    - Real domain (lovedate.app or similar)  $10–15/year
+    - Email service (Postmark/Resend)        $10–30/mo (optional)
+    - Analytics (Plausible or PostHog)       $9–20/mo
+    - Sentry / error monitoring              $26/mo
+
+  At ~5,000 users:
+    - Supabase Team upgrade                  $599/mo (from $25!)
+    - Cloudflare Pro (DDoS + edge cache)     $20/mo
+    - Backups beyond Supabase defaults       varies
+
+  If going native apps:
+    - Google Play Developer                  $25 one-time
+    - Apple Developer                        $99/year
+
+DANGER ZONES (cost spikes can hide here):
+
+  1. Anthropic without a cap — single buggy loop could burn through
+     card balance in hours. Cap is set to $25/mo. KEEP IT.
+  2. Supabase Storage — photos at 5MB each fill 100GB Pro quota at
+     ~20K photos. Image compression on upload cuts this 80%+.
+     NOT YET SHIPPED. MED-priority for ~1K users.
+  3. Realtime subscription leaks — CRIT-3 was verified false but
+     the category of bug is real. Watch for it.
+  4. Edge Function invocation multiplication — every page-load
+     fires SW update checks, AI moderation, profile sync. Adds up
+     at scale.
+
+COST-CONTROL MILESTONES:
+
+  Today:               Anthropic cap = $25/mo. Supabase Pro is the
+                       ONLY paid Supabase subscription.
+  Before 100 users:    Ship image compression in photo upload.
+  Before 500 users:    Add per-user daily AI quota table (Phase F
+                       item that's been deferred). Prevents one
+                       heavy user from eating the AI budget.
+  Before 5,000 users:  Enable prompt caching (HIGH-9, deferred).
+                       Cuts AI input costs ~90%.
+
+WHAT NOT TO PAY FOR YET:
+  - Sentry (Crash Inbox covers it)
+  - A real domain (github.io is fine until launch)
+  - Email service (Supabase handles auth emails)
+  - Analytics (premature without users to analyze)
+  - Push provider (VAPID + pg_net works)
+
+HONEST TAKE:
+  Current $30–50/mo is sustainable for YEARS of friend testing.
+  The jump that matters is at ~5,000 users when Supabase Pro stops
+  being enough — that's when revenue needs to cover the $599/mo
+  bump.
+
+
+================================================================
+4. GOOGLE PLAY STORE NAME COLLISION + DOMAIN PICK
+================================================================
+
+PLAY STORE — at least 6 apps already use "LoveDate" or close
+variants. If Master ever publishes a native APK, the LoveDate name
+will be drowned in search behind these:
+
+  App                              | Package                          | Notes
+  ---------------------------------+----------------------------------+----------------
+  LoveDate - AI Romantic Match     | com.gofindmm.sdpro               | 5M+ downloads.
+                                   |                                  | AI chat companion
+                                   |                                  | (not real dating).
+                                   |                                  | Pub Knife King.
+                                   |                                  | Updated Mar 2026.
+  Love Date (astrology)            | com.greatcallie.lovedateapp.     | Astrology dating
+                                   | love_date_app                    |
+  LoveDate-Free Dating App         | com.love.lovedate                | Traditional swipe
+  LOVEデート                       | com.date_1ove                    | Japanese
+  Lovedate                         | in.co.lovedate                   | Indian market
+  LoveDate - Знайомства Україна    | ua.com.lovedateapp               | Ukrainian dating
+
+THREE PATHS FORWARD:
+
+  1. Keep "LoveDate" — PWA-only, no Play Store. SEO unaffected; friends
+     reach via direct URL. Realistic for friend test + closed beta.
+
+  2. Add a distinctive suffix for Play Store — e.g. "LoveDate România",
+     "LoveDate AI", "LoveDate Match". Differentiates in Play Store
+     search. Brand mostly preserved. **Recommended.**
+
+  3. Rebrand fully — fresh name with no conflict. Painful but clean.
+     Romanian-flavored names like Iubindo, Sentina, Două; universal
+     names like Mira, Bond, Klein.
+
+
+DOMAIN OPTIONS:
+
+  Domain          | Status                       | Best for          | Cost/year
+  ----------------+------------------------------+-------------------+-------------
+  lovedate.com    | EXPIRED (available but risky | Universal         | $10–15, but
+                  | — legacy SEO baggage from    |                   | risky
+                  | old dating site content)     |                   |
+  lovedate.ro     | Unknown, needs registrar     | Romanian market   | $15–25/year
+                  | check; .ro collisions are    | (.ro = local      | via RoTLD
+                  | rare                         | trust signal)     |
+  lovedate.app    | Unknown, needs registrar     | PWA/mobile-first  | $15–18/year
+                  | check                        | (.app = Google-   |
+                  |                              | owned TLD,        |
+                  |                              | enforces HTTPS)   |
+  lovedate.ai     | Likely available             | AI positioning    | $70–100/year
+                                                 | (premium TLD)     | (premium TLD)
+  lovedate.dating | Likely available             | Category-clear    | $30–40/year
+
+RECOMMENDATION: lovedate.ro as PRIMARY.
+
+  Reasoning:
+    1. Signals local immediately — Romanian users trust .ro for
+       local services.
+    2. Matches target market — competitive positioning vs. sentimente.ro.
+    3. Affordable + easy to renew annually.
+    4. Available almost certainly (.ro TLD has low collision).
+    5. Can add .com / .app later when going international.
+
+  DO NOT pay for lovedate.com even if available. The expired
+  version was associated with legacy adult/dating site content;
+  inheriting that reputation baggage isn't worth $15.
+
+WHERE TO REGISTER:
+  - .ro → RoTLD (official, https://www.rotld.ro/) or Hostinger.ro,
+          Hosterion.com
+  - .app → Google Domains (now Squarespace), Cloudflare Registrar,
+           Namecheap
+
+5-MINUTE ACTION PLAN:
+  1. Go to https://www.namecheap.com/domains/domain-name-search/
+  2. Type lovedate.ro + lovedate.app + lovedate.ai to confirm
+     availability + price.
+  3. If lovedate.ro is available: register it. ~$20/year peace
+     of mind.
+  4. Don't touch lovedate.com.
+
+
+================================================================
+5. REBRAND + WOW FEATURE DIRECTION (decided 2026-05-21 morning)
+================================================================
+
+CONTEXT: Master committed to a name change after seeing the Play
+Store collision (5M-download "LoveDate - AI Romantic Match" + 5
+other apps). New name + new product direction needed.
+
+DESIGN TARGET: a demanding 28-year-old in Bucharest who's tired
+of dating apps but still hopes one will work. Name has to pass
+the "dinner test" (would I tell a friend "I met them on ___"
+without cringing?).
+
+FIRST-ROUND NAME CANDIDATES (top 5, given for honest tradeoff):
+
+  Name   | Meaning                       | Why it works
+  -------+-------------------------------+-----------------------------
+  Spera  | "to hope" (RO + LAT)          | Warm verb, active, present-
+         |                               | tense ("I hope"). Romanian
+         |                               | dinner test passes (people
+         |                               | already say "sper că...").
+         |                               | Almost certainly available.
+  Anima  | "soul" (LAT/RO)               | Premium, depth-signal,
+         |                               | beautifully short. Watch for
+         |                               | "anime" confusion.
+  Mira   | "wonder/marvel" (LAT + RO     | 4 letters, pronounceable
+         | "to be amazed")               | everywhere. Verify Microsoft's
+         |                               | Mira product is defunct.
+  Codé   | "code" with French accent —   | Tech-savvy, ties to the
+         | references personality DNA    | personality-code DNA. Accent
+         |                               | in URLs is friction.
+  Două   | "two/both" (RO)               | Most romantic concept in any
+         |                               | language. Deeply local. But
+         |                               | the ă kills SEO + i18n.
+
+THEO'S RECOMMENDATION (informed pick, not final): SPERA.
+
+PART 2 — IN-APP UX UPGRADES (no competitor does these well):
+
+  1. Conversational onboarding
+     Profile creation = 1 paragraph → AI fills 12 fields.
+     Uses existing profile-writer infrastructure.
+  2. Voice intro replaces opener
+     20-second voice card in the deck. Plays muted by default.
+     Reveals nervousness, warmth, accent — catfish-killer.
+     Chat audio infra already exists.
+  3. Conversation health check
+     After 10 messages exchanged, AI shows BOTH users a
+     transparent report: questions asked/answered, emotional
+     reciprocity, future-orientation. Not gamification —
+     accountability against ghosting.
+  4. Soft preferences (not hard filters)
+     "I prefer outdoorsy types" = ranking signal, not exclude.
+     Deck reshuffles, doesn't shrink. Boo/Bumble do hard
+     filters; nobody does soft.
+
+PART 3 — THE "WOW" FEATURE (3 picks, descending risk):
+
+  IDEA A — "Try a chat" preview (LOW risk, HIGH wow)
+    Before swiping right, tap "what would we talk about?".
+    AI runs a 3-turn simulated conversation between the two
+    profiles right in the card. 5 seconds, you see the vibe.
+    Reduces wasted matches. NO MAJOR APP DOES THIS.
+    Built on existing Sonnet scoring infrastructure.
+
+  IDEA B — Slow Match Mode (LOW risk, MEDIUM wow, brand-defining)
+    Opt-in mode: one profile per day, 24h to send a real first
+    message. Forces quality over quantity. Premium tier
+    ("Spera Slow"). Counter-cultural — 25–34s sick of swipe
+    fatigue will love it. Sapio app tried once; market is open.
+
+  IDEA C — AI Twin Preview (HIGH risk, EXTREME wow)
+    Each user has an AI version of themselves trained on
+    bio + first chat messages. Before mutual match, both can
+    have a 60-second simulated conversation with the other
+    person's AI twin. Not their words — their vibe.
+    Ethics need thought (consent, accuracy, misrepresentation
+    risk). Mitigation: opt-in both sides, only stated
+    preferences + writing samples, BIG "AI Twin Preview —
+    not real words" label.
+    BOO/TINDER/BUMBLE COULDN'T SHIP THIS — personality data
+    too thin. Maps directly to existing AI Match Scoring +
+    Profile Writer infrastructure.
+
+PLAN (Master's order, 2026-05-21):
+  1. Pick the new name (Master will see expanded list next).
+  2. Execute full rebrand across codebase + config + memory +
+     repo.
+  3. Build Part 2 (UX upgrades) + Part 3 Ideas A and C.
+     Theo to draft a roadmap when name is chosen.
+
+DELIBERATELY DEFERRED:
+  - Idea B (Slow Match Mode) — would clash with the swipe-deck
+    UX the user already knows; revisit later as a premium tier.
+
+
+================================================================
+6. FINAL BRAND DECISION (2026-05-21)
+================================================================
+
+BRAND: **PRIVÉ** (with accent É in all branding, "prive" for code/URLs)
+
+After 6 verification rounds, all major candidates failed:
+  Astra, Vesper, Tessera, Velora, Glimpse, Cipher, Vault
+
+PRIVÉ survives because:
+  - No major dating app owns the name (verified Play Store, trademarks)
+  - French luxury vocabulary — Hermès/Dior/Chanel territory
+  - Accent É is a built-in visual brand mark
+  - Internationally pronounceable (pree-VAY)
+  - US AI startups rarely invent French — less commercial collision
+
+DOMAIN PURCHASED: **prive-app.club** ($4.98 first year, $20.98 renewal)
+  - Domain Privacy: Free Forever (enabled)
+  - Auto-renew: ON
+  - 2FA on Namecheap account: Master to enable
+  - DNS pointing: deferred until after rebrand completes
+
+WHERE THE ACCENT APPEARS:
+  - "Privé" — logo, Play Store listing, marketing, in-app branding
+  - "prive" (no accent) — domains, emails, file names, variables, package keys
+  - Same playbook as Hermès / Möet / Citroën
+
+NEXT: Execute phased rebrand across codebase + config + memory.
+      Then Part 2 (UX upgrades) + Part 3 Ideas A & C (Try-a-Chat + AI Twin).
+
+
+================================================================
+7. WHAT'S NEXT (yesterday's plan still stands)
+================================================================
+
+  1. Cold-start sign-up flow audit
+     Open the deployed PWA in a private window. Try to sign up
+     like a friend. Watch where you trip. Most likely issues:
+     invite-code requirement blocking entry, email verification
+     not round-tripping, password reset broken, profile
+     completeness banner not guiding the user.
+
+  2. Photo upload UX
+     8MB iPhone photos on cellular networks will hurt.
+     Compression before upload, retry on failure, clearer error
+     toasts. Test with a real iPhone photo on cellular first.
+
+  3. First 30 seconds onboarding
+     Does a brand-new user understand what to do after sign-up?
+     Empty state copy, profile-completeness banner positioning,
+     "swipe right to like" hint card on first deck visit.
+
+  4. Friend test (the actual goal)
+     Once 1–3 are clean, share the URL with one trusted friend.
+     Watch over their shoulder. The 3 things they trip on are next
+     session's work.
+
+
+================================================================
+END
+================================================================

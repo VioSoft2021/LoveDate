@@ -7,12 +7,35 @@
     <meta name="color-scheme" content="dark" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    <meta name="apple-mobile-web-app-title" content="LoveDate" />
+    <meta name="apple-mobile-web-app-title" content="Privé" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="format-detection" content="telephone=no" />
-    <title>LoveDate</title>
+    <title>Privé — exclusive AI-driven dating</title>
+    <!-- Privé brand typography: Bodoni Moda for wordmark, Cinzel for the P
+         icon, Cormorant Garamond italic for taglines. preconnect speeds up
+         the font handshake. display=swap so text renders immediately in a
+         fallback while the brand fonts download. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@700;800;900&family=Cinzel:wght@600;700&family=Cormorant+Garamond:ital,wght@1,400;1,500&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
+    <!-- Shared Privé brand gradient defs — referenced by url(#priveGold)
+         from every logo SVG in the app. Inert (width/height = 0). -->
+    <svg width="0" height="0" style="position: absolute; pointer-events: none;" aria-hidden="true">
+      <defs>
+        <linearGradient id="priveGold" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#fceeb0" />
+          <stop offset="22%" stop-color="#ead27a" />
+          <stop offset="48%" stop-color="#d8b86d" />
+          <stop offset="72%" stop-color="#b9974a" />
+          <stop offset="100%" stop-color="#8b6b2c" />
+        </linearGradient>
+      </defs>
+    </svg>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

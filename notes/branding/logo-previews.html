@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privé — Logo Direction Previews</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@400;500;600&family=Bodoni+Moda:wght@400;500;700;900&family=Playfair+Display:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --gold: #d8b86d;
+      --gold-soft: #e9c576;
+      --navy: #0a0e27;
+      --navy-2: #141937;
+      --parchment: #f4e9cb;
+      --rule: rgba(216, 184, 109, 0.25);
+
+      /* Real gold gradient — top highlight (light reflecting), through warm
+         mid-gold, down to deep amber shadow. Mimics polished metal catching
+         light from above. Used via -webkit-background-clip on text, or
+         url(#gold-grad) on SVG text/paths. */
+      --gold-grad: linear-gradient(
+        180deg,
+        #fceeb0 0%,
+        #ead27a 22%,
+        #d8b86d 48%,
+        #b9974a 72%,
+        #8b6b2c 100%
+      );
+    }
+    .gold-text {
+      background: var(--gold-grad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      /* Subtle drop shadow to lift the metal off the navy */
+      filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.35));
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--navy);
+      color: var(--parchment);
+      font-family: -apple-system, system-ui, sans-serif;
+    }
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+    }
+    h1 {
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.2em;
+      font-weight: 600;
+      color: var(--gold);
+      margin: 0 0 0.4rem;
+      font-size: 1.6rem;
+    }
+    .intro {
+      opacity: 0.7;
+      font-size: 0.95rem;
+      max-width: 60ch;
+      margin-bottom: 3rem;
+    }
+    .section {
+      border-top: 1px solid var(--rule);
+      padding: 2.5rem 0 3rem;
+    }
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 2rem;
+      margin-bottom: 1.4rem;
+    }
+    .section-head h2 {
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.15em;
+      font-weight: 600;
+      color: var(--gold);
+      margin: 0;
+      font-size: 1.2rem;
+    }
+    .section-head .badge {
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold-soft);
+      opacity: 0.7;
+    }
+    .section-desc {
+      opacity: 0.78;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      margin: 0 0 2rem;
+      max-width: 60ch;
+    }
+    .stage {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+    .frame {
+      border: 1px solid var(--rule);
+      border-radius: 0.9rem;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.2rem;
+      min-height: 280px;
+    }
+    .frame--dark { background: var(--navy-2); }
+    .frame--light { background: var(--parchment); }
+    .frame--light svg path,
+    .frame--light svg line,
+    .frame--light svg text { color: var(--navy); stroke: var(--navy); fill: var(--navy); }
+    .size-row {
+      display: flex;
+      gap: 1.4rem;
+      align-items: end;
+      justify-content: center;
+      width: 100%;
+    }
+    .size-pill {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.5;
+      margin-top: 0.6rem;
+    }
+    .size-col { text-align: center; }
+
+    /* ── Direction A — Interlocking PV monogram ─────────────────────── */
+    .pv-mark {
+      stroke: var(--gold);
+      stroke-width: 12;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* ── Direction D — PRIVÉ wordmark with elongated accent ─────────── */
+    .wordmark {
+      font-family: 'Cinzel', serif;
+      font-weight: 600;
+      letter-spacing: 0.32em;
+      background: var(--gold-grad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.35));
+      font-size: 3rem;
+      position: relative;
+      display: inline-block;
+    }
+    .wordmark--lg { font-size: 4.5rem; }
+    .wordmark--sm { font-size: 1.4rem; letter-spacing: 0.28em; }
+    .wordmark--tiny { font-size: 0.85rem; letter-spacing: 0.2em; }
+    .wordmark .e-with-accent {
+      position: relative;
+      display: inline-block;
+    }
+    .wordmark .accent-line {
+      position: absolute;
+      top: -0.34em;
+      left: -85%;
+      width: 290%;
+      height: 0.06em;
+      background: var(--gold-grad);
+      border-radius: 999px;
+      /* Accent doesn't inherit the parent's transparent text-fill,
+         so explicitly fill the line with the gold gradient. */
+    }
+
+    /* ── Direction E — Hidden-heart P ───────────────────────────────── */
+    .heart-p {
+      fill: var(--gold);
+    }
+    .heart-cutout {
+      fill: var(--navy);
+    }
+    .frame--light .heart-cutout { fill: var(--parchment); }
+
+    .pair-row {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .footer {
+      opacity: 0.5;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 3rem 0 1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Shared SVG gradient defs — referenced by url(#goldGrad) from every
+       SVG mark in this document. Hidden via width/height = 0. -->
+  <svg width="0" height="0" style="position:absolute; pointer-events:none;" aria-hidden="true">
+    <defs>
+      <linearGradient id="goldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#fceeb0" />
+        <stop offset="22%" stop-color="#ead27a" />
+        <stop offset="48%" stop-color="#d8b86d" />
+        <stop offset="72%" stop-color="#b9974a" />
+        <stop offset="100%" stop-color="#8b6b2c" />
+      </linearGradient>
+      <linearGradient id="goldGradDark" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#3a2f12" />
+        <stop offset="50%" stop-color="#141937" />
+        <stop offset="100%" stop-color="#0a0e27" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div class="page">
+    <h1>PRIVÉ — LOGO DIRECTION PREVIEWS</h1>
+    <p class="intro">Three custom typographic signatures, each based on a famous brand pattern. Compare them at full size and small (favicon / app icon scale). Gold-on-navy is the primary palette; light background shows how each holds up on parchment / print.</p>
+
+    <!-- ════════════════════════════════════════════════════════════
+         Direction A — Interlocking PV monogram (Chanel CC pattern)
+         ════════════════════════════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-head">
+        <h2>Direction A — Interlocking P V</h2>
+        <span class="badge">Chanel CC pattern</span>
+      </div>
+      <p class="section-desc">
+        P and V intertwined. The V's left arm pierces the P's loop, creating a single interlocked mark.
+        Used as the brand's icon (app icon, favicon, social avatar) — the full wordmark "PRIVÉ" sits
+        next to it in marketing. Symbolic of two people coming together.
+      </p>
+      <div class="stage">
+        <div class="frame frame--dark">
+          <div class="size-row">
+            <div class="size-col">
+              <svg viewBox="0 0 280 200" width="220" height="160" xmlns="http://www.w3.org/2000/svg">
+                <!-- P -->
+                <g class="pv-mark">
+                  <line x1="40" y1="20" x2="40" y2="180" />
+                  <path d="M 40 20 L 100 20 A 50 50 0 0 1 100 110 L 40 110" />
+                </g>
+                <!-- V (passes through P's loop) -->
+                <g class="pv-mark">
+                  <line x1="78" y1="20" x2="160" y2="180" />
+                  <line x1="160" y1="180" x2="242" y2="20" />
+                </g>
+              </svg>
+              <div class="size-pill">Hero · 220px</div>
+            </div>
+            <div class="size-col">
+              <svg viewBox="0 0 280 200" width="64" height="46" xmlns="http://www.w3.org/2000/svg">
+                <g class="pv-mark">
+                  <line x1="40" y1="20" x2="40" y2="180" />
+                  <path d="M 40 20 L 100 20 A 50 50 0 0 1 100 110 L 40 110" />
+                </g>
+                <g class="pv-mark">
+                  <line x1="78" y1="20" x2="160" y2="180" />
+                  <line x1="160" y1="180" x2="242" y2="20" />
+                </g>
+              </svg>
+              <div class="size-pill">App icon · 64px</div>
+            </div>
+            <div class="size-col">
+              <svg viewBox="0 0 280 200" width="24" height="17" xmlns="http://www.w3.org/2000/svg">
+                <g class="pv-mark">
+                  <line x1="40" y1="20" x2="40" y2="180" />
+                  <path d="M 40 20 L 100 20 A 50 50 0 0 1 100 110 L 40 110" />
+                </g>
+                <g class="pv-mark">
+                  <line x1="78" y1="20" x2="160" y2="180" />
+                  <line x1="160" y1="180" x2="242" y2="20" />
+                </g>
+              </svg>
+              <div class="size-pill">Favicon · 24px</div>
+            </div>
+          </div>
+        </div>
+        <div class="frame frame--light">
+          <div class="size-row">
+            <div class="size-col">
+              <svg viewBox="0 0 280 200" width="220" height="160" xmlns="http://www.w3.org/2000/svg">
+                <g stroke="#141937" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="40" y1="20" x2="40" y2="180" />
+                  <path d="M 40 20 L 100 20 A 50 50 0 0 1 100 110 L 40 110" />
+                  <line x1="78" y1="20" x2="160" y2="180" />
+                  <line x1="160" y1="180" x2="242" y2="20" />
+                </g>
+              </svg>
+              <div class="size-pill" style="color: #141937; opacity: 0.6;">On parchment</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════
+         Direction D — PRIVÉ wordmark with elongated É (Hermès / IBM pattern)
+         ════════════════════════════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-head">
+        <h2>Direction D — Wordmark with elongated É</h2>
+        <span class="badge">Hermès / IBM pattern</span>
+      </div>
+      <p class="section-desc">
+        Pure typographic confidence. PRIVÉ rendered in a Cinzel serif (timeless Roman luxury feel).
+        The É's accent stroke extends as a horizontal line above the entire wordmark — that's the
+        brand's hidden signature, the FedEx-arrow equivalent. Reads as Hermès / Cartier-tier instantly.
+      </p>
+      <div class="stage">
+        <div class="frame frame--dark">
+          <div class="size-row" style="flex-direction: column; gap: 2rem;">
+            <div class="size-col">
+              <div class="wordmark wordmark--lg">
+                <span>PRIV</span><span class="e-with-accent"><span class="accent-line"></span>E</span>
+              </div>
+              <div class="size-pill">Hero scale</div>
+            </div>
+            <div class="size-col">
+              <div class="wordmark">
+                <span>PRIV</span><span class="e-with-accent"><span class="accent-line"></span>E</span>
+              </div>
+              <div class="size-pill">Header scale</div>
+            </div>
+            <div class="size-col">
+              <div class="wordmark wordmark--sm">
+                <span>PRIV</span><span class="e-with-accent"><span class="accent-line"></span>E</span>
+              </div>
+              <div class="size-pill">Compact (badge / nav)</div>
+            </div>
+            <div class="size-col">
+              <div class="wordmark wordmark--tiny">
+                <span>PRIV</span><span class="e-with-accent"><span class="accent-line"></span>E</span>
+              </div>
+              <div class="size-pill">Tiny (footer / inline)</div>
+            </div>
+          </div>
+        </div>
+        <div class="frame frame--light">
+          <div class="size-col">
+            <div class="wordmark wordmark--lg" style="color: #141937;">
+              <span>PRIV</span><span class="e-with-accent"><span class="accent-line" style="background: #141937;"></span>E</span>
+            </div>
+            <div class="size-pill" style="color: #141937; opacity: 0.6;">On parchment</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════
+         FINAL DIRECTION (Iteration 4) — Pure wordmark, no separate icon.
+         The bravest luxury move: NO auxiliary mark. The wordmark IS
+         the brand. The app icon is a fragment of the wordmark itself.
+         Bodoni Moda Black — pure Italian high-fashion DNA (Vogue, Bulgari).
+         Philosophy: Saint Laurent, Balenciaga, The Row, Maison Margiela.
+         ════════════════════════════════════════════════════════════ -->
+    <section class="section" style="border-top: 3px double var(--gold);">
+      <div class="section-head">
+        <h2>★ FINAL DIRECTION — Pure wordmark restraint</h2>
+        <span class="badge">Saint Laurent philosophy</span>
+      </div>
+      <p class="section-desc">
+        No separate icon. No auxiliary symbol. No monogram. The wordmark IS the entire brand
+        identity — used at every scale, from billboard to favicon. The app icon is a cropped
+        fragment of the wordmark itself ("P"), kept in the same Bodoni Moda typeface so it reads
+        as part of the same system. This is the philosophy Saint Laurent, Balenciaga, The Row,
+        and Maison Margiela use at their most confident.
+      </p>
+
+      <style>
+        .pw-wordmark {
+          font-family: 'Bodoni Moda', 'Playfair Display', serif;
+          font-weight: 900;
+          letter-spacing: 0.16em;
+          background: var(--gold-grad);
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          color: transparent;
+          filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.35));
+          line-height: 0.9;
+          display: inline-block;
+          position: relative;
+        }
+        .pw-wordmark .acc {
+          position: relative;
+          display: inline-block;
+        }
+        .pw-wordmark .acc::before {
+          content: '';
+          position: absolute;
+          top: -0.32em;
+          left: -38%;
+          width: 175%;
+          height: 0.08em;
+          background: var(--gold-grad);
+          border-radius: 999px;
+        }
+        .pw-fragment {
+          font-family: 'Bodoni Moda', 'Playfair Display', serif;
+          font-weight: 900;
+          background: var(--gold-grad);
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          color: transparent;
+          filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.35));
+          line-height: 0.85;
+          display: inline-block;
+        }
+        .pw-tagline {
+          font-family: 'Cormorant Garamond', serif;
+          font-style: italic;
+          color: var(--gold);
+          opacity: 0.7;
+          letter-spacing: 0.32em;
+          text-transform: uppercase;
+          font-size: 0.72rem;
+          margin-top: 1.1rem;
+        }
+      </style>
+
+      <!-- HERO: Full wordmark, large -->
+      <h3 style="font-family: 'Cinzel', serif; color: var(--gold); font-size: 0.85rem; letter-spacing: 0.16em; margin: 0 0 1rem; text-transform: uppercase;">Hero / splash screen</h3>
+      <div class="frame frame--dark" style="min-height: 320px; margin-bottom: 2rem; padding: 4rem 2rem;">
+        <div class="pw-wordmark" style="font-size: 5.5rem;">PRIV<span class="acc">E</span></div>
+        <div class="pw-tagline">Members only · By design</div>
+      </div>
+
+      <!-- HEADER scale -->
+      <h3 style="font-family: 'Cinzel', serif; color: var(--gold); font-size: 0.85rem; letter-spacing: 0.16em; margin: 0 0 1rem; text-transform: uppercase;">App shell header</h3>
+      <div class="frame frame--dark" style="min-height: 140px; margin-bottom: 2rem;">
+        <div class="pw-wordmark" style="font-size: 2.2rem;">PRIV<span class="acc">E</span></div>
+      </div>
+
+      <!-- APP ICON: fragment of the wordmark (just "P") -->
+      <h3 style="font-family: 'Cinzel', serif; color: var(--gold); font-size: 0.85rem; letter-spacing: 0.16em; margin: 0 0 1rem; text-transform: uppercase;">App icon / favicon — same typeface, single character</h3>
+      <div class="frame frame--dark" style="min-height: 280px; margin-bottom: 2rem; padding: 2rem;">
+        <div class="size-row" style="gap: 3rem; align-items: end;">
+          <div class="size-col">
+            <div style="background: var(--navy-2); width: 180px; height: 180px; border-radius: 36px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--rule);">
+              <div class="pw-fragment" style="font-size: 8.5rem;">P</div>
+            </div>
+            <div class="size-pill">App icon · 180px (iOS shape)</div>
+          </div>
+          <div class="size-col">
+            <div style="background: var(--navy-2); width: 80px; height: 80px; border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--rule);">
+              <div class="pw-fragment" style="font-size: 4rem;">P</div>
+            </div>
+            <div class="size-pill">Home screen · 80px</div>
+          </div>
+          <div class="size-col">
+            <div style="background: var(--navy-2); width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+              <div class="pw-fragment" style="font-size: 1.6rem;">P</div>
+            </div>
+            <div class="size-pill">Favicon · 32px</div>
+          </div>
+          <div class="size-col">
+            <div style="background: var(--navy-2); width: 16px; height: 16px; border-radius: 3px; display: flex; align-items: center; justify-content: center;">
+              <div class="pw-fragment" style="font-size: 0.85rem;">P</div>
+            </div>
+            <div class="size-pill">Tab · 16px</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PARCHMENT / LIGHT BG variant -->
+      <h3 style="font-family: 'Cinzel', serif; color: var(--gold); font-size: 0.85rem; letter-spacing: 0.16em; margin: 0 0 1rem; text-transform: uppercase;">On light backgrounds (parchment / print)</h3>
+      <div class="frame frame--light" style="min-height: 200px;">
+        <div class="pw-wordmark" style="font-size: 3.6rem; color: var(--navy);">PRIV<span class="acc">E</span></div>
+        <div class="pw-tagline" style="color: var(--navy); opacity: 0.55;">Members only · By design</div>
+      </div>
+
+      <!-- THE PHILOSOPHY -->
+      <div style="margin-top: 3rem; padding: 1.6rem 1.8rem; border: 1px solid var(--rule); border-radius: 0.8rem; background: rgba(216, 184, 109, 0.03);">
+        <h3 style="font-family: 'Cinzel', serif; color: var(--gold); font-size: 0.9rem; letter-spacing: 0.16em; margin: 0 0 0.9rem; text-transform: uppercase;">Why this works</h3>
+        <p style="opacity: 0.8; font-size: 0.92rem; line-height: 1.6; margin: 0 0 0.6rem;">
+          1. <strong>The wordmark carries everything.</strong> No "icon plus wordmark" split — one
+          system. Bodoni Moda is the typeface of Vogue, Bulgari, Italian Vogue covers since the 1960s.
+          Wearing Bodoni Moda Black = wearing Italian luxury vocabulary.
+        </p>
+        <p style="opacity: 0.8; font-size: 0.92rem; line-height: 1.6; margin: 0 0 0.6rem;">
+          2. <strong>The elongated É accent is the only embellishment.</strong> Above the entire
+          word. It's your equivalent of FedEx's hidden arrow — quietly present in every rendering.
+        </p>
+        <p style="opacity: 0.8; font-size: 0.92rem; line-height: 1.6; margin: 0 0 0.6rem;">
+          3. <strong>The app icon is a fragment of the wordmark.</strong> Just "P" in the same Bodoni
+          Moda — so the icon and wordmark are visibly the same family. No need for a separate
+          symbolic mark to "represent" the brand.
+        </p>
+        <p style="opacity: 0.8; font-size: 0.92rem; line-height: 1.6; margin: 0;">
+          4. <strong>It ages 30 years.</strong> Saint Laurent's logo from 1961 still works. Bodoni
+          from 1798 still works. This won't look "of 2026" — it'll look timeless.
+        </p>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-head">
+        <h2>Direction E (NEW) — Artistic P monogram with brand-signature accent</h2>
+        <span class="badge">Iteration 3 · heart removed</span>
+      </div>
+      <p class="section-desc">
+        Pure monogram. The P is rendered in Cinzel serif (same family as the wordmark) at large
+        weight. <strong>Above it sits the horizontal accent line</strong> — the SAME line that crowns
+        the É in the wordmark. That shared element ties the icon and wordmark into one brand system.
+        The icon "wears the same crown" as the É. Hermès-tier confidence; no gimmicks.
+      </p>
+      <div class="stage">
+        <div class="frame frame--dark">
+          <div class="size-row">
+            <div class="size-col">
+              <!-- Hero artistic P -->
+              <svg viewBox="0 0 220 280" width="200" height="255" xmlns="http://www.w3.org/2000/svg">
+                <!-- Brand-signature horizontal accent line above the P -->
+                <line x1="22" y1="40" x2="198" y2="40"
+                      stroke="url(#goldGrad)" stroke-width="5"
+                      stroke-linecap="round" />
+                <!-- Cinzel serif P, centered -->
+                <text x="110" y="235"
+                      font-family="Cinzel, serif"
+                      font-weight="700"
+                      font-size="240"
+                      fill="url(#goldGrad)"
+                      text-anchor="middle">P</text>
+              </svg>
+              <div class="size-pill">Hero · 200px</div>
+            </div>
+            <div class="size-col">
+              <svg viewBox="0 0 220 280" width="80" height="102" xmlns="http://www.w3.org/2000/svg">
+                <line x1="22" y1="40" x2="198" y2="40" stroke="url(#goldGrad)" stroke-width="5" stroke-linecap="round" />
+                <text x="110" y="235" font-family="Cinzel, serif" font-weight="700" font-size="240" fill="url(#goldGrad)" text-anchor="middle">P</text>
+              </svg>
+              <div class="size-pill">App icon · 80px</div>
+            </div>
+            <div class="size-col">
+              <svg viewBox="0 0 220 280" width="28" height="35" xmlns="http://www.w3.org/2000/svg">
+                <line x1="22" y1="40" x2="198" y2="40" stroke="url(#goldGrad)" stroke-width="8" stroke-linecap="round" />
+                <text x="110" y="235" font-family="Cinzel, serif" font-weight="700" font-size="240" fill="url(#goldGrad)" text-anchor="middle">P</text>
+              </svg>
+              <div class="size-pill">Favicon · 28px</div>
+            </div>
+          </div>
+        </div>
+        <div class="frame frame--light">
+          <div class="size-col">
+            <svg viewBox="0 0 220 280" width="180" height="230" xmlns="http://www.w3.org/2000/svg">
+              <line x1="22" y1="40" x2="198" y2="40" stroke="#141937" stroke-width="5" stroke-linecap="round" />
+              <text x="110" y="235" font-family="Cinzel, serif" font-weight="700" font-size="240" fill="#141937" text-anchor="middle">P</text>
+            </svg>
+            <div class="size-pill" style="color: #141937; opacity: 0.6;">On parchment</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════
+         FINAL DIRECTION: D + E combined as the Privé brand system
+         ════════════════════════════════════════════════════════════ -->
+    <section class="section" style="border-top: 2px solid var(--gold);">
+      <div class="section-head">
+        <h2>★ Combined system — D + E together</h2>
+        <span class="badge">Master's pick</span>
+      </div>
+      <p class="section-desc">
+        How the two marks live together as one brand system:
+        the <strong>refined P with heart interior</strong> is the iconic mark (app icon, favicon,
+        social avatar). The <strong>PRIVÉ wordmark with elongated accent</strong> is the
+        full-name signature (marketing, header, splash screen). Used side-by-side or stacked.
+      </p>
+
+      <!-- Horizontal layout: P icon + wordmark (how it appears in TopBar / header) -->
+      <h3 style="font-family: 'Cinzel', serif; color: var(--gold); font-size: 0.95rem; letter-spacing: 0.12em; margin: 0 0 1rem;">As app shell header (horizontal):</h3>
+      <div class="frame frame--dark" style="min-height: 180px; margin-bottom: 2rem;">
+        <div class="pair-row" style="gap: 1.6rem;">
+          <svg viewBox="0 0 220 280" width="70" height="89" xmlns="http://www.w3.org/2000/svg">
+            <line x1="22" y1="40" x2="198" y2="40" stroke="url(#goldGrad)" stroke-width="5" stroke-linecap="round" />
+            <text x="110" y="235" font-family="Cinzel, serif" font-weight="700" font-size="240" fill="url(#goldGrad)" text-anchor="middle">P</text>
+          </svg>
+          <div class="wordmark" style="font-size: 2.6rem;">
+            <span>PRIV</span><span class="e-with-accent"><span class="accent-line"></span>E</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stacked layout: P icon centered above wordmark (splash screen / hero) -->
+      <h3 style="font-family: 'Cinzel', serif; color: var(--gold); font-size: 0.95rem; letter-spacing: 0.12em; margin: 0 0 1rem;">As splash screen / hero (stacked):</h3>
+      <div class="frame frame--dark" style="min-height: 380px; margin-bottom: 2rem;">
+        <svg viewBox="0 0 220 280" width="120" height="153" xmlns="http://www.w3.org/2000/svg">
+          <line x1="22" y1="40" x2="198" y2="40" stroke="url(#goldGrad)" stroke-width="5" stroke-linecap="round" />
+          <text x="110" y="235" font-family="Cinzel, serif" font-weight="700" font-size="240" fill="url(#goldGrad)" text-anchor="middle">P</text>
+        </svg>
+        <div class="wordmark wordmark--lg" style="margin-top: 0.5rem;">
+          <span>PRIV</span><span class="e-with-accent"><span class="accent-line"></span>E</span>
+        </div>
+        <div style="font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--gold); opacity: 0.65; font-size: 1rem; letter-spacing: 0.18em; margin-top: 0.4rem;">
+          Members only, by design.
+        </div>
+      </div>
+
+      <!-- Just the icon (favicon scale) -->
+      <h3 style="font-family: 'Cinzel', serif; color: var(--gold); font-size: 0.95rem; letter-spacing: 0.12em; margin: 0 0 1rem;">Icon alone (for favicon, app store, social):</h3>
+      <div class="frame frame--dark" style="min-height: 200px;">
+        <div class="size-row" style="gap: 3rem;">
+          <div class="size-col">
+            <svg viewBox="0 0 220 280" width="128" height="163" xmlns="http://www.w3.org/2000/svg">
+              <line x1="22" y1="40" x2="198" y2="40" stroke="url(#goldGrad)" stroke-width="5" stroke-linecap="round" />
+              <text x="110" y="235" font-family="Cinzel, serif" font-weight="700" font-size="240" fill="url(#goldGrad)" text-anchor="middle">P</text>
+            </svg>
+            <div class="size-pill">128px</div>
+          </div>
+          <div class="size-col">
+            <svg viewBox="0 0 220 280" width="48" height="61" xmlns="http://www.w3.org/2000/svg">
+              <line x1="22" y1="40" x2="198" y2="40" stroke="url(#goldGrad)" stroke-width="6" stroke-linecap="round" />
+              <text x="110" y="235" font-family="Cinzel, serif" font-weight="700" font-size="240" fill="url(#goldGrad)" text-anchor="middle">P</text>
+            </svg>
+            <div class="size-pill">48px</div>
+          </div>
+          <div class="size-col">
+            <svg viewBox="0 0 220 280" width="20" height="25" xmlns="http://www.w3.org/2000/svg">
+              <line x1="22" y1="40" x2="198" y2="40" stroke="url(#goldGrad)" stroke-width="10" stroke-linecap="round" />
+              <text x="110" y="235" font-family="Cinzel, serif" font-weight="700" font-size="240" fill="url(#goldGrad)" text-anchor="middle">P</text>
+            </svg>
+            <div class="size-pill">20px</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p class="footer">— Theo · Privé brand exploration · 2026-05-21</p>
+  </div>
+</body>
+</html>

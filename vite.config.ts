@@ -30,9 +30,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'pwa-icon-192.png', 'pwa-icon-512.png'],
       manifest: {
-        name: 'LoveDate',
-        short_name: 'LoveDate',
-        description: 'Find your perfect match — AI-powered chat coach, real conversations, real dates.',
+        name: 'Privé',
+        short_name: 'Privé',
+        description: 'Exclusive, AI-driven dating. Curated matches, real intent, intentional connection.',
         start_url: './',
         scope: './',
         display: 'standalone',
