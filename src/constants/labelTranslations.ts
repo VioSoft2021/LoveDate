@@ -86,7 +86,7 @@ const RELATIONSHIP_INTENT_LABELS_RO: Record<string, string> = {
   'Long-term': 'Pe termen lung',
   'Short-term': 'Pe termen scurt',
   Friends: 'Prietenie',
-  'Figuring it out': 'Mă caut',
+  'Figuring it out': 'Mă mai gândesc',
   'Long-term relationship': 'Relație pe termen lung',
   'Short-term, open to long': 'Termen scurt, deschis la lung',
   'Short-term fun': 'Distracție pe termen scurt',
@@ -194,7 +194,7 @@ const LIFESTYLE_LABELS_RO: Record<string, string> = {
   'Long-term': 'Pe termen lung',
   'Short-term': 'Pe termen scurt',
   Friends: 'Prietenie',
-  'Figuring it out': 'Mă caut',
+  'Figuring it out': 'Mă mai gândesc',
   // Full LOOKING_FOR_OPTIONS values (src/constants/profile.ts:107-113)
   'Long-term relationship': 'Relație pe termen lung',
   'Short-term, open to long': 'Termen scurt, deschis la lung',
