@@ -2,7 +2,14 @@ import React from 'react'
 import { UI_TEXT, translateRelationshipIntent, translateSafetyCategory } from '../constants'
 import type { AppLanguage, ModerationFilter } from '../domain'
 import type { ModerationStatus, SafetyReport } from '../services/moderation'
-import { backendListClientErrors, type ClientErrorRow } from '../services/backendApi'
+import {
+  backendApproveWaitlist,
+  backendDeclineWaitlist,
+  backendListClientErrors,
+  backendListWaitlist,
+  type ClientErrorRow,
+  type WaitlistEntry,
+} from '../services/backendApi'
 
 export type ModerationScreenProps = {
   appLanguage: AppLanguage
@@ -61,6 +68,64 @@ export const ModerationScreen: React.FC<ModerationScreenProps> = ({
     if (!isModerationAdmin) return
     void loadCrashes()
   }, [isModerationAdmin, loadCrashes])
+
+  // Waitlist admin — list pending requests, approve (auto-generates an
+  // invite code) or decline. Reuses the existing admin-gated RPCs.
+  type WaitlistTab = 'pending' | 'approved' | 'declined' | 'all'
+  const [waitlistTab, setWaitlistTab] = React.useState<WaitlistTab>('pending')
+  const [waitlistRows, setWaitlistRows] = React.useState<WaitlistEntry[]>([])
+  const [waitlistLoading, setWaitlistLoading] = React.useState(false)
+  const [waitlistError, setWaitlistError] = React.useState<string | null>(null)
+  const [waitlistCopiedId, setWaitlistCopiedId] = React.useState<string | null>(null)
+
+  const loadWaitlist = React.useCallback(
+    async (tab: WaitlistTab) => {
+      setWaitlistLoading(true)
+      setWaitlistError(null)
+      const rows = await backendListWaitlist(tab)
+      setWaitlistRows(rows)
+      setWaitlistLoading(false)
+    },
+    [],
+  )
+
+  React.useEffect(() => {
+    if (!isModerationAdmin) return
+    void loadWaitlist(waitlistTab)
+  }, [isModerationAdmin, waitlistTab, loadWaitlist])
+
+  const handleApprove = async (id: string) => {
+    const code = await backendApproveWaitlist(id)
+    if (!code) {
+      setWaitlistError(copy.waitlist.adminApproveFailed)
+      return
+    }
+    // Optimistic update: copy the code into the row so admin can copy + email.
+    setWaitlistRows((rows) =>
+      rows.map((r) =>
+        r.id === id ? { ...r, status: 'approved', inviteCode: code } : r,
+      ),
+    )
+  }
+  const handleDecline = async (id: string) => {
+    const ok = await backendDeclineWaitlist(id)
+    if (!ok) {
+      setWaitlistError(copy.waitlist.adminDeclineFailed)
+      return
+    }
+    setWaitlistRows((rows) =>
+      rows.map((r) => (r.id === id ? { ...r, status: 'declined' } : r)),
+    )
+  }
+  const copyInviteCode = async (id: string, code: string) => {
+    try {
+      await navigator.clipboard.writeText(code)
+      setWaitlistCopiedId(id)
+      window.setTimeout(() => setWaitlistCopiedId(null), 2000)
+    } catch {
+      // best-effort; admin can still read + retype the code from the row
+    }
+  }
 
   if (!isModerationAdmin) {
     return (
@@ -266,6 +331,89 @@ export const ModerationScreen: React.FC<ModerationScreenProps> = ({
           </>
         ) : (
           <p className="soft">{ro ? 'Selectează o raportare din coadă.' : 'Select a report from the queue.'}</p>
+        )}
+      </article>
+
+      <article className="profile-settings waitlist-admin">
+        <div className="crash-inbox-head">
+          <h2>{copy.waitlist.adminTitle}</h2>
+          <div className="crash-inbox-actions">
+            {(['pending', 'approved', 'declined', 'all'] as WaitlistTab[]).map((t) => {
+              const labelMap: Record<WaitlistTab, string> = {
+                pending: copy.waitlist.adminPending,
+                approved: copy.waitlist.adminApproved,
+                declined: copy.waitlist.adminDeclined,
+                all: copy.waitlist.adminAll,
+              }
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  className={t === waitlistTab ? 'is-active' : 'ghost'}
+                  onClick={() => setWaitlistTab(t)}
+                >
+                  {labelMap[t]}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+        {waitlistError ? <p className="error-text">{waitlistError}</p> : null}
+        {waitlistLoading ? (
+          <p className="soft">{copy.common.loading}…</p>
+        ) : waitlistRows.length === 0 ? (
+          <p className="soft">{copy.waitlist.adminEmpty}</p>
+        ) : (
+          <ul className="crash-list">
+            {waitlistRows.map((row) => (
+              <li key={row.id} className="crash-row">
+                <div className="crash-row-head">
+                  <span className="mod-risk-badge">{row.status.toUpperCase()}</span>
+                  <span className="crash-row-message">
+                    <strong>{row.email}</strong>
+                    {row.note ? <> — <em>{row.note}</em></> : null}
+                  </span>
+                  <span className="crash-row-meta">
+                    {new Date(row.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="crash-row-detail">
+                  {row.inviteCode ? (
+                    <>
+                      <p>
+                        {copy.waitlist.adminCodeGenerated.replace('{code}', row.inviteCode)}
+                      </p>
+                      <button
+                        type="button"
+                        className="ghost"
+                        onClick={() => void copyInviteCode(row.id, row.inviteCode!)}
+                      >
+                        {waitlistCopiedId === row.id
+                          ? copy.waitlist.adminCopiedToast
+                          : copy.waitlist.adminCopyCode}
+                      </button>
+                    </>
+                  ) : row.status === 'pending' ? (
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={() => void handleApprove(row.id)}
+                      >
+                        {copy.waitlist.adminApprove}
+                      </button>
+                      <button
+                        type="button"
+                        className="ghost"
+                        onClick={() => void handleDecline(row.id)}
+                      >
+                        {copy.waitlist.adminDecline}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </article>
 

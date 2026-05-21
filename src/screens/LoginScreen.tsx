@@ -2,6 +2,7 @@ import React from 'react'
 import { Logo } from '../components/Logo'
 import { runtimeConfig } from '../services/runtimeConfig'
 import { UI_TEXT } from '../constants'
+import { backendSubmitWaitlist } from '../services/backendApi'
 import type { AppLanguage } from '../domain'
 
 export type LoginScreenProps = {
@@ -70,6 +71,41 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 }) => {
   const copy = UI_TEXT[appLanguage]
   const [showPassword, setShowPassword] = React.useState(false)
+
+  // Waitlist (public access request) state — hidden by default, shown
+  // when the user taps "Request access". Stays inline in the login card
+  // so we don't need a modal/route. On successful submit we swap to a
+  // confirmation message.
+  const [showWaitlist, setShowWaitlist] = React.useState(false)
+  const [waitlistEmail, setWaitlistEmail] = React.useState('')
+  const [waitlistNote, setWaitlistNote] = React.useState('')
+  const [waitlistStatus, setWaitlistStatus] = React.useState<
+    'idle' | 'submitting' | 'success' | 'error'
+  >('idle')
+  const [waitlistError, setWaitlistError] = React.useState<string | null>(null)
+  const submitWaitlist = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const w = copy.waitlist
+    const email = waitlistEmail.trim()
+    // Cheap client-side check; server re-validates via the SECURITY DEFINER RPC.
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setWaitlistError(w.invalidEmail)
+      setWaitlistStatus('error')
+      return
+    }
+    setWaitlistError(null)
+    setWaitlistStatus('submitting')
+    try {
+      await backendSubmitWaitlist(email, waitlistNote.trim() || undefined)
+      setWaitlistStatus('success')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : ''
+      setWaitlistError(
+        /too many requests/i.test(message) ? w.rateLimited : w.submitFailed,
+      )
+      setWaitlistStatus('error')
+    }
+  }
 
   return (
     <main className="login-shell">
@@ -189,6 +225,81 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </div>
           ) : null}
         </form>
+
+        {/* Public waitlist — shown when invite codes are required so
+            strangers without a code have a clear path. Toggles between
+            a "Request access" link and an inline form. */}
+        {runtimeConfig.auth.requireInviteCode ? (
+          <div className="login-waitlist">
+            {!showWaitlist ? (
+              <button
+                type="button"
+                className="ghost login-waitlist-toggle"
+                onClick={() => setShowWaitlist(true)}
+              >
+                {copy.waitlist.requestAccessLink}
+              </button>
+            ) : waitlistStatus === 'success' ? (
+              <div className="login-waitlist-success">
+                <h2>{copy.waitlist.successTitle}</h2>
+                <p className="soft">{copy.waitlist.successBody}</p>
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={() => {
+                    setShowWaitlist(false)
+                    setWaitlistEmail('')
+                    setWaitlistNote('')
+                    setWaitlistStatus('idle')
+                    setWaitlistError(null)
+                  }}
+                >
+                  {copy.auth.signIn}
+                </button>
+              </div>
+            ) : (
+              <form className="login-waitlist-form" onSubmit={submitWaitlist}>
+                <h2>{copy.waitlist.title}</h2>
+                <p className="soft">{copy.waitlist.subtitle}</p>
+                <label>
+                  {copy.waitlist.emailLabel}
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    value={waitlistEmail}
+                    onChange={(event) => setWaitlistEmail(event.target.value)}
+                    required
+                  />
+                </label>
+                <label>
+                  {copy.waitlist.noteLabel}
+                  <textarea
+                    rows={2}
+                    value={waitlistNote}
+                    onChange={(event) => setWaitlistNote(event.target.value)}
+                    maxLength={400}
+                  />
+                </label>
+                {waitlistError ? <p className="error-text">{waitlistError}</p> : null}
+                <div className="login-actions">
+                  <button type="submit" disabled={waitlistStatus === 'submitting'}>
+                    {waitlistStatus === 'submitting'
+                      ? copy.waitlist.submitting
+                      : copy.waitlist.submit}
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => setShowWaitlist(false)}
+                    disabled={waitlistStatus === 'submitting'}
+                  >
+                    {copy.onboarding.back}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        ) : null}
       </article>
     </main>
   )

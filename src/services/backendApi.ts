@@ -976,6 +976,97 @@ export const backendDeleteSelfAccount = async (): Promise<boolean> => {
 }
 
 /**
+ * Public waitlist — strangers visiting prive-app.club submit their email
+ * (and optional note) to request access. Server-side spam guard limits 3
+ * attempts per email per 24h. Returns true on success or throws on
+ * validation/rate-limit failures so the form can show a clear message.
+ */
+export const backendSubmitWaitlist = async (
+  email: string,
+  note?: string,
+): Promise<boolean> => {
+  if (!supabase) return false
+  const { error } = await supabase.rpc('submit_waitlist', {
+    p_email: email,
+    p_note: note ?? null,
+  })
+  if (error) {
+    throw new Error(error.message)
+  }
+  return true
+}
+
+export type WaitlistEntry = {
+  id: string
+  email: string
+  note: string | null
+  status: 'pending' | 'approved' | 'declined'
+  inviteCode: string | null
+  createdAt: string
+  reviewedAt: string | null
+}
+
+/** Admin-only — lists waitlist entries by status. */
+export const backendListWaitlist = async (
+  status: 'pending' | 'approved' | 'declined' | 'all' = 'pending',
+): Promise<WaitlistEntry[]> => {
+  if (!supabase) return []
+  const { data, error } = await supabase.rpc('admin_list_waitlist', {
+    p_status: status,
+  })
+  if (error || !Array.isArray(data)) {
+
+    console.warn('admin_list_waitlist failed:', error?.message)
+    return []
+  }
+  return data.map((row: Record<string, unknown>) => ({
+    id: String(row.id),
+    email: String(row.email ?? ''),
+    note: typeof row.note === 'string' ? row.note : null,
+    status: (row.status as WaitlistEntry['status']) ?? 'pending',
+    inviteCode: typeof row.invite_code === 'string' ? row.invite_code : null,
+    createdAt: String(row.created_at ?? ''),
+    reviewedAt: typeof row.reviewed_at === 'string' ? row.reviewed_at : null,
+  }))
+}
+
+/**
+ * Admin-only — approve a pending waitlist entry. Server generates a
+ * single-use 12-char invite code with a 30-day expiry, inserts it into
+ * public.beta_invites, marks the waitlist row as approved, and returns
+ * the code for the admin UI to display (so the admin can copy + email
+ * it manually). Returns null on failure.
+ */
+export const backendApproveWaitlist = async (
+  id: string,
+): Promise<string | null> => {
+  if (!supabase) return null
+  const { data, error } = await supabase.rpc('admin_approve_waitlist', {
+    p_id: id,
+  })
+  if (error) {
+
+    console.warn('admin_approve_waitlist failed:', error.message)
+    return null
+  }
+  return typeof data === 'string' ? data : null
+}
+
+/** Admin-only — decline a pending waitlist entry. */
+export const backendDeclineWaitlist = async (id: string): Promise<boolean> => {
+  if (!supabase) return false
+  const { data, error } = await supabase.rpc('admin_decline_waitlist', {
+    p_id: id,
+  })
+  if (error) {
+
+    console.warn('admin_decline_waitlist failed:', error.message)
+    return false
+  }
+  return data === true
+}
+
+/**
  * D5 — admin moderation action: flip a profile's is_active flag.
  * Server-side gated by public.is_admin() (checks public.admins table).
  * When set to false, the profile disappears from every user's Discover

@@ -7,6 +7,9 @@ import type { SafetyReport } from '../services/moderation'
 // Mock the backend module so the test never hits Supabase.
 vi.mock('../services/backendApi', () => ({
   backendListClientErrors: vi.fn(),
+  backendListWaitlist: vi.fn().mockResolvedValue([]),
+  backendApproveWaitlist: vi.fn().mockResolvedValue(null),
+  backendDeclineWaitlist: vi.fn().mockResolvedValue(false),
 }))
 
 import { backendListClientErrors } from '../services/backendApi'
