@@ -4612,8 +4612,16 @@ details.profile-settings.settings-card[open] > summary {
 .profile-summary-hero {
   position: relative;
   width: 100%;
-  min-height: 34rem;
-  max-height: 40rem;
+  /* RESPONSIVE FIX 2026-05-21: was min-height 34rem / max-height 40rem
+     (=544–640px), which truncated the entire profile content on small
+     phones — the hero ate the whole viewport so users never saw the
+     editor below. Now scales with viewport height: 14rem floor for
+     readability, 34rem ceiling preserves desktop look, target 40dvh
+     (40% of dynamic viewport height). On iPhone SE (~600dvh) the hero
+     becomes ~240px, leaving room for the rest. Reported by Master's
+     friend during friend-test. */
+  min-height: clamp(14rem, 40dvh, 34rem);
+  max-height: clamp(18rem, 50dvh, 40rem);
   overflow: hidden;
 }
 
