@@ -42,4 +42,48 @@
   --z-tab-bar: 300;           /* Bottom mobile nav (must overlay content) */
   --z-build-chip: 9999;       /* Build-version chip (above tab bar but below banner) */
   --z-update-banner: 10000;   /* "New version" banner (highest interactive) */
+
+  /* ── Privé brand palette ────────────────────────────────────────────
+     Locked 2026-05-21 (Phase 1.5 color refresh). Use these tokens for
+     anything brand-tier: TopBar accents, hero sections, primary CTAs,
+     dividers. Functional indicators (errors, super-like cyan, etc.)
+     can keep their non-brand hues. */
+
+  /* Navy levels — deeper than the legacy LoveDate palette. */
+  --prive-navy-deep: #050818;   /* page background (deepest) */
+  --prive-navy-1: #0a0e27;      /* primary surface (theme_color) */
+  --prive-navy-2: #141937;      /* card / modal surface */
+  --prive-navy-3: #252d5c;      /* secondary card surface (legacy) */
+
+  /* Solid gold stops (also blended into the gradient below). */
+  --prive-gold-light: #fceeb0;  /* highlight (top of gradient) */
+  --prive-gold-soft: #ead27a;
+  --prive-gold: #d8b86d;        /* canonical brand gold (mid-stop) */
+  --prive-gold-deep: #b9974a;
+  --prive-gold-shadow-stop: #8b6b2c;   /* shadow (bottom of gradient) */
+
+  /* The gold gradient — top highlight through deep amber. Used via
+     background: var(--prive-gold-grad) with -webkit-background-clip: text
+     for typography, or as a fill for buttons. */
+  --prive-gold-grad: linear-gradient(
+    180deg,
+    var(--prive-gold-light) 0%,
+    var(--prive-gold-soft) 22%,
+    var(--prive-gold) 48%,
+    var(--prive-gold-deep) 72%,
+    var(--prive-gold-shadow-stop) 100%
+  );
+  --prive-gold-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+
+  /* Parchment for light surfaces (premium printed-card feel). */
+  --prive-parchment: #f4e9cb;
+  --prive-parchment-soft: rgba(244, 233, 203, 0.86);
+
+  /* Rule / divider colors — gold at varying opacities. */
+  --prive-rule: rgba(216, 184, 109, 0.22);
+  --prive-rule-strong: rgba(216, 184, 109, 0.48);
+
+  /* Soft gold radial used for page ambient lighting (the "light from
+     above" effect on the body background). */
+  --prive-ambient-glow: rgba(216, 184, 109, 0.08);
 }

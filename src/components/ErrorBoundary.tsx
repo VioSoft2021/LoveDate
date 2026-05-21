@@ -64,7 +64,7 @@ export class ErrorBoundary extends Component<Props, State> {
           alignItems: 'center',
           padding: '2rem 1.5rem',
           background:
-            'linear-gradient(132deg, #0a0e27 0%, #141937 52%, #0b1230 100%)',
+            'linear-gradient(180deg, #050818 0%, #0a0e27 50%, #050818 100%)',
           color: '#ebf4ff',
           fontFamily: "'Trebuchet MS', sans-serif",
           textAlign: 'center',

@@ -13,10 +13,15 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: 'Trebuchet MS', 'Lucida Sans', 'Gill Sans', sans-serif;
+  /* Privé palette (Phase 1.5 — 2026-05-21):
+     The legacy cyan + violet radials are gone. The page now reads as
+     a luxury gallery: deepest navy at the edges, a subtle gold glow
+     from the top edge (like ambient light from above), and a softer
+     gold echo near the bottom. Tokens in src/styles/tokens.css. */
   background:
-    radial-gradient(circle at 14% 18%, rgba(0, 229, 255, 0.14), transparent 34%),
-    radial-gradient(circle at 82% 74%, rgba(167, 139, 250, 0.14), transparent 38%),
-    linear-gradient(132deg, #0a0e27 0%, #141937 52%, #0b1230 100%);
+    radial-gradient(ellipse at 50% 0%, var(--prive-ambient-glow) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 100%, rgba(216, 184, 109, 0.04) 0%, transparent 50%),
+    linear-gradient(180deg, var(--prive-navy-deep) 0%, var(--prive-navy-1) 50%, var(--prive-navy-deep) 100%);
 }
 
 #root {

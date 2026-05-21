@@ -11,18 +11,21 @@ const devServer: CapacitorConfig['server'] =
     : undefined
 
 const config: CapacitorConfig = {
+  // appId stays as com.lovedate.app on purpose — changing the bundle
+  // identifier orphans all existing PWA installs on devices. The
+  // user-visible name is what flips to Privé.
   appId: 'com.lovedate.app',
-  appName: 'LoveDate',
+  appName: 'Privé',
   webDir: 'dist',
-  backgroundColor: '#141937',
+  backgroundColor: '#0a0e27',
   ...(devServer ? { server: devServer } : {}),
   android: {
-    backgroundColor: '#141937',
+    backgroundColor: '#0a0e27',
   },
   plugins: {
     SplashScreen: {
       launchShowDuration: 1200,
-      backgroundColor: '#141937',
+      backgroundColor: '#0a0e27',
       showSpinner: false,
       androidScaleType: 'CENTER_CROP',
       splashFullScreen: true,
@@ -30,7 +33,7 @@ const config: CapacitorConfig = {
     },
     StatusBar: {
       style: 'Dark',
-      backgroundColor: '#141937',
+      backgroundColor: '#0a0e27',
       overlaysWebView: false,
     },
   },
