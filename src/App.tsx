@@ -63,6 +63,7 @@ import {
   backendLoadChatHistory,
   backendSubscribeToInbox,
   backendLoadBlockedProfileIds,
+  backendLoadPreferences,
   backendLoadSettings,
   backendLoadSwipeHistory,
   backendSavePreferences,
@@ -1124,8 +1125,51 @@ function App() {
     return { filteredProfiles: sorted, hiddenBreakdown: hidden }
   }, [genderFilteredProfiles, filters, swipedIds, blockedProfileIds, getCompatibilityScore])
 
+  // D3 — hydrate filter preferences from the cloud on auth.
+  // backendSavePreferences has always written to user_preferences; this
+  // is the matching read. Cloud values override the local defaults so
+  // the user's filters survive domain change, new device, and sign-in
+  // on a fresh origin. The prefsHydratedRef guard blocks the
+  // 280ms-debounced save effect below from echoing the hydrated values
+  // back to the cloud during the same render cycle.
+  const prefsHydratedRef = useRef(false)
   useEffect(() => {
     if (!isAuthenticated) {
+      prefsHydratedRef.current = false
+      return
+    }
+    if (prefsHydratedRef.current) {
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      const cloud = await backendLoadPreferences()
+      if (cancelled) return
+      if (cloud) {
+        setFilters((current) => ({
+          ...current,
+          minAge: cloud.minAge,
+          maxAge: cloud.maxAge,
+          city: cloud.city,
+          interest: cloud.interest,
+        }))
+      }
+      // Mark hydration complete so the next filter change triggers a save.
+      prefsHydratedRef.current = true
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated, userEmail, setFilters])
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return
+    }
+    // Skip the save while preference hydration from the cloud is still
+    // pending — otherwise we'd echo the hydrated values back as if they
+    // were a fresh user change, masking any in-flight cloud updates.
+    if (!prefsHydratedRef.current) {
       return
     }
 

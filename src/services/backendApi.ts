@@ -818,6 +818,54 @@ export const backendLoadSettings = async (): Promise<SettingsPayload | null> => 
   return cloud
 }
 
+// D3 — hydrate user filter preferences from the cloud on auth.
+// Until this shipped, filter values cold-started from initialFilters on
+// every session: domain change, new device, signed-out-then-in all
+// silently reset the user's saved filter choices. The user_preferences
+// table has always been written by backendSavePreferences; nothing was
+// reading it. Returns undefined when no row exists (caller keeps the
+// existing defaults). Returns the partial 4-field payload the save
+// path persists (minAge, maxAge, city, interest) — the other filter
+// fields are not yet round-tripped to the cloud.
+export const backendLoadPreferences = async (): Promise<{
+  minAge: number
+  maxAge: number
+  city: string
+  interest: string
+} | undefined> => {
+  if (!supabase) {
+    return undefined
+  }
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return undefined
+  }
+  const { data, error } = await supabase
+    .from('user_preferences')
+    .select('min_age, max_age, city, interest')
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (error || !data) {
+    if (error) {
+
+      console.warn('Preference hydration failed:', error.message)
+    }
+    return undefined
+  }
+  const row = data as {
+    min_age?: number | null
+    max_age?: number | null
+    city?: string | null
+    interest?: string | null
+  }
+  return {
+    minAge: typeof row.min_age === 'number' ? row.min_age : 18,
+    maxAge: typeof row.max_age === 'number' ? row.max_age : 60,
+    city: typeof row.city === 'string' ? row.city : '',
+    interest: typeof row.interest === 'string' ? row.interest : '',
+  }
+}
+
 export const backendSavePreferences = async (payload: {
   minAge: number
   maxAge: number
