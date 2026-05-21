@@ -18,6 +18,7 @@ export type TopBarProps = {
    * The button is now icon-only; the label is no longer visible text.
    */
   exitToLoginLabel: string
+  exitAppLabel: string
   onSignOut: () => void
   showExitAppButton: boolean
   onExitApp: () => void
@@ -42,6 +43,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   currentScreen,
   onNavigate,
   exitToLoginLabel,
+  exitAppLabel,
   onSignOut,
   showExitAppButton,
   onExitApp,
@@ -81,8 +83,8 @@ export const TopBar: React.FC<TopBarProps> = ({
             type="button"
             className="top-exit-btn top-exit-btn--quit"
             onClick={onExitApp}
-            aria-label="Exit App"
-            title="Exit App"
+            aria-label={exitAppLabel}
+            title={exitAppLabel}
           >
             ⏻
           </button>

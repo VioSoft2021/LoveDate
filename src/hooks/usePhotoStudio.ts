@@ -11,6 +11,7 @@ import {
   renderEditedPhoto,
 } from '../utils'
 import { backendUploadProfilePhoto } from '../services/backendApi'
+import { UI_TEXT } from '../constants'
 
 // Phase D2.1 — usePhotoStudio
 //
@@ -179,7 +180,7 @@ export const usePhotoStudio = ({
           resetPhotoStudioControls()
         })
         .catch(() => {
-          pushToast('Unable to open photo editor for this file.', 'error')
+          pushToast(UI_TEXT[appLanguage].photoToasts.editorOpenFailed, 'error')
         })
         .finally(() => {
           event.target.value = ''
@@ -206,12 +207,7 @@ export const usePhotoStudio = ({
         const uploaded = await backendUploadProfilePhoto(editedPhoto)
         const finalPhoto = uploaded ?? editedPhoto
         if (!uploaded) {
-          pushToast(
-            appLanguage === 'ro'
-              ? 'Poză salvată local — nu s-a putut încărca pe server, vom reîncerca la următoarea salvare.'
-              : "Photo saved locally — couldn't upload, will retry on next save.",
-            'info',
-          )
+          pushToast(UI_TEXT[appLanguage].photoToasts.uploadFallbackLocal, 'info')
         }
 
         setProfileDraft((current) => {
@@ -225,13 +221,13 @@ export const usePhotoStudio = ({
         closePhotoStudio()
         pushToast(
           uploaded
-            ? 'Photo uploaded and added to draft.'
-            : 'Photo added (offline mode — will sync on next save).',
+            ? UI_TEXT[appLanguage].photoToasts.photoUploaded
+            : UI_TEXT[appLanguage].photoToasts.photoAddedOffline,
           'success',
         )
       })
       .catch(() => {
-        pushToast('Photo processing failed. Please try another image.', 'error')
+        pushToast(UI_TEXT[appLanguage].photoToasts.processingFailed, 'error')
       })
       .finally(() => {
         setPhotoStudioBusy(false)

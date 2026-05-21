@@ -619,6 +619,7 @@ function App() {
   // non-auth state that handleSignOut used to reset inline.
   const auth = useAuth({
     pushToast,
+    appLanguage,
     onSignedIn: () => navigate('discover', { replace: true }),
     onSignedOut: () => {
       setActiveMatch(null)
@@ -1300,6 +1301,7 @@ function App() {
     setCallHistory,
     setChatThreads,
     pushToast,
+    appLanguage,
   })
 
   const selectedDetailProfile = useMemo(() => {
@@ -2630,6 +2632,7 @@ function App() {
         currentScreen={screen}
         onNavigate={navigate}
         exitToLoginLabel={copy.common.exitToLogin}
+        exitAppLabel={copy.a11y.exitApp}
         onSignOut={handleSignOut}
         showExitAppButton={
           Capacitor.isNativePlatform() ||

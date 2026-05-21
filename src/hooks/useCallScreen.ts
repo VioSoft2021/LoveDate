@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createJitsiProviderConfig } from '../services/jitsiEmbedConfig'
 import { buildCallRoom } from '../utils'
+import { UI_TEXT } from '../constants'
 import type { JitsiProviderConfig } from '../services/jitsiEmbedConfig'
 import type {
   CallLogEntry,
@@ -56,6 +57,7 @@ type UseCallScreenInput = {
     message: string,
     tone?: 'info' | 'success' | 'error',
   ) => void
+  appLanguage: import('../domain').AppLanguage
 }
 
 export const useCallScreen = ({
@@ -66,6 +68,7 @@ export const useCallScreen = ({
   setCallHistory,
   setChatThreads,
   pushToast,
+  appLanguage,
 }: UseCallScreenInput) => {
   const [callState, setCallState] = useState<CallState>(INITIAL_CALL_STATE)
 
@@ -284,13 +287,14 @@ export const useCallScreen = ({
 
   const copyCallInvite = useCallback(async () => {
     if (!callState.roomUrl) return
+    const tCall = UI_TEXT[appLanguage].callToasts
     try {
       await navigator.clipboard.writeText(callState.roomUrl)
-      pushToast('Call invite link copied.', 'success')
+      pushToast(tCall.inviteCopied, 'success')
     } catch {
-      pushToast('Copy failed. Please copy the link manually from chat.', 'error')
+      pushToast(tCall.copyFailed, 'error')
     }
-  }, [callState.roomUrl, pushToast])
+  }, [callState.roomUrl, pushToast, appLanguage])
 
   const rejoinCallFromHistory = useCallback(
     (entry: CallLogEntry) => {

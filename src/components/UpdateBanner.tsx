@@ -1,4 +1,6 @@
 import React from 'react'
+import { readAppLanguage } from '../persistence/language'
+import { UI_TEXT } from '../constants'
 
 type UpdateBannerHandle = {
   show: (onConfirm: () => void) => void
@@ -34,6 +36,12 @@ export const UpdateBanner: React.FC = () => {
 
   if (!visible) return null
 
+  // Banner is a global imperative component (no React context). Read
+  // the user's saved language directly from localStorage so the banner
+  // text matches the app shell. Falls back to 'en' for SSR / fresh installs.
+  const lang = readAppLanguage()
+  const t = UI_TEXT[lang].updateBanner
+
   return (
     <div
       role="status"
@@ -56,7 +64,7 @@ export const UpdateBanner: React.FC = () => {
         fontWeight: 600,
       }}
     >
-      <span style={{ flex: 1 }}>A new version is ready.</span>
+      <span style={{ flex: 1 }}>{t.message}</span>
       <button
         type="button"
         onClick={() => {
@@ -74,12 +82,12 @@ export const UpdateBanner: React.FC = () => {
           cursor: 'pointer',
         }}
       >
-        Update
+        {t.update}
       </button>
       <button
         type="button"
         onClick={() => setVisible(false)}
-        aria-label="Dismiss"
+        aria-label={t.dismiss}
         style={{
           padding: '0.3rem 0.55rem',
           border: 'none',
@@ -91,7 +99,7 @@ export const UpdateBanner: React.FC = () => {
           cursor: 'pointer',
         }}
       >
-        Later
+        {t.later}
       </button>
     </div>
   )

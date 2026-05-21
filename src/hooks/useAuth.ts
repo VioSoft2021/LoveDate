@@ -13,7 +13,8 @@ import {
   purgeOtherSelfProfileCaches,
 } from '../services/backendApi'
 import { readAuth, AUTH_STORAGE_KEY } from '../persistence'
-import { EMPTY_SELF_PROFILE } from '../constants'
+import { EMPTY_SELF_PROFILE, UI_TEXT } from '../constants'
+import type { AppLanguage } from '../domain'
 import { getStrongPasswordError } from '../utils'
 
 // Phase D1.1 — useAuth
@@ -32,6 +33,7 @@ type Toast = (message: string, tone: 'info' | 'success' | 'error') => void
 
 export type UseAuthOptions = {
   pushToast: Toast
+  appLanguage: AppLanguage
   /** Fires after a successful sign-in / register / guest login. Used by
    *  the consumer to navigate to the home screen. */
   onSignedIn?: (email: string) => void
@@ -40,7 +42,8 @@ export type UseAuthOptions = {
   onSignedOut?: () => void
 }
 
-export const useAuth = ({ pushToast, onSignedIn, onSignedOut }: UseAuthOptions) => {
+export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: UseAuthOptions) => {
+  const tAuth = UI_TEXT[appLanguage].authToasts
   const initial = readAuth()
 
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -109,8 +112,8 @@ export const useAuth = ({ pushToast, onSignedIn, onSignedOut }: UseAuthOptions) 
         .then((result) => {
           if (!result.signedIn && result.registered && result.needsEmailConfirmation) {
             setAuthMode('login')
-            setLoginNotice('Account created. Confirm your email, then sign in.')
-            pushToast('Account created. Please confirm your email.', 'info')
+            setLoginNotice(tAuth.accountCreatedConfirmEmail)
+            pushToast(tAuth.accountCreatedConfirmEmailToast, 'info')
             return
           }
           // Wipe any other user's cached profile before hydrating ours so
@@ -124,7 +127,7 @@ export const useAuth = ({ pushToast, onSignedIn, onSignedOut }: UseAuthOptions) 
           void backendRepairDiscoverableProfile(result.email)
           onSignedIn?.(result.email)
           pushToast(
-            authMode === 'register' ? 'Account created successfully.' : 'Signed in successfully.',
+            authMode === 'register' ? tAuth.accountCreatedSuccess : tAuth.signedInSuccess,
             'success',
           )
         })
@@ -133,8 +136,8 @@ export const useAuth = ({ pushToast, onSignedIn, onSignedOut }: UseAuthOptions) 
           setLoginError(detail)
           pushToast(
             authMode === 'register'
-              ? 'Account creation failed.'
-              : 'Login failed. Check invite code and credentials.',
+              ? tAuth.accountCreationFailed
+              : tAuth.loginFailed,
             'error',
           )
         })
@@ -142,7 +145,7 @@ export const useAuth = ({ pushToast, onSignedIn, onSignedOut }: UseAuthOptions) 
           setLoggingIn(false)
         })
     },
-    [authMode, inviteCode, loginEmail, loginPassword, registerPasswordConfirm, pushToast, onSignedIn],
+    [authMode, inviteCode, loginEmail, loginPassword, registerPasswordConfirm, pushToast, onSignedIn, tAuth],
   )
 
   const guestLogin = useCallback(() => {
@@ -163,17 +166,17 @@ export const useAuth = ({ pushToast, onSignedIn, onSignedOut }: UseAuthOptions) 
         setLoginEmail(result.email)
         void backendRepairDiscoverableProfile(result.email)
         onSignedIn?.(result.email)
-        pushToast('Guest session started.', 'info')
+        pushToast(tAuth.guestStarted, 'info')
       })
       .catch((error: unknown) => {
         const detail = error instanceof Error ? error.message : 'Guest login failed'
         setLoginError(detail)
-        pushToast('Guest login failed.', 'error')
+        pushToast(tAuth.guestFailed, 'error')
       })
       .finally(() => {
         setLoggingIn(false)
       })
-  }, [inviteCode, pushToast, onSignedIn])
+  }, [inviteCode, pushToast, onSignedIn, tAuth])
 
   const signOut = useCallback(async () => {
     // Await the cloud sign-out before flipping local state so the next
@@ -181,7 +184,7 @@ export const useAuth = ({ pushToast, onSignedIn, onSignedOut }: UseAuthOptions) 
     try {
       await backendSignOut()
     } catch {
-      pushToast('Sign out sync failed, local session cleared anyway.', 'error')
+      pushToast(tAuth.signOutSyncFailed, 'error')
     }
     // Wipe every cached self-profile (current + leftovers) so the next
     // person on this device can't read profile data via devtools. Trades
@@ -191,7 +194,7 @@ export const useAuth = ({ pushToast, onSignedIn, onSignedOut }: UseAuthOptions) 
     setUserEmail('')
     setLoginPassword('')
     onSignedOut?.()
-  }, [pushToast, onSignedOut])
+  }, [pushToast, onSignedOut, tAuth])
 
   const exitApp = useCallback(() => {
     void signOut()

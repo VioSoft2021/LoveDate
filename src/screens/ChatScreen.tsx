@@ -194,7 +194,7 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
               <button
                 type="button"
                 className="chat-back-btn"
-                aria-label="Back to chats"
+                aria-label={copy.a11y.backToChats}
                 onClick={() => setActiveChatId(null)}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -221,10 +221,10 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
                 <button
                   type="button"
                   className={`chat-icon-btn chat-tools-toggle${chatToolsOpen ? ' is-active' : ''}`}
-                  aria-label="Toggle AI tools"
+                  aria-label={copy.a11y.toggleAiTools}
                   aria-pressed={chatToolsOpen}
                   onClick={() => setChatToolsOpen((open) => !open)}
-                  title="Toggle AI tools"
+                  title={copy.a11y.toggleAiTools}
                 >
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" />

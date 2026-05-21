@@ -519,8 +519,8 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                     className="ghost location-detect-btn"
                     onClick={() => void runLocationDetect()}
                     disabled={locDetectLoading}
-                    aria-label="Detect my location"
-                    title="Detect my location"
+                    aria-label={copy.a11y.detectMyLocation}
+                    title={copy.a11y.detectMyLocation}
                   >
                     {locDetectLoading ? '…' : (
                       <>
@@ -529,7 +529,7 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                           <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                           <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.5" />
                         </svg>
-                        <span>Detect</span>
+                        <span>{copy.a11y.detect}</span>
                       </>
                     )}
                   </button>
