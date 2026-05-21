@@ -40,6 +40,7 @@ import { CirclesScreen } from './screens/CirclesScreen'
 import { DiscoverScreen } from './screens/DiscoverScreen'
 import { LoginScreen } from './screens/LoginScreen'
 import { ModerationScreen } from './screens/ModerationScreen'
+import { OnboardingScreen } from './screens/OnboardingScreen'
 import { PersonalityGuideScreen } from './screens/PersonalityGuideScreen'
 import { ProfileDetailScreen } from './screens/ProfileDetailScreen'
 import { ProfileScreen } from './screens/ProfileScreen'
@@ -155,6 +156,8 @@ import {
   readHistory,
   readJoinedCircles,
   readSelfProfile,
+  readOnboardedFlag,
+  persistOnboardedFlag,
   toProfileDraft,
 } from './persistence'
 import {
@@ -871,6 +874,25 @@ function App() {
   useEffect(() => {
     void loadProfiles()
   }, [loadProfiles])
+
+  // First-run onboarding trigger. When a user signs in with an empty
+  // profile (no photo, no name) AND hasn't seen the wizard, route them
+  // to the OnboardingScreen instead of dropping them in Discover with
+  // an invisible profile. Existing users with completed profiles are
+  // silently marked as already-onboarded so they never see the wizard.
+  useEffect(() => {
+    if (!isAuthenticated) return
+    if (readOnboardedFlag()) return
+    const profileEmpty =
+      selfProfile.photos.length === 0 && !selfProfile.name.trim()
+    if (profileEmpty) {
+      navigate('onboarding', { replace: true })
+    } else {
+      // Existing user, never seen the wizard — mark as done so this
+      // effect doesn't re-fire on every sign-in.
+      persistOnboardedFlag()
+    }
+  }, [isAuthenticated, selfProfile.photos.length, selfProfile.name, navigate])
 
   // Cloud-backed match list. Run on every authed mount so matches survive
   // reinstall — the local history state starts empty after a wipe, but the
@@ -2938,6 +2960,18 @@ function App() {
             updateReportStatus={updateReportStatus}
             resolveAndBlockReport={resolveAndBlockReport}
             onBackToSettings={() => navigate('settings')}
+          />
+        )}
+        {screen === 'onboarding' && (
+          <OnboardingScreen
+            appLanguage={appLanguage}
+            selfProfile={selfProfile}
+            setSelfProfile={setSelfProfile}
+            pushToast={pushToast}
+            onComplete={() => {
+              persistOnboardedFlag()
+              navigate('discover', { replace: true })
+            }}
           />
         )}
         {screen === 'profile-detail' && (

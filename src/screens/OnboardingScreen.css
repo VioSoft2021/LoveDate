@@ -1,0 +1,335 @@
+/* Privé onboarding wizard — full-screen flow shown to brand-new users
+   immediately after registration. Replaces the previous "drop them into
+   Discover with an empty profile" experience. Luxury palette, generous
+   spacing, single column. */
+
+.onboarding-shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(
+    180deg,
+    var(--prive-navy-deep) 0%,
+    var(--prive-navy-1) 100%
+  );
+  color: #edf3ff;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem
+    max(1rem, env(safe-area-inset-bottom)) 1rem;
+  box-sizing: border-box;
+}
+
+/* ── Header: logo + progress dots + skip ─────────────────────────── */
+.onboarding-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.onboarding-progress {
+  display: flex;
+  gap: 0.35rem;
+  flex: 1;
+  justify-content: center;
+}
+.onboarding-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: rgba(216, 230, 250, 0.18);
+  transition: all 200ms ease;
+}
+.onboarding-dot.is-active {
+  background: linear-gradient(105deg, #cfad61, #e8c679);
+  transform: scale(1.4);
+  box-shadow: 0 0 8px rgba(216, 184, 109, 0.6);
+}
+.onboarding-dot.is-done {
+  background: rgba(216, 184, 109, 0.55);
+}
+.onboarding-skip {
+  font-size: 0.82rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid rgba(216, 230, 250, 0.18);
+  border-radius: 0.6rem;
+  background: transparent;
+  color: rgba(216, 230, 250, 0.65);
+  cursor: pointer;
+}
+.onboarding-skip:hover {
+  border-color: rgba(216, 184, 109, 0.45);
+  color: #f0d99b;
+}
+
+/* ── Main step content ───────────────────────────────────────────── */
+.onboarding-step {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 28rem;
+  width: 100%;
+  margin: 0 auto;
+}
+.onboarding-step h1 {
+  margin: 0;
+  font-family: 'Bodoni Moda', 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: #f4dca8;
+  line-height: 1.15;
+}
+.onboarding-step > p {
+  margin: 0 0 0.5rem;
+  color: rgba(232, 242, 255, 0.84);
+  line-height: 1.5;
+  font-size: 1rem;
+}
+
+/* ── Form fields ─────────────────────────────────────────────────── */
+.onboarding-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.onboarding-field > span,
+.onboarding-field > legend {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.85);
+}
+.onboarding-field input[type='text'],
+.onboarding-field input[type='number'],
+.onboarding-field textarea {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  font: inherit;
+  font-size: 1rem;
+  color: #edf3ff;
+  background: rgba(8, 12, 30, 0.6);
+  border: 1px solid rgba(216, 184, 109, 0.32);
+  border-radius: 0.7rem;
+  box-sizing: border-box;
+  transition: border-color 140ms, box-shadow 140ms;
+}
+.onboarding-field input:focus,
+.onboarding-field textarea:focus {
+  outline: none;
+  border-color: rgba(231, 197, 118, 0.78);
+  box-shadow: 0 0 0 3px rgba(216, 184, 109, 0.18);
+}
+
+/* ── Segmented pills (gender, looking-for, quiz options) ─────────── */
+.onboarding-segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.onboarding-segment {
+  flex: 1 1 auto;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: rgba(216, 230, 250, 0.78);
+  background: rgba(8, 12, 30, 0.55);
+  border: 1px solid rgba(216, 184, 109, 0.22);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 140ms ease;
+  text-align: center;
+  min-width: 0;
+}
+.onboarding-segment:hover {
+  border-color: rgba(216, 184, 109, 0.55);
+  color: #f0d99b;
+}
+.onboarding-segment.is-active {
+  color: #1a1a2c;
+  background: linear-gradient(105deg, #cfad61, #e8c679);
+  border-color: rgba(216, 184, 109, 0.85);
+  font-weight: 600;
+}
+
+/* ── Photos step ────────────────────────────────────────────────── */
+.onboarding-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.onboarding-photo-tile,
+.onboarding-photo-add {
+  aspect-ratio: 3 / 4;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: rgba(8, 12, 30, 0.55);
+  border: 1px solid rgba(216, 184, 109, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.onboarding-photo-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.onboarding-photo-add {
+  font-size: 2rem;
+  color: rgba(244, 220, 168, 0.65);
+  border-style: dashed;
+  cursor: pointer;
+  transition: all 140ms;
+}
+.onboarding-photo-add:hover {
+  border-color: rgba(216, 184, 109, 0.7);
+  color: #f0d99b;
+}
+.onboarding-hint {
+  font-size: 0.85rem;
+  color: rgba(216, 230, 250, 0.6);
+  text-align: center;
+  margin: 0;
+}
+
+/* ── City step ──────────────────────────────────────────────────── */
+.onboarding-city-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+.onboarding-city-row input {
+  flex: 1 1 auto;
+}
+.onboarding-city-row button {
+  flex: 0 0 auto;
+  padding: 0 0.85rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  color: rgba(216, 230, 250, 0.78);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.35);
+  border-radius: 0.6rem;
+  cursor: pointer;
+}
+.onboarding-city-row button:hover:not(:disabled) {
+  border-color: rgba(231, 197, 118, 0.78);
+  color: #f0d99b;
+}
+
+/* ── Quiz step ──────────────────────────────────────────────────── */
+.onboarding-quiz-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.onboarding-quiz-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.onboarding-quiz-prompt {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(232, 242, 255, 0.88);
+}
+.onboarding-quiz-result {
+  margin-top: 1rem;
+  padding: 1rem 1.2rem;
+  background: linear-gradient(105deg, rgba(207, 173, 97, 0.14), rgba(232, 198, 121, 0.18));
+  border: 1px solid rgba(216, 184, 109, 0.45);
+  border-radius: 1rem;
+  text-align: center;
+}
+.onboarding-quiz-result-label {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.8);
+}
+.onboarding-quiz-result-code {
+  margin: 0.3rem 0 0.5rem;
+  font-family: 'Bodoni Moda', 'Cormorant Garamond', serif;
+  font-size: 2.2rem;
+  font-weight: 500;
+  color: #f4dca8;
+  letter-spacing: 0.08em;
+}
+.onboarding-quiz-result-label-name {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f0d99b;
+}
+.onboarding-quiz-result-summary {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: rgba(232, 242, 255, 0.85);
+}
+
+/* ── Bio step AI button ─────────────────────────────────────────── */
+.onboarding-ai-btn {
+  align-self: flex-start;
+  padding: 0.5rem 1rem;
+  font-size: 0.88rem;
+  color: rgba(244, 220, 168, 0.95);
+  background: rgba(207, 173, 97, 0.14);
+  border: 1px solid rgba(216, 184, 109, 0.45);
+  border-radius: 0.7rem;
+  cursor: pointer;
+  transition: all 140ms;
+}
+.onboarding-ai-btn:hover:not(:disabled) {
+  background: rgba(207, 173, 97, 0.22);
+  border-color: rgba(231, 197, 118, 0.78);
+}
+
+/* ── Footer (Back + Continue) ───────────────────────────────────── */
+.onboarding-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(216, 184, 109, 0.14);
+  max-width: 28rem;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+.onboarding-footer > button {
+  flex: 1 1 0;
+  padding: 0.7rem 1rem;
+}
+.onboarding-primary-btn {
+  padding: 0.85rem 1.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #1a1a2c;
+  background: linear-gradient(105deg, #cfad61, #e8c679);
+  border: none;
+  border-radius: 0.8rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(216, 184, 109, 0.28);
+  transition: all 160ms;
+}
+.onboarding-primary-btn:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 6px 18px rgba(216, 184, 109, 0.45);
+}
+.onboarding-primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

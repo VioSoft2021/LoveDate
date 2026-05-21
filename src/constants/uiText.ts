@@ -29,6 +29,55 @@ export const UI_TEXT = {
       english: 'English',
       romanian: 'Romanian',
     },
+    onboarding: {
+      // Wizard chrome
+      stepOf: 'Step {n} of {total}',
+      back: 'Back',
+      continue: 'Continue',
+      skip: 'Skip for now',
+      finish: 'Finish',
+      // Step 1: Welcome
+      welcomeTitle: 'Welcome to Privé',
+      welcomeBody: "Let's set up your profile in a few minutes. We'll keep it short — Privé AI helps with the rest.",
+      welcomeBegin: 'Begin',
+      // Step 2: Photos
+      photosTitle: 'Add a photo',
+      photosBody: 'At least one photo is required — it\'s the first thing matches see. Add more anytime later.',
+      photosUploadBtn: 'Upload a photo',
+      photosCounter: '{n} of 9 added',
+      // Step 3: Basics
+      basicsTitle: 'A few basics',
+      basicsBody: "We need these so the right people see you.",
+      labelName: 'Your name',
+      labelAge: 'Age',
+      labelGender: 'I am',
+      labelLookingFor: 'Looking for',
+      // Step 4: City
+      cityTitle: 'Where are you based?',
+      cityBody: 'City matters for distance and matching. We only show the city to others — never the exact location.',
+      labelCity: 'City',
+      labelHometown: 'Hometown (optional)',
+      // Step 5: Personality quiz
+      quizTitle: 'Discover your Privé code',
+      quizBody: 'Eight quick questions. Your code lets the AI match you with compatible personalities.',
+      quizQuestionOf: 'Question {n} of {total}',
+      quizResultTitle: 'Your Privé code is',
+      // Step 6: Bio
+      bioTitle: 'A few words about you',
+      bioBody: 'Optional but powerful — better bio = better matches. Privé AI can suggest one based on what you\'ve filled in.',
+      labelBio: 'Bio',
+      bioAiButton: '✨ Let Privé AI suggest a bio',
+      bioAiLoading: 'Privé AI is writing…',
+      // Step 7: Ready
+      readyTitle: "You're ready to discover",
+      readyBody: 'Your profile is live. Privé is searching for matches now.',
+      readyEnter: 'Enter Privé',
+      // Validation errors
+      errorNeedPhoto: 'Please add at least one photo.',
+      errorNeedName: 'Please tell us your name.',
+      errorNeedAge: 'Age must be between 18 and 99.',
+      errorNeedCity: 'Please add your city.',
+    },
     callToasts: {
       inviteCopied: 'Call invite link copied.',
       copyFailed: 'Copy failed. Please copy the link manually from chat.',
@@ -460,6 +509,55 @@ export const UI_TEXT = {
       language: 'Limba aplicației',
       english: 'Engleză',
       romanian: 'Română',
+    },
+    onboarding: {
+      // Cadru asistent
+      stepOf: 'Pasul {n} din {total}',
+      back: 'Înapoi',
+      continue: 'Continuă',
+      skip: 'Sări peste',
+      finish: 'Termină',
+      // Pas 1: Bun venit
+      welcomeTitle: 'Bun venit în Privé',
+      welcomeBody: 'Hai să-ți configurăm profilul în câteva minute. Îl ținem scurt — Privé AI ajută cu restul.',
+      welcomeBegin: 'Începe',
+      // Pas 2: Poze
+      photosTitle: 'Adaugă o poză',
+      photosBody: 'Cel puțin o poză este obligatorie — este primul lucru pe care îl văd potrivirile. Poți adăuga mai multe oricând.',
+      photosUploadBtn: 'Încarcă o poză',
+      photosCounter: '{n} din 9 adăugate',
+      // Pas 3: Detalii
+      basicsTitle: 'Câteva detalii',
+      basicsBody: 'Avem nevoie de astea ca să te vadă oamenii potriviți.',
+      labelName: 'Numele tău',
+      labelAge: 'Vârsta',
+      labelGender: 'Eu sunt',
+      labelLookingFor: 'Caut',
+      // Pas 4: Oraș
+      cityTitle: 'Unde locuiești?',
+      cityBody: 'Orașul contează pentru distanță și potriviri. Afișăm doar orașul altora — niciodată locația exactă.',
+      labelCity: 'Oraș',
+      labelHometown: 'Oraș natal (opțional)',
+      // Pas 5: Test personalitate
+      quizTitle: 'Descoperă codul tău Privé',
+      quizBody: 'Opt întrebări rapide. Codul tău ajută AI-ul să te potrivească cu personalități compatibile.',
+      quizQuestionOf: 'Întrebarea {n} din {total}',
+      quizResultTitle: 'Codul tău Privé este',
+      // Pas 6: Bio
+      bioTitle: 'Câteva cuvinte despre tine',
+      bioBody: 'Opțional dar puternic — un bio mai bun = potriviri mai bune. Privé AI poate sugera unul pe baza datelor completate.',
+      labelBio: 'Bio',
+      bioAiButton: '✨ Lasă Privé AI să sugereze un bio',
+      bioAiLoading: 'Privé AI scrie…',
+      // Pas 7: Gata
+      readyTitle: 'Ești gata să descoperi',
+      readyBody: 'Profilul tău este activ. Privé caută potriviri pentru tine acum.',
+      readyEnter: 'Intră în Privé',
+      // Erori validare
+      errorNeedPhoto: 'Te rugăm adaugă cel puțin o poză.',
+      errorNeedName: 'Te rugăm spune-ne numele tău.',
+      errorNeedAge: 'Vârsta trebuie să fie între 18 și 99.',
+      errorNeedCity: 'Te rugăm adaugă orașul tău.',
     },
     callToasts: {
       inviteCopied: 'Link-ul de invitație la apel a fost copiat.',

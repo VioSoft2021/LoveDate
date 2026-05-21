@@ -2,6 +2,7 @@ import type { ModerationStatus } from '../services/moderation'
 
 export type AppScreen =
   | 'login'
+  | 'onboarding'
   | 'discover'
   | 'activity'
   | 'circles'
