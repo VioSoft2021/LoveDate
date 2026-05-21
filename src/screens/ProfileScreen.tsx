@@ -30,6 +30,7 @@ import {
   type AiProfileWriterResult,
 } from '../services/ai/profileWriter'
 import { detectMyLocation, isLocationError } from '../services/geolocation'
+import { ROMANIAN_CITIES } from '../data/romanianCities'
 import type {
   AppLanguage,
   PhotoStudioAnalysis,
@@ -245,6 +246,19 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
 
   return (
     <section className="profile-screen" aria-label={copy.profile.screen}>
+      {/* Shared city typeahead source. Both City and Hometown inputs
+          reference list="prive-city-list" so users get the same
+          curated suggestions on either field. */}
+      <datalist id="prive-city-list">
+        {ROMANIAN_CITIES.map((city) => (
+          <option
+            key={`${city.name}-${city.country}`}
+            value={city.name}
+          >
+            {city.region ? `${city.region}${city.country !== 'ro' ? ` · ${city.country.toUpperCase()}` : ''}` : city.country.toUpperCase()}
+          </option>
+        ))}
+      </datalist>
       <aside className="profile-left-column" aria-label={copy.profile.overview}>
         <article className="profile-summary profile-summary-card">
           {selfProfile.photos.length > 0 && (
@@ -461,6 +475,7 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                 <div className="location-input-row">
                   <input
                     type="text"
+                    list="prive-city-list"
                     value={profileDraft.city}
                     onChange={(event) => handleProfileDraftChange('city', event.target.value)}
                   />
@@ -499,6 +514,7 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                 {copy.profile.hometown}
                 <input
                   type="text"
+                  list="prive-city-list"
                   value={profileDraft.hometown}
                   onChange={(event) => handleProfileDraftChange('hometown', event.target.value)}
                 />

@@ -18,6 +18,8 @@
 //
 // Nominatim docs: https://nominatim.org/release-docs/develop/api/Reverse/
 
+import { normalizeCityName } from './cityDistance'
+
 export type DetectedLocation = {
   /** Best-guess city / town / municipality name in its local form
    *  (e.g. "București" with diacritics, "Cluj-Napoca", "Iași"). */
@@ -90,62 +92,111 @@ const getCoords = (): Promise<{ lat: number; lng: number } | DetectError> =>
     )
   })
 
-/** Reverse-geocode coordinates to a city via Nominatim. */
+/** Reverse-geocode via Nominatim (OpenStreetMap, primary). */
+const reverseViaNominatim = async (
+  lat: number,
+  lng: number,
+): Promise<DetectedLocation | null> => {
+  // Nominatim asks for a sensible zoom for "city-level" results.
+  // zoom=10 gives city/town/municipality; zoom=14 gives neighborhoods.
+  const params = new URLSearchParams({
+    format: 'jsonv2',
+    lat: lat.toFixed(6),
+    lon: lng.toFixed(6),
+    zoom: '10',
+    addressdetails: '1',
+    'accept-language': 'ro,en',
+  })
+  const res = await fetch(`https://nominatim.openstreetmap.org/reverse?${params}`, {
+    headers: { Accept: 'application/json', 'User-Agent': UA },
+  })
+  if (!res.ok) return null
+  const data = (await res.json()) as {
+    address?: Record<string, string>
+  }
+  const addr = data.address ?? {}
+  // Pick the best "city" candidate Nominatim returned. Different
+  // countries label the same level of administrative division
+  // differently — try the common keys in order of specificity.
+  const city =
+    addr.city ||
+    addr.town ||
+    addr.village ||
+    addr.municipality ||
+    addr.county ||
+    addr.state ||
+    ''
+  if (!city) return null
+  return {
+    city,
+    region: addr.county || addr.state || null,
+    countryCode: addr.country_code ?? null,
+  }
+}
+
+/** Reverse-geocode via Photon (OSM-based, no key, free). Fallback
+ *  when Nominatim is slow or blocked. */
+const reverseViaPhoton = async (
+  lat: number,
+  lng: number,
+): Promise<DetectedLocation | null> => {
+  // Photon's reverse endpoint returns GeoJSON-style features.
+  // lang=ro biases toward Romanian-language names when available.
+  const params = new URLSearchParams({
+    lat: lat.toFixed(6),
+    lon: lng.toFixed(6),
+    lang: 'ro',
+    limit: '1',
+  })
+  const res = await fetch(`https://photon.komoot.io/reverse?${params}`, {
+    headers: { Accept: 'application/json' },
+  })
+  if (!res.ok) return null
+  const data = (await res.json()) as {
+    features?: Array<{
+      properties?: {
+        name?: string
+        city?: string
+        town?: string
+        village?: string
+        county?: string
+        state?: string
+        country?: string
+        countrycode?: string
+      }
+    }>
+  }
+  const props = data.features?.[0]?.properties ?? {}
+  const city =
+    props.city ||
+    props.town ||
+    props.village ||
+    props.name ||
+    props.county ||
+    props.state ||
+    ''
+  if (!city) return null
+  return {
+    city,
+    region: props.county || props.state || null,
+    countryCode: props.countrycode?.toLowerCase() ?? null,
+  }
+}
+
+/** Try Nominatim first; on failure or empty result, try Photon. */
 const reverseGeocode = async (
   lat: number,
   lng: number,
 ): Promise<DetectedLocation | DetectError> => {
   try {
-    // Nominatim asks for a sensible zoom for "city-level" results.
-    // zoom=10 gives city/town/municipality; zoom=14 gives neighborhoods.
-    const params = new URLSearchParams({
-      format: 'jsonv2',
-      lat: lat.toFixed(6),
-      lon: lng.toFixed(6),
-      zoom: '10',
-      addressdetails: '1',
-      'accept-language': 'ro,en',
-    })
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?${params}`, {
-      headers: {
-        Accept: 'application/json',
-        // Nominatim TOS requires a UA identifying the app.
-        'User-Agent': UA,
-      },
-    })
-    if (!res.ok) {
-      return {
-        kind: 'reverse-failed',
-        message: `Location service returned ${res.status}. Try again later.`,
-      }
-    }
-    const data = (await res.json()) as {
-      address?: Record<string, string>
-      display_name?: string
-    }
-    const addr = data.address ?? {}
-    // Pick the best "city" candidate Nominatim returned. Different
-    // countries label the same level of administrative division
-    // differently — try the common keys in order of specificity.
-    const city =
-      addr.city ||
-      addr.town ||
-      addr.village ||
-      addr.municipality ||
-      addr.county ||
-      addr.state ||
-      ''
-    if (!city) {
-      return {
-        kind: 'reverse-failed',
-        message: 'Could not resolve a city name from your location.',
-      }
-    }
-    return {
-      city,
-      region: addr.county || addr.state || null,
-      countryCode: addr.country_code ?? null,
-    }
+    const primary = await reverseViaNominatim(lat, lng)
+    if (primary) return primary
+  } catch {
+    // fall through to Photon fallback
+  }
+  try {
+    const fallback = await reverseViaPhoton(lat, lng)
+    if (fallback) return fallback
   } catch (err) {
     return {
       kind: 'reverse-failed',
@@ -155,19 +206,35 @@ const reverseGeocode = async (
           : 'Location lookup failed.',
     }
   }
+  return {
+    kind: 'reverse-failed',
+    message:
+      'Could not resolve a city name from your location. Try typing it manually.',
+  }
 }
 
-const isDetectError = (
-  value: { lat: number; lng: number } | DetectError,
+// Generic so it works for both `{lat,lng} | DetectError` and
+// `DetectedLocation | DetectError` (neither success type has a `kind`
+// field, so the discriminant is unambiguous).
+const isDetectError = <T extends object>(
+  value: T | DetectError,
 ): value is DetectError => {
   return 'kind' in value
 }
 
-/** Full flow: ask for coordinates, then resolve to a city. */
+/** Full flow: ask for coordinates, then resolve to a city. The
+ *  resolved city is normalized against our Romanian city dataset so
+ *  variants like "BUCURESTI" / "bucuresti" / "Bucuresti" all resolve
+ *  to the canonical "București". */
 export const detectMyLocation = async (): Promise<DetectedLocation | DetectError> => {
   const coords = await getCoords()
   if (isDetectError(coords)) return coords
-  return reverseGeocode(coords.lat, coords.lng)
+  const resolved = await reverseGeocode(coords.lat, coords.lng)
+  if (isDetectError(resolved)) return resolved
+  return {
+    ...resolved,
+    city: normalizeCityName(resolved.city),
+  }
 }
 
 export const isLocationError = (

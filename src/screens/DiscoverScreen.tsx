@@ -2,6 +2,7 @@ import React from 'react'
 import { UI_TEXT, ZODIAC_EMOJI, initialFilters, translateInterest } from '../constants'
 import { buildHighResImageUrl } from '../utils'
 import { compatibilityFromAnswers } from '../services/compatibility'
+import { distanceBetweenCities, formatDistance } from '../services/cityDistance'
 import type {
   AppLanguage,
   ChemistryInsights,
@@ -116,6 +117,17 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
 }) => {
   const copy = UI_TEXT[appLanguage]
   const ro = appLanguage === 'ro'
+
+  // City-pair distance display. Uses the curated Romanian city dataset
+  // to compute Haversine distance between selfProfile.city and the
+  // other profile's city. Falls back to the legacy Profile.distanceKm
+  // (mock data) only if either city is unknown to the dataset — keeps
+  // the deck readable for profiles in towns we haven't catalogued yet.
+  const displayDistanceTo = (other: Profile): string => {
+    const real = distanceBetweenCities(selfProfile.city, other.city)
+    if (real !== null) return formatDistance(real, { sameCityLabel: ro ? 'Același oraș' : 'Same city' })
+    return `${other.distanceKm} km`
+  }
 
   return (
     <section className="discover-main-only discover-redesign" aria-label="Discover cards and actions">
@@ -305,7 +317,7 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
                           {copy.discover.activeNow}
                         </p>
                         <p className="discover-location-line">
-                          {'📍'} {topProfile.city} {'•'} {topProfile.distanceKm} km
+                          {'📍'} {topProfile.city} {'•'} {displayDistanceTo(topProfile)}
                         </p>
                       </div>
                     </div>
@@ -321,7 +333,7 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
                         {copy.discover.activeNow}
                       </p>
                       <p className="discover-location-line">
-                        {'📍'} {topProfile.city} {'•'} {topProfile.distanceKm} km
+                        {'📍'} {topProfile.city} {'•'} {displayDistanceTo(topProfile)}
                       </p>
                     </div>
                   </>

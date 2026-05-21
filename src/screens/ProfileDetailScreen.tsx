@@ -12,6 +12,7 @@ import {
   compatibilityFromAnswers,
   personalityCodeFromAnswers,
 } from '../services/compatibility'
+import { distanceBetweenCities, formatDistance } from '../services/cityDistance'
 import type {
   AppLanguage,
   ChemistryInsights,
@@ -104,7 +105,12 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
         <p>{selectedDetailProfile.bio}</p>
         <p>
           {selectedDetailProfile.gender} {'•'} {selectedDetailProfile.city} {'•'}{' '}
-          {selectedDetailProfile.distanceKm} km
+          {(() => {
+            const real = distanceBetweenCities(selfProfile.city, selectedDetailProfile.city)
+            return real !== null
+              ? formatDistance(real, { sameCityLabel: ro ? 'Același oraș' : 'Same city' })
+              : `${selectedDetailProfile.distanceKm} km`
+          })()}
         </p>
         <p>
           {copy.profile.zodiac}: {selectedDetailProfile.zodiac}{' '}
