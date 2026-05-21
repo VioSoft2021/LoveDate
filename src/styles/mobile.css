@@ -455,6 +455,35 @@
     padding: 0.85rem 0.9rem !important;
   }
 
+  /* ── PRIVÉ LUXURY COLUMN ─────────────────────────────────────────
+     Profile, settings, and activity screens sit in a centered narrow
+     band on phone — not edge-to-edge. This is the Hermès/Cartier card-
+     in-the-middle pattern Master picked over the conventional 'fill
+     the viewport' mobile layout. Discover (the swipe deck) is excluded
+     because the photo card should remain prominent.
+
+     Math on a 360px phone:
+       screen-panel padding (0.5rem each side) = 16px
+       additional column gutter (2rem each side) = 64px
+       total side margin = 80px → card width ~280px (78% of viewport).
+     The gutter scales down on slightly wider phones via the rem unit
+     so the look stays consistent. */
+  .profile-screen,
+  .settings-screen,
+  .profile-detail,
+  .activity-layout {
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    box-sizing: border-box;
+  }
+  /* The chat list stays comfortable too, but with smaller gutters so
+     conversation tiles don't feel cramped. */
+  .chats-layout {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    box-sizing: border-box;
+  }
+
   /* Interest chips wrap nicely instead of forming an overflowing row */
   .profile-interest-chips,
   .profile-summary .chips {
