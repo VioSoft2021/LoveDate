@@ -455,27 +455,21 @@
     padding: 0.85rem 0.9rem !important;
   }
 
-  /* ── PRIVÉ LUXURY COLUMN ─────────────────────────────────────────
-     Profile, settings, and activity screens sit in a centered band on
-     phone with modest gutters — not edge-to-edge, but the card itself
-     is generous so its content can fill it edge-to-edge.
+  /* ── PRIVÉ WIDE CARD, NARROW SCREEN MARGINS ──────────────────────
+     Master's call: card should be as wide as practical, with only the
+     screen-panel's 0.5rem gutter holding it off the viewport edge.
+     No additional padding on .profile-screen — the card is the column.
 
      Math on a 384px phone (typical Galaxy):
        screen-panel padding (0.5rem each side) = 16px
-       additional column gutter (0.85rem each side) = 27px
-       total side margin = ~43px → card width ~340px (89% of viewport). */
+       total side margin = ~16px → card width ~368px (96% of viewport). */
   .profile-screen,
   .settings-screen,
   .profile-detail,
-  .activity-layout {
-    padding-left: 0.85rem !important;
-    padding-right: 0.85rem !important;
-    box-sizing: border-box;
-  }
-  /* Chat list mirrors the narrower gutter so screens feel consistent. */
+  .activity-layout,
   .chats-layout {
-    padding-left: 0.6rem !important;
-    padding-right: 0.6rem !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
     box-sizing: border-box;
   }
 
@@ -491,6 +485,40 @@
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box;
+  }
+
+  /* ── ROOT CAUSE: prevent the editor grid from growing past its card.
+     CSS Grid tracks default to `min-width: auto`, which lets a track
+     expand when a child has intrinsic min-width (default textarea
+     cols=20, long labels with letter-spacing, fixed-width buttons).
+     `minmax(0, 1fr)` clamps each track to its share of the container
+     and forces children to wrap/shrink instead of pushing the grid
+     wider than the card. */
+  .profile-editor-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  /* Same treatment for any flex container inside the editor that holds
+     buttons or text — flex items default to min-content; force them to
+     shrink so long labels (e.g. "Îmbunătățește bio-ul cu AI") wrap. */
+  .profile-editor .bio-writer-actions,
+  .profile-editor .photo-coach-actions {
+    min-width: 0 !important;
+  }
+  .profile-editor .bio-writer-actions > *,
+  .profile-editor .photo-coach-actions > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  /* Textarea: native cols=20 sets an intrinsic ~200px min-width.
+     Override so the BIO field shrinks with the card. */
+  .profile-editor textarea {
+    min-width: 0 !important;
+  }
+  /* Long labels with letter-spacing+uppercase (e.g. INTERESE label)
+     need to wrap when card is narrow. */
+  .profile-editor label {
+    min-width: 0 !important;
+    overflow-wrap: anywhere;
   }
 
   /* Interest chips wrap nicely instead of forming an overflowing row */
