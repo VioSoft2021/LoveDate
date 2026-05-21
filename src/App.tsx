@@ -1343,37 +1343,37 @@ function App() {
     }
   }, [setChatThreads, setMatchQueueIds, setUnreadChats])
 
-  const finalizeSwipe = useCallback(
-    (profile: Profile, direction: SwipeDirection, intent: SwipeIntent, wasMatch: boolean) => {
-      addSwipeHistory(profile.id, direction, wasMatch)
-      setSwipeLog((current) => [...current, { profileId: profile.id, direction, intent, wasMatch }])
-
-      if (wasMatch) {
-        setActiveMatch(profile)
-        setChatThreads((current) => {
-          if (current[profile.id]) {
-            return current
-          }
-          return {
-            ...current,
-            [profile.id]: [],
-          }
-        })
-
-        setUnreadChats((current) => ({
+  // Match-only side effects. Runs ONLY after resolveMatch confirms a
+  // mutual right-swipe. History + swipeLog commits happen earlier in
+  // swipeCard (immediately after the exit animation) so the deck
+  // advances without waiting on the network round-trip — that change
+  // closes the "Viocanada flash" timing desync (D1, plan 2026-05-21).
+  const onMatchConfirmed = useCallback(
+    (profile: Profile) => {
+      setActiveMatch(profile)
+      setChatThreads((current) => {
+        if (current[profile.id]) {
+          return current
+        }
+        return {
           ...current,
-          [profile.id]: (current[profile.id] ?? 0) + 1,
-        }))
-        setMatchQueueIds((current) => (current.includes(profile.id) ? current : [profile.id, ...current]))
-        pushNotification({
-          title: `New match: ${profile.name}`,
-          body: `You matched with ${profile.name}. Say hi now.`,
-          category: 'match',
-        })
-        pushToast(`It's a match with ${profile.name}!`, 'success')
-      }
+          [profile.id]: [],
+        }
+      })
+
+      setUnreadChats((current) => ({
+        ...current,
+        [profile.id]: (current[profile.id] ?? 0) + 1,
+      }))
+      setMatchQueueIds((current) => (current.includes(profile.id) ? current : [profile.id, ...current]))
+      pushNotification({
+        title: `New match: ${profile.name}`,
+        body: `You matched with ${profile.name}. Say hi now.`,
+        category: 'match',
+      })
+      pushToast(`It's a match with ${profile.name}!`, 'success')
     },
-    [addSwipeHistory, pushNotification, pushToast, setChatThreads, setMatchQueueIds, setUnreadChats],
+    [pushNotification, pushToast, setChatThreads, setMatchQueueIds, setUnreadChats],
   )
 
   const swipeCard = useCallback(
@@ -1399,22 +1399,48 @@ function App() {
       const swipedProfile = topProfile
 
       window.setTimeout(async () => {
-        setIndex((current) => current + 1)
         setExitDirection(null)
         resetDrag()
 
+        // D1 fix: commit to history BEFORE awaiting backend. swipedIds
+        // updates → byReviewed filter removes swipedProfile → filteredProfiles
+        // shrinks by one in the SAME React render. Since the swiped card
+        // is removed, the existing index (unchanged) now points to what
+        // was the next card. No index advancement needed. This eliminates
+        // the timing window where index had advanced but filteredProfiles
+        // hadn't shrunk yet — the cause of cards flashing then vanishing.
+        addSwipeHistory(swipedProfile.id, direction, false)
+        setSwipeLog((current) => [
+          ...current,
+          { profileId: swipedProfile.id, direction, intent, wasMatch: false },
+        ])
+
         try {
           await backendRecordSwipe(swipedProfile.id, direction)
-          const wasMatch =
-            direction === 'right' ? await resolveMatch(swipedProfile.id) : false
-          finalizeSwipe(swipedProfile, direction, intent, wasMatch)
-          if (direction === 'right' && (intent === 'like' || intent === 'super-like')) {
-            recordLikeEvent()
-            if (intent === 'super-like') {
-              recordSuperLikeEvent()
-              pushToast('Super Like sent.', 'success')
+          if (direction === 'right') {
+            const wasMatch = await resolveMatch(swipedProfile.id)
+            if (wasMatch) {
+              // Upgrade history.matchIds + swipeLog entry. addSwipeHistory
+              // is idempotent on likedIds (already includes the id from the
+              // earlier call) but will add to matchIds when wasMatch=true.
+              addSwipeHistory(swipedProfile.id, direction, true)
+              setSwipeLog((current) =>
+                current.map((entry) =>
+                  entry.profileId === swipedProfile.id && !entry.wasMatch
+                    ? { ...entry, wasMatch: true }
+                    : entry,
+                ),
+              )
+              onMatchConfirmed(swipedProfile)
             }
-            refreshEngagementUsage(activePlan)
+            if (intent === 'like' || intent === 'super-like') {
+              recordLikeEvent()
+              if (intent === 'super-like') {
+                recordSuperLikeEvent()
+                pushToast('Super Like sent.', 'success')
+              }
+              refreshEngagementUsage(activePlan)
+            }
           }
         } finally {
           setIsResolvingSwipe(false)
@@ -1427,11 +1453,14 @@ function App() {
       isResolvingSwipe,
       activePlan,
       resetDrag,
-      finalizeSwipe,
+      addSwipeHistory,
+      setSwipeLog,
+      onMatchConfirmed,
+      recordLikeEvent,
+      recordSuperLikeEvent,
       pushToast,
       refreshEngagementUsage,
       setExitDirection,
-      setIndex,
       setIsResolvingSwipe,
       setLastIntent,
     ],
