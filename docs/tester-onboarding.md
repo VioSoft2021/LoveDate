@@ -1,9 +1,9 @@
-# LoveDate Beta Tester Onboarding (Strict Mode)
+# Privé Beta Tester Onboarding (Strict Mode)
 
 ## Access
-1. Open `https://lovedate-beta.vercel.app`
+1. Open `https://prive-app.club`
 2. Enter invite code: `LOVE-BETA-001`
-3. Sign in with the email/password provided by the LoveDate team
+3. Sign in with the email/password provided by the Privé team
 
 ## Test Checklist
 1. Discover screen: swipe at least 5 profiles.
@@ -23,3 +23,4 @@ When reporting an issue, include:
 - Do not share invite code or credentials.
 - Do not upload sensitive personal data.
 - Report critical issues immediately (login failure, crash, data loss).
+- Report to: support@prive-app.club

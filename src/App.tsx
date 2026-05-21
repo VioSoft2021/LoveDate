@@ -1637,7 +1637,7 @@ function App() {
       profile: reportDraftProfile,
       category: reportDraftCategory,
       details: reportDraftDetails.trim(),
-      reporterEmail: userEmail || 'guest@lovedate.app',
+      reporterEmail: userEmail || 'guest@prive-app.club',
     })
     setSafetyReports((current) => [report, ...current].slice(0, 200))
     void (async () => {
@@ -1957,8 +1957,8 @@ function App() {
       return
     }
 
-    const appUrl = 'https://lovedate-beta.vercel.app'
-    const pitch = `I just joined LoveDate. Come find me there.`
+    const appUrl = 'https://prive-app.club'
+    const pitch = `I just joined Privé. Come find me there.`
     const encodedPitch = encodeURIComponent(pitch)
     const encodedUrl = encodeURIComponent(appUrl)
 

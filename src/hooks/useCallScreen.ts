@@ -111,7 +111,7 @@ export const useCallScreen = ({
     (type: 'audio' | 'video') => {
       if (!selectedChatProfile) return
       const rawRoomId = buildCallRoom(
-        userEmail || 'guest@lovedate.app',
+        userEmail || 'guest@prive-app.club',
         selectedChatProfile.id,
         type,
       )

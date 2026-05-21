@@ -33,7 +33,7 @@ Deno.serve(async (req: Request) => {
 
   const vapidPublic = Deno.env.get('VAPID_PUBLIC_KEY')
   const vapidPrivate = Deno.env.get('VAPID_PRIVATE_KEY')
-  const vapidSubject = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:support@lovedate.app'
+  const vapidSubject = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:support@prive-app.club'
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
