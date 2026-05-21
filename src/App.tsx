@@ -64,6 +64,7 @@ import {
   backendSubscribeToInbox,
   backendLoadBlockedProfileIds,
   backendLoadSettings,
+  backendLoadSwipeHistory,
   backendSavePreferences,
   backendSaveSettings,
   backendUploadDataUrlPhotos,
@@ -825,6 +826,35 @@ function App() {
       cancelled = true
     }
   }, [isAuthenticated, userEmail, setBlockedProfileIds])
+
+  // D2 — hydrate swipe history from the cloud on auth.
+  // Until this shipped, swipedIds lived only in localStorage scoped per
+  // origin. Domain changes (LoveDate → Privé), site-data clears, and
+  // new devices all reset the user's "already-swiped" memory, causing
+  // previously-passed profiles to re-appear in the deck. The `swipes`
+  // table has always been written; this effect finally reads it.
+  // Cloud is treated as the source of truth on conflict — but local
+  // entries not yet known to the cloud are preserved (and will be
+  // re-uploaded the next time the user swipes them, which is a no-op
+  // upsert thanks to the (liker_id, target_id) primary key).
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      const cloud = await backendLoadSwipeHistory()
+      if (cancelled) return
+      setHistory((current) => {
+        const likedIds = Array.from(new Set([...cloud.likedIds, ...current.likedIds]))
+        const passedIds = Array.from(new Set([...cloud.passedIds, ...current.passedIds]))
+        return { ...current, likedIds, passedIds }
+      })
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated, userEmail, setHistory])
 
   // loadProfiles now lives in useDeck.
 

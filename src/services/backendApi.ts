@@ -1052,9 +1052,52 @@ export const backendRecordSwipe = async (
     { onConflict: 'liker_id,target_id' },
   )
   if (error) {
-     
+
     console.warn('Swipe cloud record skipped:', error.message)
   }
+}
+
+// D2 — hydrate the local swipe history from the cloud on auth.
+// Before this, `swipedIds` lived only in localStorage scoped per origin.
+// Effect: every domain change, every device change, every site-data clear
+// reset the user's "already swiped" memory — so previously-passed profiles
+// re-appeared and the deck was inconsistent across sessions.
+// The `swipes` table has always been written; now it's also read.
+export const backendLoadSwipeHistory = async (): Promise<{
+  likedIds: number[]
+  passedIds: number[]
+}> => {
+  if (!supabase) {
+    return { likedIds: [], passedIds: [] }
+  }
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return { likedIds: [], passedIds: [] }
+  }
+  const { data, error } = await supabase
+    .from('swipes')
+    .select('target_id, direction')
+    .eq('liker_id', userId)
+  if (error || !data) {
+    if (error) {
+
+      console.warn('Swipe history hydration failed:', error.message)
+    }
+    return { likedIds: [], passedIds: [] }
+  }
+  const likedIds: number[] = []
+  const passedIds: number[] = []
+  for (const row of data) {
+    const id = Number((row as { target_id?: unknown }).target_id)
+    if (!Number.isInteger(id)) continue
+    const direction = (row as { direction?: unknown }).direction
+    if (direction === 'right') {
+      likedIds.push(id)
+    } else if (direction === 'left') {
+      passedIds.push(id)
+    }
+  }
+  return { likedIds, passedIds }
 }
 
 export type CloudChatMessage = {
