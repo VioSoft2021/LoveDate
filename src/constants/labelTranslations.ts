@@ -188,13 +188,18 @@ const LIFESTYLE_LABELS_RO: Record<string, string> = {
   Masters: 'Master',
   PhD: 'Doctorat',
 
-  // ── LOOKING FOR (already covered by RELATIONSHIP_INTENT_LABELS_RO,
-  //    but mirror here as fallback for any place that uses
-  //    translateLifestyleOption on this value) ──────────────────────
+  // ── LOOKING FOR (mirror RELATIONSHIP_INTENT_LABELS_RO here so
+  //    translateLifestyleOption covers the LOOKING_FOR_OPTIONS list too;
+  //    that dropdown stores the LONG values, not the short ones). ──
   'Long-term': 'Pe termen lung',
   'Short-term': 'Pe termen scurt',
   Friends: 'Prietenie',
   'Figuring it out': 'Mă caut',
+  // Full LOOKING_FOR_OPTIONS values (src/constants/profile.ts:107-113)
+  'Long-term relationship': 'Relație pe termen lung',
+  'Short-term, open to long': 'Termen scurt, deschis la lung',
+  'Short-term fun': 'Distracție pe termen scurt',
+  'New friends': 'Prieteni noi',
 }
 
 export const translateInterest = (label: string, language: AppLanguage): string => {
