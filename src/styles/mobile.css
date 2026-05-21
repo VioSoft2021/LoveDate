@@ -561,6 +561,49 @@
   }
 }
 
+/* ── Location autodetect (Profile editor → City field) ─────────────── */
+/* "Detect" button sits to the right of the City input. On phone the
+   row stays single-column with the button fitting alongside; the
+   feedback messages stack below. */
+.location-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.location-input-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.45rem;
+}
+.location-input-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.location-detect-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.32rem;
+  padding: 0 0.7rem;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.location-detect-btn svg {
+  color: rgba(216, 184, 109, 0.85);
+}
+.location-detect-msg {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  margin-top: 0.1rem;
+}
+.location-detect-msg--success {
+  color: rgba(126, 223, 246, 0.88);
+}
+.location-detect-msg--error {
+  color: #ff9a9a;
+}
+
 /* ── AI Photo Coach panel (all viewports) ───────────────────────────── */
 .photo-coach-block {
   margin: 0.6rem 0 0.9rem;

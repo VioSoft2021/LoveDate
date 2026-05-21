@@ -29,6 +29,7 @@ import {
   backendInvokeProfileWriter,
   type AiProfileWriterResult,
 } from '../services/ai/profileWriter'
+import { detectMyLocation, isLocationError } from '../services/geolocation'
 import type {
   AppLanguage,
   PhotoStudioAnalysis,
@@ -138,6 +139,31 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
     React.useState<AiProfileWriterResult | null>(null)
   const [bioWriterLoading, setBioWriterLoading] = React.useState(false)
   const [bioWriterError, setBioWriterError] = React.useState<string | null>(null)
+
+  // Location autodetect — wraps the device Geolocation API + Nominatim
+  // reverse-geocode. Tap "Detect" next to the city field → user grants
+  // permission → city fills automatically. Raw lat/lng never persists.
+  const [locDetectLoading, setLocDetectLoading] = React.useState(false)
+  const [locDetectError, setLocDetectError] = React.useState<string | null>(null)
+  const [locDetectSuccess, setLocDetectSuccess] = React.useState<string | null>(null)
+
+  const runLocationDetect = React.useCallback(async () => {
+    setLocDetectError(null)
+    setLocDetectSuccess(null)
+    setLocDetectLoading(true)
+    const result = await detectMyLocation()
+    setLocDetectLoading(false)
+    if (isLocationError(result)) {
+      setLocDetectError(result.message)
+      return
+    }
+    handleProfileDraftChange('city', result.city)
+    setLocDetectSuccess(
+      result.region ? `Set to ${result.city} (${result.region})` : `Set to ${result.city}`,
+    )
+    // Clear the success line after 4s so it doesn't linger forever.
+    window.setTimeout(() => setLocDetectSuccess(null), 4000)
+  }, [handleProfileDraftChange])
 
   const runBioWriter = React.useCallback(async () => {
     setBioWriterError(null)
@@ -430,13 +456,44 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
           <details className="profile-editor-section">
             <summary>{copy.profile.profileDetails}</summary>
             <div className="profile-editor-grid">
-              <label>
+              <label className="location-field">
                 {copy.profile.city}
-                <input
-                  type="text"
-                  value={profileDraft.city}
-                  onChange={(event) => handleProfileDraftChange('city', event.target.value)}
-                />
+                <div className="location-input-row">
+                  <input
+                    type="text"
+                    value={profileDraft.city}
+                    onChange={(event) => handleProfileDraftChange('city', event.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="ghost location-detect-btn"
+                    onClick={() => void runLocationDetect()}
+                    disabled={locDetectLoading}
+                    aria-label="Detect my location"
+                    title="Detect my location"
+                  >
+                    {locDetectLoading ? '…' : (
+                      <>
+                        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                          <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+                          <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                        </svg>
+                        <span>Detect</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                {locDetectError ? (
+                  <small className="location-detect-msg location-detect-msg--error">
+                    {locDetectError}
+                  </small>
+                ) : null}
+                {locDetectSuccess ? (
+                  <small className="location-detect-msg location-detect-msg--success">
+                    {locDetectSuccess}
+                  </small>
+                ) : null}
               </label>
               <label>
                 {copy.profile.hometown}
