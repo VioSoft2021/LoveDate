@@ -41,12 +41,20 @@ type UseMatchScoringInput = {
   selfProfile: SelfProfile
   isAuthenticated: boolean
   appLanguage: AppLanguage
+  /**
+   * AI-first filter preference prompt from the FilterScreen. Threaded
+   * into the E3 Sonnet call so the score + reasons reflect the user's
+   * stated preference. Cache key also includes its hash so changes
+   * invalidate cleanly.
+   */
+  aiPreferencePrompt: string
 }
 
 export const useMatchScoring = ({
   selfProfile,
   isAuthenticated,
   appLanguage,
+  aiPreferencePrompt,
 }: UseMatchScoringInput) => {
   const [aiMatchScores, setAiMatchScores] = useState<
     Record<number, AiMatchScoreResult>
@@ -257,14 +265,27 @@ export const useMatchScoring = ({
           zodiac: profile.zodiac,
         },
         language: appLanguage,
+        viewerPreference: aiPreferencePrompt,
       })
       if (!result) return
       setAiMatchScores((prev) =>
         prev[profile.id] ? prev : { ...prev, [profile.id]: result },
       )
     },
-    [isAuthenticated, aiMatchScores, selfProfile, appLanguage],
+    [isAuthenticated, aiMatchScores, selfProfile, appLanguage, aiPreferencePrompt],
   )
+
+  // When the AI preference prompt changes, the cache key in matchScore.ts
+  // changes too, so previously-scored profiles need to be re-fetched.
+  // Reset the local overlay map so fetchAiScoreFor doesn't early-return
+  // with the stale (different-prompt) result. Uses React 18's recommended
+  // "setState during render" pattern for derived-from-props resets (React
+  // schedules a re-render immediately without committing the stale frame).
+  const [lastPromptForReset, setLastPromptForReset] = useState(aiPreferencePrompt)
+  if (lastPromptForReset !== aiPreferencePrompt) {
+    setLastPromptForReset(aiPreferencePrompt)
+    setAiMatchScores({})
+  }
 
   return {
     aiMatchScores,

@@ -30,7 +30,7 @@ type CacheEntry = AiMatchScoreResult & { storedAt: number; v: number; lang: stri
 
 const CACHE_KEY_PREFIX = 'lovedate:ai-match-score:'
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7 // 7 days
-const CACHE_VERSION = 3 // bumped: frictionPoints + tips added; v<=2 entries are stale
+const CACHE_VERSION = 4 // bumped: viewerPreference now factored in; v<=3 stale
 
 // Stable hash of the profile fields the model actually sees. Lets us
 // invalidate the cache automatically when EITHER profile is edited:
@@ -60,12 +60,24 @@ const hashProfile = (p: AiMatchProfileInput): string => {
   return hash.toString(36)
 }
 
+// Short stable hash for the AI preference prompt — separate from the
+// profile hash so the cache key clearly shows which axis changed.
+const hashPrompt = (prompt: string): string => {
+  if (!prompt) return '_'
+  let hash = 0
+  for (let i = 0; i < prompt.length; i++) {
+    hash = (hash * 31 + prompt.charCodeAt(i)) | 0
+  }
+  return hash.toString(36)
+}
+
 const cacheKey = (
   self: AiMatchProfileInput,
   candidate: AiMatchProfileInput & { id: number },
   language: string,
+  viewerPreference: string,
 ): string =>
-  `${CACHE_KEY_PREFIX}${language}:${hashProfile(self)}:${candidate.id}:${hashProfile(candidate)}`
+  `${CACHE_KEY_PREFIX}${language}:${hashProfile(self)}:${candidate.id}:${hashProfile(candidate)}:${hashPrompt(viewerPreference)}`
 
 const readCache = (key: string): AiMatchScoreResult | null => {
   try {
@@ -111,12 +123,22 @@ export const backendInvokeMatchScore = async (input: {
   selfProfile: AiMatchProfileInput
   candidateProfile: AiMatchProfileInput & { id: number }
   language?: 'en' | 'ro'
+  /** AI-first filter preference prompt from the FilterScreen. Empty
+   *  string scores neutrally; non-empty value is treated by Sonnet as
+   *  a meaningful weighting signal (not a hard filter). */
+  viewerPreference?: string
 }): Promise<AiMatchScoreResult | null> => {
   const supabase = createSupabaseClient()
   if (!supabase) return null
 
   const language = input.language ?? 'en'
-  const key = cacheKey(input.selfProfile, input.candidateProfile, language)
+  const viewerPreference = (input.viewerPreference ?? '').trim()
+  const key = cacheKey(
+    input.selfProfile,
+    input.candidateProfile,
+    language,
+    viewerPreference,
+  )
   const cached = readCache(key)
   if (cached) return cached
 
@@ -133,6 +155,7 @@ export const backendInvokeMatchScore = async (input: {
         selfProfile: input.selfProfile,
         candidateProfile: input.candidateProfile,
         language,
+        viewerPreference: viewerPreference || undefined,
       },
     })
     if (

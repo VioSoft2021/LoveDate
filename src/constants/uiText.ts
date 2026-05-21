@@ -88,6 +88,16 @@ export const UI_TEXT = {
       sortYoungest: 'Youngest',
       sortOldest: 'Oldest',
       verifiedOnly: 'Verified Only',
+      // AI-first redesign
+      aiPromptLabel: 'What are you looking for?',
+      aiPromptPlaceholder: 'e.g. someone serious, into hiking, not into clubs…',
+      aiPromptHint: 'Privé AI weights matches using this — it\'s not a hard filter.',
+      ageRange: 'Age',
+      matchCount: 'matches',
+      matchCountOne: 'match',
+      genderAny: 'Anyone',
+      goalAny: 'Any',
+      resetAll: 'Reset all',
     },
     common: {
       exitToLogin: 'Exit to Login',
@@ -510,6 +520,16 @@ export const UI_TEXT = {
       sortYoungest: 'Cele mai tinere',
       sortOldest: 'Cele mai mature',
       verifiedOnly: 'Doar verificate',
+      // Redesign AI-first
+      aiPromptLabel: 'Ce cauți?',
+      aiPromptPlaceholder: 'ex. cineva serios, pasionat de drumeții, nu de cluburi…',
+      aiPromptHint: 'Privé AI ponderează potrivirile pe baza acestui text — nu este un filtru strict.',
+      ageRange: 'Vârstă',
+      matchCount: 'potriviri',
+      matchCountOne: 'potrivire',
+      genderAny: 'Oricine',
+      goalAny: 'Oricare',
+      resetAll: 'Resetează tot',
     },
     common: {
       exitToLogin: 'Înapoi la autentificare',

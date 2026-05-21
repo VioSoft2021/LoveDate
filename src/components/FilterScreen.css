@@ -1,28 +1,233 @@
+/* ── Filter screen (AI-First redesign, 2026-05-21) ────────────────────
+   Luxury Privé palette, generous spacing, no clinical form-look.
+   Old form-style rules are preserved at the bottom in case the old
+   layout is rendered somewhere; the AI redesign adds .filter-screen--ai. */
+
 .filter-screen {
-  max-width: 32rem;
-  margin: 2.5rem auto;
-  padding: 2rem 1.5rem;
-  background: rgba(18, 14, 27, 0.92);
-  border-radius: 1.5rem;
-  box-shadow: 0 12px 32px rgba(6, 3, 2, 0.22);
+  max-width: 34rem;
+  margin: 2rem auto;
+  padding: 1.5rem 1.25rem 2rem;
+  background: linear-gradient(
+    180deg,
+    rgba(20, 24, 45, 0.92) 0%,
+    rgba(14, 17, 32, 0.94) 100%
+  );
+  border: 1px solid rgba(216, 184, 109, 0.18);
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+  color: #edf3ff;
 }
+
+/* ── Header: title + live match counter ──────────────────────────── */
+.filter-screen-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(216, 184, 109, 0.14);
+}
+.filter-screen-head h1 {
+  margin: 0;
+  font-family: 'Bodoni Moda', 'Cormorant Garamond', serif;
+  font-size: 1.85rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #f4dca8;
+}
+.filter-match-count {
+  margin: 0;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: rgba(216, 230, 250, 0.78);
+}
+.filter-match-count strong {
+  color: #f0d99b;
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+/* ── Filter field layout (one card per field) ─────────────────────── */
+.filters--ai {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.filter-field-label,
+.filter-field legend {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.82);
+}
+.filter-field-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.filter-range-value {
+  font-size: 0.9rem;
+  color: #f0d99b;
+  letter-spacing: 0.02em;
+}
+.filter-field-hint {
+  font-size: 0.78rem;
+  color: rgba(216, 230, 250, 0.55);
+  font-style: italic;
+  line-height: 1.35;
+}
+
+/* ── Prompt textarea (the headline AI control) ────────────────────── */
+.filter-prompt-input {
+  width: 100%;
+  min-height: 4.2rem;
+  padding: 0.7rem 0.85rem;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: #edf3ff;
+  background: rgba(8, 12, 30, 0.6);
+  border: 1px solid rgba(216, 184, 109, 0.35);
+  border-radius: 0.7rem;
+  resize: vertical;
+  box-sizing: border-box;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+.filter-prompt-input:focus {
+  outline: none;
+  border-color: rgba(231, 197, 118, 0.78);
+  box-shadow: 0 0 0 3px rgba(216, 184, 109, 0.18);
+}
+.filter-prompt-input::placeholder {
+  color: rgba(216, 230, 250, 0.4);
+}
+
+/* ── Segmented pills (looking-for, gender) ────────────────────────── */
+.filter-segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.filter-segment {
+  flex: 0 0 auto;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: rgba(216, 230, 250, 0.78);
+  background: rgba(8, 12, 30, 0.55);
+  border: 1px solid rgba(216, 184, 109, 0.22);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+.filter-segment:hover {
+  border-color: rgba(216, 184, 109, 0.55);
+  color: #f0d99b;
+}
+.filter-segment.is-active {
+  color: #1a1a2c;
+  background: linear-gradient(105deg, #cfad61, #e8c679);
+  border-color: rgba(216, 184, 109, 0.85);
+  font-weight: 600;
+}
+
+/* ── Range sliders (age, distance) ────────────────────────────────── */
+.filter-field--range input[type='range'] {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 2px;
+  background: rgba(216, 184, 109, 0.35);
+  border-radius: 999px;
+  outline: none;
+}
+.filter-field--range input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: linear-gradient(105deg, #cfad61, #e8c679);
+  border: 2px solid #1a1a2c;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+.filter-field--range input[type='range']::-moz-range-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: linear-gradient(105deg, #cfad61, #e8c679);
+  border: 2px solid #1a1a2c;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+
+/* Age range — two stacked sliders. The second one overlaps the first
+   in CSS so they read as a single dual-handle control. */
+.filter-range-pair {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+/* ── Reset all ────────────────────────────────────────────────────── */
+.filter-reset-all {
+  margin-top: 0.5rem;
+  align-self: flex-start;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: rgba(216, 230, 250, 0.72);
+  background: transparent;
+  border: 1px solid rgba(216, 230, 250, 0.18);
+  border-radius: 0.6rem;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+.filter-reset-all:hover {
+  color: #f0d99b;
+  border-color: rgba(216, 184, 109, 0.55);
+}
+
+/* Screen-reader / footnote line explaining removed filters */
+.filter-screen-rationale {
+  margin: 1.25rem 0 0;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: rgba(216, 230, 250, 0.45);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ── Legacy fallback (in case any caller still renders the old form layout) ── */
 .filter-screen h1 {
   font-size: 2.1rem;
-  margin-bottom: 1.2rem;
-  text-align: center;
 }
-.filter-screen .filters {
+.filter-screen .filters:not(.filters--ai) {
   display: grid;
   gap: 1.1rem;
 }
-.filter-screen label {
+.filter-screen .filters:not(.filters--ai) label {
   font-size: 1rem;
   font-weight: 500;
   color: #ffe6b0;
 }
-.filter-screen input[type="number"],
-.filter-screen input[type="text"],
-.filter-screen select {
+.filter-screen .filters:not(.filters--ai) input[type='number'],
+.filter-screen .filters:not(.filters--ai) input[type='text'],
+.filter-screen .filters:not(.filters--ai) select {
   margin-top: 0.3rem;
   font-size: 1.1rem;
   padding: 0.4rem 0.7rem;
@@ -31,10 +236,10 @@
   background: #1a1422;
   color: #fff4ea;
 }
-.filter-screen input[type="range"] {
+.filter-screen .filters:not(.filters--ai) input[type='range'] {
   width: 100%;
 }
-.filter-screen .toggle {
+.filter-screen .filters:not(.filters--ai) .toggle {
   display: flex;
   align-items: center;
   gap: 0.7rem;

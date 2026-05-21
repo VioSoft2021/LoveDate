@@ -665,7 +665,12 @@ function App() {
     getCompatibilityScore,
     getChemistryInsights,
     fetchAiScoreFor,
-  } = useMatchScoring({ selfProfile, isAuthenticated, appLanguage })
+  } = useMatchScoring({
+    selfProfile,
+    isAuthenticated,
+    appLanguage,
+    aiPreferencePrompt: filters.aiPreferencePrompt,
+  })
 
   const isModerationAdmin = useMemo(
     () => moderationAdminEmails.includes(userEmail.trim().toLowerCase()),
@@ -2699,6 +2704,7 @@ function App() {
               relationshipGoalOptions={relationshipGoalOptions}
               ZODIAC_EMOJI={ZODIAC_EMOJI}
               appLanguage={appLanguage}
+              matchCount={filteredProfiles.length}
             />
           </section>
         )}

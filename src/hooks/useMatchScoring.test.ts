@@ -86,6 +86,7 @@ const renderScoring = (selfProfile: SelfProfile = baseSelfProfile) =>
       selfProfile,
       isAuthenticated: false, // disable AI fetch in tests
       appLanguage: 'en',
+      aiPreferencePrompt: '',
     }),
   )
 

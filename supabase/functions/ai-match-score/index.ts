@@ -34,6 +34,13 @@ type RequestBody = {
   selfProfile: ProfileSummary
   candidateProfile: ProfileSummary & { id: number }
   language?: 'en' | 'ro'
+  /**
+   * AI-first filter prompt the viewer typed in (e.g. "serious, into
+   * hiking, not into clubs"). When present, Sonnet weights the score
+   * toward candidates that match this preference and uses it as
+   * additional context for the reasons/friction/tips lists.
+   */
+  viewerPreference?: string
 }
 
 const corsHeaders = {
@@ -66,12 +73,19 @@ const profileBlock = (label: string, p: ProfileSummary) => {
   return parts
 }
 
-const buildUserPrompt = (body: RequestBody): string =>
-  [
-    profileBlock('Viewer', body.selfProfile),
-    profileBlock('Candidate', body.candidateProfile),
+const buildUserPrompt = (body: RequestBody): string => {
+  const viewerPref = body.viewerPreference?.trim()
+  const blocks = [profileBlock('Viewer', body.selfProfile), profileBlock('Candidate', body.candidateProfile)]
+  if (viewerPref) {
+    blocks.push(
+      `Viewer's stated preference (treat as a meaningful signal — weight the score and shape the reasoning/friction/tips to reflect how well the Candidate matches this preference; do NOT use it as a hard filter): "${viewerPref.slice(0, 400)}"`,
+    )
+  }
+  blocks.push(
     'Assess how compatible these two are as a potential dating match. Score 0..100 (50 = neutral, 70+ = strong, 85+ = exceptional). Give exactly 3 short, specific reasons tied to actual profile details. List 0..3 red flags ONLY if there is a real concrete mismatch (age gap >15 years, opposing children plans, opposing relationship goals, etc.) — never invent flags to fill the list. Then list 0..3 predicted FRICTION POINTS — soft tensions that are NOT dealbreakers but real friction the pair would likely hit (different paces, communication-style mismatches, hobby-time conflicts). Finally, list 0..3 ACTIONABLE TIPS the Viewer can use to navigate this match well — first-conversation moves grounded in the actual profiles (e.g. "ask about her travel pace early" / "share your weeknight rhythm upfront").',
-  ].join('\n')
+  )
+  return blocks.join('\n')
+}
 
 const buildSystemPrompt = (language: 'en' | 'ro'): string => {
   const baseRules = `You are a thoughtful matchmaker for a dating app called LoveDate.

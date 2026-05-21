@@ -27,6 +27,17 @@ export type Filters = {
   verifiedOnly: boolean
   sortBy: 'recommended' | 'nearest' | 'youngest' | 'oldest'
   zodiacCompatibility: string
+  /**
+   * AI-first filter: free-text preference prompt the viewer types in
+   * (e.g. "serious, into hiking, not into clubs"). Sent to the E3
+   * Sonnet scoring function as `viewerPreference`, which lets the LLM
+   * weight + explain the score in light of what the viewer actually
+   * wants — rather than the user trying to encode their preferences
+   * as a stack of dropdowns and sliders.
+   *
+   * Empty string disables the prompt; the AI scores neutrally.
+   */
+  aiPreferencePrompt: string
 }
 
 // One reason per filter clause that can hide a profile from the deck.

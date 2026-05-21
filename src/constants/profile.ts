@@ -34,6 +34,7 @@ export const initialFilters: Filters = {
   verifiedOnly: false,
   sortBy: 'recommended',
   zodiacCompatibility: '',
+  aiPreferencePrompt: '',
 }
 
 export const ZODIAC_COMPATIBILITY: Record<string, string[]> = {
