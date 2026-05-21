@@ -111,9 +111,11 @@
     display: none !important;
   }
 
-  /* Discover deck: smaller card so the info panel + action row fit. */
+  /* Discover deck: smaller card so the info panel + action row fit.
+     dvh tracks URL-bar movement on mobile so the card never gets clipped
+     when the browser chrome appears/disappears. */
   .discover-deck {
-    height: clamp(14rem, 36vh, 20rem) !important;
+    height: clamp(14rem, 36dvh, 20rem) !important;
     max-height: 20rem !important;
   }
 
@@ -232,7 +234,7 @@
     /* Guarantee at least ~25% of the viewport for messages so the AI
        panels never crush this region to zero. If panels overflow, they
        scroll internally instead of eating the message area. */
-    min-height: 25vh !important;
+    min-height: 25dvh !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
   }
@@ -368,12 +370,12 @@
      usable when AI content is generated. */
   .chat-thread > .chat-ai-coach,
   .chat-thread > .chat-date-planner {
-    max-height: 38vh !important;
+    max-height: 38dvh !important;
     overflow: hidden !important;
   }
   .chat-thread > .chat-ai-coach .chat-ai-suggestion-list,
   .chat-thread > .chat-date-planner .chat-date-plan-list {
-    max-height: 28vh !important;
+    max-height: 28dvh !important;
     overflow-y: auto !important;
     overscroll-behavior: contain !important;
     -webkit-overflow-scrolling: touch !important;
@@ -558,6 +560,47 @@
     justify-content: center;
     padding: 0 0.18rem;
     line-height: 1;
+  }
+
+  /* ── PHONE CLAMPS for desktop-first fixed heights ──────────────────
+     The desktop cascade defines several min-heights in rem that overflow
+     small phone viewports (360×600 to 412×800). Each rule below caps the
+     dimension at a phone-safe value while keeping the aspect ratio
+     readable. dvh tracks URL-bar movement. */
+
+  /* Photo card in profile detail (was min-height 16rem = 256px — eats
+     half the phone viewport per card and the grid shows two columns). */
+  .photo-card {
+    min-height: 0 !important;
+    aspect-ratio: 3 / 4;
+  }
+  .photo-card img {
+    min-height: 0 !important;
+    height: auto !important;
+    aspect-ratio: 3 / 4;
+  }
+
+  /* Discover-deck card aspect-ratio (was min-height 24rem = 384px). */
+  .profile-card {
+    min-height: 0 !important;
+  }
+
+  /* Profile summary hero image (was min-height 34rem = 544px — wiped
+     the whole viewport on small phones). The hero container already
+     uses clamp() in App.css; the child img must match. */
+  .profile-summary-hero,
+  .profile-summary-hero img {
+    min-height: clamp(12rem, 36dvh, 28rem) !important;
+    max-height: clamp(16rem, 48dvh, 36rem) !important;
+  }
+  .profile-summary-hero img {
+    object-position: center 30%;
+  }
+
+  /* Generic deck-wrap (legacy desktop deck). When it appears on phone
+     it must not lock to 80vh — that's a useless huge box. */
+  .deck-wrap {
+    height: clamp(20rem, 60dvh, 32rem) !important;
   }
 }
 

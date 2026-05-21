@@ -11,7 +11,10 @@
 
 body {
   margin: 0;
-  min-height: 100vh;
+  /* dvh (dynamic viewport height) tracks the URL-bar collapse/expand on
+     mobile — 100vh would lock to the largest viewport and leave content
+     clipped while the URL bar is visible. */
+  min-height: 100dvh;
   font-family: 'Trebuchet MS', 'Lucida Sans', 'Gill Sans', sans-serif;
   /* Privé palette (Phase 1.5 — 2026-05-21):
      The legacy cyan + violet radials are gone. The page now reads as
@@ -25,7 +28,7 @@ body {
 }
 
 #root {
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* On mobile the WebView must never scroll at document level.

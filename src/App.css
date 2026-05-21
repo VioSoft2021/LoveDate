@@ -94,7 +94,7 @@
      phone viewport. */
   .chat-thread {
     overflow-y: auto;
-    max-height: calc(100vh - 9rem);
+    max-height: calc(100dvh - 9rem);
   }
   .profile-summary--enhanced {
     max-height: none;
@@ -318,7 +318,7 @@
 }
 .app-shell,
 .login-shell {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   position: relative;
   color: var(--theme-text);
@@ -983,8 +983,8 @@
 }
 
 .app-shell--discover {
-  height: 100vh;
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
   overflow: hidden;
   gap: 0.7rem;
   padding: 0.7rem 0.9rem 0.6rem;
