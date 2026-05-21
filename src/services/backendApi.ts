@@ -996,75 +996,19 @@ export const backendSubmitWaitlist = async (
   return true
 }
 
-export type WaitlistEntry = {
-  id: string
-  email: string
-  note: string | null
-  status: 'pending' | 'approved' | 'declined'
-  inviteCode: string | null
-  createdAt: string
-  reviewedAt: string | null
-}
-
-/** Admin-only — lists waitlist entries by status. */
-export const backendListWaitlist = async (
-  status: 'pending' | 'approved' | 'declined' | 'all' = 'pending',
-): Promise<WaitlistEntry[]> => {
-  if (!supabase) return []
-  const { data, error } = await supabase.rpc('admin_list_waitlist', {
-    p_status: status,
-  })
-  if (error || !Array.isArray(data)) {
-
-    console.warn('admin_list_waitlist failed:', error?.message)
-    return []
-  }
-  return data.map((row: Record<string, unknown>) => ({
-    id: String(row.id),
-    email: String(row.email ?? ''),
-    note: typeof row.note === 'string' ? row.note : null,
-    status: (row.status as WaitlistEntry['status']) ?? 'pending',
-    inviteCode: typeof row.invite_code === 'string' ? row.invite_code : null,
-    createdAt: String(row.created_at ?? ''),
-    reviewedAt: typeof row.reviewed_at === 'string' ? row.reviewed_at : null,
-  }))
-}
-
-/**
- * Admin-only — approve a pending waitlist entry. Server generates a
- * single-use 12-char invite code with a 30-day expiry, inserts it into
- * public.beta_invites, marks the waitlist row as approved, and returns
- * the code for the admin UI to display (so the admin can copy + email
- * it manually). Returns null on failure.
- */
-export const backendApproveWaitlist = async (
-  id: string,
-): Promise<string | null> => {
-  if (!supabase) return null
-  const { data, error } = await supabase.rpc('admin_approve_waitlist', {
-    p_id: id,
-  })
-  if (error) {
-
-    console.warn('admin_approve_waitlist failed:', error.message)
-    return null
-  }
-  return typeof data === 'string' ? data : null
-}
-
-/** Admin-only — decline a pending waitlist entry. */
-export const backendDeclineWaitlist = async (id: string): Promise<boolean> => {
-  if (!supabase) return false
-  const { data, error } = await supabase.rpc('admin_decline_waitlist', {
-    p_id: id,
-  })
-  if (error) {
-
-    console.warn('admin_decline_waitlist failed:', error.message)
-    return false
-  }
-  return data === true
-}
+// Note: invite-code generation lives in the LoveDateInviteAdmin app
+// (sophisticated cryptographic formatter + audit log). Approval of a
+// waitlist request is therefore a two-step flow handled there:
+//   1. InviteAdmin calls its own create-invite-code Edge Function with
+//      label = requester's email + note. That inserts into beta_invites.
+//   2. InviteAdmin calls admin_approve_waitlist(id, code) (still exists)
+//      to mark the Privé waitlist row approved and link it to the code.
+// Privé's own admin UI for approval was removed (commit replaces an
+// earlier in-Privé approve button with this handoff).
+//
+// Decline is also delegated to InviteAdmin (or to direct SQL by Master
+// if a request is spam). The admin_decline_waitlist RPC remains in SQL
+// for InviteAdmin to call; the Privé client no longer wraps it.
 
 /**
  * D5 — admin moderation action: flip a profile's is_active flag.
