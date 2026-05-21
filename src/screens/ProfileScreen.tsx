@@ -154,17 +154,46 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
     setLocDetectLoading(true)
     const result = await detectMyLocation()
     setLocDetectLoading(false)
+    // Localize the error message at the call site so the geolocation
+    // utility stays i18n-agnostic. The DetectError.kind discriminant
+    // covers every failure mode the browser API can produce.
+    const ro = appLanguage === 'ro'
     if (isLocationError(result)) {
-      setLocDetectError(result.message)
+      const errorMessages: Record<string, string> = ro
+        ? {
+            unsupported: 'Browserul tău nu permite detectarea locației.',
+            'permission-denied':
+              'Permisiune de locație refuzată. Apasă pe iconița de lăcat din bara de adrese pentru a permite locația, sau scrie orașul manual.',
+            unavailable: 'Nu am putut determina locația. Încearcă din nou sau scrie orașul manual.',
+            timeout: 'Detectarea locației a expirat. Încearcă din nou sau scrie orașul manual.',
+            'reverse-failed':
+              'Nu am putut afla numele orașului din locația ta. Încearcă să-l scrii manual.',
+          }
+        : {
+            unsupported: 'Your browser does not support location detection.',
+            'permission-denied':
+              'Location permission denied. Tap the lock icon in the address bar to allow location, or type your city manually.',
+            unavailable: 'Could not determine your location. Try again or type your city manually.',
+            timeout: 'Location lookup timed out. Try again or type your city manually.',
+            'reverse-failed':
+              'Could not resolve a city name from your location. Try typing it manually.',
+          }
+      setLocDetectError(errorMessages[result.kind] ?? result.message)
       return
     }
     handleProfileDraftChange('city', result.city)
     setLocDetectSuccess(
-      result.region ? `Set to ${result.city} (${result.region})` : `Set to ${result.city}`,
+      result.region
+        ? ro
+          ? `Setat: ${result.city} (${result.region})`
+          : `Set to ${result.city} (${result.region})`
+        : ro
+          ? `Setat: ${result.city}`
+          : `Set to ${result.city}`,
     )
     // Clear the success line after 4s so it doesn't linger forever.
     window.setTimeout(() => setLocDetectSuccess(null), 4000)
-  }, [handleProfileDraftChange])
+  }, [appLanguage, handleProfileDraftChange])
 
   const runBioWriter = React.useCallback(async () => {
     setBioWriterError(null)

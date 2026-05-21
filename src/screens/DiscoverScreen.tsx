@@ -189,7 +189,7 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
       <details className="hidden-breakdown">
         <summary>
           {ro
-            ? `ⓘ ${entries.length} profil${entries.length === 1 ? '' : 'e'} ascunse de filtrele tale — vezi de ce`
+            ? `ⓘ ${entries.length} ${entries.length === 1 ? 'profil ascuns' : 'profile ascunse'} de filtrele tale — vezi de ce`
             : `ⓘ ${entries.length} profile${entries.length === 1 ? '' : 's'} hidden by your filters — see why`}
         </summary>
         <ul className="hidden-breakdown-list">
