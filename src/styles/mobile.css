@@ -462,32 +462,31 @@
      the viewport' mobile layout. Discover (the swipe deck) is excluded
      because the photo card should remain prominent.
 
-     Math on a 360px phone:
+     Math on a 384px phone (typical Galaxy):
        screen-panel padding (0.5rem each side) = 16px
-       additional column gutter (2rem each side) = 64px
-       total side margin = 80px → card width ~280px (78% of viewport).
-     The gutter scales down on slightly wider phones via the rem unit
-     so the look stays consistent. */
+       additional column gutter (2.75rem each side) = 88px
+       total side margin = 104px → card width ~280px (73% of viewport).
+     Gutter scales with rem so the look stays consistent on larger phones. */
   .profile-screen,
   .settings-screen,
   .profile-detail,
   .activity-layout {
-    padding-left: 2rem !important;
-    padding-right: 2rem !important;
+    padding-left: 2.75rem !important;
+    padding-right: 2.75rem !important;
     box-sizing: border-box;
   }
   /* The chat list stays comfortable too, but with smaller gutters so
      conversation tiles don't feel cramped. */
   .chats-layout {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
     box-sizing: border-box;
   }
 
   /* ── PRIVÉ LUXURY INPUTS ─────────────────────────────────────────
      Inside the centered card, each input/select/textarea sits visibly
      narrower than the card width. The label spans the row for readability;
-     the input itself is capped at 14rem (224px) and left-aligned so there's
+     the input itself is capped at 11rem (176px) and left-aligned so there's
      clear whitespace to its right. This is the Hermès/Cartier form pattern
      Master picked — generous whitespace, the field is an accent inside
      the card, not the whole card. */
@@ -495,18 +494,20 @@
   .profile-editor label > select,
   .profile-editor label > textarea {
     width: 100% !important;
-    max-width: 14rem !important;
+    max-width: 11rem !important;
     align-self: flex-start;
   }
   /* Bio textarea is the one place a slightly wider field reads better
-     (multi-line text). 18rem ≈ 288px. */
+     (multi-line text). 14rem ≈ 224px — wider than other inputs but still
+     visibly inside the card. */
   .profile-editor label.full-width > textarea {
-    max-width: 18rem !important;
+    max-width: 14rem !important;
   }
   /* City field uses .location-input-row (input + Detect button). The
-     row stays a flex pair; cap the whole row, not the input alone. */
+     row stays a flex pair; cap the whole row to match BIO width so the
+     two-element row has room for both pieces. */
   .profile-editor label.location-field > .location-input-row {
-    max-width: 18rem !important;
+    max-width: 14rem !important;
     align-self: flex-start;
   }
 
