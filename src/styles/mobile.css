@@ -62,18 +62,14 @@
   /* ── Screen panel — host of each screen, scrolls vertically with
      enough bottom padding to clear the fixed tab bar AND any in-flow
      action bar. Discover uses the extended reserve; other screens
-     just clear the tab bar.
-     Horizontal padding kept TIGHT (0.25rem = 4px) so content reaches
-     the screen edges — every pixel of width matters on 360-412px
-     phones, and stacking screen-panel + card + section padding wastes
-     20%+ of the viewport otherwise. ───────────────────────────────── */
+     just clear the tab bar. ─────────────────────────────────────── */
   .screen-panel,
   .screen-panel--discover {
     min-height: 0;
     overflow-x: hidden !important;
     overflow-y: auto !important;
-    padding-left: 0.25rem !important;
-    padding-right: 0.25rem !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
     padding-bottom: var(--bottom-reserve) !important;
   }
   .screen-panel--discover {
@@ -451,49 +447,12 @@
     max-width: 100%;
   }
 
-  /* Tighter card padding so content reaches the screen edges. The old
-     0.9rem horizontal padding ate ~14px per side; combined with
-     screen-panel + section padding, the form ended up at ~70% of the
-     viewport. Now 0.45rem (~7px) per side, which still gives a visible
-     card edge but reclaims ~28px of usable width. */
+  /* Tighter card padding so content has more room to breathe */
   .profile-summary,
   .profile-settings,
   .list-panel,
   .activity-overview {
-    padding: 0.85rem 0.45rem !important;
-  }
-
-  /* Section content padding (the inside of each <details> in the
-     profile editor) was 0.82rem horizontal — also tightened so fields
-     fill more of the card. */
-  .profile-editor-section > .profile-editor-grid,
-  .profile-editor-section > .photo-input-row,
-  .profile-editor-section > .upload-field,
-  .profile-editor-section > .draft-photo-grid,
-  .profile-editor-section > .photo-studio,
-  .profile-editor-section > p {
-    padding-left: 0.45rem !important;
-    padding-right: 0.45rem !important;
-  }
-
-  /* Summary (the collapsible section header) — tighter inline padding
-     so it lines up with the rest of the card content. */
-  .profile-editor-section > summary {
-    padding-left: 0.6rem !important;
-    padding-right: 0.6rem !important;
-  }
-
-  /* Force every form control inside the profile editor to fill the
-     label width. Without this, native input sizing on mobile defaults
-     to a fixed character count (~20 chars) and the box looks narrow
-     and lonely on the left even though its parent label is full-width. */
-  .profile-editor input,
-  .profile-editor select,
-  .profile-editor textarea,
-  .profile-editor .location-input-row input {
-    width: 100% !important;
-    box-sizing: border-box;
-    max-width: 100%;
+    padding: 0.85rem 0.9rem !important;
   }
 
   /* Interest chips wrap nicely instead of forming an overflowing row */
