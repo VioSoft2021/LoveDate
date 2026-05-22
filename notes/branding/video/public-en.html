@@ -1,0 +1,966 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Privé — Public Video (Welcome)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;1,400&family=Cinzel:wght@500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet" />
+<style>
+  /* =========================================================
+     PRIVÉ — public welcome video (self-running CSS animation)
+     Total duration: 150s (2:30)
+     How to record: open in fullscreen (F11). Use OBS Studio or
+     Windows Win+G screen recorder to capture. Refresh = restart.
+     ========================================================= */
+
+  :root {
+    --navy-deep: #0a0e27;
+    --navy-1: #101430;
+    --navy-2: #14182d;
+    --gold-1: #cfad61;
+    --gold-2: #e8c679;
+    --gold-soft: #f4dca8;
+    --cream: #edf3ff;
+    --cream-dim: rgba(232, 242, 255, 0.78);
+    --red-soft: rgba(255, 138, 138, 0.7);
+    --gold-grad: linear-gradient(105deg, #cfad61 0%, #e8c679 50%, #f4dca8 100%);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+  }
+  body {
+    position: relative;
+    font-family: 'Bodoni Moda', Georgia, serif;
+    color: var(--cream);
+    -webkit-font-smoothing: antialiased;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(216, 184, 109, 0.12) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 100%, rgba(216, 184, 109, 0.06) 0%, transparent 50%),
+      linear-gradient(180deg, var(--navy-deep) 0%, var(--navy-1) 50%, var(--navy-deep) 100%);
+  }
+
+  /* === Ambient drifting particles (always on, low opacity) === */
+  .particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: radial-gradient(circle, var(--gold-soft), transparent);
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+    animation: drift 18s infinite ease-in-out;
+  }
+  .particle:nth-child(1) { top: 15%; left: 12%; animation-delay: 0s; }
+  .particle:nth-child(2) { top: 38%; left: 78%; animation-delay: 3s; }
+  .particle:nth-child(3) { top: 62%; left: 25%; animation-delay: 6s; }
+  .particle:nth-child(4) { top: 82%; left: 88%; animation-delay: 9s; }
+  .particle:nth-child(5) { top: 28%; left: 55%; animation-delay: 12s; }
+  .particle:nth-child(6) { top: 72%; left: 45%; animation-delay: 15s; }
+  @keyframes drift {
+    0%, 100% { transform: translate(0, 0) scale(0.8); opacity: 0; }
+    20%, 80% { opacity: 0.6; }
+    50% { transform: translate(20px, -30px) scale(1.4); opacity: 1; }
+  }
+
+  /* === Scene wrapper — each scene is absolute, fades in/out by its own keyframe === */
+  .scene {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    opacity: 0;
+    padding: 5vh 8vw;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     SCENE 1 — Privé wordmark assembles (0–8s)
+     ───────────────────────────────────────────────────────── */
+  .s1 { animation: s1 8s ease-in-out 0s 1 forwards; }
+  @keyframes s1 {
+    0%   { opacity: 0; }
+    8%   { opacity: 1; }
+    87%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .wordmark {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(4rem, 12vw, 9rem);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+    display: inline-block;
+  }
+  .wordmark::before {
+    content: '';
+    position: absolute;
+    top: -0.45rem;
+    left: 36%;
+    width: 28%;
+    height: 0.16rem;
+    background: var(--gold-grad);
+    border-radius: 2px;
+    opacity: 0;
+    animation: barFade 8s ease 0s 1 forwards;
+  }
+  @keyframes barFade {
+    0%, 12% { opacity: 0; transform: scaleX(0); }
+    35% { opacity: 1; transform: scaleX(1); }
+    87%, 100% { opacity: 1; transform: scaleX(1); }
+  }
+  .s1 .letter {
+    display: inline-block;
+    opacity: 0;
+    animation: letterIn 8s ease 0s 1 forwards;
+  }
+  .s1 .letter:nth-child(1) { animation-delay: 0.3s; }
+  .s1 .letter:nth-child(2) { animation-delay: 0.6s; }
+  .s1 .letter:nth-child(3) { animation-delay: 0.9s; }
+  .s1 .letter:nth-child(4) { animation-delay: 1.2s; }
+  .s1 .letter:nth-child(5) { animation-delay: 1.5s; }
+  @keyframes letterIn {
+    0%   { opacity: 0; transform: translateY(20px); }
+    15%  { opacity: 1; transform: translateY(0); }
+    87%  { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; }
+  }
+  .s1-whisper {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(1rem, 2vw, 1.4rem);
+    color: var(--cream-dim);
+    margin-top: 2.5rem;
+    letter-spacing: 0.06em;
+    opacity: 0;
+    animation: fadeInOut 6s ease 2.5s 1 forwards;
+  }
+  @keyframes fadeInOut {
+    0%, 10% { opacity: 0; }
+    25%, 75% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     SCENE 2 — Tagline reveal (8–15s)
+     ───────────────────────────────────────────────────────── */
+  .s2 { animation: s2 7s ease 8s 1 forwards; }
+  @keyframes s2 {
+    0%   { opacity: 0; }
+    10%  { opacity: 1; }
+    85%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .s2-mark {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(2.5rem, 7vw, 5rem);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+    display: inline-block;
+  }
+  .s2-mark::before {
+    content: '';
+    position: absolute;
+    top: -0.35rem;
+    left: 36%;
+    width: 28%;
+    height: 0.1rem;
+    background: var(--gold-grad);
+    border-radius: 2px;
+  }
+  .s2-tag {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    color: var(--gold-soft);
+    margin-top: 1.5rem;
+    letter-spacing: 0.04em;
+  }
+  .s2-sub {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.7rem, 1.3vw, 0.95rem);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold-1);
+    opacity: 0.7;
+    margin-top: 2rem;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     SCENE 3 — Problem montage (15–35s)
+     three lines fade through quickly
+     ───────────────────────────────────────────────────────── */
+  .s3 { animation: s3 20s ease 15s 1 forwards; }
+  @keyframes s3 {
+    0%   { opacity: 0; }
+    4%   { opacity: 1; }
+    96%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .s3-line {
+    font-family: 'Bodoni Moda', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    color: var(--cream);
+    line-height: 1.3;
+    opacity: 0;
+    position: absolute;
+    width: 80%;
+    text-align: center;
+  }
+  .s3-line.l1 { animation: lineFade 20s ease 15s 1 forwards; animation-delay: 15s; }
+  .s3-line.l2 { animation: lineFade 20s ease 21.5s 1 forwards; }
+  .s3-line.l3 { animation: lineFade 20s ease 28s 1 forwards; }
+  @keyframes lineFade {
+    0%   { opacity: 0; transform: translateY(15px); }
+    8%   { opacity: 1; transform: translateY(0); }
+    25%  { opacity: 1; }
+    33%  { opacity: 0; transform: translateY(-15px); }
+    100% { opacity: 0; }
+  }
+  .s3-line .red {
+    color: var(--red-soft);
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     SCENE 4 — Pivot (35–45s)
+     ───────────────────────────────────────────────────────── */
+  .s4 { animation: s4 10s ease 35s 1 forwards; }
+  @keyframes s4 {
+    0%   { opacity: 0; }
+    10%  { opacity: 1; }
+    85%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .s4-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.8rem, 1.4vw, 1rem);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 2rem;
+    opacity: 0.85;
+  }
+  .s4-title {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 400;
+    color: var(--gold-soft);
+    line-height: 1.3;
+    max-width: 22ch;
+  }
+  .s4-title em {
+    font-style: italic;
+    color: var(--gold-1);
+  }
+
+  /* === Real-app screenshot frame (used by scenes 5/6/7) ===
+     If a screenshot exists in ./screenshots/, it shows inside this
+     phone-shaped frame. Otherwise CSS mockup below renders instead. */
+  .phone-frame {
+    width: clamp(16rem, 22vw, 22rem);
+    aspect-ratio: 9 / 19.5;
+    border-radius: 2.2rem;
+    background: linear-gradient(140deg, #1a1a2c, #0a0e27);
+    border: 1.5px solid rgba(216, 184, 109, 0.4);
+    padding: 0.55rem;
+    box-shadow:
+      0 30px 80px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(216, 184, 109, 0.15) inset,
+      0 0 60px rgba(216, 184, 109, 0.18);
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+  .phone-frame::before {
+    /* notch */
+    content: '';
+    position: absolute;
+    top: 0.55rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 35%;
+    height: 0.7rem;
+    background: #000;
+    border-radius: 0 0 1rem 1rem;
+    z-index: 2;
+  }
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 1.65rem;
+    overflow: hidden;
+    background: var(--navy-deep);
+    position: relative;
+  }
+  .phone-screen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+  }
+  /* Subtle Ken-Burns zoom on screenshots so they feel alive */
+  .phone-screen img {
+    animation: kenBurns 30s ease-in-out infinite alternate;
+  }
+  @keyframes kenBurns {
+    0%   { transform: scale(1) translateY(0); }
+    100% { transform: scale(1.06) translateY(-2%); }
+  }
+  /* Fallback hidden by default — only shown if img fails to load (no screenshot yet) */
+  .phone-screen .mockup-fallback {
+    display: none;
+  }
+  /* Mockup card defaults — sized to fit inside the phone-frame (~22rem
+     wide max). Override font sizes per-card so nothing clips the frame. */
+  .phone-screen .mockup-fallback .score-card,
+  .phone-screen .mockup-fallback .filter-card,
+  .phone-screen .mockup-fallback .personality-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 1rem 0.85rem;
+    box-sizing: border-box;
+  }
+  .phone-screen .mockup-fallback .score-num {
+    font-size: 3.2rem !important;
+    line-height: 1;
+  }
+  .phone-screen .mockup-fallback .score-name {
+    font-size: 0.9rem;
+    padding-top: 0.6rem;
+  }
+  .phone-screen .mockup-fallback .filter-prompt {
+    font-size: 0.85rem !important;
+    line-height: 1.4;
+    white-space: normal !important;
+    min-height: 2.5em;
+  }
+  .phone-screen .mockup-fallback .filter-prompt .filter-typing {
+    white-space: normal !important;
+    overflow: visible;
+    border-right: none;
+    animation: none !important;
+    width: auto !important;
+  }
+  .phone-screen .mockup-fallback .filter-label,
+  .phone-screen .mockup-fallback .filter-result-label {
+    font-size: 0.7rem;
+  }
+  .phone-screen .mockup-fallback .filter-result-count {
+    font-size: 1.6rem !important;
+  }
+  .phone-screen .mockup-fallback .personality-code {
+    font-size: 2.4rem !important;
+    letter-spacing: 0.04em !important;
+    line-height: 1;
+  }
+  .phone-screen .mockup-fallback .personality-name {
+    font-size: 1rem !important;
+    margin-top: 0.5rem;
+  }
+  .phone-screen .mockup-fallback .personality-summary {
+    font-size: 0.78rem !important;
+    line-height: 1.4;
+    margin-top: 0.8rem;
+  }
+  .phone-screen .mockup-fallback .personality-label,
+  .phone-screen .mockup-fallback .score-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+  }
+  .phone-screen img:not([src]),
+  .phone-screen img[src=""] {
+    display: none;
+  }
+  .phone-screen:has(img:not([src])) .mockup-fallback,
+  .phone-screen:has(img[src=""]) .mockup-fallback {
+    display: flex;
+  }
+  /* If image broke entirely */
+  .phone-screen img.broken {
+    display: none;
+  }
+  .phone-screen img.broken + .mockup-fallback {
+    display: flex;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     SCENE 5 — AI Match Score reveal (45–75s)
+     ───────────────────────────────────────────────────────── */
+  .s5 { animation: s5 30s ease 45s 1 forwards; }
+  @keyframes s5 {
+    0%   { opacity: 0; }
+    5%   { opacity: 1; }
+    95%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .s5-flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(1rem, 3vw, 3rem);
+    max-width: 64rem;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .s5-caption {
+    max-width: 18rem;
+    text-align: left;
+  }
+  .s5-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.7rem, 1.3vw, 0.95rem);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 1.4rem;
+  }
+  .score-card {
+    background: rgba(20, 24, 45, 0.85);
+    border: 1px solid rgba(216, 184, 109, 0.45);
+    border-radius: 1.2rem;
+    padding: 2rem 2.5rem;
+    max-width: 28rem;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  }
+  .score-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 0.5rem;
+  }
+  .score-num {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(4rem, 10vw, 7rem);
+    font-weight: 500;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+  .score-num::after {
+    content: '%';
+    font-size: 0.55em;
+    color: var(--gold-soft);
+    -webkit-text-fill-color: var(--gold-soft);
+    background: none;
+  }
+  /* Score "counts up" via 4 stacked spans that fade in sequentially.
+     CSS counters DON'T interpolate so we do it the durable way. */
+  .score-counter {
+    display: inline-block;
+    position: relative;
+    min-width: 2.2ch;
+  }
+  .score-counter span {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+  }
+  .score-counter span:nth-child(1) { animation: countStep 30s ease 45s 1 forwards; }
+  .score-counter span:nth-child(2) { animation: countStep 30s ease 45s 1 forwards; animation-delay: 47s; }
+  .score-counter span:nth-child(3) { animation: countStep 30s ease 45s 1 forwards; animation-delay: 49s; }
+  .score-counter span:nth-child(4) { animation: countStep 30s ease 45s 1 forwards; animation-delay: 50.5s; }
+  @keyframes countStep {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    35% { opacity: 0; }
+  }
+  .score-counter span:nth-child(4) {
+    animation: countFinal 30s ease 45s 1 forwards;
+    animation-delay: 50.5s;
+  }
+  @keyframes countFinal {
+    0% { opacity: 0; }
+    10%, 100% { opacity: 1; }
+  }
+  .score-name {
+    font-family: 'Bodoni Moda', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--cream);
+    margin-top: 1rem;
+    border-top: 1px solid rgba(216, 184, 109, 0.2);
+    padding-top: 1rem;
+  }
+  .score-detail {
+    margin-top: 1rem;
+    text-align: left;
+    opacity: 0;
+    animation: detailIn 30s ease 45s 1 forwards;
+  }
+  @keyframes detailIn {
+    0%, 30% { opacity: 0; transform: translateY(10px); }
+    40% { opacity: 1; transform: translateY(0); }
+    95% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .score-detail h5 {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin: 0.6rem 0 0.25rem;
+  }
+  .score-detail p {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--cream-dim);
+    line-height: 1.4;
+  }
+  .s5-vo {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 1.8vw, 1.3rem);
+    color: var(--cream-dim);
+    margin-top: 2rem;
+    max-width: 32ch;
+    text-align: center;
+    opacity: 0;
+    animation: voCaption 30s ease 45s 1 forwards;
+  }
+  @keyframes voCaption {
+    0%, 50% { opacity: 0; }
+    60%, 95% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     SCENE 6 — AI-First filter (75–100s)
+     ───────────────────────────────────────────────────────── */
+  .s6 { animation: s6 25s ease 75s 1 forwards; }
+  @keyframes s6 {
+    0%   { opacity: 0; }
+    6%   { opacity: 1; }
+    94%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .s6-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.7rem, 1.3vw, 0.95rem);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 1.4rem;
+  }
+  .filter-card {
+    background: rgba(20, 24, 45, 0.85);
+    border: 1px solid rgba(216, 184, 109, 0.45);
+    border-radius: 1.2rem;
+    padding: 2rem 2.5rem;
+    max-width: 32rem;
+    width: 90%;
+    text-align: left;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  }
+  .filter-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 0.8rem;
+  }
+  .filter-prompt {
+    font-family: 'Bodoni Moda', serif;
+    font-style: italic;
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+    color: var(--cream);
+    line-height: 1.5;
+    min-height: 3em;
+  }
+  .filter-typing {
+    border-right: 2px solid var(--gold-soft);
+    animation: blink 0.7s step-end infinite;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 0;
+    display: inline-block;
+    animation: typing 8s steps(60) 78s 1 forwards, blink 0.7s step-end infinite;
+  }
+  @keyframes typing {
+    0% { width: 0; }
+    100% { width: 100%; }
+  }
+  @keyframes blink {
+    0%, 50% { border-color: var(--gold-soft); }
+    51%, 100% { border-color: transparent; }
+  }
+  .filter-result {
+    margin-top: 2rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid rgba(216, 184, 109, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    opacity: 0;
+    animation: filterResult 25s ease 75s 1 forwards;
+  }
+  @keyframes filterResult {
+    0%, 50% { opacity: 0; }
+    65%, 94% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .filter-result-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--cream-dim);
+  }
+  .filter-result-count {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 2.2rem;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .s6-vo {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 1.8vw, 1.3rem);
+    color: var(--cream-dim);
+    margin-top: 2rem;
+    max-width: 36ch;
+    text-align: center;
+    opacity: 0;
+    animation: voCaption 25s ease 75s 1 forwards;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     SCENE 7 — Personality reveal (100–125s)
+     ───────────────────────────────────────────────────────── */
+  .s7 { animation: s7 25s ease 100s 1 forwards; }
+  @keyframes s7 {
+    0%   { opacity: 0; }
+    6%   { opacity: 1; }
+    94%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .s7-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.7rem, 1.3vw, 0.95rem);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .s7-eyebrow-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+    letter-spacing: 0.04em;
+    text-transform: none;
+    color: var(--cream-dim);
+  }
+  .personality-card {
+    background: linear-gradient(135deg, rgba(207, 173, 97, 0.18), rgba(232, 198, 121, 0.1));
+    border: 1px solid rgba(216, 184, 109, 0.55);
+    border-radius: 1.5rem;
+    padding: 2.5rem 3rem;
+    max-width: 28rem;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(216, 184, 109, 0.18);
+  }
+  .personality-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 1rem;
+  }
+  .personality-code {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(3.5rem, 8vw, 5.5rem);
+    font-weight: 500;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    line-height: 1;
+    letter-spacing: 0.12em;
+    opacity: 0;
+    animation: revealCode 25s ease 100s 1 forwards;
+  }
+  @keyframes revealCode {
+    0%, 15% { opacity: 0; transform: scale(0.8); }
+    25% { opacity: 1; transform: scale(1.1); }
+    32%, 94% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; }
+  }
+  .personality-name {
+    font-family: 'Bodoni Moda', serif;
+    font-style: italic;
+    font-size: clamp(1.2rem, 2.3vw, 1.7rem);
+    color: var(--gold-soft);
+    margin-top: 1rem;
+    opacity: 0;
+    animation: revealName 25s ease 100s 1 forwards;
+  }
+  @keyframes revealName {
+    0%, 30% { opacity: 0; transform: translateY(10px); }
+    40%, 94% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; }
+  }
+  .personality-summary {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--cream-dim);
+    margin-top: 1.2rem;
+    line-height: 1.5;
+    opacity: 0;
+    animation: revealName 25s ease 100s 1 forwards;
+    animation-delay: 2s;
+  }
+  .s7-vo {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 1.8vw, 1.3rem);
+    color: var(--cream-dim);
+    margin-top: 2.5rem;
+    max-width: 32ch;
+    text-align: center;
+    opacity: 0;
+    animation: voCaption 25s ease 100s 1 forwards;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     SCENE 8 — Invite-only positioning (125–145s)
+     ───────────────────────────────────────────────────────── */
+  .s8 { animation: s8 20s ease 125s 1 forwards; }
+  @keyframes s8 {
+    0%   { opacity: 0; }
+    8%   { opacity: 1; }
+    92%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .s8-mark {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(3rem, 9vw, 6.5rem);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+    display: inline-block;
+    animation: glint 20s ease 125s 1 forwards;
+  }
+  .s8-mark::before {
+    content: '';
+    position: absolute;
+    top: -0.4rem;
+    left: 36%;
+    width: 28%;
+    height: 0.13rem;
+    background: var(--gold-grad);
+    border-radius: 2px;
+  }
+  @keyframes glint {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.4); }
+  }
+  .s8-line {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+    color: var(--gold-soft);
+    margin-top: 2rem;
+    max-width: 28ch;
+    line-height: 1.4;
+  }
+  .s8-mini {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold-1);
+    margin-top: 1.5rem;
+    opacity: 0.8;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     SCENE 9 — CTA / URL (145–150s)
+     ───────────────────────────────────────────────────────── */
+  .s9 { animation: s9 5s ease 145s 1 forwards; }
+  @keyframes s9 {
+    0%   { opacity: 0; }
+    20%  { opacity: 1; }
+    100% { opacity: 1; }
+  }
+  .s9-url {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: 0.05em;
+  }
+  .s9-cta {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 2vw, 1.4rem);
+    color: var(--cream-dim);
+    margin-top: 1.2rem;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Ambient particles -->
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+
+  <!-- Scene 1: Wordmark assembles (0-8s) -->
+  <div class="scene s1">
+    <div class="wordmark">
+      <span class="letter">P</span><span class="letter">R</span><span class="letter">I</span><span class="letter">V</span><span class="letter">É</span>
+    </div>
+    <p class="s1-whisper">There is a word for what you've been missing.</p>
+  </div>
+
+  <!-- Scene 2: Tagline (8-15s) -->
+  <div class="scene s2">
+    <div class="s2-mark">PRIVÉ</div>
+    <div class="s2-tag">the best you can do for you</div>
+    <div class="s2-sub">Members only — by design.</div>
+  </div>
+
+  <!-- Scene 3: Problem montage (15-35s) -->
+  <div class="scene s3">
+    <div class="s3-line l1"><span class="red">Endless swipes.</span></div>
+    <div class="s3-line l2"><span class="red">Empty conversations.</span></div>
+    <div class="s3-line l3"><span class="red">Nobody who sees you.</span></div>
+  </div>
+
+  <!-- Scene 4: Pivot (35-45s) -->
+  <div class="scene s4">
+    <div class="s4-eyebrow">— and then —</div>
+    <h2 class="s4-title">What if the algorithm wasn't a slot machine,<br/><em>but a curator?</em></h2>
+  </div>
+
+  <!-- Scene 5: AI Match Score (45-75s) -->
+  <div class="scene s5">
+    <p class="s5-eyebrow">AI Match Score · powered by Claude</p>
+    <div class="s5-flex">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <img src="screenshots/05-match-score.png" alt="Privé Discover with AI match score expanded" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="mockup-fallback" style="position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;background:var(--navy-deep);">
+            <div class="score-card" style="max-width:100%;padding:1.5rem 1.5rem;">
+              <div class="score-label">Compatibility</div>
+              <div class="score-num" style="font-size:4.5rem;"><span class="score-counter"><span>0</span><span>34</span><span>62</span><span>87</span></span></div>
+              <div class="score-name">Alex, 32 · București</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="s5-caption">
+        <p class="s5-vo" style="margin-top:0;text-align:left;">Privé doesn't just give you a number. It explains <em>why you match</em>, what friction to expect, and what to say first.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene 6: AI-First Filter (75-100s) -->
+  <div class="scene s6">
+    <p class="s6-eyebrow">AI-First Filter</p>
+    <div class="s5-flex">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <img src="screenshots/06-filter-prompt.png" alt="Privé filter screen with AI prompt typed" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="mockup-fallback" style="position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;background:var(--navy-deep);">
+            <div class="filter-card" style="max-width:100%;padding:1.2rem 1.2rem;">
+              <div class="filter-label">What are you looking for?</div>
+              <div class="filter-prompt" style="font-size:1rem;"><span class="filter-typing">Serious. Into hiking. Not into clubs.</span></div>
+              <div class="filter-result">
+                <div class="filter-result-label">matches</div>
+                <div class="filter-result-count" style="font-size:1.8rem;">23</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="s5-caption">
+        <p class="s6-vo" style="margin-top:0;text-align:left;">Tell Privé what you're looking for — in your own words. <em>Speak. Don't filter.</em></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene 7: Love Personality reveal (100-125s) -->
+  <div class="scene s7">
+    <p class="s7-eyebrow">Your Love Personality<span class="s7-eyebrow-sub">— the way you love</span></p>
+    <div class="s5-flex">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <img src="screenshots/07-personality-reveal.png" alt="Onboarding wizard step 5 — love personality reveal" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="mockup-fallback" style="position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;background:var(--navy-deep);">
+            <div class="personality-card" style="max-width:100%;padding:1.8rem 1.5rem;">
+              <div class="personality-label">8 questions · 3 minutes</div>
+              <div class="personality-code" style="font-size:3.5rem;">DMFR</div>
+              <div class="personality-name" style="font-size:1.1rem;">Architect Heart</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="s5-caption">
+        <p class="s7-vo" style="margin-top:0;text-align:left;">A short Love Personality quiz reveals who you really are — and matches you with people who fit.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene 8: Invite-only (125-145s) -->
+  <div class="scene s8">
+    <div class="s8-mark">PRIVÉ</div>
+    <p class="s8-line">We're not building the biggest dating app.<br/><em>We're building the one you'll be proud to say you joined.</em></p>
+    <div class="s8-mini">Members only</div>
+  </div>
+
+  <!-- Scene 9: URL CTA (145-150s) -->
+  <div class="scene s9">
+    <div class="s9-url">prive-app.club</div>
+    <div class="s9-cta">— Request your access —</div>
+  </div>
+
+</body>
+</html>

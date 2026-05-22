@@ -1,0 +1,66 @@
+PRIVÉ — PUBLIC WELCOME VIDEO — VOICEOVER SCRIPT
+(English · 2:30 total runtime · ~580 characters)
+
+Paste this into ElevenLabs. Recommended voice: Charlotte, Sarah, or Alice.
+Stability: 60% · Style: 25% · Clarity: 80%.
+
+Pause markers ".." = ~0.5s breath. Trust the voice — don't over-direct.
+
+═══════════════════════════════════════════════════════════════
+
+[0:00 — over wordmark assembling]
+There is a word.. for what you've been missing.
+
+[0:08 — over tagline]
+Privé... the best you can do for you.
+
+[0:15 — over problem montage]
+You've tried all of them. Tinder. Bumble. Hinge.
+You've swiped through thousands of faces..
+You've memorized a thousand identical bios..
+And you're still alone.. with your phone.
+
+[0:35 — over pivot]
+What if the algorithm.. wasn't a slot machine..
+but a curator?
+
+[0:45 — over AI match score]
+Privé uses Claude — the most advanced AI from Anthropic — to read both
+profiles, and explain compatibility..
+Not just a number.. real reasons.
+Real frictions to expect.. and exactly what to say first.
+
+[1:15 — over filter screen]
+You don't toggle dropdowns.
+You tell Privé what you're looking for..
+in your own words.
+
+[1:40 — over personality reveal]
+And in three minutes.. Privé learns who you really are.
+Not a checklist.. a code.
+The same code.. that decides who else fits with you.
+
+[2:05 — over invite-only zoom]
+Privé is invite-only.
+We're not building the biggest dating app.
+We're building.. the one you'll be proud to say you joined.
+
+[2:25 — over URL]
+Privé.. prive-app.club. Request your access.
+
+═══════════════════════════════════════════════════════════════
+
+NOTES FOR THE VOICE:
+- Tone: soft, intimate, calm. Like she's leaning in to tell you a secret.
+- Pace: slow. Don't rush. Let the pauses breathe.
+- Emphasis: lean into the verbs ("read", "explain", "learns", "decides")
+  not the adjectives.
+- Romanian-accented English works great if she has it. Otherwise neutral
+  British or soft European accent. Avoid American newscaster energy.
+
+NOTES FOR THE EDITOR (or you):
+- Sync each VO line to the start of its scene. The HTML scenes are 8s, 7s,
+  20s, 10s, 30s, 25s, 25s, 20s, 5s.
+- Leave 0.5–1s of silence after each line so it has weight.
+- Music level: -18dB under voice.
+- Final mix should feel like a luxury fragrance ad, not a startup pitch.

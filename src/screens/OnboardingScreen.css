@@ -241,6 +241,14 @@
   font-size: 0.95rem;
   color: rgba(232, 242, 255, 0.88);
 }
+.onboarding-quiz-subtitle {
+  margin: -0.4rem 0 0.6rem;
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  letter-spacing: 0.03em;
+  color: rgba(244, 220, 168, 0.9);
+}
 .onboarding-quiz-result {
   margin-top: 1rem;
   padding: 1rem 1.2rem;

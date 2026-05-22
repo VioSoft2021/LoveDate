@@ -6,8 +6,8 @@ import { PERSONALITY_DIMENSIONS, PERSONALITY_TYPE_GUIDE } from '../constants'
 describe('PersonalityGuideScreen — rendering', () => {
   it('renders the screen title + intro pill', () => {
     render(<PersonalityGuideScreen appLanguage="en" selfPersonalityCode="DMFR" onBackToProfile={vi.fn()} />)
-    expect(screen.getByText('Personality Guide')).toBeInTheDocument()
-    expect(screen.getByText(/Understanding Privé Personality Codes/i)).toBeInTheDocument()
+    expect(screen.getByText('Love Personality Guide')).toBeInTheDocument()
+    expect(screen.getByText(/Understanding your Love Personality/i)).toBeInTheDocument()
   })
 
   it("displays the user's current personality code", () => {

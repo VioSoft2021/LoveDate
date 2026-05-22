@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Privé — diagramă</title>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600&family=Cinzel:wght@500;600&family=Cormorant+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy-deep: #0a0e27;
+    --navy-1: #101430;
+    --navy-2: #14182d;
+    --gold-1: #cfad61;
+    --gold-2: #e8c679;
+    --gold-soft: #f4dca8;
+    --cream: #edf3ff;
+    --cream-dim: rgba(232, 242, 255, 0.72);
+    --gold-grad: linear-gradient(105deg, #cfad61 0%, #e8c679 50%, #f4dca8 100%);
+    --red-soft: rgba(255, 138, 138, 0.85);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--navy-deep);
+    color: var(--cream);
+    font-family: 'Bodoni Moda', Georgia, serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(216, 184, 109, 0.12) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 100%, rgba(216, 184, 109, 0.06) 0%, transparent 50%),
+      linear-gradient(180deg, var(--navy-deep) 0%, var(--navy-1) 50%, var(--navy-deep) 100%);
+    min-height: 100vh;
+    padding: 2.5rem 1rem;
+  }
+  .frame {
+    max-width: 32rem;
+    margin: 0 auto;
+  }
+
+  /* Brand strip */
+  .brand {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .wordmark {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 3rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+    display: inline-block;
+  }
+  .wordmark::before {
+    content: '';
+    position: absolute;
+    top: -0.4rem;
+    left: 36%;
+    width: 28%;
+    height: 0.1rem;
+    background: var(--gold-grad);
+    border-radius: 2px;
+  }
+  .tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--cream-dim);
+    margin-top: 0.5rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* Section label (like a chapter title) */
+  .label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    text-align: center;
+    margin: 2.5rem 0 1.2rem;
+  }
+  .label::before, .label::after {
+    content: '◆';
+    margin: 0 0.6rem;
+    color: rgba(216, 184, 109, 0.4);
+    font-size: 0.55rem;
+    vertical-align: middle;
+  }
+
+  /* --- Flow diagram (the journey) --- */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .node {
+    width: 100%;
+    max-width: 22rem;
+    background: rgba(20, 24, 45, 0.7);
+    border: 1px solid rgba(216, 184, 109, 0.35);
+    border-radius: 0.85rem;
+    padding: 0.9rem 1rem;
+    text-align: center;
+    position: relative;
+  }
+  .node-num {
+    position: absolute;
+    top: -0.65rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1.3rem;
+    height: 1.3rem;
+    border-radius: 50%;
+    background: var(--gold-grad);
+    color: #1a1a2c;
+    font-family: 'Bodoni Moda', serif;
+    font-weight: 600;
+    font-size: 0.78rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(216, 184, 109, 0.35);
+  }
+  .node-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.15rem;
+    line-height: 1;
+  }
+  .node-title {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 1rem;
+    color: var(--gold-soft);
+    font-weight: 500;
+    margin-bottom: 0.1rem;
+  }
+  .node-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.82rem;
+    color: var(--cream-dim);
+    line-height: 1.3;
+  }
+  .arrow {
+    width: 2px;
+    height: 1.8rem;
+    background: linear-gradient(180deg, rgba(216, 184, 109, 0.6) 0%, rgba(216, 184, 109, 0.2) 100%);
+    margin: 0.3rem 0;
+    position: relative;
+  }
+  .arrow::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid rgba(216, 184, 109, 0.4);
+  }
+
+  /* --- VS comparison --- */
+  .vs {
+    margin-top: 0.5rem;
+  }
+  .vs-row {
+    display: grid;
+    grid-template-columns: 1fr 1.6rem 1fr;
+    gap: 0;
+    align-items: stretch;
+    margin-bottom: 0.55rem;
+  }
+  .vs-side {
+    padding: 0.7rem 0.75rem;
+    border-radius: 0.7rem;
+    text-align: center;
+  }
+  .vs-side.prive {
+    background: linear-gradient(135deg, rgba(207, 173, 97, 0.16), rgba(232, 198, 121, 0.08));
+    border: 1px solid rgba(216, 184, 109, 0.4);
+    color: var(--gold-soft);
+  }
+  .vs-side.others {
+    background: rgba(255, 138, 138, 0.04);
+    border: 1px solid rgba(255, 138, 138, 0.18);
+    color: var(--red-soft);
+  }
+  .vs-side h4 {
+    font-family: 'Cinzel', serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 0.3rem;
+  }
+  .vs-side p {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 0.92rem;
+    line-height: 1.3;
+    font-weight: 500;
+  }
+  .vs-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    color: rgba(216, 184, 109, 0.5);
+    letter-spacing: 0.1em;
+  }
+  .vs-header {
+    display: grid;
+    grid-template-columns: 1fr 1.6rem 1fr;
+    gap: 0;
+    margin-bottom: 0.7rem;
+    align-items: center;
+  }
+  .vs-header > div {
+    text-align: center;
+    font-family: 'Bodoni Moda', serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+  .vs-header .prive {
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: 0.06em;
+  }
+  .vs-header .others {
+    color: var(--red-soft);
+    opacity: 0.7;
+    font-style: italic;
+    font-size: 0.95rem;
+  }
+
+  /* --- CTA --- */
+  .cta {
+    text-align: center;
+    margin-top: 2.5rem;
+    padding: 1.4rem 1rem;
+    background: rgba(20, 24, 45, 0.5);
+    border: 1px solid rgba(216, 184, 109, 0.3);
+    border-radius: 1rem;
+  }
+  .cta-url {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 1.5rem;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: 0.04em;
+    display: inline-block;
+    margin-bottom: 0.3rem;
+  }
+  .cta-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--cream-dim);
+  }
+  .footer {
+    margin-top: 1.8rem;
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-align: center;
+    color: rgba(216, 184, 109, 0.35);
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+
+    <!-- Brand -->
+    <header class="brand">
+      <div class="wordmark">PRIVÉ</div>
+      <div class="tagline">aplicația de dating cu AI real</div>
+    </header>
+
+    <!-- The journey -->
+    <p class="label">Cum funcționează</p>
+    <div class="flow">
+      <div class="node">
+        <span class="node-num">1</span>
+        <div class="node-icon">✉</div>
+        <div class="node-title">Soliciți acces</div>
+        <div class="node-sub">Doar pe invitație</div>
+      </div>
+      <div class="arrow"></div>
+      <div class="node">
+        <span class="node-num">2</span>
+        <div class="node-icon">✨</div>
+        <div class="node-title">AI îți face profilul</div>
+        <div class="node-sub">Poze + bio + cod de personalitate · 3 minute</div>
+      </div>
+      <div class="arrow"></div>
+      <div class="node">
+        <span class="node-num">3</span>
+        <div class="node-icon">⌨</div>
+        <div class="node-title">Spui ce cauți</div>
+        <div class="node-sub">„Serios, pasionat de drumeții, nu de cluburi"</div>
+      </div>
+      <div class="arrow"></div>
+      <div class="node">
+        <span class="node-num">4</span>
+        <div class="node-icon">♡</div>
+        <div class="node-title">Vezi <em>de ce</em> v-ați potrivi</div>
+        <div class="node-sub">AI explică motive, fricțiuni, primele cuvinte</div>
+      </div>
+    </div>
+
+    <!-- VS -->
+    <p class="label">Ce ne face diferiți</p>
+    <div class="vs">
+      <div class="vs-header">
+        <div class="prive">PRIVÉ</div>
+        <div></div>
+        <div class="others">restul</div>
+      </div>
+
+      <div class="vs-row">
+        <div class="vs-side prive"><h4>Intrare</h4><p>Doar pe invitație</p></div>
+        <div class="vs-divider">vs</div>
+        <div class="vs-side others"><h4>Intrare</h4><p>Oricine intră</p></div>
+      </div>
+
+      <div class="vs-row">
+        <div class="vs-side prive"><h4>Potrivire</h4><p>AI Claude explică <em>de ce</em></p></div>
+        <div class="vs-divider">vs</div>
+        <div class="vs-side others"><h4>Potrivire</h4><p>Doar un procent</p></div>
+      </div>
+
+      <div class="vs-row">
+        <div class="vs-side prive"><h4>Filtre</h4><p>Scrii în cuvintele tale</p></div>
+        <div class="vs-divider">vs</div>
+        <div class="vs-side others"><h4>Filtre</h4><p>10 dropdown-uri</p></div>
+      </div>
+
+      <div class="vs-row">
+        <div class="vs-side prive"><h4>Profil</h4><p>3 minute, ghidat de AI</p></div>
+        <div class="vs-divider">vs</div>
+        <div class="vs-side others"><h4>Profil</h4><p>Te descurci singur</p></div>
+      </div>
+
+      <div class="vs-row">
+        <div class="vs-side prive"><h4>Locație</h4><p>Doar orașul</p></div>
+        <div class="vs-divider">vs</div>
+        <div class="vs-side others"><h4>Locație</h4><p>GPS exact, mereu</p></div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta">
+      <div class="cta-url">prive-app.club</div>
+      <div class="cta-sub">Solicită acces · te contactez personal</div>
+    </div>
+
+    <div class="footer">PRIVÉ · made in România · 2026</div>
+
+  </div>
+</body>
+</html>

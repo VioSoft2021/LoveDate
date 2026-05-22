@@ -27,7 +27,7 @@ import './OnboardingScreen.css'
 // Photo Coach + AI Bio Writer + the personality quiz already shipped
 // but new users never discover them. The wizard surfaces all three at
 // the right moments and frames the personality quiz as a reveal moment
-// ("Your Privé code is DMFR — Architect Heart").
+// (Step 5 reveals "Your Love Personality is DMFR — Architect Heart").
 
 export type OnboardingScreenProps = {
   appLanguage: AppLanguage
@@ -400,6 +400,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         {step === 'quiz' && (
           <>
             <h1>{copy.quizTitle}</h1>
+            <p className="onboarding-quiz-subtitle">{copy.quizSubtitle}</p>
             <p>{copy.quizBody}</p>
             <ol className="onboarding-quiz-list">
               {quizQuestions.map((q, idx) => (
