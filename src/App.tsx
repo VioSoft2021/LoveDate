@@ -766,8 +766,16 @@ function App() {
     }
   }, [safetyReports, activeModerationReportId, setActiveModerationReportId])
 
+  // Phase A bonus fix (2026-05-24) — the onboarding-trigger effect below
+  // needs to know when cloud hydration has finished, otherwise it can fire
+  // against the still-empty local cache on a fresh browser and ROUTE AN
+  // EXISTING USER INTO THE NEW-USER WIZARD. This flag flips true once the
+  // cloud fetch resolves (success or error). Reset on sign-out.
+  const [cloudProfileHydrated, setCloudProfileHydrated] = useState(false)
+
   useEffect(() => {
     if (!isAuthenticated) {
+      setCloudProfileHydrated(false)
       return
     }
 
@@ -783,16 +791,25 @@ function App() {
     let cancelled = false
     void backendFetchSelfProfile(userEmail)
       .then((cloudProfile) => {
-        if (cancelled || !cloudProfile) {
-          return
+        if (cancelled) return
+        if (cloudProfile) {
+          const normalized = normalizeSelfProfile(cloudProfile)
+          setSelfProfile(normalized)
+          setProfileDraft(toProfileDraft(normalized))
+          // Phase A bonus: cloud profile with real data → existing user.
+          // Seed the onboarded flag immediately so a fresh browser never
+          // re-routes them into the wizard on the second pass.
+          if (normalized.photos.length > 0 || normalized.name.trim().length > 0) {
+            persistOnboardedFlag()
+          }
         }
-        const normalized = normalizeSelfProfile(cloudProfile)
-        setSelfProfile(normalized)
-        setProfileDraft(toProfileDraft(normalized))
+        setCloudProfileHydrated(true)
       })
       .catch(() => {
         // Offline or transient error — local cache remains authoritative
-        // until the next successful fetch.
+        // until the next successful fetch. Still mark hydration done so
+        // the onboarding decision can run with the local data we have.
+        setCloudProfileHydrated(true)
       })
 
     return () => {
@@ -884,8 +901,14 @@ function App() {
   // to the OnboardingScreen instead of dropping them in Discover with
   // an invisible profile. Existing users with completed profiles are
   // silently marked as already-onboarded so they never see the wizard.
+  //
+  // Gated on cloudProfileHydrated (Phase A fix, 2026-05-24): otherwise
+  // the effect fires against the still-empty local cache on a fresh
+  // browser, navigates an existing user to /onboarding, and only AFTER
+  // the cloud loads does the second pass realize they aren't new.
   useEffect(() => {
     if (!isAuthenticated) return
+    if (!cloudProfileHydrated) return
     if (readOnboardedFlag()) return
     const profileEmpty =
       selfProfile.photos.length === 0 && !selfProfile.name.trim()
@@ -896,7 +919,13 @@ function App() {
       // effect doesn't re-fire on every sign-in.
       persistOnboardedFlag()
     }
-  }, [isAuthenticated, selfProfile.photos.length, selfProfile.name, navigate])
+  }, [
+    isAuthenticated,
+    cloudProfileHydrated,
+    selfProfile.photos.length,
+    selfProfile.name,
+    navigate,
+  ])
 
   // Cloud-backed match list. Run on every authed mount so matches survive
   // reinstall — the local history state starts empty after a wipe, but the

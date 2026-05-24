@@ -1,4 +1,5 @@
 import React from 'react'
+import './LoginScreen.css'
 import { Logo } from '../components/Logo'
 import { runtimeConfig } from '../services/runtimeConfig'
 import { UI_TEXT } from '../constants'
@@ -83,6 +84,42 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     'idle' | 'submitting' | 'success' | 'error'
   >('idle')
   const [waitlistError, setWaitlistError] = React.useState<string | null>(null)
+
+  // Phase A (2026-05-24) — landing view state. Fresh visitors arriving
+  // from the welcome video CTA see a "hero" first, not the auth form.
+  // They pick a path (request access / have invite / already signed up)
+  // and the relevant form slides into view inside the same card.
+  // Requiring an invite code is what triggers the hero: if the build
+  // doesn't require codes, we skip straight to the legacy sign-in form
+  // because the hero promises "invite-only" — would be a lie otherwise.
+  const heroEnabled = runtimeConfig.auth.requireInviteCode
+  const [viewMode, setViewMode] = React.useState<'hero' | 'card'>(
+    heroEnabled ? 'hero' : 'card',
+  )
+
+  const goToWaitlist = () => {
+    setShowWaitlist(true)
+    setViewMode('card')
+  }
+  const goToAuth = (mode: 'login' | 'register') => {
+    setShowWaitlist(false)
+    setAuthMode(mode)
+    setLoginError(null)
+    setLoginNotice(null)
+    setViewMode('card')
+  }
+  const backToHero = () => {
+    if (!heroEnabled) return
+    setShowWaitlist(false)
+    setWaitlistEmail('')
+    setWaitlistNote('')
+    setWaitlistStatus('idle')
+    setWaitlistError(null)
+    setLoginError(null)
+    setLoginNotice(null)
+    setViewMode('hero')
+  }
+
   const submitWaitlist = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const w = copy.waitlist
@@ -107,10 +144,74 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     }
   }
 
+  // ── Hero state ─────────────────────────────────────────────────────
+  if (viewMode === 'hero') {
+    return (
+      <main className="login-shell login-shell--hero">
+        <div className="grain" aria-hidden="true" />
+        <div className="login-hero-ambient" aria-hidden="true" />
+        <article className="login-hero-card">
+          <p className="login-hero-eyebrow">{copy.auth.heroEyebrow}</p>
+          <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
+          <p className="login-hero-tagline">{copy.auth.heroTagline}</p>
+
+          <div className="login-hero-actions">
+            <button
+              type="button"
+              className="login-hero-cta login-hero-cta--primary"
+              onClick={goToWaitlist}
+            >
+              {copy.auth.heroRequestAccess}
+            </button>
+            <button
+              type="button"
+              className="login-hero-cta login-hero-cta--ghost"
+              onClick={() => goToAuth('register')}
+            >
+              {copy.auth.heroHaveInvite}
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className="login-hero-signin"
+            onClick={() => goToAuth('login')}
+          >
+            {copy.auth.heroSignIn}
+          </button>
+
+          <div className="login-hero-language">
+            <label>
+              {copy.auth.language}
+              <select
+                value={appLanguage}
+                onChange={(event) => setAppLanguage(event.target.value as AppLanguage)}
+              >
+                <option value="en">{copy.auth.english}</option>
+                <option value="ro">{copy.auth.romanian}</option>
+              </select>
+            </label>
+          </div>
+        </article>
+      </main>
+    )
+  }
+
+  // ── Card state (auth + waitlist forms) ─────────────────────────────
   return (
     <main className="login-shell">
       <div className="grain" aria-hidden="true" />
       <article className="login-card">
+        {heroEnabled && (
+          <button
+            type="button"
+            className="login-back-to-hero"
+            onClick={backToHero}
+            aria-label={copy.auth.heroBack}
+          >
+            {copy.auth.heroBack}
+          </button>
+        )}
         <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
         <div className="login-language-row">
           <label>
@@ -124,111 +225,116 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </select>
           </label>
         </div>
-        <h1>{authMode === 'register' ? copy.auth.createTitle : copy.auth.signInTitle}</h1>
-        <form className="login-form" onSubmit={onSubmit}>
-          {runtimeConfig.auth.requireInviteCode ? (
-            <label>
-              {copy.auth.inviteCode}
-              <input
-                type="text"
-                autoComplete="one-time-code"
-                value={inviteCode}
-                onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
-                placeholder={copy.auth.invitePlaceholder}
-                required
-              />
-            </label>
-          ) : null}
-          <label>
-            {copy.auth.email}
-            <input
-              type="email"
-              autoComplete="email"
-              value={loginEmail}
-              onChange={(event) => setLoginEmail(event.target.value)}
-              required
-            />
-          </label>
-          <label>
-            {copy.auth.password}
-            <div className="password-field">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                autoComplete={authMode === 'register' ? 'new-password' : 'current-password'}
-                value={loginPassword}
-                onChange={(event) => setLoginPassword(event.target.value)}
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword((s) => !s)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                aria-pressed={showPassword}
-              >
-                <EyeIcon open={showPassword} />
-              </button>
-            </div>
-            {authMode === 'register' ? <small className="soft">{copy.auth.passwordHint}</small> : null}
-          </label>
-          {authMode === 'register' ? (
-            <label>
-              {copy.auth.confirmPassword}
-              <div className="password-field">
+        {!showWaitlist && (
+          <>
+            <h1>{authMode === 'register' ? copy.auth.createTitle : copy.auth.signInTitle}</h1>
+            <form className="login-form" onSubmit={onSubmit}>
+              {runtimeConfig.auth.requireInviteCode ? (
+                <label>
+                  {copy.auth.inviteCode}
+                  <input
+                    type="text"
+                    autoComplete="one-time-code"
+                    value={inviteCode}
+                    onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
+                    placeholder={copy.auth.invitePlaceholder}
+                    required
+                  />
+                </label>
+              ) : null}
+              <label>
+                {copy.auth.email}
                 <input
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  value={registerPasswordConfirm}
-                  onChange={(event) => setRegisterPasswordConfirm(event.target.value)}
+                  type="email"
+                  autoComplete="email"
+                  value={loginEmail}
+                  onChange={(event) => setLoginEmail(event.target.value)}
                   required
                 />
+              </label>
+              <label>
+                {copy.auth.password}
+                <div className="password-field">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete={authMode === 'register' ? 'new-password' : 'current-password'}
+                    value={loginPassword}
+                    onChange={(event) => setLoginPassword(event.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowPassword((s) => !s)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-pressed={showPassword}
+                  >
+                    <EyeIcon open={showPassword} />
+                  </button>
+                </div>
+                {authMode === 'register' ? <small className="soft">{copy.auth.passwordHint}</small> : null}
+              </label>
+              {authMode === 'register' ? (
+                <label>
+                  {copy.auth.confirmPassword}
+                  <div className="password-field">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="new-password"
+                      value={registerPasswordConfirm}
+                      onChange={(event) => setRegisterPasswordConfirm(event.target.value)}
+                      required
+                    />
+                  </div>
+                </label>
+              ) : null}
+              {loginError ? <p className="error-text">{loginError}</p> : null}
+              {loginNotice ? <p className="info-text">{loginNotice}</p> : null}
+              <div className="login-actions">
+                <button type="submit" disabled={loggingIn}>
+                  {loggingIn
+                    ? copy.auth.pleaseWait
+                    : authMode === 'register'
+                    ? copy.auth.createAccount
+                    : copy.auth.signIn}
+                </button>
+                {runtimeConfig.auth.allowGuestLogin && authMode === 'login' ? (
+                  <button type="button" className="ghost" onClick={onGuestLogin} disabled={loggingIn}>
+                    {copy.auth.continueGuest}
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={() => {
+                    setLoginError(null)
+                    setLoginNotice(null)
+                    setRegisterPasswordConfirm('')
+                    setAuthMode((current) => (current === 'login' ? 'register' : 'login'))
+                  }}
+                  disabled={loggingIn}
+                >
+                  {authMode === 'login' ? copy.auth.switchToCreate : copy.auth.switchToLogin}
+                </button>
               </div>
-            </label>
-          ) : null}
-          {loginError ? <p className="error-text">{loginError}</p> : null}
-          {loginNotice ? <p className="info-text">{loginNotice}</p> : null}
-          <div className="login-actions">
-            <button type="submit" disabled={loggingIn}>
-              {loggingIn
-                ? copy.auth.pleaseWait
-                : authMode === 'register'
-                ? copy.auth.createAccount
-                : copy.auth.signIn}
-            </button>
-            {runtimeConfig.auth.allowGuestLogin && authMode === 'login' ? (
-              <button type="button" className="ghost" onClick={onGuestLogin} disabled={loggingIn}>
-                {copy.auth.continueGuest}
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => {
-                setLoginError(null)
-                setLoginNotice(null)
-                setRegisterPasswordConfirm('')
-                setAuthMode((current) => (current === 'login' ? 'register' : 'login'))
-              }}
-              disabled={loggingIn}
-            >
-              {authMode === 'login' ? copy.auth.switchToCreate : copy.auth.switchToLogin}
-            </button>
-          </div>
-          {import.meta.env.DEV ? (
-            <div className="dev-auth-row">
-              <button type="button" className="ghost" onClick={onUseDevAccount} disabled={loggingIn}>
-                Use Dev Account
-              </button>
-              <button type="button" className="ghost" onClick={onResetDevAccount} disabled={loggingIn}>
-                Reset Dev Account
-              </button>
-            </div>
-          ) : null}
-        </form>
+              {import.meta.env.DEV ? (
+                <div className="dev-auth-row">
+                  <button type="button" className="ghost" onClick={onUseDevAccount} disabled={loggingIn}>
+                    Use Dev Account
+                  </button>
+                  <button type="button" className="ghost" onClick={onResetDevAccount} disabled={loggingIn}>
+                    Reset Dev Account
+                  </button>
+                </div>
+              ) : null}
+            </form>
+          </>
+        )}
 
         {/* Public waitlist — shown when invite codes are required so
-            strangers without a code have a clear path. Toggles between
-            a "Request access" link and an inline form. */}
+            strangers without a code have a clear path. Reachable from
+            the hero state (primary CTA) and from the inline ghost
+            "Request access" link inside the auth form. */}
         {runtimeConfig.auth.requireInviteCode ? (
           <div className="login-waitlist">
             {!showWaitlist ? (
@@ -243,18 +349,28 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <div className="login-waitlist-success">
                 <h2>{copy.waitlist.successTitle}</h2>
                 <p className="soft">{copy.waitlist.successBody}</p>
+                {/* "Done" — closes the success message and returns to the
+                    hero/landing if it's enabled, or to the (now-visible)
+                    sign-in form otherwise. The previous "Sign In" wording
+                    was misleading because the user just confirmed they
+                    don't have credentials yet — they're waiting for the
+                    invite email. */}
                 <button
                   type="button"
                   className="ghost"
                   onClick={() => {
-                    setShowWaitlist(false)
-                    setWaitlistEmail('')
-                    setWaitlistNote('')
-                    setWaitlistStatus('idle')
-                    setWaitlistError(null)
+                    if (heroEnabled) {
+                      backToHero()
+                    } else {
+                      setShowWaitlist(false)
+                      setWaitlistEmail('')
+                      setWaitlistNote('')
+                      setWaitlistStatus('idle')
+                      setWaitlistError(null)
+                    }
                   }}
                 >
-                  {copy.auth.signIn}
+                  {copy.waitlist.successDone}
                 </button>
               </div>
             ) : (

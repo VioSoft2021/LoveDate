@@ -85,3 +85,11 @@ android-studio*.exe
 
 # Android IDE metadata that's per-developer
 android/.idea/
+
+# Welcome/investor video binaries — recorded MP4s, voiceover MP3s, music
+# tracks. They live alongside the HTML for the build pipeline but are too
+# large to commit (multi-MB each). Re-generate via ElevenLabs + the
+# in-page Record & Download button.
+notes/branding/video/*.mp3
+notes/branding/video/*.mp4
+notes/branding/video/New folder/

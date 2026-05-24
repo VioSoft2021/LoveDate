@@ -28,6 +28,13 @@ export const UI_TEXT = {
       language: 'App Language',
       english: 'English',
       romanian: 'Romanian',
+      // Phase A — hero landing state (matches welcome video CTA)
+      heroEyebrow: 'Coming soon',
+      heroTagline: 'the future of how you\'ll meet someone',
+      heroRequestAccess: 'Request access',
+      heroHaveInvite: 'I have an invite code',
+      heroSignIn: 'Already have an account? Sign in',
+      heroBack: '← Back',
     },
     waitlist: {
       title: 'Request access',
@@ -56,6 +63,10 @@ export const UI_TEXT = {
       adminCopiedToast: 'Code copied. Email it to the requester.',
       adminApproveFailed: 'Could not approve. Try again.',
       adminDeclineFailed: 'Could not decline. Try again.',
+      // Phase A — after waitlist submit success the user's next step is to
+      // wait for an email, NOT to sign in (they have no credentials yet).
+      // This replaces the misleading "Sign In" CTA on the success card.
+      successDone: 'Done',
     },
     onboarding: {
       // Wizard chrome
@@ -539,6 +550,13 @@ export const UI_TEXT = {
       language: 'Limba aplicației',
       english: 'Engleză',
       romanian: 'Română',
+      // Phase A — ecranul de start (oglindă a CTA-ului din filmul de prezentare)
+      heroEyebrow: 'În curând',
+      heroTagline: 'viitorul felului în care vei cunoaște pe cineva',
+      heroRequestAccess: 'Solicită acces',
+      heroHaveInvite: 'Am un cod de invitație',
+      heroSignIn: 'Ai deja un cont? Conectează-te',
+      heroBack: '← Înapoi',
     },
     waitlist: {
       title: 'Solicită acces',
@@ -566,6 +584,7 @@ export const UI_TEXT = {
       adminCopyCode: 'Copiază codul',
       adminCopiedToast: 'Codul a fost copiat. Trimite-l pe email solicitantului.',
       adminApproveFailed: 'Aprobarea a eșuat. Mai încearcă.',
+      successDone: 'Terminat',
       adminDeclineFailed: 'Respingerea a eșuat. Mai încearcă.',
     },
     onboarding: {

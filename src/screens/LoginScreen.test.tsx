@@ -1,5 +1,29 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+
+// Phase A (2026-05-24) — when invite codes are required, LoginScreen
+// shows a hero/landing state before the auth form. These tests focus on
+// the auth-form behaviour, so the default mock bypasses the hero (same
+// code path users hit when VITE_REQUIRE_INVITE_CODE=false). Individual
+// tests that need the hero or guest-login button can flip the flags.
+const mockRuntime = vi.hoisted(() => ({
+  auth: {
+    requireInviteCode: false,
+    allowGuestLogin: false,
+    allowedEmailDomains: [] as string[],
+  },
+}))
+
+vi.mock('../services/runtimeConfig', () => ({
+  runtimeConfig: mockRuntime,
+  isAllowedEmailDomain: () => true,
+}))
+
+afterEach(() => {
+  mockRuntime.auth.requireInviteCode = false
+  mockRuntime.auth.allowGuestLogin = false
+})
+
 import { LoginScreen } from './LoginScreen'
 import type { LoginScreenProps } from './LoginScreen'
 
@@ -87,8 +111,12 @@ describe('LoginScreen — controlled fields', () => {
   })
 
   it('typing in invite code uppercases the value before setting', () => {
+    // Invite code field only renders when invite codes are required.
+    // That also enables the hero state, so click into the form first.
+    mockRuntime.auth.requireInviteCode = true
     const setInviteCode = vi.fn()
     render(<LoginScreen {...baseProps} setInviteCode={setInviteCode} />)
+    fireEvent.click(screen.getByRole('button', { name: /i have an invite code/i }))
     const inviteInput = screen.getByLabelText(/invite/i)
     fireEvent.change(inviteInput, { target: { value: 'abc123' } })
     expect(setInviteCode).toHaveBeenCalledWith('ABC123')
@@ -140,6 +168,8 @@ describe('LoginScreen — handlers', () => {
   })
 
   it('Continue as Guest fires onGuestLogin', () => {
+    // Guest login button is gated by the runtime flag.
+    mockRuntime.auth.allowGuestLogin = true
     const onGuestLogin = vi.fn()
     render(<LoginScreen {...baseProps} onGuestLogin={onGuestLogin} />)
     const guestBtn = screen.getByRole('button', { name: /guest/i })

@@ -1,0 +1,203 @@
+/* ===========================================================
+   Privé — Login screen luxury redesign (Phase A, 2026-05-24)
+   ===========================================================
+   The visitor lands here from the welcome film's CTA
+   ("coming soon · be among the first to request your access").
+   Goal: the first frame they see on prive-app.club should
+   feel like a continuation of the film — same typography,
+   same gold-on-navy palette, same exclusive-by-design tone.
+   Co-located with the component so it loads after App.css
+   and wins the cascade for the .login-hero-* selectors.
+   =========================================================== */
+
+/* ── Shared ambient backdrop ────────────────────────────── */
+.login-shell--hero {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(216, 184, 109, 0.14) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 100%, rgba(216, 184, 109, 0.07) 0%, transparent 50%),
+    linear-gradient(180deg, #0a0e27 0%, #101430 50%, #0a0e27 100%);
+}
+
+/* Soft gold glow behind the wordmark — matches the film's
+   ambient-particle vibe without animating per-particle. */
+.login-hero-ambient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 38%, rgba(244, 220, 168, 0.10) 0%, transparent 70%);
+}
+
+/* ── Hero card ──────────────────────────────────────────── */
+.login-hero-card {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.4rem;
+  padding: 3.2rem 2rem 2.6rem;
+  max-width: 32rem;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.login-hero-eyebrow {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: clamp(0.7rem, 1.3vw, 0.85rem);
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.78);
+  margin: 0;
+}
+
+.login-hero-card .login-hero-logo {
+  margin: 0;
+}
+
+.login-hero-tagline {
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: clamp(1.05rem, 2.2vw, 1.4rem);
+  color: #f4dca8;
+  letter-spacing: 0.02em;
+  max-width: 28ch;
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* ── Hero CTAs (gold primary + ghost outline) ───────────── */
+.login-hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: 100%;
+  max-width: 22rem;
+  margin-top: 1.6rem;
+}
+
+.login-hero-cta {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: clamp(0.72rem, 1.4vw, 0.85rem);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  padding: 0.95rem 1.6rem;
+  border-radius: 0.7rem;
+  cursor: pointer;
+  transition: all 200ms ease;
+  font-weight: 500;
+  width: 100%;
+  border: 1px solid transparent;
+}
+
+.login-hero-cta--primary {
+  background: linear-gradient(105deg, #cfad61 0%, #e8c679 50%, #f4dca8 100%);
+  color: #1a1a2c;
+  border-color: rgba(216, 184, 109, 0.9);
+  box-shadow: 0 8px 22px rgba(216, 184, 109, 0.32);
+  font-weight: 600;
+}
+.login-hero-cta--primary:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(216, 184, 109, 0.45);
+}
+.login-hero-cta--primary:active {
+  transform: translateY(0);
+}
+
+.login-hero-cta--ghost {
+  background: rgba(8, 12, 30, 0.55);
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.45);
+}
+.login-hero-cta--ghost:hover {
+  background: rgba(216, 184, 109, 0.14);
+  border-color: rgba(216, 184, 109, 0.85);
+  transform: translateY(-1px);
+}
+
+/* ── Tiny "already have an account?" link ───────────────── */
+.login-hero-signin {
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: rgba(232, 242, 255, 0.65);
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-top: 1.6rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.4rem;
+  transition: color 180ms ease;
+}
+.login-hero-signin:hover {
+  color: #f4dca8;
+}
+
+/* ── Language picker (subtle, bottom of card) ───────────── */
+.login-hero-language {
+  margin-top: 2rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(216, 230, 250, 0.55);
+}
+.login-hero-language label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.login-hero-language select {
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  background: rgba(8, 12, 30, 0.4);
+  border: 1px solid rgba(216, 184, 109, 0.3);
+  color: rgba(244, 220, 168, 0.85);
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.35rem;
+  cursor: pointer;
+}
+.login-hero-language select:focus {
+  outline: none;
+  border-color: rgba(231, 197, 118, 0.78);
+}
+
+/* ── "Back" link on the card view (for return-to-hero) ──── */
+.login-back-to-hero {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: none;
+  border: none;
+  color: rgba(244, 220, 168, 0.75);
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.4rem;
+  transition: color 180ms ease;
+  z-index: 3;
+}
+.login-back-to-hero:hover {
+  color: #f4dca8;
+}
+
+/* ── Mobile tuning ──────────────────────────────────────── */
+@media (max-width: 540px) {
+  .login-hero-card {
+    padding: 2.4rem 1.4rem 2rem;
+    gap: 1.1rem;
+  }
+  .login-hero-actions {
+    margin-top: 1.2rem;
+  }
+  .login-hero-cta {
+    padding: 0.85rem 1.2rem;
+  }
+}
