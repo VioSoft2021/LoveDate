@@ -5212,8 +5212,20 @@ details.profile-settings.settings-card[open] > summary {
 .ld-logo--xl .ld-logo-text { font-size: 2.6rem; letter-spacing: 0.18em; }
 .ld-logo--xl .ld-logo-slogan { font-size: 0.95rem; }
 
+/* Landing hero — wordmark must dominate. Overrides .ld-logo--lg's
+   1.95rem so PRIVÉ is the visual anchor, larger than the tagline +
+   the gold Request Access button below it. Slogan scales with it. */
 .login-hero-logo {
   margin-bottom: 0.25rem;
+}
+.login-hero-logo .ld-logo-text {
+  font-size: clamp(3rem, 6.5vw, 4.6rem);
+  letter-spacing: 0.18em;
+  line-height: 1;
+}
+.login-hero-logo .ld-logo-slogan {
+  font-size: clamp(0.72rem, 1.4vw, 0.88rem);
+  letter-spacing: 0.36em;
 }
 
 .logo-system-panel {
