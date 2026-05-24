@@ -5442,6 +5442,10 @@ details.profile-settings.settings-card[open] > summary {
 .personality-guide-screen {
   width: min(100%, 72rem);
   gap: 0.95rem;
+  /* Override the 2-column .settings-screen layout — the guide reads top-to-bottom
+     as: intro hero → 5 dimensions → 4 attachment styles. The 2-col layout left
+     a giant empty wedge under the intro because the right column was much taller. */
+  grid-template-columns: 1fr !important;
 }
 
 .personality-guide-intro p {
@@ -5450,8 +5454,8 @@ details.profile-settings.settings-card[open] > summary {
 
 .personality-dimension-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.8rem;
 }
 
 .personality-dimension-card,
@@ -5488,8 +5492,8 @@ details.profile-settings.settings-card[open] > summary {
 
 .personality-types-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.62rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.8rem;
 }
 
 .personality-type-card.is-user-type {

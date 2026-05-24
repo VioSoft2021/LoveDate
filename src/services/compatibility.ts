@@ -88,17 +88,21 @@ export type PersonalityQuestion = {
 // and can be styled cinematically — only the per-item prompt is sacred.
 
 const buildEnQuestions = (): PersonalityQuestion[] => [
-  // BFI-10 — common stem in the UI: "I see myself as someone who..."
-  { id: 1,  measures: { type: 'bigFive', dimension: 'extraversion',      reverse: true  }, prompt: 'is reserved' },
-  { id: 2,  measures: { type: 'bigFive', dimension: 'agreeableness',     reverse: false }, prompt: 'is generally trusting' },
-  { id: 3,  measures: { type: 'bigFive', dimension: 'conscientiousness', reverse: true  }, prompt: 'tends to be lazy' },
-  { id: 4,  measures: { type: 'bigFive', dimension: 'neuroticism',       reverse: true  }, prompt: 'is relaxed and handles stress well' },
-  { id: 5,  measures: { type: 'bigFive', dimension: 'openness',          reverse: true  }, prompt: 'has few artistic interests' },
-  { id: 6,  measures: { type: 'bigFive', dimension: 'extraversion',      reverse: false }, prompt: 'is outgoing and sociable' },
-  { id: 7,  measures: { type: 'bigFive', dimension: 'agreeableness',     reverse: true  }, prompt: 'tends to find fault with others' },
-  { id: 8,  measures: { type: 'bigFive', dimension: 'conscientiousness', reverse: false }, prompt: 'does a thorough job' },
-  { id: 9,  measures: { type: 'bigFive', dimension: 'neuroticism',       reverse: false }, prompt: 'gets nervous easily' },
-  { id: 10, measures: { type: 'bigFive', dimension: 'openness',          reverse: false }, prompt: 'has an active imagination' },
+  // BFI-10 (Rammstedt & John, 2007). Original wording uses the stem "I see
+  // myself as someone who [is reserved]"; we rewrite as complete first-person
+  // sentences so each prompt reads cleanly on its own card without needing a
+  // stem above it. Psychometric meaning preserved — many BFI variants in the
+  // wild use exactly this first-person phrasing.
+  { id: 1,  measures: { type: 'bigFive', dimension: 'extraversion',      reverse: true  }, prompt: "I'm reserved" },
+  { id: 2,  measures: { type: 'bigFive', dimension: 'agreeableness',     reverse: false }, prompt: "I'm generally trusting of people" },
+  { id: 3,  measures: { type: 'bigFive', dimension: 'conscientiousness', reverse: true  }, prompt: 'I tend to be lazy' },
+  { id: 4,  measures: { type: 'bigFive', dimension: 'neuroticism',       reverse: true  }, prompt: "I'm relaxed and handle stress well" },
+  { id: 5,  measures: { type: 'bigFive', dimension: 'openness',          reverse: true  }, prompt: 'I have few artistic interests' },
+  { id: 6,  measures: { type: 'bigFive', dimension: 'extraversion',      reverse: false }, prompt: "I'm outgoing and sociable" },
+  { id: 7,  measures: { type: 'bigFive', dimension: 'agreeableness',     reverse: true  }, prompt: 'I tend to find fault with others' },
+  { id: 8,  measures: { type: 'bigFive', dimension: 'conscientiousness', reverse: false }, prompt: 'I do a thorough job' },
+  { id: 9,  measures: { type: 'bigFive', dimension: 'neuroticism',       reverse: false }, prompt: 'I get nervous easily' },
+  { id: 10, measures: { type: 'bigFive', dimension: 'openness',          reverse: false }, prompt: 'I have an active imagination' },
   // Attachment — stem in the UI: "How well does this describe how you feel in close relationships?"
   { id: 11, measures: { type: 'attachment', style: 'secure' },
     prompt: "It's easy for me to get close to others. I'm comfortable depending on them and having them depend on me. I don't worry about being alone or about being rejected." },
@@ -111,17 +115,18 @@ const buildEnQuestions = (): PersonalityQuestion[] => [
 ]
 
 const buildRoQuestions = (): PersonalityQuestion[] => [
-  // BFI-10 (RO) — common stem: "Mă văd ca pe cineva care..."
-  { id: 1,  measures: { type: 'bigFive', dimension: 'extraversion',      reverse: true  }, prompt: 'este rezervat' },
-  { id: 2,  measures: { type: 'bigFive', dimension: 'agreeableness',     reverse: false }, prompt: 'are încredere în ceilalți' },
-  { id: 3,  measures: { type: 'bigFive', dimension: 'conscientiousness', reverse: true  }, prompt: 'tinde să fie leneș' },
-  { id: 4,  measures: { type: 'bigFive', dimension: 'neuroticism',       reverse: true  }, prompt: 'este relaxat și gestionează bine stresul' },
-  { id: 5,  measures: { type: 'bigFive', dimension: 'openness',          reverse: true  }, prompt: 'are puține interese artistice' },
-  { id: 6,  measures: { type: 'bigFive', dimension: 'extraversion',      reverse: false }, prompt: 'este extrovertit și sociabil' },
-  { id: 7,  measures: { type: 'bigFive', dimension: 'agreeableness',     reverse: true  }, prompt: 'tinde să găsească defecte la alții' },
-  { id: 8,  measures: { type: 'bigFive', dimension: 'conscientiousness', reverse: false }, prompt: 'face o treabă temeinică' },
-  { id: 9,  measures: { type: 'bigFive', dimension: 'neuroticism',       reverse: false }, prompt: 'se enervează ușor' },
-  { id: 10, measures: { type: 'bigFive', dimension: 'openness',          reverse: false }, prompt: 'are o imaginație activă' },
+  // BFI-10 (RO) — rewritten as first-person complete sentences to match the EN
+  // version. Same psychometric meaning as the original third-person + stem.
+  { id: 1,  measures: { type: 'bigFive', dimension: 'extraversion',      reverse: true  }, prompt: 'Sunt rezervat' },
+  { id: 2,  measures: { type: 'bigFive', dimension: 'agreeableness',     reverse: false }, prompt: 'Am încredere în ceilalți' },
+  { id: 3,  measures: { type: 'bigFive', dimension: 'conscientiousness', reverse: true  }, prompt: 'Tind să fiu leneș' },
+  { id: 4,  measures: { type: 'bigFive', dimension: 'neuroticism',       reverse: true  }, prompt: 'Sunt relaxat și gestionez bine stresul' },
+  { id: 5,  measures: { type: 'bigFive', dimension: 'openness',          reverse: true  }, prompt: 'Am puține interese artistice' },
+  { id: 6,  measures: { type: 'bigFive', dimension: 'extraversion',      reverse: false }, prompt: 'Sunt extrovertit și sociabil' },
+  { id: 7,  measures: { type: 'bigFive', dimension: 'agreeableness',     reverse: true  }, prompt: 'Tind să găsesc defecte la alții' },
+  { id: 8,  measures: { type: 'bigFive', dimension: 'conscientiousness', reverse: false }, prompt: 'Fac o treabă temeinică' },
+  { id: 9,  measures: { type: 'bigFive', dimension: 'neuroticism',       reverse: false }, prompt: 'Mă enervez ușor' },
+  { id: 10, measures: { type: 'bigFive', dimension: 'openness',          reverse: false }, prompt: 'Am o imaginație activă' },
   // Attachment (RO) — stem: "Cât de bine te descrie asta în relațiile apropiate?"
   { id: 11, measures: { type: 'attachment', style: 'secure' },
     prompt: 'Îmi este ușor să mă apropii de alții. Mă simt confortabil să depind de ei și ca ei să depindă de mine. Nu mă îngrijorează singurătatea sau respingerea.' },

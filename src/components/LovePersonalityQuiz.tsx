@@ -237,11 +237,6 @@ export const LovePersonalityQuiz: React.FC<LovePersonalityQuizProps> = ({
                 ←
               </button>
             )}
-            <p className="lp-quiz-step-label">
-              {step <= LAST_BIG_FIVE_STEP
-                ? copy.quizBigFiveStem
-                : copy.quizAttachmentStem}
-            </p>
             <p className="lp-quiz-prompt">{currentQuestion.prompt}</p>
             <div
               className="lp-quiz-pills"
