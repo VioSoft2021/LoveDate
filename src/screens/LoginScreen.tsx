@@ -303,19 +303,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     {copy.auth.continueGuest}
                   </button>
                 ) : null}
-                <button
-                  type="button"
-                  className="ghost"
-                  onClick={() => {
-                    setLoginError(null)
-                    setLoginNotice(null)
-                    setRegisterPasswordConfirm('')
-                    setAuthMode((current) => (current === 'login' ? 'register' : 'login'))
-                  }}
-                  disabled={loggingIn}
-                >
-                  {authMode === 'login' ? copy.auth.switchToCreate : copy.auth.switchToLogin}
-                </button>
+                {/* The authMode toggle ("Create account" / "I already have an
+                    account") is redundant when the hero owns path selection.
+                    Visitors who pick the wrong path use ← Back to return to
+                    the hero and choose the other CTA. Kept under !heroEnabled
+                    for dev/test mode where there's no hero entry. */}
+                {!heroEnabled ? (
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => {
+                      setLoginError(null)
+                      setLoginNotice(null)
+                      setRegisterPasswordConfirm('')
+                      setAuthMode((current) => (current === 'login' ? 'register' : 'login'))
+                    }}
+                    disabled={loggingIn}
+                  >
+                    {authMode === 'login' ? copy.auth.switchToCreate : copy.auth.switchToLogin}
+                  </button>
+                ) : null}
               </div>
               {import.meta.env.DEV ? (
                 <div className="dev-auth-row">
@@ -408,14 +415,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       ? copy.waitlist.submitting
                       : copy.waitlist.submit}
                   </button>
-                  <button
-                    type="button"
-                    className="ghost"
-                    onClick={() => setShowWaitlist(false)}
-                    disabled={waitlistStatus === 'submitting'}
-                  >
-                    {copy.onboarding.back}
-                  </button>
+                  {/* Inline "Back" is redundant when the hero is enabled — the
+                      ← Back link at the top of the card already returns to
+                      the hero, and it goes to the RIGHT destination (hero,
+                      where the visitor came from). The inline button used to
+                      drop them into the sign-in form, which was the wrong
+                      place. Kept under !heroEnabled for dev/test mode. */}
+                  {!heroEnabled ? (
+                    <button
+                      type="button"
+                      className="ghost"
+                      onClick={() => setShowWaitlist(false)}
+                      disabled={waitlistStatus === 'submitting'}
+                    >
+                      {copy.onboarding.back}
+                    </button>
+                  ) : null}
                 </div>
               </form>
             )}
