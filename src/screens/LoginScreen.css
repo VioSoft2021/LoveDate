@@ -10,181 +10,347 @@
    and wins the cascade for the .login-hero-* selectors.
    =========================================================== */
 
-/* ── Shared ambient backdrop ──────────────────────────────
-   Deeper navy at the edges, lit from above by a stronger gold
-   bloom. The page should feel like a candlelit room — not flat
-   text on a flat dark surface. */
+/* ===== Hero V3 — Candlelit Salon (2026-05-24, late night) ==========
+   Asymmetric magazine layout (text left, animated heart-stroke right),
+   ambient drifting gold particles, real É in the wordmark, outlined-
+   gold CTA with hover-fill. Replaces the previous centered text-stack. */
+
 .login-shell--hero {
+  position: relative;
+  overflow: hidden;
   background:
-    radial-gradient(ellipse 80% 55% at 50% 30%, rgba(244, 220, 168, 0.16) 0%, transparent 60%),
-    radial-gradient(ellipse at 50% 100%, rgba(216, 184, 109, 0.08) 0%, transparent 50%),
-    linear-gradient(180deg, #060a1f 0%, #0e1234 45%, #060a1f 100%);
+    radial-gradient(ellipse 90% 65% at 30% 35%, rgba(244, 220, 168, 0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 75% 70%, rgba(216, 184, 109, 0.10) 0%, transparent 55%),
+    linear-gradient(160deg, #050817 0%, #0c1030 50%, #050817 100%);
+  /* Slow background "breathing" — the bloom drifts subtly so the
+     room feels alive instead of frozen. */
+  animation: prive-hero-breath 16s ease-in-out infinite alternate;
+}
+@keyframes prive-hero-breath {
+  from { background-position: 0% 0%, 0% 0%, 0% 0%; filter: brightness(1); }
+  to   { background-position: 4% 2%, -4% -2%, 0% 0%; filter: brightness(1.08); }
 }
 
-/* Atmospheric foreground bloom — softens the area immediately
-   behind the wordmark + tagline so they read as lit, not pasted on. */
-.login-hero-ambient {
-  position: fixed;
+/* ── Drifting gold motes — 22 absolute spans rising upward ──── */
+.login-hero-particles {
+  position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(ellipse 55% 38% at 50% 42%, rgba(244, 220, 168, 0.18) 0%, transparent 65%);
+  z-index: 0;
 }
+.login-hero-mote {
+  position: absolute;
+  bottom: -20px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(244, 220, 168, 0.85) 0%, rgba(244, 220, 168, 0) 70%);
+  opacity: 0;
+  animation: prive-mote-rise linear infinite;
+}
+@keyframes prive-mote-rise {
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
+  10%  { opacity: 0.6; }
+  90%  { opacity: 0.4; }
+  100% { transform: translateY(-110vh) translateX(20px); opacity: 0; }
+}
+/* Spread 22 motes across the viewport width + stagger timing.
+   Five subclasses repeat in a pattern; the :nth-child rules vary
+   horizontal position so they don't all rise from the same column. */
+.login-hero-mote:nth-child(1)  { left: 4%;  animation-duration: 22s; animation-delay: 0s;   }
+.login-hero-mote:nth-child(2)  { left: 11%; animation-duration: 28s; animation-delay: 3s;   }
+.login-hero-mote:nth-child(3)  { left: 18%; animation-duration: 19s; animation-delay: 7s;   }
+.login-hero-mote:nth-child(4)  { left: 25%; animation-duration: 26s; animation-delay: 1s;   }
+.login-hero-mote:nth-child(5)  { left: 32%; animation-duration: 31s; animation-delay: 5s;   }
+.login-hero-mote:nth-child(6)  { left: 39%; animation-duration: 23s; animation-delay: 9s;   }
+.login-hero-mote:nth-child(7)  { left: 46%; animation-duration: 27s; animation-delay: 2s;   }
+.login-hero-mote:nth-child(8)  { left: 53%; animation-duration: 21s; animation-delay: 6s;   }
+.login-hero-mote:nth-child(9)  { left: 60%; animation-duration: 29s; animation-delay: 4s;   }
+.login-hero-mote:nth-child(10) { left: 67%; animation-duration: 24s; animation-delay: 8s;   }
+.login-hero-mote:nth-child(11) { left: 74%; animation-duration: 30s; animation-delay: 0s;   }
+.login-hero-mote:nth-child(12) { left: 81%; animation-duration: 25s; animation-delay: 4s;   }
+.login-hero-mote:nth-child(13) { left: 88%; animation-duration: 22s; animation-delay: 11s;  }
+.login-hero-mote:nth-child(14) { left: 95%; animation-duration: 28s; animation-delay: 3s;   }
+.login-hero-mote:nth-child(15) { left: 8%;  animation-duration: 26s; animation-delay: 14s; width: 4px; height: 4px; }
+.login-hero-mote:nth-child(16) { left: 28%; animation-duration: 32s; animation-delay: 12s; width: 4px; height: 4px; }
+.login-hero-mote:nth-child(17) { left: 48%; animation-duration: 24s; animation-delay: 10s; width: 4px; height: 4px; }
+.login-hero-mote:nth-child(18) { left: 68%; animation-duration: 30s; animation-delay: 15s; width: 4px; height: 4px; }
+.login-hero-mote:nth-child(19) { left: 88%; animation-duration: 27s; animation-delay: 13s; width: 4px; height: 4px; }
+.login-hero-mote:nth-child(20) { left: 16%; animation-duration: 35s; animation-delay: 16s; width: 5px; height: 5px; }
+.login-hero-mote:nth-child(21) { left: 56%; animation-duration: 33s; animation-delay: 18s; width: 5px; height: 5px; }
+.login-hero-mote:nth-child(22) { left: 86%; animation-duration: 38s; animation-delay: 17s; width: 5px; height: 5px; }
 
-/* ── Hero card ──────────────────────────────────────────── */
-.login-hero-card {
+/* ── 2-column hero layout ───────────────────────────────────── */
+.login-hero-layout {
   position: relative;
   z-index: 2;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(2rem, 5vw, 5rem);
   align-items: center;
-  text-align: center;
-  gap: 1.4rem;
-  padding: 3.2rem 2rem 2.6rem;
-  max-width: 32rem;
+  justify-items: center;
+  max-width: 76rem;
   width: 100%;
   margin: 0 auto;
+  padding: clamp(2rem, 6vh, 4rem) clamp(1.5rem, 5vw, 4rem);
+  min-height: 100dvh;
+  box-sizing: border-box;
 }
 
-.login-hero-eyebrow {
+/* Left column: text */
+.login-hero-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.2rem;
+  text-align: left;
+  max-width: 32rem;
+  width: 100%;
+  animation: prive-hero-text-in 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes prive-hero-text-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Wordmark — uses real É glyph. Bodoni Moda Black, gold gradient fill. */
+.login-hero-wordmark {
+  font-family: 'Bodoni Moda', 'Playfair Display', 'Cormorant Garamond', serif;
+  font-weight: 900;
+  font-size: clamp(3.4rem, 7.5vw, 6rem);
+  letter-spacing: 0.14em;
+  line-height: 0.92;
+  margin: 0;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 4px 18px rgba(216, 184, 109, 0.25));
+}
+
+.login-hero-slogan {
   font-family: 'Cinzel', 'Bodoni Moda', serif;
-  font-size: clamp(0.7rem, 1.3vw, 0.85rem);
+  font-size: clamp(0.72rem, 1.3vw, 0.86rem);
   letter-spacing: 0.42em;
   text-transform: uppercase;
-  color: rgba(244, 220, 168, 0.78);
-  margin: 0;
-}
-
-.login-hero-card .login-hero-logo {
+  color: rgba(232, 213, 178, 0.65);
   margin: 0;
 }
 
 .login-hero-tagline {
-  /* The brand promise — what convinces a stranger to stay. Sized larger
-     than the wordmark on purpose: the name only tells you what this is;
-     the tagline tells you why to care. */
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
-  font-size: clamp(1.5rem, 3.2vw, 2.1rem);
-  color: #f4dca8;
+  font-size: clamp(1.4rem, 2.8vw, 1.95rem);
+  color: rgba(244, 220, 168, 0.92);
   letter-spacing: 0.015em;
-  max-width: 22ch;
-  margin: 0.6rem 0 0;
+  max-width: 24ch;
+  margin: 0.4rem 0 0;
   line-height: 1.35;
 }
 
-/* ── Hero CTAs (single gold primary; invite-code is a quiet link) ── */
+/* ── Outlined gold CTA — hover fills from left to right ─── */
 .login-hero-actions {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-  width: 100%;
-  max-width: 22rem;
-  margin-top: 2rem;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin-top: 1.6rem;
 }
-
 .login-hero-cta {
+  position: relative;
   font-family: 'Cinzel', 'Bodoni Moda', serif;
-  font-size: clamp(0.72rem, 1.4vw, 0.85rem);
-  letter-spacing: 0.32em;
+  font-size: clamp(0.78rem, 1.3vw, 0.9rem);
+  letter-spacing: 0.34em;
   text-transform: uppercase;
-  padding: 0.95rem 1.6rem;
-  border-radius: 0.7rem;
+  padding: 1rem 2.4rem;
+  background: transparent;
+  color: #f4dca8;
+  border: 1px solid rgba(216, 184, 109, 0.6);
+  border-radius: 999px;
   cursor: pointer;
-  transition: all 200ms ease;
+  overflow: hidden;
+  transition: color 280ms ease, border-color 280ms ease, box-shadow 280ms ease;
   font-weight: 500;
-  width: 100%;
-  border: 1px solid transparent;
 }
-
-.login-hero-cta--primary {
-  /* Softer, more candlelit gold — less LED, more brushed. The previous
-     glow was too "click here" for a luxury invitation; this reads as
-     an envelope, not a CTA. */
-  background: linear-gradient(105deg, #c19a4f 0%, #d6b574 50%, #e0c082 100%);
+.login-hero-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, #cfad61 0%, #e8c679 50%, #f4dca8 100%);
+  transform: translateX(-101%);
+  transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: -1;
+}
+.login-hero-cta-label {
+  position: relative;
+  z-index: 1;
+}
+.login-hero-cta:hover {
   color: #1a1a2c;
-  border-color: rgba(216, 184, 109, 0.55);
-  box-shadow: 0 6px 18px rgba(8, 12, 30, 0.45);
-  font-weight: 600;
+  border-color: rgba(244, 220, 168, 0.95);
+  box-shadow: 0 6px 22px rgba(216, 184, 109, 0.28);
 }
-.login-hero-cta--primary:hover {
-  filter: brightness(1.08);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 22px rgba(216, 184, 109, 0.3);
-}
-.login-hero-cta--primary:active {
-  transform: translateY(0);
+.login-hero-cta:hover::before {
+  transform: translateX(0);
 }
 
-/* "I have an invite code →" — quiet italic link below the primary CTA.
-   ~15% of visitors arrive with a code; they don't need a button equal
-   in weight to the new-visitor "Request access" path. */
+/* "I have an invite code →" — quiet italic link under the CTA. */
 .login-hero-quiet {
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
   font-size: 1rem;
-  color: rgba(244, 220, 168, 0.72);
+  color: rgba(244, 220, 168, 0.7);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.4rem 0.8rem;
-  border-radius: 0.4rem;
-  margin-top: 0.4rem;
+  padding: 0.4rem 0.4rem;
+  border-radius: 0.3rem;
   transition: color 180ms ease, transform 180ms ease;
 }
 .login-hero-quiet:hover {
   color: #f4dca8;
-  transform: translateX(2px);
+  transform: translateX(3px);
 }
 
-/* ── Tiny "already have an account?" link ───────────────── */
+/* "Already have an account?" — even quieter, tertiary path. */
 .login-hero-signin {
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
-  font-size: 0.95rem;
-  color: rgba(232, 242, 255, 0.65);
+  font-size: 0.92rem;
+  color: rgba(232, 242, 255, 0.5);
   background: none;
   border: none;
   cursor: pointer;
-  margin-top: 1.6rem;
-  padding: 0.3rem 0.6rem;
-  border-radius: 0.4rem;
+  margin-top: 0.4rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: 0.3rem;
   transition: color 180ms ease;
 }
 .login-hero-signin:hover {
-  color: #f4dca8;
+  color: rgba(244, 220, 168, 0.85);
 }
 
-/* ── Language picker (subtle, bottom of card) ───────────── */
-.login-hero-language {
-  margin-top: 2rem;
-  font-family: 'Cinzel', 'Bodoni Moda', serif;
-  font-size: 0.65rem;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: rgba(216, 230, 250, 0.55);
+/* ── Right column: animated gold heart-stroke visual ────── */
+.login-hero-visual {
+  position: relative;
+  width: 100%;
+  max-width: 30rem;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: prive-hero-visual-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) 200ms both;
 }
-.login-hero-language label {
+@keyframes prive-hero-visual-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.login-hero-heart {
+  position: relative;
+  z-index: 2;
+  width: 80%;
+  height: auto;
+  filter: drop-shadow(0 0 30px rgba(216, 184, 109, 0.35));
+}
+.login-hero-heart-path {
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation:
+    prive-heart-draw 3.2s cubic-bezier(0.65, 0, 0.35, 1) 600ms forwards,
+    prive-heart-pulse 4.8s ease-in-out 4s infinite alternate;
+}
+@keyframes prive-heart-draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes prive-heart-pulse {
+  from { filter: drop-shadow(0 0 12px rgba(216, 184, 109, 0.35)); opacity: 0.95; }
+  to   { filter: drop-shadow(0 0 32px rgba(244, 220, 168, 0.7));  opacity: 1;    }
+}
+
+.login-hero-bloom {
+  position: absolute;
+  inset: 8% 8%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(244, 220, 168, 0.22) 0%, transparent 70%);
+  filter: blur(20px);
+  animation: prive-hero-bloom-pulse 5.5s ease-in-out infinite alternate;
+}
+@keyframes prive-hero-bloom-pulse {
+  from { opacity: 0.7; transform: scale(0.92); }
+  to   { opacity: 1;   transform: scale(1.06); }
+}
+
+/* ── Footer: language picker only ───────────────────────── */
+.login-hero-footer {
+  position: absolute;
+  bottom: max(1.2rem, env(safe-area-inset-bottom));
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 3;
+  pointer-events: none;
+}
+.login-hero-language {
+  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(216, 230, 250, 0.48);
 }
 .login-hero-language select {
   font-family: inherit;
   font-size: inherit;
   letter-spacing: inherit;
   text-transform: inherit;
-  background: rgba(8, 12, 30, 0.4);
-  border: 1px solid rgba(216, 184, 109, 0.3);
-  color: rgba(244, 220, 168, 0.85);
-  padding: 0.35rem 0.6rem;
-  border-radius: 0.35rem;
+  background: rgba(8, 12, 30, 0.5);
+  border: 1px solid rgba(216, 184, 109, 0.25);
+  color: rgba(244, 220, 168, 0.8);
+  padding: 0.32rem 0.55rem;
+  border-radius: 0.3rem;
   cursor: pointer;
 }
 .login-hero-language select:focus {
   outline: none;
   border-color: rgba(231, 197, 118, 0.78);
+}
+
+/* ── Mobile / narrow tablet tuning ─────────────────────── */
+@media (max-width: 880px) {
+  /* Single column. Heart becomes a small accent below the text
+     instead of a 50% column hog. */
+  .login-hero-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 5rem 1.4rem 5rem;
+  }
+  .login-hero-text {
+    text-align: center;
+    align-items: center;
+    max-width: 28rem;
+  }
+  .login-hero-tagline { text-align: center; }
+  .login-hero-actions { align-items: center; }
+  .login-hero-visual {
+    max-width: 16rem;
+    aspect-ratio: 1 / 1;
+  }
+  .login-hero-heart { width: 70%; }
+}
+
+@media (max-width: 480px) {
+  .login-hero-layout {
+    padding: 4rem 1.2rem 4.5rem;
+    gap: 1.5rem;
+  }
+  .login-hero-visual { max-width: 13rem; }
+  .login-hero-cta { padding: 0.85rem 1.8rem; }
 }
 
 /* ── "Back" link on the card view (returns to hero) ─────
@@ -261,18 +427,4 @@
   margin-bottom: 0.55rem;
   padding-bottom: 0.45rem;
   border-bottom: 1px solid rgba(216, 184, 109, 0.18);
-}
-
-/* ── Mobile tuning ──────────────────────────────────────── */
-@media (max-width: 540px) {
-  .login-hero-card {
-    padding: 2.4rem 1.4rem 2rem;
-    gap: 1.1rem;
-  }
-  .login-hero-actions {
-    margin-top: 1.2rem;
-  }
-  .login-hero-cta {
-    padding: 0.85rem 1.2rem;
-  }
 }

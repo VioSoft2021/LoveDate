@@ -149,49 +149,92 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     return (
       <main className="login-shell login-shell--hero">
         <div className="grain" aria-hidden="true" />
-        <div className="login-hero-ambient" aria-hidden="true" />
-        <article className="login-hero-card">
-          <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
-          <p className="login-hero-tagline">{copy.auth.heroTagline}</p>
 
-          <div className="login-hero-actions">
-            <button
-              type="button"
-              className="login-hero-cta login-hero-cta--primary"
-              onClick={goToWaitlist}
-            >
-              {copy.auth.heroRequestAccess}
-            </button>
-            <button
-              type="button"
-              className="login-hero-quiet"
-              onClick={() => goToAuth('register')}
-            >
-              {copy.auth.heroHaveInvite}
-            </button>
-          </div>
+        {/* Drifting gold particles — pure CSS, no JS. ~20 motes that
+            float upward at varied delays, giving the page constant
+            subtle life like dust catching candlelight. */}
+        <div className="login-hero-particles" aria-hidden="true">
+          {Array.from({ length: 22 }).map((_, idx) => (
+            <span key={idx} className={`login-hero-mote login-hero-mote--${idx % 5}`} />
+          ))}
+        </div>
 
-          <button
-            type="button"
-            className="login-hero-signin"
-            onClick={() => goToAuth('login')}
-          >
-            {copy.auth.heroSignIn}
-          </button>
+        <article className="login-hero-layout">
+          {/* Left column: text content. Stacks centered on mobile. */}
+          <section className="login-hero-text">
+            <h1 className="login-hero-wordmark" aria-label="Privé">
+              <span aria-hidden="true">PRIVÉ</span>
+            </h1>
+            <p className="login-hero-slogan">Members only · By design</p>
+            <p className="login-hero-tagline">{copy.auth.heroTagline}</p>
 
-          <div className="login-hero-language">
-            <label>
-              {copy.auth.language}
-              <select
-                value={appLanguage}
-                onChange={(event) => setAppLanguage(event.target.value as AppLanguage)}
+            <div className="login-hero-actions">
+              <button
+                type="button"
+                className="login-hero-cta"
+                onClick={goToWaitlist}
               >
-                <option value="en">{copy.auth.english}</option>
-                <option value="ro">{copy.auth.romanian}</option>
-              </select>
-            </label>
-          </div>
+                <span className="login-hero-cta-label">{copy.auth.heroRequestAccess}</span>
+              </button>
+              <button
+                type="button"
+                className="login-hero-quiet"
+                onClick={() => goToAuth('register')}
+              >
+                {copy.auth.heroHaveInvite}
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="login-hero-signin"
+              onClick={() => goToAuth('login')}
+            >
+              {copy.auth.heroSignIn}
+            </button>
+          </section>
+
+          {/* Right column: animated gold heart-stroke visual. Hidden
+              on narrow screens (text takes over the whole viewport). */}
+          <aside className="login-hero-visual" aria-hidden="true">
+            <svg
+              viewBox="0 0 200 200"
+              className="login-hero-heart"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <defs>
+                <linearGradient id="heartGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#cfad61" />
+                  <stop offset="50%" stopColor="#e8c679" />
+                  <stop offset="100%" stopColor="#f4dca8" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M100,170 C40,130 20,90 20,60 C20,35 40,20 60,20 C80,20 95,35 100,55 C105,35 120,20 140,20 C160,20 180,35 180,60 C180,90 160,130 100,170 Z"
+                fill="none"
+                stroke="url(#heartGold)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="login-hero-heart-path"
+              />
+            </svg>
+            <div className="login-hero-bloom" />
+          </aside>
         </article>
+
+        <footer className="login-hero-footer">
+          <label className="login-hero-language">
+            <span>{copy.auth.language}</span>
+            <select
+              value={appLanguage}
+              onChange={(event) => setAppLanguage(event.target.value as AppLanguage)}
+            >
+              <option value="en">{copy.auth.english}</option>
+              <option value="ro">{copy.auth.romanian}</option>
+            </select>
+          </label>
+        </footer>
       </main>
     )
   }
