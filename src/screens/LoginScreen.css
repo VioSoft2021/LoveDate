@@ -192,6 +192,57 @@
   color: #f4dca8;
 }
 
+/* ── "What happens next" panel on waitlist success ───────
+   Phase A round 2 — sets the prospect's expectation between
+   the success body and the Done button. Three short lines,
+   numbered, italic Cormorant, dimmed gold. Restrained on
+   purpose: a quiet promise, not a marketing block. */
+.login-waitlist-next {
+  list-style: none;
+  counter-reset: prive-next;
+  margin: 1.2rem 0 1.4rem;
+  padding: 1rem 1.2rem;
+  background: rgba(207, 173, 97, 0.06);
+  border: 1px solid rgba(216, 184, 109, 0.22);
+  border-radius: 0.7rem;
+  text-align: left;
+}
+.login-waitlist-next li {
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: rgba(232, 242, 255, 0.78);
+  padding: 0.18rem 0;
+  position: relative;
+}
+.login-waitlist-next li + li {
+  padding-left: 1.5rem;
+  counter-increment: prive-next;
+}
+.login-waitlist-next li + li::before {
+  content: counter(prive-next);
+  position: absolute;
+  left: 0;
+  top: 0.18rem;
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: rgba(244, 220, 168, 0.62);
+}
+.login-waitlist-next-title {
+  font-family: 'Cinzel', serif !important;
+  font-style: normal !important;
+  font-size: 0.65rem !important;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.85) !important;
+  margin-bottom: 0.55rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid rgba(216, 184, 109, 0.18);
+}
+
 /* ── Mobile tuning ──────────────────────────────────────── */
 @media (max-width: 540px) {
   .login-hero-card {

@@ -111,11 +111,20 @@ describe('LoginScreen — controlled fields', () => {
   })
 
   it('typing in invite code uppercases the value before setting', () => {
-    // Invite code field only renders when invite codes are required.
-    // That also enables the hero state, so click into the form first.
+    // Invite code field is gated on (requireInviteCode AND authMode === 'register')
+    // since Phase A round 2 — returning users on the Sign-in card no longer
+    // re-type their one-time signup code. Render directly in register mode
+    // to expose the field (parent normally sets this via the hero CTA).
     mockRuntime.auth.requireInviteCode = true
     const setInviteCode = vi.fn()
-    render(<LoginScreen {...baseProps} setInviteCode={setInviteCode} />)
+    render(
+      <LoginScreen
+        {...baseProps}
+        authMode="register"
+        setInviteCode={setInviteCode}
+      />,
+    )
+    // Skip the hero by clicking "I have an invite code" to enter the card view.
     fireEvent.click(screen.getByRole('button', { name: /i have an invite code/i }))
     const inviteInput = screen.getByLabelText(/invite/i)
     fireEvent.change(inviteInput, { target: { value: 'abc123' } })

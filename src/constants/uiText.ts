@@ -67,6 +67,13 @@ export const UI_TEXT = {
       // wait for an email, NOT to sign in (they have no credentials yet).
       // This replaces the misleading "Sign In" CTA on the success card.
       successDone: 'Done',
+      // Phase A round 2 — sets expectations on the success card so a
+      // prospect doesn't wonder for 3 days whether they were silently
+      // rejected. "Usually within 48 hours" is the scalable middle-ground.
+      nextStepsTitle: 'What happens next',
+      nextStepsLine1: 'We review every request personally.',
+      nextStepsLine2: 'Approved? You\'ll get an email with your invite code — usually within 48 hours.',
+      nextStepsLine3: 'Use that code on your next visit to create your account.',
     },
     onboarding: {
       // Wizard chrome
@@ -102,6 +109,10 @@ export const UI_TEXT = {
       quizBody: 'Eight quick questions. Your Love Personality lets the AI match you with compatible people.',
       quizQuestionOf: 'Question {n} of {total}',
       quizResultTitle: 'Your Love Personality',
+      // Phase A round 2 — quiz is skippable while Master rethinks the
+      // questions + response options. Empty quizAnswers signal "skipped";
+      // no personality code is computed for these users.
+      quizSkipForNow: 'Skip for now — I\'ll take it later',
       // Step 6: Bio
       bioTitle: 'A few words about you',
       bioBody: 'Optional but powerful — better bio = better matches. Privé AI can suggest one based on what you\'ve filled in.',
@@ -116,6 +127,7 @@ export const UI_TEXT = {
       errorNeedPhoto: 'Please add at least one photo.',
       errorNeedName: 'Please tell us your name.',
       errorNeedAge: 'Age must be between 18 and 99.',
+      errorNeedGender: 'Please choose a gender.',
       errorNeedCity: 'Please add your city.',
     },
     callToasts: {
@@ -585,6 +597,11 @@ export const UI_TEXT = {
       adminCopiedToast: 'Codul a fost copiat. Trimite-l pe email solicitantului.',
       adminApproveFailed: 'Aprobarea a eșuat. Mai încearcă.',
       successDone: 'Terminat',
+      // Phase A round 2 (RO) — same expectation-setting on the success card
+      nextStepsTitle: 'Ce urmează',
+      nextStepsLine1: 'Analizăm fiecare cerere personal.',
+      nextStepsLine2: 'Aprobată? Vei primi un email cu codul tău de invitație — de obicei în 48 de ore.',
+      nextStepsLine3: 'Folosește acel cod la următoarea vizită pentru a-ți crea contul.',
       adminDeclineFailed: 'Respingerea a eșuat. Mai încearcă.',
     },
     onboarding: {
@@ -621,6 +638,8 @@ export const UI_TEXT = {
       quizBody: 'Opt întrebări rapide. Personalitatea ta în iubire ajută AI-ul să te potrivească cu oameni compatibili.',
       quizQuestionOf: 'Întrebarea {n} din {total}',
       quizResultTitle: 'Personalitatea ta în iubire',
+      // Phase A round 2 — testul poate fi sărit deocamdată
+      quizSkipForNow: 'Sari peste deocamdată — fac testul mai târziu',
       // Pas 6: Bio
       bioTitle: 'Câteva cuvinte despre tine',
       bioBody: 'Opțional dar puternic — un bio mai bun = potriviri mai bune. Privé AI poate sugera unul pe baza datelor completate.',
@@ -635,6 +654,7 @@ export const UI_TEXT = {
       errorNeedPhoto: 'Te rugăm adaugă cel puțin o poză.',
       errorNeedName: 'Te rugăm spune-ne numele tău.',
       errorNeedAge: 'Vârsta trebuie să fie între 18 și 99.',
+      errorNeedGender: 'Te rugăm alege un gen.',
       errorNeedCity: 'Te rugăm adaugă orașul tău.',
     },
     callToasts: {

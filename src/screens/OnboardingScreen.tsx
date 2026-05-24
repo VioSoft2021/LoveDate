@@ -172,6 +172,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       if (!Number.isFinite(a) || a < 18 || a > 99) {
         return { ok: false, error: copy.errorNeedAge }
       }
+      // Phase A round 2 — gender is now mandatory. The AI matching pipeline
+      // (E3 scoring, semantic filter, deck gender filter) all key off it,
+      // and an unset gender means the user is invisible in every deck.
+      if (!gender.trim()) return { ok: false, error: copy.errorNeedGender }
     }
     if (step === 'city' && !city.trim()) {
       return { ok: false, error: copy.errorNeedCity }
@@ -459,6 +463,20 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 </>
               ) : null}
             </div>
+            {/* Phase A round 2 — "Skip for now" while Master rethinks the
+                quiz questions + response options. Empty quizAnswers signal
+                "skipped": finish() commits an empty array and the user
+                has no personality code until they take the quiz later. */}
+            <button
+              type="button"
+              className="onboarding-quiz-skip"
+              onClick={() => {
+                setQuizAnswers([])
+                advance()
+              }}
+            >
+              {copy.quizSkipForNow}
+            </button>
           </>
         )}
 

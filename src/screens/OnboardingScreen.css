@@ -285,6 +285,26 @@
   color: rgba(232, 242, 255, 0.85);
 }
 
+/* Quiz "Skip for now" link — quiet italic ghost so it doesn't
+   compete with the primary Continue CTA in the footer. */
+.onboarding-quiz-skip {
+  align-self: center;
+  background: none;
+  border: none;
+  margin-top: 1.2rem;
+  padding: 0.4rem 0.8rem;
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: rgba(232, 242, 255, 0.6);
+  cursor: pointer;
+  border-radius: 0.4rem;
+  transition: color 180ms ease;
+}
+.onboarding-quiz-skip:hover {
+  color: rgba(244, 220, 168, 0.92);
+}
+
 /* ── Bio step AI button ─────────────────────────────────────────── */
 .onboarding-ai-btn {
   align-self: flex-start;

@@ -229,7 +229,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <>
             <h1>{authMode === 'register' ? copy.auth.createTitle : copy.auth.signInTitle}</h1>
             <form className="login-form" onSubmit={onSubmit}>
-              {runtimeConfig.auth.requireInviteCode ? (
+              {/* Invite code is a one-time signup gate. Returning users don't
+                  re-prove they were invited every time they sign in, so we
+                  only show this field in register mode. */}
+              {runtimeConfig.auth.requireInviteCode && authMode === 'register' ? (
                 <label>
                   {copy.auth.inviteCode}
                   <input
@@ -361,6 +364,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <div className="login-waitlist-success">
                 <h2>{copy.waitlist.successTitle}</h2>
                 <p className="soft">{copy.waitlist.successBody}</p>
+                {/* Phase A round 2 — three-line expectation-setting panel
+                    so the prospect knows what to wait for and how long.
+                    Sits between the success body and the Done button. */}
+                <ol className="login-waitlist-next">
+                  <li className="login-waitlist-next-title">{copy.waitlist.nextStepsTitle}</li>
+                  <li>{copy.waitlist.nextStepsLine1}</li>
+                  <li>{copy.waitlist.nextStepsLine2}</li>
+                  <li>{copy.waitlist.nextStepsLine3}</li>
+                </ol>
                 {/* "Done" — closes the success message and returns to the
                     hero/landing if it's enabled, or to the (now-visible)
                     sign-in form otherwise. The previous "Sign In" wording
