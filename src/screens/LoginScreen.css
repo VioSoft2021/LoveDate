@@ -149,29 +149,37 @@
   line-height: 1.35;
 }
 
-/* ── Outlined gold CTA — hover fills from left to right ─── */
+/* ── Three access paths: clear descending hierarchy ─────────────
+   Was wrong: CTA text was 0.9rem and the "invite code" link below
+   was 1rem — primary action smaller than the secondary path. Now:
+     1. REQUEST ACCESS    ~1.05rem text, generous padding + min-width
+     2. invite code link  ~0.92rem italic
+     3. sign-in link      ~0.82rem italic, more faded
+   Each step is visibly smaller / quieter than the one above. */
 .login-hero-actions {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.7rem;
-  margin-top: 1.6rem;
+  gap: 0.55rem;
+  margin-top: 2rem;
 }
 .login-hero-cta {
   position: relative;
   font-family: 'Cinzel', 'Bodoni Moda', serif;
-  font-size: clamp(0.78rem, 1.3vw, 0.9rem);
-  letter-spacing: 0.34em;
+  font-size: clamp(0.95rem, 1.6vw, 1.05rem);
+  letter-spacing: 0.32em;
   text-transform: uppercase;
-  padding: 1rem 2.4rem;
+  padding: 1.2rem 3.4rem;
+  min-width: 16rem;
   background: transparent;
   color: #f4dca8;
-  border: 1px solid rgba(216, 184, 109, 0.6);
+  border: 1px solid rgba(216, 184, 109, 0.65);
   border-radius: 999px;
   cursor: pointer;
   overflow: hidden;
   transition: color 280ms ease, border-color 280ms ease, box-shadow 280ms ease;
   font-weight: 500;
+  text-align: center;
 }
 .login-hero-cta::before {
   content: '';
@@ -189,22 +197,23 @@
 .login-hero-cta:hover {
   color: #1a1a2c;
   border-color: rgba(244, 220, 168, 0.95);
-  box-shadow: 0 6px 22px rgba(216, 184, 109, 0.28);
+  box-shadow: 0 8px 26px rgba(216, 184, 109, 0.3);
 }
 .login-hero-cta:hover::before {
   transform: translateX(0);
 }
 
-/* "I have an invite code →" — quiet italic link under the CTA. */
+/* Secondary: "I have an invite code →" */
 .login-hero-quiet {
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
-  font-size: 1rem;
+  font-size: 0.92rem;
   color: rgba(244, 220, 168, 0.7);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.4rem 0.4rem;
+  padding: 0.32rem 0.5rem;
+  margin-left: 0.6rem;
   border-radius: 0.3rem;
   transition: color 180ms ease, transform 180ms ease;
 }
@@ -213,22 +222,22 @@
   transform: translateX(3px);
 }
 
-/* "Already have an account?" — even quieter, tertiary path. */
+/* Tertiary: "Already have an account? Sign in" */
 .login-hero-signin {
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
-  font-size: 0.92rem;
-  color: rgba(232, 242, 255, 0.5);
+  font-size: 0.82rem;
+  color: rgba(232, 242, 255, 0.42);
   background: none;
   border: none;
   cursor: pointer;
-  margin-top: 0.4rem;
-  padding: 0.3rem 0.4rem;
+  margin: 0.4rem 0 0 0.6rem;
+  padding: 0.28rem 0.5rem;
   border-radius: 0.3rem;
   transition: color 180ms ease;
 }
 .login-hero-signin:hover {
-  color: rgba(244, 220, 168, 0.85);
+  color: rgba(244, 220, 168, 0.78);
 }
 
 /* ── Right column: animated gold heart-stroke visual ────── */
