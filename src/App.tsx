@@ -2984,7 +2984,6 @@ function App() {
             appLanguage={appLanguage}
             selfLovePersonality={selfLovePersonality}
             onRetake={() => navigate('love-personality-quiz')}
-            onSeeScience={() => navigate('personality-guide')}
             onBackToProfile={() => navigate('profile')}
           />
         )}

@@ -12,7 +12,6 @@ export type LovePersonalityScreenProps = {
   appLanguage: AppLanguage
   selfLovePersonality: LovePersonality | null
   onRetake: () => void
-  onSeeScience: () => void
   onBackToProfile: () => void
 }
 
@@ -34,7 +33,6 @@ export const LovePersonalityScreen: React.FC<LovePersonalityScreenProps> = ({
   appLanguage,
   selfLovePersonality,
   onRetake,
-  onSeeScience,
   onBackToProfile,
 }) => {
   const copy = UI_TEXT[appLanguage]
@@ -60,9 +58,6 @@ export const LovePersonalityScreen: React.FC<LovePersonalityScreenProps> = ({
           <p>{onboardingCopy.quizBody}</p>
           <button type="button" className="love-personality-primary-btn" onClick={onRetake}>
             {ro ? 'Începe evaluarea' : 'Take the assessment'}
-          </button>
-          <button type="button" className="ghost love-personality-ghost-btn" onClick={onSeeScience}>
-            {ro ? 'Vezi știința din spate' : 'See the science'}
           </button>
         </section>
       </main>
@@ -163,12 +158,15 @@ export const LovePersonalityScreen: React.FC<LovePersonalityScreenProps> = ({
         </div>
       </section>
 
+      <p className="love-personality-closing">
+        {ro
+          ? 'Aceasta este personalitatea ta în iubire — ceea ce Privé citește ca să-ți găsească oamenii care chiar se potrivesc cu tine.'
+          : 'This is your Love Personality — what Privé reads to find the people who actually fit you.'}
+      </p>
+
       <footer className="love-personality-footer">
         <button type="button" className="love-personality-primary-btn" onClick={onRetake}>
           {ro ? 'Reia evaluarea' : 'Retake the assessment'}
-        </button>
-        <button type="button" className="ghost love-personality-ghost-btn" onClick={onSeeScience}>
-          {ro ? 'Vezi știința din spate' : 'See the science'}
         </button>
       </footer>
     </main>

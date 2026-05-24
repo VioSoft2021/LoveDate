@@ -231,6 +231,25 @@
   color: rgba(232, 242, 255, 0.82);
 }
 
+/* ── Closing context line ────────────────────────────────────────── */
+/* Replaces the old "See the science" CTA. Tells the user what their
+   Love Personality is FOR — the connective tissue between the reveal
+   they just read and the matching engine that uses it. Italic, gently
+   centered, opacity 0.78 so it reads as a quiet closing note, not a
+   pitch. */
+.love-personality-closing {
+  max-width: 30rem;
+  width: 100%;
+  margin: 0 auto 1.4rem;
+  padding: 0 1rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: rgba(244, 220, 168, 0.78);
+  text-align: center;
+}
+
 /* ── Footer actions ──────────────────────────────────────────────── */
 .love-personality-footer {
   max-width: 32rem;
