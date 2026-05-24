@@ -226,26 +226,22 @@ export const LovePersonalityQuiz: React.FC<LovePersonalityQuizProps> = ({
 
         {isQuestionStep && currentQuestion && (
           <div className="lp-quiz-card lp-quiz-card-question" key={`q-${step}`}>
-            <div className="lp-quiz-card-head">
-              {!isFirstQuestion ? (
-                <button
-                  type="button"
-                  className="lp-quiz-back"
-                  onClick={back}
-                  aria-label={ro ? 'Înapoi' : 'Back'}
-                >
-                  ←
-                </button>
-              ) : (
-                <span className="lp-quiz-back-spacer" />
-              )}
-              <span className="lp-quiz-step-label">
-                {step <= LAST_BIG_FIVE_STEP
-                  ? copy.quizBigFiveStem
-                  : copy.quizAttachmentStem}
-              </span>
-              <span className="lp-quiz-back-spacer" />
-            </div>
+            {!isFirstQuestion && (
+              <button
+                type="button"
+                className="lp-quiz-back"
+                onClick={back}
+                aria-label={ro ? 'Înapoi' : 'Back'}
+                title={ro ? 'Înapoi' : 'Back'}
+              >
+                ←
+              </button>
+            )}
+            <p className="lp-quiz-step-label">
+              {step <= LAST_BIG_FIVE_STEP
+                ? copy.quizBigFiveStem
+                : copy.quizAttachmentStem}
+            </p>
             <p className="lp-quiz-prompt">{currentQuestion.prompt}</p>
             <div
               className="lp-quiz-pills"
