@@ -15,6 +15,11 @@ export default tseslint.config([
       'desktop-dist-fresh/**',
       'android/**',
       'node_modules/**',
+      // Supabase Edge Functions run on Deno, not Node — they should be
+      // linted by Deno's own linter, not by ESLint configured for the
+      // React app. The deno.d.ts ambient-type shim uses `any` for
+      // loose SDK shapes which would fail @typescript-eslint/no-explicit-any.
+      'supabase/functions/**',
     ],
   },
   {
