@@ -37,9 +37,12 @@ export const UI_TEXT = {
       // link beneath it.
       heroEyebrow: 'By invitation',
       heroTagline: 'the future of how you\'ll meet someone',
-      // Three equal access paths — all sized + styled the same so no
-      // visitor type is implicitly demoted. Labels mirror each other in
-      // form (verb + noun) so the pills read as parallel choices.
+      // Editorial brand paragraph — small italic prose that fills the
+      // visual space with meaning rather than decoration. Reads like
+      // the opening line of a journal, not marketing copy.
+      heroManifesto: 'A quiet room, by invitation only. Where the noise of every other dating app falls away — and what remains is rare: thoughtful matches, written introductions, and the patience to find someone real.',
+      // Three equal access paths — same size + style so no visitor type
+      // is implicitly demoted. Parallel verb-phrases.
       heroRequestAccess: 'Request access',
       heroHaveInvite: 'Redeem your invite',
       heroSignIn: 'Sign in',
@@ -618,6 +621,8 @@ export const UI_TEXT = {
       // Rebalansat 2026-05-24 — vezi nota EN de mai sus.
       heroEyebrow: 'Doar pe bază de invitație',
       heroTagline: 'viitorul felului în care vei cunoaște pe cineva',
+      // Paragraf editorial — proză italică mică care umple golul vizual cu sens.
+      heroManifesto: 'O cameră liniștită, doar pe bază de invitație. Unde zgomotul aplicațiilor de întâlniri se stinge — și rămâne doar ce contează: potriviri atente, introduceri scrise cu grijă, și răbdarea de a cunoaște pe cineva real.',
       // Trei căi egale — toate la fel de respectate la intrare.
       heroRequestAccess: 'Solicită acces',
       heroHaveInvite: 'Folosește invitația',

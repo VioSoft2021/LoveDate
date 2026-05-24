@@ -173,7 +173,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <p className="login-hero-slogan">Members only &middot; By design</p>
           </header>
 
-          <p className="login-hero-tagline">{copy.auth.heroTagline}</p>
+          <div className="login-hero-body">
+            <p className="login-hero-tagline">{copy.auth.heroTagline}</p>
+            <p className="login-hero-manifesto">{copy.auth.heroManifesto}</p>
+          </div>
 
           <nav className="login-hero-doors" aria-label="Access">
             <button

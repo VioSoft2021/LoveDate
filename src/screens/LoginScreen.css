@@ -21,9 +21,14 @@
 .login-shell--hero {
   position: relative;
   overflow: hidden;
+  /* Richer atmospheric backdrop — multiple soft blooms layered to give
+     the page depth without imagery. Subtle enough not to be aggressive;
+     present enough that the page doesn't read as empty navy. */
   background:
-    radial-gradient(ellipse 75% 60% at 50% 40%, rgba(244, 220, 168, 0.06) 0%, transparent 60%),
-    linear-gradient(180deg, #050817 0%, #0a0d28 50%, #050817 100%);
+    radial-gradient(ellipse 55% 45% at 15% 25%, rgba(244, 220, 168, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 75%, rgba(216, 184, 109, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(160, 120, 60, 0.05) 0%, transparent 70%),
+    linear-gradient(165deg, #060a1f 0%, #0c1030 45%, #0a0d28 100%);
 }
 
 /* One single thin gold rule on the right edge. Draws itself slowly
@@ -111,12 +116,14 @@
   gap: 0.7rem;
 }
 
-/* Wordmark — small + precise, top-anchored masthead. */
+/* Wordmark — larger now to carry visual presence in the spread.
+   Bumped from 2-2.8rem to 3-4.4rem; still small enough to feel
+   editorial, big enough to anchor the page. */
 .login-hero-wordmark {
   font-family: 'Bodoni Moda', 'Playfair Display', 'Cormorant Garamond', serif;
   font-weight: 900;
-  font-size: clamp(2rem, 3.6vw, 2.8rem);
-  letter-spacing: 0.22em;
+  font-size: clamp(3rem, 5vw, 4.4rem);
+  letter-spacing: 0.2em;
   line-height: 1;
   margin: 0;
   background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
@@ -128,27 +135,48 @@
 
 .login-hero-slogan {
   font-family: 'Cinzel', 'Bodoni Moda', serif;
-  font-size: 0.62rem;
+  font-size: 0.65rem;
   letter-spacing: 0.46em;
   text-transform: uppercase;
   color: rgba(232, 213, 178, 0.55);
   margin: 0;
 }
 
-/* Tagline — middle row of the grid, vertically centered.
-   Sized up a touch from v4 (was 1.25rem max) so it carries the
-   visual center of the page now that the layout is wider. */
-.login-hero-tagline {
+/* Body block — tagline + manifesto stacked, vertically centered as
+   the middle row of the grid. The two together (italic poem + prose
+   paragraph) earn the page real its width without decoration. */
+.login-hero-body {
   align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  max-width: 38ch;
+}
+
+.login-hero-tagline {
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
-  font-size: clamp(1.4rem, 2.4vw, 1.85rem);
-  color: rgba(244, 220, 168, 0.9);
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  color: rgba(244, 220, 168, 0.95);
   letter-spacing: 0.01em;
   max-width: 22ch;
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.35;
   font-weight: 400;
+}
+
+/* Editorial manifesto paragraph — small italic prose, slightly faded.
+   Reads like the opening line of a journal, not marketing copy.
+   This is what fills the visual space with MEANING instead of decoration. */
+.login-hero-manifesto {
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: clamp(0.95rem, 1.3vw, 1.05rem);
+  color: rgba(232, 242, 255, 0.6);
+  letter-spacing: 0.005em;
+  line-height: 1.65;
+  margin: 0;
+  max-width: 38ch;
 }
 
 /* Three "doors" — bottom row of the grid, left-aligned. */
