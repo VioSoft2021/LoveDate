@@ -1,16 +1,25 @@
 import React from 'react'
 import { UI_TEXT } from '../constants'
-import type { AppLanguage } from '../domain'
+import type { AppLanguage, SelfProfile } from '../domain'
 import type { LovePersonality, AttachmentStyle } from '../services/compatibility'
+import { backendInvokeLovePersonalityReveal } from '../services/ai/lovePersonalityReveal'
 import './LovePersonalityScreen.css'
 
 // Destination screen for the user's own Love Personality reveal.
 // Promoted from the inline ProfileScreen snippet so the cinematic Claude
 // reveal has a permanent home users can return to anytime.
+//
+// If the user lands here with bigFive + attachment but no cached reveal
+// (e.g. the original Claude call failed during the quiz), this screen
+// auto-fires a fresh reveal call. A failure surfaces an honest "couldn't
+// generate, tap to retry" message instead of a lying "will arrive later"
+// placeholder.
 
 export type LovePersonalityScreenProps = {
   appLanguage: AppLanguage
   selfLovePersonality: LovePersonality | null
+  selfName?: string
+  setSelfProfile: React.Dispatch<React.SetStateAction<SelfProfile>>
   onRetake: () => void
   onBackToProfile: () => void
 }
@@ -32,12 +41,55 @@ const ATTACHMENT_DESCRIPTIONS_RO: Record<AttachmentStyle, string> = {
 export const LovePersonalityScreen: React.FC<LovePersonalityScreenProps> = ({
   appLanguage,
   selfLovePersonality,
+  selfName,
+  setSelfProfile,
   onRetake,
   onBackToProfile,
 }) => {
   const copy = UI_TEXT[appLanguage]
   const ro = appLanguage === 'ro'
   const onboardingCopy = UI_TEXT[appLanguage].onboarding
+
+  const [revealLoading, setRevealLoading] = React.useState(false)
+  const [revealFailed, setRevealFailed] = React.useState(false)
+
+  // Auto-fire the Claude reveal if the user has scores but no reveal cached
+  // (e.g. the original call during the quiz failed). Stops trying after one
+  // attempt so we don't pound the Edge Function in a loop; the user can hit
+  // the retry button if they want another go.
+  const needsReveal = Boolean(
+    selfLovePersonality && !selfLovePersonality.reveal,
+  )
+  const attemptReveal = React.useCallback(async () => {
+    if (!selfLovePersonality) return
+    setRevealLoading(true)
+    setRevealFailed(false)
+    const reveal = await backendInvokeLovePersonalityReveal({
+      bigFive: selfLovePersonality.bigFive,
+      attachment: selfLovePersonality.attachment,
+      attachmentRatings: selfLovePersonality.attachmentRatings,
+      language: appLanguage,
+      selfName: selfName?.trim() || undefined,
+    })
+    setRevealLoading(false)
+    if (!reveal) {
+      setRevealFailed(true)
+      return
+    }
+    setSelfProfile((current) => ({
+      ...current,
+      lovePersonality: current.lovePersonality
+        ? { ...current.lovePersonality, reveal }
+        : current.lovePersonality,
+    }))
+  }, [selfLovePersonality, appLanguage, selfName, setSelfProfile])
+
+  React.useEffect(() => {
+    if (needsReveal && !revealLoading && !revealFailed) {
+      void attemptReveal()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one auto-attempt; retry is manual
+  }, [needsReveal])
 
   if (!selfLovePersonality) {
     // User hasn't taken the assessment yet — show CTA hero.
@@ -116,9 +168,31 @@ export const LovePersonalityScreen: React.FC<LovePersonalityScreenProps> = ({
         ) : (
           <>
             <p className="love-personality-eyebrow">{copy.profile.lovePersonalityTitle}</p>
-            <p className="love-personality-pending">
-              {copy.profile.lovePersonalityAwaitingReveal}
-            </p>
+            {revealLoading ? (
+              <p className="love-personality-pending">
+                {ro ? 'Privé îți scrie dezvăluirea…' : 'Privé is writing your reveal…'}
+              </p>
+            ) : revealFailed ? (
+              <>
+                <p className="love-personality-pending">
+                  {ro
+                    ? "Nu am putut genera dezvăluirea ta acum. Conexiunea cu Privé a eșuat — încearcă din nou."
+                    : "We couldn't generate your reveal right now. The connection to Privé failed — give it another try."}
+                </p>
+                <button
+                  type="button"
+                  className="love-personality-primary-btn"
+                  onClick={() => void attemptReveal()}
+                  style={{ marginTop: '1rem', alignSelf: 'center' }}
+                >
+                  {ro ? 'Încearcă din nou' : 'Try again'}
+                </button>
+              </>
+            ) : (
+              <p className="love-personality-pending">
+                {ro ? 'Privé îți scrie dezvăluirea…' : 'Privé is writing your reveal…'}
+              </p>
+            )}
           </>
         )}
       </section>

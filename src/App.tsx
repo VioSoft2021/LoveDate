@@ -2983,6 +2983,8 @@ function App() {
           <LovePersonalityScreen
             appLanguage={appLanguage}
             selfLovePersonality={selfLovePersonality}
+            selfName={selfProfile.name}
+            setSelfProfile={setSelfProfile}
             onRetake={() => navigate('love-personality-quiz')}
             onBackToProfile={() => navigate('profile')}
           />

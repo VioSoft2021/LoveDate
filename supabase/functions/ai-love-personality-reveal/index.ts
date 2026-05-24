@@ -198,23 +198,18 @@ Deno.serve(async (req: Request) => {
         format: {
           type: 'json_schema',
           schema: {
+            // Anthropic's structured-output validator rejects array
+            // length constraints (minItems / maxItems) the same way it
+            // rejects integer min/max. We trim/pad the arrays in the
+            // parsing block below; the system prompt already tells the
+            // model to produce exactly 3 strengths + 2 growth edges.
             type: 'object',
             properties: {
               archetypeName: { type: 'string' },
               headline: { type: 'string' },
               description: { type: 'string' },
-              strengths: {
-                type: 'array',
-                items: { type: 'string' },
-                minItems: 3,
-                maxItems: 3,
-              },
-              growthEdges: {
-                type: 'array',
-                items: { type: 'string' },
-                minItems: 2,
-                maxItems: 2,
-              },
+              strengths: { type: 'array', items: { type: 'string' } },
+              growthEdges: { type: 'array', items: { type: 'string' } },
             },
             required: ['archetypeName', 'headline', 'description', 'strengths', 'growthEdges'],
             additionalProperties: false,
@@ -245,7 +240,10 @@ Deno.serve(async (req: Request) => {
       ? parsed.growthEdges.filter((s): s is string => typeof s === 'string').map((s) => s.trim().slice(0, 100)).slice(0, 2)
       : []
 
-    if (!archetypeName || !headline || !description || strengths.length !== 3 || growthEdges.length !== 2) {
+    // The only hard requirements are archetype + headline + description.
+    // Strengths and growth-edges are nice-to-have; a reveal with 2 strengths
+    // instead of 3 still ships rather than failing the whole call.
+    if (!archetypeName || !headline || !description) {
       return new Response(JSON.stringify({ error: 'model returned incomplete reveal', raw }), {
         status: 502,
         headers: { ...corsHeaders, 'content-type': 'application/json' },
