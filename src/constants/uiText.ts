@@ -37,9 +37,12 @@ export const UI_TEXT = {
       // link beneath it.
       heroEyebrow: 'By invitation',
       heroTagline: 'the future of how you\'ll meet someone',
+      // Three equal access paths — all sized + styled the same so no
+      // visitor type is implicitly demoted. Labels mirror each other in
+      // form (verb + noun) so the pills read as parallel choices.
       heroRequestAccess: 'Request access',
-      heroHaveInvite: 'I have an invite code →',
-      heroSignIn: 'Already have an account? Sign in',
+      heroHaveInvite: 'Redeem your invite',
+      heroSignIn: 'Sign in',
       heroBack: '← Back',
     },
     waitlist: {
@@ -615,9 +618,10 @@ export const UI_TEXT = {
       // Rebalansat 2026-05-24 — vezi nota EN de mai sus.
       heroEyebrow: 'Doar pe bază de invitație',
       heroTagline: 'viitorul felului în care vei cunoaște pe cineva',
+      // Trei căi egale — toate la fel de respectate la intrare.
       heroRequestAccess: 'Solicită acces',
-      heroHaveInvite: 'Am un cod de invitație →',
-      heroSignIn: 'Ai deja un cont? Conectează-te',
+      heroHaveInvite: 'Folosește invitația',
+      heroSignIn: 'Intră în cont',
       heroBack: '← Înapoi',
     },
     waitlist: {

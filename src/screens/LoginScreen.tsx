@@ -168,6 +168,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <p className="login-hero-slogan">Members only · By design</p>
             <p className="login-hero-tagline">{copy.auth.heroTagline}</p>
 
+            {/* Three equal-weight access paths. For a "members only · by
+                design" brand, all three visitor types — prospects, invited
+                new arrivals, and returning members — deserve the same
+                respect at the door. No primary, no secondary, no faded
+                footnote. The user reads the labels and picks their lane. */}
             <div className="login-hero-actions">
               <button
                 type="button"
@@ -178,20 +183,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               </button>
               <button
                 type="button"
-                className="login-hero-quiet"
+                className="login-hero-cta"
                 onClick={() => goToAuth('register')}
               >
-                {copy.auth.heroHaveInvite}
+                <span className="login-hero-cta-label">{copy.auth.heroHaveInvite}</span>
+              </button>
+              <button
+                type="button"
+                className="login-hero-cta"
+                onClick={() => goToAuth('login')}
+              >
+                <span className="login-hero-cta-label">{copy.auth.heroSignIn}</span>
               </button>
             </div>
-
-            <button
-              type="button"
-              className="login-hero-signin"
-              onClick={() => goToAuth('login')}
-            >
-              {copy.auth.heroSignIn}
-            </button>
           </section>
 
           {/* Right column: animated gold heart-stroke visual. Hidden
