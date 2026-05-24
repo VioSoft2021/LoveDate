@@ -153,11 +153,91 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     return (
       <main className="login-shell login-shell--hero">
         <div className="grain" aria-hidden="true" />
-        <span className="login-hero-rule" aria-hidden="true" />
+
+        {/* Brand-owned custom composition: a vertical gold "totem" on the
+            right side of the viewport. Two ornaments (top + bottom) connected
+            by a hairline, with a vesica piscis (two overlapping circles =
+            sacred-geometry symbol of union) at the visual center. Tells the
+            brand story without imagery: two paths meeting + becoming one.
+            Draws itself sequentially on mount, then breathes very softly. */}
+        <svg
+          className="login-hero-totem"
+          viewBox="0 0 80 700"
+          preserveAspectRatio="xMidYMid meet"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id="totemGold" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#cfad61" />
+              <stop offset="50%" stopColor="#f4dca8" />
+              <stop offset="100%" stopColor="#cfad61" />
+            </linearGradient>
+            <radialGradient id="totemBloom" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="rgba(244,220,168,0.45)" />
+              <stop offset="100%" stopColor="rgba(244,220,168,0)" />
+            </radialGradient>
+          </defs>
+
+          {/* Top ornament — a small filled dot, then a 6-point starburst */}
+          <g className="totem-mark totem-mark--top">
+            <circle cx="40" cy="40" r="2.5" fill="url(#totemGold)" />
+            <path
+              d="M40,28 L40,52 M28,40 L52,40 M31.5,31.5 L48.5,48.5 M48.5,31.5 L31.5,48.5"
+              stroke="url(#totemGold)"
+              strokeWidth="0.7"
+              strokeLinecap="round"
+              opacity="0.7"
+            />
+          </g>
+
+          {/* Top hairline — descends from ornament to vesica */}
+          <line
+            x1="40" y1="60" x2="40" y2="305"
+            stroke="url(#totemGold)" strokeWidth="0.8" strokeLinecap="round"
+            className="totem-line totem-line--top"
+          />
+
+          {/* Center: vesica piscis — two overlapping circles forming an
+              almond. Sacred-geometry symbol of union / two-becoming-one.
+              Plus a soft bloom behind. */}
+          <circle
+            cx="40" cy="350" r="64"
+            fill="url(#totemBloom)"
+            className="totem-bloom"
+          />
+          <g className="totem-vesica">
+            <circle
+              cx="40" cy="332" r="28"
+              fill="none" stroke="url(#totemGold)" strokeWidth="1"
+            />
+            <circle
+              cx="40" cy="368" r="28"
+              fill="none" stroke="url(#totemGold)" strokeWidth="1"
+            />
+          </g>
+
+          {/* Bottom hairline — descends from vesica to bottom ornament */}
+          <line
+            x1="40" y1="395" x2="40" y2="640"
+            stroke="url(#totemGold)" strokeWidth="0.8" strokeLinecap="round"
+            className="totem-line totem-line--bottom"
+          />
+
+          {/* Bottom ornament — mirror of top */}
+          <g className="totem-mark totem-mark--bottom">
+            <circle cx="40" cy="660" r="2.5" fill="url(#totemGold)" />
+            <path
+              d="M40,648 L40,672 M28,660 L52,660 M31.5,651.5 L48.5,668.5 M48.5,651.5 L31.5,668.5"
+              stroke="url(#totemGold)"
+              strokeWidth="0.7"
+              strokeLinecap="round"
+              opacity="0.7"
+            />
+          </g>
+        </svg>
 
         {/* Editorial mark in the top-right corner — issue number style.
-            Anchors the negative space + sets the tone (this is a journal,
-            an edition, not a SaaS landing). */}
+            Anchors the upper-right negative space. */}
         <p className="login-hero-edition" aria-hidden="true">
           <span>Édition</span>
           <span>2026</span>
