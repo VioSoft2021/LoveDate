@@ -124,8 +124,8 @@ describe('LoginScreen — controlled fields', () => {
         setInviteCode={setInviteCode}
       />,
     )
-    // Skip the hero by clicking "I have an invite code" to enter the card view.
-    fireEvent.click(screen.getByRole('button', { name: /i have an invite code/i }))
+    // Skip the hero by clicking "Redeem your invite" to enter the card view.
+    fireEvent.click(screen.getByRole('button', { name: /redeem your invite/i }))
     const inviteInput = screen.getByLabelText(/invite/i)
     fireEvent.change(inviteInput, { target: { value: 'abc123' } })
     expect(setInviteCode).toHaveBeenCalledWith('ABC123')
