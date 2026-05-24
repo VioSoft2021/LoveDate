@@ -1,4 +1,5 @@
 import { createSupabaseClient } from '../supabaseClient'
+import type { AttachmentStyle, BigFiveScores } from '../compatibility'
 
 export type AiMatchProfileInput = {
   name: string
@@ -16,6 +17,10 @@ export type AiMatchProfileInput = {
   religion?: string
   politics?: string
   childrenPlan?: string
+  // Tier A (2026-05-24) — Big Five + Attachment when present. Optional
+  // because users who haven't taken the new quiz still need to score.
+  bigFive?: BigFiveScores
+  attachmentStyle?: AttachmentStyle
 }
 
 export type AiMatchScoreResult = {
@@ -30,12 +35,15 @@ type CacheEntry = AiMatchScoreResult & { storedAt: number; v: number; lang: stri
 
 const CACHE_KEY_PREFIX = 'lovedate:ai-match-score:'
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7 // 7 days
-const CACHE_VERSION = 4 // bumped: viewerPreference now factored in; v<=3 stale
+const CACHE_VERSION = 5 // bumped Tier A: Big Five + Attachment now in prompt; v<=4 stale
 
 // Stable hash of the profile fields the model actually sees. Lets us
 // invalidate the cache automatically when EITHER profile is edited:
 // the new hash misses, we re-score.
 const hashProfile = (p: AiMatchProfileInput): string => {
+  const bf = p.bigFive
+    ? `${Math.round(p.bigFive.openness)},${Math.round(p.bigFive.conscientiousness)},${Math.round(p.bigFive.extraversion)},${Math.round(p.bigFive.agreeableness)},${Math.round(p.bigFive.neuroticism)}`
+    : ''
   const fields = [
     p.name,
     p.age ?? '',
@@ -52,6 +60,8 @@ const hashProfile = (p: AiMatchProfileInput): string => {
     p.religion ?? '',
     p.politics ?? '',
     p.childrenPlan ?? '',
+    bf,
+    p.attachmentStyle ?? '',
   ].join('|')
   let hash = 0
   for (let i = 0; i < fields.length; i++) {

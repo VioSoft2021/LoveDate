@@ -134,6 +134,9 @@ export const UI_TEXT = {
       },
       quizResultTitle: 'Your Love Personality',
       quizRevealPending: 'A cinematic reveal — written for you alone — will arrive once your profile is live.',
+      quizRevealLoading: 'Privé is writing your reveal…',
+      quizStrengthsLabel: 'Strengths',
+      quizGrowthEdgesLabel: 'Edges to lean into',
       quizProgress: '{n} of {total} answered',
       // Quiz remains skippable — empty answers store no lovePersonality;
       // the Profile screen prompts the user to take it later.
@@ -699,6 +702,9 @@ export const UI_TEXT = {
       },
       quizResultTitle: 'Personalitatea ta în iubire',
       quizRevealPending: 'O dezvăluire cinematografică — scrisă doar pentru tine — va sosi după ce profilul tău devine activ.',
+      quizRevealLoading: 'Privé îți scrie dezvăluirea…',
+      quizStrengthsLabel: 'Puncte forte',
+      quizGrowthEdgesLabel: 'Margini de explorat',
       quizProgress: '{n} din {total} răspunsuri',
       // Testul poate fi sărit — răspunsurile goale nu stochează lovePersonality;
       // ecranul de profil te invită să-l reiei mai târziu.

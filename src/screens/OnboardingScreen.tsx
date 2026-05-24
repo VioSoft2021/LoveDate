@@ -16,8 +16,10 @@ import {
 import { detectMyLocation, isLocationError } from '../services/geolocation'
 import { backendUploadProfilePhoto } from '../services/backendApi'
 import { backendInvokeProfileWriter } from '../services/ai/profileWriter'
+import { backendInvokeLovePersonalityReveal } from '../services/ai/lovePersonalityReveal'
 import { Logo } from '../components/Logo'
 import type { AppLanguage, SelfProfile } from '../domain'
+import type { LovePersonalityReveal } from '../services/compatibility'
 import './OnboardingScreen.css'
 
 // Onboarding wizard — 6 sequential steps that take a freshly-registered
@@ -98,6 +100,13 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
     },
   )
   const [bio, setBio] = React.useState(selfProfile.bio)
+
+  // Tier A Phase 3 — Claude reveal fires once the user has answered all 14
+  // items. Cached client-side; retake invalidates the cache automatically.
+  const [reveal, setReveal] = React.useState<LovePersonalityReveal | null>(
+    selfProfile.lovePersonality?.reveal ?? null,
+  )
+  const [revealLoading, setRevealLoading] = React.useState(false)
 
   // ── Photo upload ─────────────────────────────────────────────────
   const fileInputRef = React.useRef<HTMLInputElement | null>(null)
@@ -221,6 +230,13 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
     const computedLovePersonality = completeAnswers
       ? lovePersonalityFromAnswers(completeAnswers) ?? undefined
       : undefined
+    // Attach the Claude reveal if it arrived before the user finished. If it
+    // didn't, the Profile screen will fall back to "Your Love Personality is
+    // being prepared…" until the user re-opens onboarding or we plumb a
+    // background fetch (Phase 3.5).
+    const lovePersonalityWithReveal = computedLovePersonality && reveal
+      ? { ...computedLovePersonality, reveal }
+      : computedLovePersonality
     setSelfProfile((current) => ({
       ...current,
       name: name.trim(),
@@ -231,7 +247,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       hometown: hometown.trim(),
       photos,
       personalityAnswers: completeAnswers,
-      lovePersonality: computedLovePersonality ?? current.lovePersonality,
+      lovePersonality: lovePersonalityWithReveal ?? current.lovePersonality,
       bio: bio.trim(),
     }))
     onComplete()
@@ -247,6 +263,49 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const previewLovePersonality = completeAnswers
     ? lovePersonalityFromAnswers(completeAnswers)
     : null
+
+  // Fire the Claude reveal as soon as all 14 answers are in. The wrapper
+  // caches by hash(bigFive + attachment + language), so changing one answer
+  // and back doesn't re-bill us and the result re-appears instantly. We
+  // skip while a request is already in flight to avoid duplicate calls.
+  React.useEffect(() => {
+    if (!previewLovePersonality) return
+    if (revealLoading) return
+    // If we already have a reveal whose generation params match the
+    // current scores, don't refetch.
+    if (
+      reveal
+      && reveal.language === appLanguage
+    ) {
+      return
+    }
+    let cancelled = false
+    setRevealLoading(true)
+    void (async () => {
+      const result = await backendInvokeLovePersonalityReveal({
+        bigFive: previewLovePersonality.bigFive,
+        attachment: previewLovePersonality.attachment,
+        attachmentRatings: previewLovePersonality.attachmentRatings,
+        language: appLanguage,
+        selfName: name.trim() || undefined,
+      })
+      if (cancelled) return
+      setReveal(result)
+      setRevealLoading(false)
+    })()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only the answer hash + language drive refetches
+  }, [
+    appLanguage,
+    previewLovePersonality?.attachment,
+    previewLovePersonality?.bigFive.openness,
+    previewLovePersonality?.bigFive.conscientiousness,
+    previewLovePersonality?.bigFive.extraversion,
+    previewLovePersonality?.bigFive.agreeableness,
+    previewLovePersonality?.bigFive.neuroticism,
+  ])
 
   // ── Render ──────────────────────────────────────────────────────
   return (
@@ -484,6 +543,43 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             {previewLovePersonality ? (
               <div className="onboarding-quiz-result">
                 <p className="onboarding-quiz-result-label">{copy.quizResultTitle}</p>
+                {reveal ? (
+                  <div className="onboarding-quiz-reveal">
+                    <p className="onboarding-quiz-reveal-archetype">{reveal.archetypeName}</p>
+                    <p className="onboarding-quiz-reveal-headline">{reveal.headline}</p>
+                    {reveal.description.split(/\n\n+/).map((paragraph, idx) => (
+                      <p key={idx} className="onboarding-quiz-reveal-paragraph">
+                        {paragraph}
+                      </p>
+                    ))}
+                    {reveal.strengths.length > 0 && (
+                      <div className="onboarding-quiz-reveal-chips">
+                        <span className="onboarding-quiz-reveal-chips-label">
+                          {copy.quizStrengthsLabel}
+                        </span>
+                        <div className="onboarding-quiz-reveal-chips-row">
+                          {reveal.strengths.map((s, idx) => (
+                            <span key={idx} className="onboarding-quiz-reveal-chip">{s}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {reveal.growthEdges.length > 0 && (
+                      <div className="onboarding-quiz-reveal-chips">
+                        <span className="onboarding-quiz-reveal-chips-label">
+                          {copy.quizGrowthEdgesLabel}
+                        </span>
+                        <div className="onboarding-quiz-reveal-chips-row">
+                          {reveal.growthEdges.map((s, idx) => (
+                            <span key={idx} className="onboarding-quiz-reveal-chip is-soft">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
                 <ul className="onboarding-quiz-bigfive">
                   {(
                     [
@@ -510,9 +606,11 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                   <strong>{copy.quizAttachmentResultLabel}:</strong>{' '}
                   {copy.quizAttachmentLabels[previewLovePersonality.attachment]}
                 </p>
-                <p className="onboarding-quiz-reveal-pending">
-                  {copy.quizRevealPending}
-                </p>
+                {!reveal ? (
+                  <p className="onboarding-quiz-reveal-pending">
+                    {revealLoading ? copy.quizRevealLoading : copy.quizRevealPending}
+                  </p>
+                ) : null}
               </div>
             ) : (
               <p className="onboarding-quiz-progress soft">

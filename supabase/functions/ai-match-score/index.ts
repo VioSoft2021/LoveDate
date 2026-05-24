@@ -28,6 +28,17 @@ type ProfileSummary = {
   religion?: string
   politics?: string
   childrenPlan?: string
+  // Tier A (2026-05-24) — Big Five + Attachment data when the user has
+  // taken the new assessment. Optional because beta users without the
+  // new quiz still need to score.
+  bigFive?: {
+    openness: number
+    conscientiousness: number
+    extraversion: number
+    agreeableness: number
+    neuroticism: number
+  }
+  attachmentStyle?: 'secure' | 'anxious' | 'avoidant' | 'disorganized'
 }
 
 type RequestBody = {
@@ -51,6 +62,19 @@ const corsHeaders = {
 }
 
 const profileBlock = (label: string, p: ProfileSummary) => {
+  // Tier A personality block. Surface Big Five + Attachment when present
+  // so Claude can write reasons like "secure-secure pairing offsets her
+  // mild extraversion gap" instead of pretending the data doesn't exist.
+  const personalityBits: string[] = []
+  if (p.bigFive) {
+    personalityBits.push(
+      `Big Five (0..100): O=${Math.round(p.bigFive.openness)} C=${Math.round(p.bigFive.conscientiousness)} E=${Math.round(p.bigFive.extraversion)} A=${Math.round(p.bigFive.agreeableness)} S=${Math.round(100 - p.bigFive.neuroticism)} (Emotional Stability)`,
+    )
+  }
+  if (p.attachmentStyle) {
+    personalityBits.push(`attachment: ${p.attachmentStyle}`)
+  }
+
   const parts = [
     `${label}: ${p.name}`,
     p.age ? `age ${p.age}` : null,
@@ -67,6 +91,7 @@ const profileBlock = (label: string, p: ProfileSummary) => {
     p.childrenPlan ? `children: ${p.childrenPlan}` : null,
     p.interests?.length ? `interests: ${p.interests.slice(0, 10).join(', ')}` : null,
     p.bio?.trim() ? `bio: "${p.bio.trim().slice(0, 500)}"` : null,
+    ...personalityBits,
   ]
     .filter(Boolean)
     .join('; ')
@@ -96,6 +121,13 @@ Rules:
 - redFlags: 0..3 entries. Only include real, concrete mismatches such as: age gap > 15 years, opposing relationship goals (one wants casual, the other long-term), opposing children plans, irreconcilable lifestyle (one strict vegetarian + one vocal hunter, etc.). Do NOT include speculative flags. An empty array is the correct answer when there are no real mismatches.
 - frictionPoints: 0..3 entries. SOFT predicted tensions — NOT dealbreakers. Different paces, communication-style differences, hobby-time conflicts, energy mismatches, city-vs-distance issues, intensity differences. These should be REAL frictions you can point to in the profiles, not made up. An empty array is the correct answer when both profiles look frictionless.
 - tips: 0..3 entries. Each is one short sentence the Viewer can act on in the first few messages or first date — grounded in the actual profiles. Examples: "ask about her weeknight rhythm before suggesting late plans"; "share your work-travel pattern upfront so it doesn't surprise her"; "her bio mentions hiking — propose a daytime walk for date #1, not a club". NEVER write generic platitudes ("be yourself", "be authentic").
+- When BOTH profiles include Big Five scores (O, C, E, A, S) and attachment style, USE those signals in your reasoning. They are validated psychometric data (BFI-10 + Bartholomew RQ), not vibes. Mention them by their plain-language meaning, not the letters:
+  - High Openness (>70) = curious, novelty-seeking; low (<30) = prefers familiar.
+  - High Conscientiousness (>70) = organised, planner; low (<30) = spontaneous.
+  - High Extraversion (>70) = energised by people; low (<30) = recharges in quiet.
+  - High Agreeableness (>70) = warm, cooperative; low (<30) = direct, competitive.
+  - High Emotional Stability (>70) = calm under stress; low (<30) = feels stress intensely.
+  - Attachment: secure×secure is the strongest dyad; anxious×avoidant is the most-studied painful pairing; a secure partner stabilises any insecure style.
 - Output JSON only matching the supplied schema. No prose.`
 
   if (language === 'ro') {

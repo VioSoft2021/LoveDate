@@ -224,6 +224,8 @@ export const useMatchScoring = ({
           religion: selfProfile.religion,
           politics: selfProfile.politics,
           childrenPlan: selfProfile.childrenPlan,
+          bigFive: selfProfile.lovePersonality?.bigFive,
+          attachmentStyle: selfProfile.lovePersonality?.attachment,
         },
         candidateProfile: {
           id: profile.id,
@@ -235,6 +237,8 @@ export const useMatchScoring = ({
           interests: profile.interests,
           relationshipGoal: profile.relationshipGoal,
           zodiac: profile.zodiac,
+          bigFive: profile.bigFive,
+          attachmentStyle: profile.attachmentStyle,
         },
         language: appLanguage,
         viewerPreference: aiPreferencePrompt,

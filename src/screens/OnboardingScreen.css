@@ -389,6 +389,71 @@
   font-size: 0.85rem;
 }
 
+/* Claude reveal (Tier A Phase 3) — the cinematic moment after the user
+   completes the 14 items. Sits inside .onboarding-quiz-result, above
+   the Big Five bars. */
+.onboarding-quiz-reveal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(216, 184, 109, 0.22);
+}
+.onboarding-quiz-reveal-archetype {
+  margin: 0;
+  text-align: center;
+  font-family: 'Bodoni Moda', 'Cormorant Garamond', serif;
+  font-size: 1.85rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: #f4dca8;
+  line-height: 1.15;
+}
+.onboarding-quiz-reveal-headline {
+  margin: 0 0 0.5rem;
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  color: rgba(244, 220, 168, 0.95);
+}
+.onboarding-quiz-reveal-paragraph {
+  margin: 0;
+  font-size: 0.93rem;
+  line-height: 1.55;
+  color: rgba(232, 242, 255, 0.9);
+}
+.onboarding-quiz-reveal-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+.onboarding-quiz-reveal-chips-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.7);
+}
+.onboarding-quiz-reveal-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.onboarding-quiz-reveal-chip {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+  color: #1a1a2c;
+  background: linear-gradient(105deg, #cfad61, #e8c679);
+  border-radius: 999px;
+}
+.onboarding-quiz-reveal-chip.is-soft {
+  color: rgba(244, 220, 168, 0.95);
+  background: rgba(207, 173, 97, 0.16);
+  border: 1px solid rgba(216, 184, 109, 0.4);
+}
+
 /* Quiz "Skip for now" link — quiet italic ghost so it doesn't
    compete with the primary Continue CTA in the footer. */
 .onboarding-quiz-skip {
