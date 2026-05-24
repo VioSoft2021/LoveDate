@@ -5214,7 +5214,11 @@ details.profile-settings.settings-card[open] > summary {
 
 /* Landing hero — wordmark must dominate. Overrides .ld-logo--lg's
    1.95rem so PRIVÉ is the visual anchor, larger than the tagline +
-   the gold Request Access button below it. Slogan scales with it. */
+   the gold Request Access button below it. Slogan scales with it.
+   The É accent stroke is tightened at this scale: at 4.6rem the
+   default 175% width + 0.42em top offset extends so far it visually
+   collides with sibling content above — pulled in to 95% width and
+   sat closer to the letter so the accent reads as part of the É. */
 .login-hero-logo {
   margin-bottom: 0.25rem;
 }
@@ -5226,6 +5230,12 @@ details.profile-settings.settings-card[open] > summary {
 .login-hero-logo .ld-logo-slogan {
   font-size: clamp(0.72rem, 1.4vw, 0.88rem);
   letter-spacing: 0.36em;
+}
+.login-hero-logo .ld-logo-text-e::before {
+  top: -0.28em;
+  left: -2%;
+  width: 104%;
+  height: 0.06em;
 }
 
 .logo-system-panel {

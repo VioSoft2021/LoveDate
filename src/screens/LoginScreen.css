@@ -10,22 +10,25 @@
    and wins the cascade for the .login-hero-* selectors.
    =========================================================== */
 
-/* ── Shared ambient backdrop ────────────────────────────── */
+/* ── Shared ambient backdrop ──────────────────────────────
+   Deeper navy at the edges, lit from above by a stronger gold
+   bloom. The page should feel like a candlelit room — not flat
+   text on a flat dark surface. */
 .login-shell--hero {
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(216, 184, 109, 0.14) 0%, transparent 55%),
-    radial-gradient(ellipse at 50% 100%, rgba(216, 184, 109, 0.07) 0%, transparent 50%),
-    linear-gradient(180deg, #0a0e27 0%, #101430 50%, #0a0e27 100%);
+    radial-gradient(ellipse 80% 55% at 50% 30%, rgba(244, 220, 168, 0.16) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 100%, rgba(216, 184, 109, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #060a1f 0%, #0e1234 45%, #060a1f 100%);
 }
 
-/* Soft gold glow behind the wordmark — matches the film's
-   ambient-particle vibe without animating per-particle. */
+/* Atmospheric foreground bloom — softens the area immediately
+   behind the wordmark + tagline so they read as lit, not pasted on. */
 .login-hero-ambient {
   position: fixed;
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 60% 40% at 50% 38%, rgba(244, 220, 168, 0.10) 0%, transparent 70%);
+    radial-gradient(ellipse 55% 38% at 50% 42%, rgba(244, 220, 168, 0.18) 0%, transparent 65%);
 }
 
 /* ── Hero card ──────────────────────────────────────────── */
@@ -96,16 +99,19 @@
 }
 
 .login-hero-cta--primary {
-  background: linear-gradient(105deg, #cfad61 0%, #e8c679 50%, #f4dca8 100%);
+  /* Softer, more candlelit gold — less LED, more brushed. The previous
+     glow was too "click here" for a luxury invitation; this reads as
+     an envelope, not a CTA. */
+  background: linear-gradient(105deg, #c19a4f 0%, #d6b574 50%, #e0c082 100%);
   color: #1a1a2c;
-  border-color: rgba(216, 184, 109, 0.9);
-  box-shadow: 0 8px 22px rgba(216, 184, 109, 0.32);
+  border-color: rgba(216, 184, 109, 0.55);
+  box-shadow: 0 6px 18px rgba(8, 12, 30, 0.45);
   font-weight: 600;
 }
 .login-hero-cta--primary:hover {
-  filter: brightness(1.06);
+  filter: brightness(1.08);
   transform: translateY(-1px);
-  box-shadow: 0 10px 28px rgba(216, 184, 109, 0.45);
+  box-shadow: 0 8px 22px rgba(216, 184, 109, 0.3);
 }
 .login-hero-cta--primary:active {
   transform: translateY(0);

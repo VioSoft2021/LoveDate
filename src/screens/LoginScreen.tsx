@@ -151,7 +151,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         <div className="grain" aria-hidden="true" />
         <div className="login-hero-ambient" aria-hidden="true" />
         <article className="login-hero-card">
-          <p className="login-hero-eyebrow">{copy.auth.heroEyebrow}</p>
           <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
           <p className="login-hero-tagline">{copy.auth.heroTagline}</p>
 
