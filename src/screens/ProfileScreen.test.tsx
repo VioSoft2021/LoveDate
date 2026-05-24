@@ -108,6 +108,8 @@ const buildProps = (overrides: Partial<ProfileScreenProps> = {}): ProfileScreenP
     handleStudioPointerMove: vi.fn(),
     handleStudioPointerUp: vi.fn(),
     onOpenPersonalityGuide: vi.fn(),
+    onOpenLovePersonality: vi.fn(),
+    onOpenLovePersonalityQuiz: vi.fn(),
     onOpenSettings: vi.fn(),
     ...overrides,
   }

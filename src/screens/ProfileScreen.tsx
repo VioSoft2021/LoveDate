@@ -77,6 +77,8 @@ export type ProfileScreenProps = {
   handleStudioPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void
   handleStudioPointerUp: (event: React.PointerEvent<HTMLDivElement>) => void
   onOpenPersonalityGuide: () => void
+  onOpenLovePersonality: () => void
+  onOpenLovePersonalityQuiz: () => void
   onOpenSettings: () => void
 }
 
@@ -113,6 +115,8 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
   handleStudioPointerMove,
   handleStudioPointerUp,
   onOpenPersonalityGuide,
+  onOpenLovePersonality,
+  onOpenLovePersonalityQuiz,
   onOpenSettings,
 }) => {
   const copy = UI_TEXT[appLanguage]
@@ -306,23 +310,59 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
             {translateRelationshipIntent(selfProfile.lookingFor, appLanguage)}
           </p>
           {selfLovePersonality?.reveal ? (
-            <>
-              <p className="compatibility-score">
-                {copy.profile.lovePersonalityTitle ?? 'Love Personality'}:{' '}
+            <button
+              type="button"
+              className="love-personality-preview-card"
+              onClick={onOpenLovePersonality}
+              aria-label={copy.profile.lovePersonalityOpenAria ?? 'Open Love Personality'}
+            >
+              <span className="love-personality-preview-eyebrow">
+                {copy.profile.lovePersonalityTitle ?? 'Love Personality'}
+              </span>
+              <span className="love-personality-preview-archetype">
                 {selfLovePersonality.reveal.archetypeName}
-              </p>
-              <p className="soft">{selfLovePersonality.reveal.headline}</p>
-            </>
+              </span>
+              <span className="love-personality-preview-headline">
+                {selfLovePersonality.reveal.headline}
+              </span>
+              <span className="love-personality-preview-cta">
+                {copy.profile.lovePersonalityOpenCta ?? 'Open your Love Personality →'}
+              </span>
+            </button>
           ) : selfLovePersonality ? (
-            <p className="soft">
-              {copy.profile.lovePersonalityAwaitingReveal ??
-                'Your Love Personality is being prepared…'}
-            </p>
+            <button
+              type="button"
+              className="love-personality-preview-card is-pending"
+              onClick={onOpenLovePersonality}
+            >
+              <span className="love-personality-preview-eyebrow">
+                {copy.profile.lovePersonalityTitle ?? 'Love Personality'}
+              </span>
+              <span className="love-personality-preview-headline">
+                {copy.profile.lovePersonalityAwaitingReveal ??
+                  'Your Love Personality is being prepared…'}
+              </span>
+              <span className="love-personality-preview-cta">
+                {copy.profile.lovePersonalityOpenCta ?? 'Open your Love Personality →'}
+              </span>
+            </button>
           ) : (
-            <p className="soft">
-              {copy.profile.lovePersonalityNotTaken ??
-                'Take the Love Personality assessment in Onboarding to unlock smarter matching.'}
-            </p>
+            <button
+              type="button"
+              className="love-personality-preview-card is-empty"
+              onClick={onOpenLovePersonalityQuiz}
+            >
+              <span className="love-personality-preview-eyebrow">
+                {copy.profile.lovePersonalityTitle ?? 'Love Personality'}
+              </span>
+              <span className="love-personality-preview-headline">
+                {copy.profile.lovePersonalityNotTaken ??
+                  'Take the assessment to unlock smarter matching.'}
+              </span>
+              <span className="love-personality-preview-cta">
+                {copy.profile.lovePersonalityTakeCta ?? 'Take the assessment →'}
+              </span>
+            </button>
           )}
           <p className="soft">
             {copy.profile.zodiacNote}:{' '}
@@ -673,10 +713,28 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
               <p className="soft full-width">
                 {selfLovePersonality
                   ? copy.profile.lovePersonalityRetakeHint ??
-                    'Your Love Personality assessment is on file. Open the guide to see the framework or retake it from Onboarding.'
+                    'Your Love Personality assessment is on file. Retake it any time or open the framework explainer.'
                   : copy.profile.lovePersonalityNotTaken ??
-                    'Take the Love Personality assessment in Onboarding to unlock smarter matching.'}
+                    'Take the assessment to unlock smarter matching.'}
               </p>
+              <button
+                type="button"
+                className="full-width love-personality-inline-primary"
+                onClick={onOpenLovePersonalityQuiz}
+              >
+                {selfLovePersonality
+                  ? copy.profile.lovePersonalityRetakeCta ?? 'Retake the assessment'
+                  : copy.profile.lovePersonalityTakeCta ?? 'Take the assessment →'}
+              </button>
+              {selfLovePersonality ? (
+                <button
+                  type="button"
+                  className="ghost full-width personality-guide-open"
+                  onClick={onOpenLovePersonality}
+                >
+                  {copy.profile.lovePersonalityOpenCta ?? 'Open your Love Personality →'}
+                </button>
+              ) : null}
               <button
                 type="button"
                 className="ghost full-width personality-guide-open"

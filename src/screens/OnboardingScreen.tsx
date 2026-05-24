@@ -7,19 +7,19 @@ import {
   translateRelationshipIntent,
 } from '../constants'
 import {
-  getPersonalityQuestions,
-  lovePersonalityFromAnswers,
-  BIG_FIVE_QUESTION_COUNT,
   PERSONALITY_QUESTION_COUNT,
   type LikertAnswer,
+  type LovePersonality,
 } from '../services/compatibility'
 import { detectMyLocation, isLocationError } from '../services/geolocation'
 import { backendUploadProfilePhoto } from '../services/backendApi'
 import { backendInvokeProfileWriter } from '../services/ai/profileWriter'
-import { backendInvokeLovePersonalityReveal } from '../services/ai/lovePersonalityReveal'
 import { Logo } from '../components/Logo'
+import {
+  LovePersonalityQuiz,
+  type LovePersonalityQuizSnapshot,
+} from '../components/LovePersonalityQuiz'
 import type { AppLanguage, SelfProfile } from '../domain'
-import type { LovePersonalityReveal } from '../services/compatibility'
 import './OnboardingScreen.css'
 
 // Onboarding wizard — 6 sequential steps that take a freshly-registered
@@ -84,29 +84,15 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const [city, setCity] = React.useState(selfProfile.city)
   const [hometown, setHometown] = React.useState(selfProfile.hometown)
   const [photos, setPhotos] = React.useState<string[]>(selfProfile.photos ?? [])
-  // Tier A — 14 Likert answers (1-5). undefined slots = not yet answered;
-  // the user can advance with partial answers by hitting Skip, in which
-  // case the array stays sparse and lovePersonalityFromAnswers returns null.
-  const [quizAnswers, setQuizAnswers] = React.useState<Array<LikertAnswer | undefined>>(
-    () => {
-      const initial: Array<LikertAnswer | undefined> = Array(PERSONALITY_QUESTION_COUNT).fill(undefined)
-      const existing = selfProfile.personalityAnswers
-      if (existing && existing.length === PERSONALITY_QUESTION_COUNT) {
-        for (let i = 0; i < PERSONALITY_QUESTION_COUNT; i += 1) {
-          initial[i] = existing[i]
-        }
-      }
-      return initial
-    },
-  )
+  // Quiz snapshot is owned by the embedded LovePersonalityQuiz component;
+  // we just mirror its latest snapshot so finish() can commit it.
+  const [quizSnapshot, setQuizSnapshot] = React.useState<LovePersonalityQuizSnapshot>({
+    answers: Array(PERSONALITY_QUESTION_COUNT).fill(undefined) as Array<LikertAnswer | undefined>,
+    completed: false,
+    lovePersonality: null,
+    reveal: selfProfile.lovePersonality?.reveal ?? null,
+  })
   const [bio, setBio] = React.useState(selfProfile.bio)
-
-  // Tier A Phase 3 — Claude reveal fires once the user has answered all 14
-  // items. Cached client-side; retake invalidates the cache automatically.
-  const [reveal, setReveal] = React.useState<LovePersonalityReveal | null>(
-    selfProfile.lovePersonality?.reveal ?? null,
-  )
-  const [revealLoading, setRevealLoading] = React.useState(false)
 
   // ── Photo upload ─────────────────────────────────────────────────
   const fileInputRef = React.useRef<HTMLInputElement | null>(null)
@@ -222,21 +208,13 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   // Commit the wizard's draft into the real selfProfile state. The
   // App's existing sync effect picks this up and saves to the cloud.
   const finish = () => {
-    const completeAnswers: LikertAnswer[] | undefined = quizAnswers.every(
-      (value): value is LikertAnswer => value !== undefined,
-    )
-      ? (quizAnswers as LikertAnswer[])
+    const completeAnswers: LikertAnswer[] | undefined = quizSnapshot.completed
+      ? (quizSnapshot.answers as LikertAnswer[])
       : undefined
-    const computedLovePersonality = completeAnswers
-      ? lovePersonalityFromAnswers(completeAnswers) ?? undefined
-      : undefined
-    // Attach the Claude reveal if it arrived before the user finished. If it
-    // didn't, the Profile screen will fall back to "Your Love Personality is
-    // being prepared…" until the user re-opens onboarding or we plumb a
-    // background fetch (Phase 3.5).
-    const lovePersonalityWithReveal = computedLovePersonality && reveal
-      ? { ...computedLovePersonality, reveal }
-      : computedLovePersonality
+    const lovePersonalityWithReveal: LovePersonality | undefined =
+      quizSnapshot.lovePersonality && quizSnapshot.reveal
+        ? { ...quizSnapshot.lovePersonality, reveal: quizSnapshot.reveal }
+        : quizSnapshot.lovePersonality ?? undefined
     setSelfProfile((current) => ({
       ...current,
       name: name.trim(),
@@ -252,60 +230,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
     }))
     onComplete()
   }
-
-  // Personality questions for current language
-  const quizQuestions = getPersonalityQuestions(appLanguage)
-  const completeAnswers: LikertAnswer[] | null = quizAnswers.every(
-    (value): value is LikertAnswer => value !== undefined,
-  )
-    ? (quizAnswers as LikertAnswer[])
-    : null
-  const previewLovePersonality = completeAnswers
-    ? lovePersonalityFromAnswers(completeAnswers)
-    : null
-
-  // Fire the Claude reveal as soon as all 14 answers are in. The wrapper
-  // caches by hash(bigFive + attachment + language), so changing one answer
-  // and back doesn't re-bill us and the result re-appears instantly. We
-  // skip while a request is already in flight to avoid duplicate calls.
-  React.useEffect(() => {
-    if (!previewLovePersonality) return
-    if (revealLoading) return
-    // If we already have a reveal whose generation params match the
-    // current scores, don't refetch.
-    if (
-      reveal
-      && reveal.language === appLanguage
-    ) {
-      return
-    }
-    let cancelled = false
-    setRevealLoading(true)
-    void (async () => {
-      const result = await backendInvokeLovePersonalityReveal({
-        bigFive: previewLovePersonality.bigFive,
-        attachment: previewLovePersonality.attachment,
-        attachmentRatings: previewLovePersonality.attachmentRatings,
-        language: appLanguage,
-        selfName: name.trim() || undefined,
-      })
-      if (cancelled) return
-      setReveal(result)
-      setRevealLoading(false)
-    })()
-    return () => {
-      cancelled = true
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only the answer hash + language drive refetches
-  }, [
-    appLanguage,
-    previewLovePersonality?.attachment,
-    previewLovePersonality?.bigFive.openness,
-    previewLovePersonality?.bigFive.conscientiousness,
-    previewLovePersonality?.bigFive.extraversion,
-    previewLovePersonality?.bigFive.agreeableness,
-    previewLovePersonality?.bigFive.neuroticism,
-  ])
 
   // ── Render ──────────────────────────────────────────────────────
   return (
@@ -487,153 +411,12 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         )}
 
         {step === 'quiz' && (
-          <>
-            <h1>{copy.quizTitle}</h1>
-            <p className="onboarding-quiz-subtitle">{copy.quizSubtitle}</p>
-            <p>{copy.quizBody}</p>
-            <p className="onboarding-quiz-stem">{copy.quizBigFiveStem}</p>
-            <ol className="onboarding-quiz-list">
-              {quizQuestions.map((q, idx) => (
-                <React.Fragment key={q.id}>
-                  {idx === BIG_FIVE_QUESTION_COUNT && (
-                    <li className="onboarding-quiz-section-break" aria-hidden="true">
-                      <p className="onboarding-quiz-stem">{copy.quizAttachmentStem}</p>
-                    </li>
-                  )}
-                  <li className="onboarding-quiz-item">
-                    <p className="onboarding-quiz-prompt">
-                      <span className="onboarding-quiz-number">{idx + 1}.</span> {q.prompt}
-                    </p>
-                    <div
-                      className="onboarding-likert"
-                      role="radiogroup"
-                      aria-label={q.prompt}
-                    >
-                      {([1, 2, 3, 4, 5] as const).map((value) => (
-                        <button
-                          key={value}
-                          type="button"
-                          role="radio"
-                          aria-checked={quizAnswers[idx] === value}
-                          className={
-                            quizAnswers[idx] === value
-                              ? 'onboarding-likert-cell is-active'
-                              : 'onboarding-likert-cell'
-                          }
-                          onClick={() =>
-                            setQuizAnswers((current) => {
-                              const next = [...current]
-                              next[idx] = value
-                              return next
-                            })
-                          }
-                          title={copy.quizLikertLabels[value - 1]}
-                        >
-                          <span className="onboarding-likert-value">{value}</span>
-                          <span className="onboarding-likert-cell-label">
-                            {copy.quizLikertLabels[value - 1]}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </li>
-                </React.Fragment>
-              ))}
-            </ol>
-            {previewLovePersonality ? (
-              <div className="onboarding-quiz-result">
-                <p className="onboarding-quiz-result-label">{copy.quizResultTitle}</p>
-                {reveal ? (
-                  <div className="onboarding-quiz-reveal">
-                    <p className="onboarding-quiz-reveal-archetype">{reveal.archetypeName}</p>
-                    <p className="onboarding-quiz-reveal-headline">{reveal.headline}</p>
-                    {reveal.description.split(/\n\n+/).map((paragraph, idx) => (
-                      <p key={idx} className="onboarding-quiz-reveal-paragraph">
-                        {paragraph}
-                      </p>
-                    ))}
-                    {reveal.strengths.length > 0 && (
-                      <div className="onboarding-quiz-reveal-chips">
-                        <span className="onboarding-quiz-reveal-chips-label">
-                          {copy.quizStrengthsLabel}
-                        </span>
-                        <div className="onboarding-quiz-reveal-chips-row">
-                          {reveal.strengths.map((s, idx) => (
-                            <span key={idx} className="onboarding-quiz-reveal-chip">{s}</span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {reveal.growthEdges.length > 0 && (
-                      <div className="onboarding-quiz-reveal-chips">
-                        <span className="onboarding-quiz-reveal-chips-label">
-                          {copy.quizGrowthEdgesLabel}
-                        </span>
-                        <div className="onboarding-quiz-reveal-chips-row">
-                          {reveal.growthEdges.map((s, idx) => (
-                            <span key={idx} className="onboarding-quiz-reveal-chip is-soft">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : null}
-                <ul className="onboarding-quiz-bigfive">
-                  {(
-                    [
-                      ['openness', copy.quizDimensionOpenness, previewLovePersonality.bigFive.openness],
-                      ['conscientiousness', copy.quizDimensionConscientiousness, previewLovePersonality.bigFive.conscientiousness],
-                      ['extraversion', copy.quizDimensionExtraversion, previewLovePersonality.bigFive.extraversion],
-                      ['agreeableness', copy.quizDimensionAgreeableness, previewLovePersonality.bigFive.agreeableness],
-                      ['emotionalStability', copy.quizDimensionEmotionalStability, 100 - previewLovePersonality.bigFive.neuroticism],
-                    ] as const
-                  ).map(([key, label, value]) => (
-                    <li key={key} className="onboarding-quiz-bigfive-row">
-                      <span className="onboarding-quiz-bigfive-label">{label}</span>
-                      <span className="onboarding-quiz-bigfive-bar" aria-hidden="true">
-                        <span
-                          className="onboarding-quiz-bigfive-fill"
-                          style={{ width: `${Math.round(value)}%` }}
-                        />
-                      </span>
-                      <span className="onboarding-quiz-bigfive-value">{Math.round(value)}%</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="onboarding-quiz-attachment">
-                  <strong>{copy.quizAttachmentResultLabel}:</strong>{' '}
-                  {copy.quizAttachmentLabels[previewLovePersonality.attachment]}
-                </p>
-                {!reveal ? (
-                  <p className="onboarding-quiz-reveal-pending">
-                    {revealLoading ? copy.quizRevealLoading : copy.quizRevealPending}
-                  </p>
-                ) : null}
-              </div>
-            ) : (
-              <p className="onboarding-quiz-progress soft">
-                {t(copy.quizProgress, {
-                  n: quizAnswers.filter((v) => v !== undefined).length,
-                  total: PERSONALITY_QUESTION_COUNT,
-                })}
-              </p>
-            )}
-            {/* Skip remains while users explore — empty answers means no
-                lovePersonality is stored, and the profile prompts them to
-                take it from the Profile screen later. */}
-            <button
-              type="button"
-              className="onboarding-quiz-skip"
-              onClick={() => {
-                setQuizAnswers(Array(PERSONALITY_QUESTION_COUNT).fill(undefined))
-                advance()
-              }}
-            >
-              {copy.quizSkipForNow}
-            </button>
-          </>
+          <LovePersonalityQuiz
+            appLanguage={appLanguage}
+            selfName={name}
+            onChange={setQuizSnapshot}
+            onSkip={advance}
+          />
         )}
 
         {step === 'bio' && (

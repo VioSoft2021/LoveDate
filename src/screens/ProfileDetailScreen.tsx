@@ -136,6 +136,13 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
               : `${selectedDetailProfile.distanceKm} km`
           })()}
         </p>
+        {attachmentLabel ? (
+          <p className="profile-detail-chips-row">
+            <span className="profile-detail-attachment-chip" title={copy.profile.attachmentStyleLabel}>
+              {attachmentLabel}
+            </span>
+          </p>
+        ) : null}
         <p>
           {copy.profile.zodiac}: {selectedDetailProfile.zodiac}{' '}
           {ZODIAC_EMOJI[selectedDetailProfile.zodiac] ?? ''}
@@ -212,35 +219,29 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
           </section>
         ) : null}
         {selectedDetailBigFive ? (
-          <section className="match-insights">
+          <section className="match-insights profile-detail-bigfive-card">
             <h3>{copy.profile.lovePersonalityTitle ?? 'Love Personality'}</h3>
-            <ul>
-              <li>
-                <strong>{copy.profile.openness ?? 'Openness'}:</strong>{' '}
-                {Math.round(selectedDetailBigFive.openness)}%
-              </li>
-              <li>
-                <strong>{copy.profile.conscientiousness ?? 'Conscientiousness'}:</strong>{' '}
-                {Math.round(selectedDetailBigFive.conscientiousness)}%
-              </li>
-              <li>
-                <strong>{copy.profile.extraversion ?? 'Extraversion'}:</strong>{' '}
-                {Math.round(selectedDetailBigFive.extraversion)}%
-              </li>
-              <li>
-                <strong>{copy.profile.agreeableness ?? 'Agreeableness'}:</strong>{' '}
-                {Math.round(selectedDetailBigFive.agreeableness)}%
-              </li>
-              <li>
-                <strong>{copy.profile.emotionalStability ?? 'Emotional Stability'}:</strong>{' '}
-                {Math.round(100 - selectedDetailBigFive.neuroticism)}%
-              </li>
-              {attachmentLabel ? (
-                <li>
-                  <strong>{copy.profile.attachmentStyleLabel ?? 'Attachment style'}:</strong>{' '}
-                  {attachmentLabel}
+            <ul className="profile-detail-bigfive-bars">
+              {(
+                [
+                  ['openness', copy.profile.openness ?? 'Openness', selectedDetailBigFive.openness],
+                  ['conscientiousness', copy.profile.conscientiousness ?? 'Conscientiousness', selectedDetailBigFive.conscientiousness],
+                  ['extraversion', copy.profile.extraversion ?? 'Extraversion', selectedDetailBigFive.extraversion],
+                  ['agreeableness', copy.profile.agreeableness ?? 'Agreeableness', selectedDetailBigFive.agreeableness],
+                  ['emotionalStability', copy.profile.emotionalStability ?? 'Emotional Stability', 100 - selectedDetailBigFive.neuroticism],
+                ] as const
+              ).map(([key, label, value]) => (
+                <li key={key} className="profile-detail-bigfive-row">
+                  <span className="profile-detail-bigfive-label">{label}</span>
+                  <span className="profile-detail-bigfive-bar" aria-hidden="true">
+                    <span
+                      className="profile-detail-bigfive-fill"
+                      style={{ width: `${Math.round(value)}%` }}
+                    />
+                  </span>
+                  <span className="profile-detail-bigfive-value">{Math.round(value)}%</span>
                 </li>
-              ) : null}
+              ))}
             </ul>
           </section>
         ) : null}

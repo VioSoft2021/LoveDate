@@ -46,6 +46,8 @@ import { LoginScreen } from './screens/LoginScreen'
 import { ModerationScreen } from './screens/ModerationScreen'
 import { OnboardingScreen } from './screens/OnboardingScreen'
 import { PersonalityGuideScreen } from './screens/PersonalityGuideScreen'
+import { LovePersonalityScreen } from './screens/LovePersonalityScreen'
+import { LovePersonalityQuizScreen } from './screens/LovePersonalityQuizScreen'
 import { ProfileDetailScreen } from './screens/ProfileDetailScreen'
 import { ProfileScreen } from './screens/ProfileScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
@@ -2955,6 +2957,8 @@ function App() {
             handleStudioPointerMove={handleStudioPointerMove}
             handleStudioPointerUp={handleStudioPointerUp}
             onOpenPersonalityGuide={() => navigate('personality-guide')}
+            onOpenLovePersonality={() => navigate('love-personality')}
+            onOpenLovePersonalityQuiz={() => navigate('love-personality-quiz')}
             onOpenSettings={() => navigate('settings')}
           />
         )}
@@ -2964,6 +2968,26 @@ function App() {
             appLanguage={appLanguage}
             selfLovePersonality={selfLovePersonality}
             onBackToProfile={() => navigate('profile')}
+          />
+        )}
+
+        {screen === 'love-personality' && (
+          <LovePersonalityScreen
+            appLanguage={appLanguage}
+            selfLovePersonality={selfLovePersonality}
+            onRetake={() => navigate('love-personality-quiz')}
+            onSeeScience={() => navigate('personality-guide')}
+            onBackToProfile={() => navigate('profile')}
+          />
+        )}
+
+        {screen === 'love-personality-quiz' && (
+          <LovePersonalityQuizScreen
+            appLanguage={appLanguage}
+            selfProfile={selfProfile}
+            setSelfProfile={setSelfProfile}
+            onSaved={() => navigate('love-personality')}
+            onCancel={() => navigate('love-personality')}
           />
         )}
 

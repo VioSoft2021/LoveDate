@@ -8,6 +8,8 @@ export type AppScreen =
   | 'circles'
   | 'chats'
   | 'profile'
+  | 'love-personality'
+  | 'love-personality-quiz'
   | 'personality-guide'
   | 'settings'
   | 'moderation'
