@@ -2765,19 +2765,27 @@ function App() {
       <UpdateBanner />
       <BuildChip />
       <div className="grain" aria-hidden="true" />
-      <TopBar
-        navItems={navItems}
-        currentScreen={screen}
-        onNavigate={navigate}
-        exitToLoginLabel={copy.common.exitToLogin}
-        exitAppLabel={copy.a11y.exitApp}
-        onSignOut={handleSignOut}
-        showExitAppButton={
-          Capacitor.isNativePlatform() ||
-          (typeof navigator !== 'undefined' && navigator.userAgent.includes('Electron'))
-        }
-        onExitApp={handleExitApp}
-      />
+      {/* TopBar hides during full-screen takeover moments — onboarding,
+          the Love Personality destination, and the retake quiz. Each of
+          those screens owns its own header chrome so the global nav
+          doesn't compete with the cinematic moment. */}
+      {screen !== 'onboarding'
+        && screen !== 'love-personality'
+        && screen !== 'love-personality-quiz' && (
+        <TopBar
+          navItems={navItems}
+          currentScreen={screen}
+          onNavigate={navigate}
+          exitToLoginLabel={copy.common.exitToLogin}
+          exitAppLabel={copy.a11y.exitApp}
+          onSignOut={handleSignOut}
+          showExitAppButton={
+            Capacitor.isNativePlatform() ||
+            (typeof navigator !== 'undefined' && navigator.userAgent.includes('Electron'))
+          }
+          onExitApp={handleExitApp}
+        />
+      )}
       <section className={`screen-panel ${screen === 'discover' ? 'screen-panel--discover' : ''}`} aria-live="polite">
         {screen === 'filters' && (
           <section className="filter-screen-wrap">

@@ -2,7 +2,6 @@ import React from 'react'
 import { UI_TEXT } from '../constants'
 import type { AppLanguage } from '../domain'
 import type { LovePersonality, AttachmentStyle } from '../services/compatibility'
-import { Logo } from '../components/Logo'
 import './LovePersonalityScreen.css'
 
 // Destination screen for the user's own Love Personality reveal.
@@ -46,12 +45,15 @@ export const LovePersonalityScreen: React.FC<LovePersonalityScreenProps> = ({
     // User hasn't taken the assessment yet — show CTA hero.
     return (
       <main className="love-personality-shell">
-        <header className="love-personality-head">
-          <button type="button" className="ghost love-personality-back" onClick={onBackToProfile}>
-            {'←'} {copy.profile.backToProfile}
-          </button>
-          <Logo variant="compact" size="sm" />
-        </header>
+        <button
+          type="button"
+          className="love-personality-close"
+          onClick={onBackToProfile}
+          aria-label={copy.profile.backToProfile}
+          title={copy.profile.backToProfile}
+        >
+          ×
+        </button>
         <section className="love-personality-empty">
           <h1>{onboardingCopy.quizTitle}</h1>
           <p className="love-personality-empty-subtitle">{onboardingCopy.quizSubtitle}</p>
@@ -74,12 +76,15 @@ export const LovePersonalityScreen: React.FC<LovePersonalityScreenProps> = ({
 
   return (
     <main className="love-personality-shell">
-      <header className="love-personality-head">
-        <button type="button" className="ghost love-personality-back" onClick={onBackToProfile}>
-          {'←'} {copy.profile.backToProfile}
-        </button>
-        <Logo variant="compact" size="sm" />
-      </header>
+      <button
+        type="button"
+        className="love-personality-close"
+        onClick={onBackToProfile}
+        aria-label={copy.profile.backToProfile}
+        title={copy.profile.backToProfile}
+      >
+        ×
+      </button>
 
       <section className="love-personality-hero">
         {reveal ? (

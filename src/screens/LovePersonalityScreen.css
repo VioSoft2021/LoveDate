@@ -2,9 +2,11 @@
    layout. Reuses the gold-on-navy palette from OnboardingScreen. */
 
 .love-personality-shell {
+  position: relative;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   background: linear-gradient(
     180deg,
     var(--prive-navy-deep) 0%,
@@ -16,26 +18,35 @@
   box-sizing: border-box;
 }
 
-.love-personality-head {
+/* Discreet × pill, top-right. Replaces the old chunky "Cancel" button
+   so the cinematic moment owns the viewport without competing chrome. */
+.love-personality-close {
+  position: absolute;
+  top: max(0.9rem, env(safe-area-inset-top));
+  right: max(0.9rem, env(safe-area-inset-right));
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.4rem;
-}
-.love-personality-back {
-  font-size: 0.85rem;
-  padding: 0.4rem 0.8rem;
-  border: 1px solid rgba(216, 230, 250, 0.18);
-  border-radius: 0.6rem;
-  background: transparent;
-  color: rgba(216, 230, 250, 0.78);
+  justify-content: center;
+  font-family: inherit;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: rgba(244, 220, 168, 0.85);
+  background: rgba(8, 12, 30, 0.55);
+  border: 1px solid rgba(216, 184, 109, 0.32);
+  border-radius: 999px;
   cursor: pointer;
-  transition: all 140ms;
+  transition: all 160ms ease;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
-.love-personality-back:hover {
-  border-color: rgba(216, 184, 109, 0.5);
+.love-personality-close:hover {
+  border-color: rgba(216, 184, 109, 0.78);
   color: #f0d99b;
+  transform: rotate(90deg);
 }
 
 /* ── Hero (reveal) ────────────────────────────────────────────────── */

@@ -8,7 +8,6 @@ import {
   LovePersonalityQuiz,
   type LovePersonalityQuizSnapshot,
 } from '../components/LovePersonalityQuiz'
-import { Logo } from '../components/Logo'
 import './LovePersonalityScreen.css'
 
 // Standalone host for the LovePersonalityQuiz component — used for the
@@ -60,12 +59,15 @@ export const LovePersonalityQuizScreen: React.FC<LovePersonalityQuizScreenProps>
 
   return (
     <main className="love-personality-shell">
-      <header className="love-personality-head">
-        <button type="button" className="ghost love-personality-back" onClick={onCancel}>
-          {'×'} {ro ? 'Anulează' : 'Cancel'}
-        </button>
-        <Logo variant="compact" size="sm" />
-      </header>
+      <button
+        type="button"
+        className="love-personality-close"
+        onClick={onCancel}
+        aria-label={ro ? 'Anulează' : 'Cancel'}
+        title={ro ? 'Anulează' : 'Cancel'}
+      >
+        ×
+      </button>
 
       <section className="love-personality-quiz-section">
         <LovePersonalityQuiz
