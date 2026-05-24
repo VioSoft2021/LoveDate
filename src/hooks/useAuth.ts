@@ -89,9 +89,14 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
         }
       }
 
-      const inviteValidation = runtimeConfig.auth.requireInviteCode
-        ? backendValidateInviteCode(inviteCode.trim())
-        : Promise.resolve()
+      // Invite codes gate account CREATION only. Existing users already
+      // redeemed their code when they registered — making them re-enter it
+      // on every sign-in is a regression. (Guest sign-in still requires it
+      // below, because that path effectively mints a new disposable user.)
+      const inviteValidation =
+        runtimeConfig.auth.requireInviteCode && authMode === 'register'
+          ? backendValidateInviteCode(inviteCode.trim())
+          : Promise.resolve()
 
       void inviteValidation
         .then(() =>
