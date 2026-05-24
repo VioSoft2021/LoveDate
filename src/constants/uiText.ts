@@ -29,10 +29,16 @@ export const UI_TEXT = {
       english: 'English',
       romanian: 'Romanian',
       // Phase A — hero landing state (matches welcome video CTA)
-      heroEyebrow: 'Coming soon',
+      // 2026-05-24 — rebalanced: "Coming soon" was lying (app is live for
+      // invited users); "I have an invite code" was visually equal to the
+      // primary Request Access CTA, causing decision paralysis. Now:
+      // eyebrow = invitation framing, tagline is the brand promise (largest),
+      // Request Access is the only chunky button, invite-code path is a quiet
+      // link beneath it.
+      heroEyebrow: 'By invitation',
       heroTagline: 'the future of how you\'ll meet someone',
       heroRequestAccess: 'Request access',
-      heroHaveInvite: 'I have an invite code',
+      heroHaveInvite: 'I have an invite code →',
       heroSignIn: 'Already have an account? Sign in',
       heroBack: '← Back',
     },
@@ -606,10 +612,11 @@ export const UI_TEXT = {
       english: 'Engleză',
       romanian: 'Română',
       // Phase A — ecranul de start (oglindă a CTA-ului din filmul de prezentare)
-      heroEyebrow: 'În curând',
+      // Rebalansat 2026-05-24 — vezi nota EN de mai sus.
+      heroEyebrow: 'Doar pe bază de invitație',
       heroTagline: 'viitorul felului în care vei cunoaște pe cineva',
       heroRequestAccess: 'Solicită acces',
-      heroHaveInvite: 'Am un cod de invitație',
+      heroHaveInvite: 'Am un cod de invitație →',
       heroSignIn: 'Ai deja un cont? Conectează-te',
       heroBack: '← Înapoi',
     },

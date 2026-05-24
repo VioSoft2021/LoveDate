@@ -57,24 +57,28 @@
 }
 
 .login-hero-tagline {
+  /* The brand promise — what convinces a stranger to stay. Sized larger
+     than the wordmark on purpose: the name only tells you what this is;
+     the tagline tells you why to care. */
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
-  font-size: clamp(1.05rem, 2.2vw, 1.4rem);
+  font-size: clamp(1.5rem, 3.2vw, 2.1rem);
   color: #f4dca8;
-  letter-spacing: 0.02em;
-  max-width: 28ch;
-  margin: 0;
-  line-height: 1.45;
+  letter-spacing: 0.015em;
+  max-width: 22ch;
+  margin: 0.6rem 0 0;
+  line-height: 1.35;
 }
 
-/* ── Hero CTAs (gold primary + ghost outline) ───────────── */
+/* ── Hero CTAs (single gold primary; invite-code is a quiet link) ── */
 .login-hero-actions {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  align-items: center;
+  gap: 0.6rem;
   width: 100%;
   max-width: 22rem;
-  margin-top: 1.6rem;
+  margin-top: 2rem;
 }
 
 .login-hero-cta {
@@ -107,15 +111,25 @@
   transform: translateY(0);
 }
 
-.login-hero-cta--ghost {
-  background: rgba(8, 12, 30, 0.55);
-  color: #f4dca8;
-  border-color: rgba(216, 184, 109, 0.45);
+/* "I have an invite code →" — quiet italic link below the primary CTA.
+   ~15% of visitors arrive with a code; they don't need a button equal
+   in weight to the new-visitor "Request access" path. */
+.login-hero-quiet {
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: rgba(244, 220, 168, 0.72);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.4rem;
+  margin-top: 0.4rem;
+  transition: color 180ms ease, transform 180ms ease;
 }
-.login-hero-cta--ghost:hover {
-  background: rgba(216, 184, 109, 0.14);
-  border-color: rgba(216, 184, 109, 0.85);
-  transform: translateY(-1px);
+.login-hero-quiet:hover {
+  color: #f4dca8;
+  transform: translateX(2px);
 }
 
 /* ── Tiny "already have an account?" link ───────────────── */

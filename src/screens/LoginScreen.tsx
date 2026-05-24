@@ -165,7 +165,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </button>
             <button
               type="button"
-              className="login-hero-cta login-hero-cta--ghost"
+              className="login-hero-quiet"
               onClick={() => goToAuth('register')}
             >
               {copy.auth.heroHaveInvite}
