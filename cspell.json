@@ -50,7 +50,11 @@
     "Configurarea", "necesara", "incorporata", "incarca", "activa",
     "Conectam", "privata", "Copiaza", "invitatia", "Activeaza",
     "microfonul", "Opreste", "Porneste", "Inchide", "Intrebare", "Reactie",
-    "Poză", "salvată", "încărca", "reîncerca", "salvare", "Ștergere", "ȘTERGE"
+    "Poză", "salvată", "încărca", "reîncerca", "salvare", "Ștergere", "ȘTERGE",
+    "extraversion", "Extraversion", "organised", "energised", "stabilises",
+    "Bartholomew", "psychometric", "Likert", "OCEAN", "neuroticism", "Neuroticism",
+    "Rammstedt", "Anthropic", "anthropic", "Sonnet",
+    "deno", "Deno"
   ],
   "ignorePaths": [
     "node_modules",

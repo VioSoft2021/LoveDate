@@ -223,8 +223,8 @@ Deno.serve(async (req: Request) => {
       },
     })
 
-    const block = response.content.find((b) => b.type === 'text')
-    const raw = block && 'text' in block ? block.text : ''
+    const block = response.content.find((b: { type: string }) => b.type === 'text')
+    const raw = block && 'text' in block ? (block as { text: string }).text : ''
     let parsed: Partial<RevealResult>
     try {
       parsed = JSON.parse(raw)
