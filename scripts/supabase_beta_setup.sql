@@ -115,6 +115,13 @@ create table if not exists public.user_preferences (
 alter table public.user_preferences
   drop column if exists include_reviewed;
 
+-- Phase B (E4 AI-First Filter, 2026-05-24) — the user's free-text preference
+-- ("looking for serious, into hiking, not into clubs") that drives the
+-- Claude semantic filter. Lives at the row level so it persists across
+-- devices the same way min_age / city already do. Empty string disables.
+alter table public.user_preferences
+  add column if not exists ai_preference_prompt text not null default '';
+
 -- chat_events table removed 2026-05-13. It logged outgoing user messages
 -- and fake bot replies for the templated backendSendChatReply path, which
 -- C3 (chat to cloud) replaced. Idempotent drop for old deployments.
