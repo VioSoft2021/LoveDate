@@ -1,4 +1,4 @@
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 
 export type SwipeDirection = 'left' | 'right'
 export type SwipeIntent = 'pass' | 'like' | 'super-like'

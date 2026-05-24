@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
 import { useMatchScoring } from './useMatchScoring'
 import type { SelfProfile } from '../domain'
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 
 // Mock the AI client so renderHook doesn't try to talk to Supabase.
 vi.mock('../services/ai/matchScore', () => ({

@@ -1,7 +1,7 @@
 import React from 'react'
 import { UI_TEXT, translateRelationshipIntent } from '../constants'
 import type { AppLanguage } from '../domain'
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 
 export type ActivityScreenProps = {
   appLanguage: AppLanguage

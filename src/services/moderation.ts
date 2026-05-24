@@ -1,4 +1,4 @@
-import type { Profile } from './loveDateApi'
+import type { Profile } from './priveApi'
 
 export type SafetyCategory =
   | 'spam'

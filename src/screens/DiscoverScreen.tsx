@@ -13,7 +13,7 @@ import type {
   SelfProfile,
   SwipeIntent,
 } from '../domain'
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 
 export type DiscoverScreenProps = {
   appLanguage: AppLanguage
@@ -73,6 +73,12 @@ export type DiscoverScreenProps = {
     body: string
     category: 'system' | 'match' | 'message' | 'safety'
   }) => void
+  // Phase B (E4) — AI semantic filter status, surfaced as a chip above the
+  // deck so the user knows their free-text prompt is actively narrowing
+  // the candidate pool (or is currently being evaluated). Optional so
+  // existing tests + any other caller don't need to pass them.
+  aiFilterStatus?: 'inactive' | 'fetching' | 'active' | 'error'
+  aiFilterPrompt?: string
 }
 
 const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
@@ -122,6 +128,8 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
   openProfileDetail,
   pushToast,
   pushNotification,
+  aiFilterStatus = 'inactive',
+  aiFilterPrompt = '',
 }) => {
   const copy = UI_TEXT[appLanguage]
   const ro = appLanguage === 'ro'
@@ -237,8 +245,66 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
     )
   }
 
+  // Phase B (E4) — AI filter chip. Surfaces when the viewer's free-text
+  // preference is actively narrowing the deck. Tap → jump to FilterScreen
+  // to edit or clear. Hidden when the filter is inactive or silently failed.
+  const aiChipVisible = aiFilterStatus === 'active' || aiFilterStatus === 'fetching'
+  const aiChipPromptDisplay =
+    aiFilterPrompt.length > 56 ? `${aiFilterPrompt.slice(0, 53)}…` : aiFilterPrompt
+
   return (
     <section className="discover-main-only discover-redesign" aria-label="Discover cards and actions">
+      {aiChipVisible && (
+        <button
+          type="button"
+          className="discover-ai-chip"
+          onClick={() => navigate('filters')}
+          aria-label={ro ? 'Editează filtrul AI' : 'Edit AI filter'}
+          style={{
+            alignSelf: 'center',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.55rem',
+            margin: '0.4rem auto 0.9rem',
+            padding: '0.45rem 0.95rem',
+            background: 'linear-gradient(105deg, rgba(207,173,97,0.18), rgba(232,198,121,0.22))',
+            border: '1px solid rgba(216,184,109,0.5)',
+            borderRadius: '999px',
+            color: '#f4dca8',
+            fontFamily: "'Cormorant Garamond', 'Bodoni Moda', serif",
+            fontStyle: 'italic',
+            fontSize: '0.92rem',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(216,184,109,0.18)',
+            maxWidth: 'min(92vw, 36rem)',
+          }}
+        >
+          <span style={{
+            fontFamily: "'Cinzel', serif",
+            fontStyle: 'normal',
+            fontSize: '0.6rem',
+            letterSpacing: '0.28em',
+            textTransform: 'uppercase',
+            color: 'rgba(244,220,168,0.88)',
+          }}>
+            {ro ? 'AI ascultă' : 'AI listening'}
+          </span>
+          <span style={{ opacity: 0.85 }}>&middot;</span>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {aiChipPromptDisplay}
+          </span>
+          <span style={{ opacity: 0.85 }}>&middot;</span>
+          <span style={{
+            fontFamily: "'Bodoni Moda', serif",
+            fontStyle: 'normal',
+            color: '#f4dca8',
+          }}>
+            {aiFilterStatus === 'fetching'
+              ? (ro ? '…' : '…')
+              : `${filteredProfiles.length} ${ro ? (filteredProfiles.length === 1 ? 'potrivire' : 'potriviri') : (filteredProfiles.length === 1 ? 'match' : 'matches')}`}
+          </span>
+        </button>
+      )}
       <section className="discover-metrics" aria-label={copy.discover.summary}>
         <div className="discover-kpis">
           <div className="discover-kpi">

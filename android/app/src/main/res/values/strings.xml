@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">LoveDate</string>
-    <string name="title_activity_main">LoveDate</string>
+    <string name="app_name">Privé</string>
+    <string name="title_activity_main">Privé</string>
     <string name="package_name">com.lovedate.app</string>
     <string name="custom_url_scheme">com.lovedate.app</string>
 </resources>

@@ -1,4 +1,6 @@
-﻿1. Install Git on the new computer.
+﻿(Note: the brand is Privé. The GitHub repo is still named "LoveDate" for URL stability — folder name and clone URL below reflect that.)
+
+1. Install Git on the new computer.
 2. Install Node.js (LTS).
 3. Install VS Code.
 4. Open terminal and run: git clone https://github.com/VioSoft2021/LoveDate.git

@@ -3,7 +3,7 @@ import { SOCIAL_PLATFORM_META, UI_TEXT } from '../constants'
 import { formatUiText } from '../utils'
 import { formatShortTime } from '../utils'
 import { canUsePassport } from '../services/planGate'
-import { PLAN_OPTIONS, type PlanTier } from '../spec/lovedateConfig'
+import { PLAN_OPTIONS, type PlanTier } from '../spec/priveConfig'
 import type { SettingsPayload } from '../services/backendApi'
 import type {
   AppLanguage,
@@ -11,7 +11,7 @@ import type {
   SelfProfile,
   SocialPlatform,
 } from '../domain'
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 import type { SafetyReport } from '../services/moderation'
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'

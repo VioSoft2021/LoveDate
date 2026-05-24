@@ -58,7 +58,7 @@
   },
   "build": {
     "appId": "com.lovedate.app",
-    "productName": "LoveDate",
+    "productName": "Privé",
     "directories": {
       "buildResources": "build",
       "output": "desktop-dist"
@@ -70,7 +70,7 @@
     ],
     "win": {
       "icon": "build/icon.ico",
-      "artifactName": "LoveDate-Setup-${version}.${ext}",
+      "artifactName": "Prive-Setup-${version}.${ext}",
       "target": [
         {
           "target": "nsis",
@@ -89,7 +89,7 @@
       "uninstallerIcon": "build/icon.ico"
     },
     "portable": {
-      "artifactName": "LoveDate-Portable-${version}.${ext}"
+      "artifactName": "Prive-Portable-${version}.${ext}"
     }
   }
 }

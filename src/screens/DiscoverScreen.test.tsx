@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { DiscoverScreen, type DiscoverScreenProps } from './DiscoverScreen'
 import type { SelfProfile } from '../domain'
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 
 const buildSelfProfile = (): SelfProfile => ({
   name: 'Alex',

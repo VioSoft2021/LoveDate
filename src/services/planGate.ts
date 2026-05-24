@@ -1,4 +1,4 @@
-import { PLAN_OPTIONS, type PlanTier } from '../spec/lovedateConfig'
+import { PLAN_OPTIONS, type PlanTier } from '../spec/priveConfig'
 
 const PLAN_STORAGE_KEY = 'lovedate:active-plan'
 

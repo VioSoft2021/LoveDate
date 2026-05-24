@@ -1,4 +1,4 @@
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 import type { PhotoStudioAnalysis, PhotoStudioControls } from '../domain'
 
 export const buildHighResImageUrl = (url: string, width = 2400, dpr = 2): string => {

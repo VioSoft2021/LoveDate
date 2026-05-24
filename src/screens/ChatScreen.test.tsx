@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeAll } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ChatScreen, type ChatScreenProps } from './ChatScreen'
 import type { ChatMessage } from '../domain'
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 
 // jsdom doesn't ship matchMedia. ChatScreen reads it on mount for the
 // phone/desktop layout split, so polyfill it to a permissive stub that

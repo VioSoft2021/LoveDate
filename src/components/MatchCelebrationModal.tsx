@@ -1,6 +1,6 @@
 import React from 'react'
 import type { AppLanguage } from '../domain'
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 
 export type MatchCelebrationModalProps = {
   match: Profile | null

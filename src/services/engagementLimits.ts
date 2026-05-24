@@ -1,5 +1,5 @@
 import { getLikeLimitPer24Hours } from './planGate'
-import { PLAN_OPTIONS, type PlanTier } from '../spec/lovedateConfig'
+import { PLAN_OPTIONS, type PlanTier } from '../spec/priveConfig'
 
 const LIKE_EVENTS_STORAGE_KEY = 'lovedate:like-events'
 const SUPER_LIKE_EVENTS_STORAGE_KEY = 'lovedate:super-like-events'

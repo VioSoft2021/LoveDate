@@ -1,4 +1,4 @@
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 import type { Filters } from '../domain'
 
 export const getProfilePhotos = (profile: Profile): string[] => profile.photos

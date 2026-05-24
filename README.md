@@ -1,6 +1,8 @@
-# LoveDate
+# Privé
 
-A Tinder-style swipe interface built with React, TypeScript, and Vite.
+> *Formerly LoveDate — rebranded 2026-05-21. Domain: prive-app.club*
+
+An invite-only, AI-first dating app built with React, TypeScript, and Vite. Match scoring powered by Claude (Anthropic) with semantic compatibility analysis, not collaborative filtering.
 
 ## Features
 
@@ -63,11 +65,11 @@ Without env values, the app uses a local fallback mode.
 ## Project Notes
 
 - Main UI logic lives in src/App.tsx
-- Data service abstraction lives in src/services/loveDateApi.ts
+- Data service abstraction lives in src/services/priveApi.ts
 - Supabase-ready backend endpoints live in src/services/backendApi.ts
 - Supabase client factory lives in src/services/supabaseClient.ts
 - Runtime feature flags live in src/services/runtimeConfig.ts
-- Tinder-equivalent app configuration lives in src/spec/lovedateConfig.ts
+- Privé app configuration lives in src/spec/priveConfig.ts
 - Typed API contracts live in src/spec/apiContracts.ts
 - Plan and feature gate helpers live in src/services/planGate.ts
 - Daily engagement limit logic lives in src/services/engagementLimits.ts

@@ -19,7 +19,7 @@ import type {
   MatchAnalysis,
   SelfProfile,
 } from '../domain'
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 
 // Phase D2.3 — useMatchScoring
 //

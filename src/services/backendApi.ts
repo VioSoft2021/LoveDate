@@ -832,6 +832,7 @@ export const backendLoadPreferences = async (): Promise<{
   maxAge: number
   city: string
   interest: string
+  aiPreferencePrompt: string
 } | undefined> => {
   if (!supabase) {
     return undefined
@@ -842,7 +843,7 @@ export const backendLoadPreferences = async (): Promise<{
   }
   const { data, error } = await supabase
     .from('user_preferences')
-    .select('min_age, max_age, city, interest')
+    .select('min_age, max_age, city, interest, ai_preference_prompt')
     .eq('user_id', userId)
     .maybeSingle()
   if (error || !data) {
@@ -857,12 +858,15 @@ export const backendLoadPreferences = async (): Promise<{
     max_age?: number | null
     city?: string | null
     interest?: string | null
+    ai_preference_prompt?: string | null
   }
   return {
     minAge: typeof row.min_age === 'number' ? row.min_age : 18,
     maxAge: typeof row.max_age === 'number' ? row.max_age : 60,
     city: typeof row.city === 'string' ? row.city : '',
     interest: typeof row.interest === 'string' ? row.interest : '',
+    aiPreferencePrompt:
+      typeof row.ai_preference_prompt === 'string' ? row.ai_preference_prompt : '',
   }
 }
 
@@ -871,6 +875,7 @@ export const backendSavePreferences = async (payload: {
   maxAge: number
   city: string
   interest: string
+  aiPreferencePrompt: string
 }): Promise<void> => {
   persistLocal(LOCAL_PREFERENCES_KEY, payload)
 
@@ -890,6 +895,7 @@ export const backendSavePreferences = async (payload: {
     max_age: payload.maxAge,
     city: payload.city,
     interest: payload.interest,
+    ai_preference_prompt: payload.aiPreferencePrompt,
     updated_at: new Date().toISOString(),
   })
 

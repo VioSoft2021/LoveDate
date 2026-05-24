@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 
 // Phase D2.5 — useUiModals
 //

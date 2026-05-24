@@ -8,7 +8,7 @@ import type {
   ChemistryInsights,
   DatePlan,
 } from '../domain'
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 
 type ChatPreview = {
   profile: Profile

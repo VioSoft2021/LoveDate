@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
 import { useUiModals } from './useUiModals'
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 
 const sampleProfile: Profile = {
   id: 42,

@@ -1,4 +1,4 @@
-import type { PlanTier } from './lovedateConfig'
+import type { PlanTier } from './priveConfig'
 
 export type ApiEnvelope<T> = {
   ok: boolean

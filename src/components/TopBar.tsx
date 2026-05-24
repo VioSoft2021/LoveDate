@@ -34,7 +34,7 @@ const SignOutIcon = () => (
   </svg>
 )
 
-// LoveDate header: logo + nav tabs + icon-only sign-out + (native-only)
+// Privé header: logo + nav tabs + icon-only sign-out + (native-only)
 // quit button. Rendered above every screen in the app shell. Extracted
 // from App.tsx; pure presentation — the parent computes navItems and
 // passes the handlers in. Visual styling lives in TopBar.css.

@@ -1,4 +1,4 @@
-/* LoveDate TopBar — refined visual pass.
+/* Privé TopBar — refined visual pass.
    Co-located with the component. Loaded after App.css via the import
    chain (App.tsx -> TopBar -> TopBar.css), so these rules override the
    older .top-bar / .bottom-nav cascade without needing !important.

@@ -1,6 +1,6 @@
 import React from 'react'
 import type { AppLanguage } from '../domain'
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 import { SAFETY_CATEGORIES, type SafetyCategory } from '../services/moderation'
 import { translateSafetyCategory } from '../constants'
 

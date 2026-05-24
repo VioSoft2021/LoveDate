@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import type { AppScreen, SwipeDirection, SwipeIntent } from '../domain'
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 
 // Phase D2.6 — useKeyboardShortcuts
 //

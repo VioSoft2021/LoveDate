@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ActivityScreen } from './ActivityScreen'
-import type { Profile } from '../services/loveDateApi'
+import type { Profile } from '../services/priveApi'
 
 // First component-level test in the repo. Validates the screen test
 // infra works end-to-end (jsdom + @testing-library/react + jest-dom

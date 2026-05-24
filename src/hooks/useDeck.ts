@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { getProfiles, type Profile } from '../services/loveDateApi'
+import { getProfiles, type Profile } from '../services/priveApi'
 import { normalizeProfilePhotos } from '../utils'
 import { initialFilters } from '../constants'
 import type { Filters, SwipeDirection, SwipeIntent } from '../domain'

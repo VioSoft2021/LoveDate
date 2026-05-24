@@ -3,9 +3,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import './App.css'
-import { getMyMatches, resolveMatch, type Profile } from './services/loveDateApi'
+import { getMyMatches, resolveMatch, type Profile } from './services/priveApi'
 import { backendInvokeDatePlanner } from './services/ai/datePlanner'
 import { backendInvokeIcebreaker } from './services/ai/icebreaker'
+import {
+  backendInvokeSemanticFilter,
+  type SemanticFilterResult,
+} from './services/ai/semanticFilter'
 import { backendInvokeSafetyTriage } from './services/ai/safetyTriage'
 import { enablePushNotifications, disablePushNotifications } from './services/push'
 import { FilterScreen } from './components/FilterScreen'
@@ -108,7 +112,7 @@ import {
   type SafetyCategory,
   type SafetyReport,
 } from './services/moderation'
-import { PLAN_OPTIONS, type PlanTier } from './spec/lovedateConfig'
+import { PLAN_OPTIONS, type PlanTier } from './spec/priveConfig'
 import type {
   AppLanguage,
   AppScreen,
@@ -1084,7 +1088,12 @@ function App() {
   // hiddenBreakdown surfaces the invisible — so the next time a friend is
   // missing from the deck, the user sees the reason inline (1 tap) instead
   // of us guessing across 4 commits. Plan: yes-start-with-a-soft-candle.md D4.
-  const { filteredProfiles, hiddenBreakdown } = useMemo(() => {
+  // Rename-on-destructure: the useMemo computes the CLIENT-filtered list
+  // (age/city/swiped/blocked/etc.). The AI semantic filter runs as a
+  // separate async pass downstream, narrowing this further when the
+  // viewer's free-text prompt is set. The final `filteredProfiles`
+  // variable consumed everywhere else in this file = AI-filtered.
+  const { filteredProfiles: clientFilteredProfiles, hiddenBreakdown } = useMemo(() => {
     const interestFilter = filters.interest.trim().toLowerCase()
     const selectedGoal = filters.relationshipGoal.toLowerCase()
 
@@ -1156,6 +1165,100 @@ function App() {
     return { filteredProfiles: sorted, hiddenBreakdown: hidden }
   }, [genderFilteredProfiles, filters, swipedIds, blockedProfileIds, getCompatibilityScore])
 
+  // ───────────────────────────────────────────────────────────────
+  // Phase B (E4) — AI-First Semantic Filter
+  //
+  // When the viewer has set a free-text preference ("into hiking,
+  // not into clubs"), call the ai-semantic-filter Edge Function with
+  // the current client-filtered deck. The model returns matches+reason
+  // per candidate; we shrink the deck to matches and surface the reason
+  // on each card. Future Phase C (pgvector) swaps the backend call
+  // without touching this state shape.
+  // ───────────────────────────────────────────────────────────────
+  const [semanticByProfileId, setSemanticByProfileId] = useState<
+    Map<number, SemanticFilterResult> | null
+  >(null)
+  const [aiFilterStatus, setAiFilterStatus] = useState<
+    'inactive' | 'fetching' | 'active' | 'error'
+  >('inactive')
+
+  // Stable hash of the candidate set so the effect doesn't re-fire on
+  // every render where the array reference changed but the IDs didn't.
+  const candidateIdsKey = useMemo(
+    () =>
+      clientFilteredProfiles
+        .slice(0, 50)
+        .map((p) => p.id)
+        .sort((a, b) => a - b)
+        .join(','),
+    [clientFilteredProfiles],
+  )
+
+  const trimmedAiPrompt = filters.aiPreferencePrompt.trim()
+
+  useEffect(() => {
+    // No prompt → clear any previous AI results, fall back to client filter.
+    if (trimmedAiPrompt.length < 5 || clientFilteredProfiles.length === 0) {
+      setSemanticByProfileId(null)
+      setAiFilterStatus('inactive')
+      return
+    }
+
+    let cancelled = false
+    setAiFilterStatus('fetching')
+
+    const candidates = clientFilteredProfiles.slice(0, 50).map((p) => ({
+      id: p.id,
+      name: p.name,
+      age: p.age,
+      city: p.city,
+      bio: p.bio,
+      interests: p.interests,
+      vibe: p.vibe,
+      relationshipGoal: p.relationshipGoal,
+    }))
+
+    void (async () => {
+      const results = await backendInvokeSemanticFilter({
+        viewerPrompt: trimmedAiPrompt,
+        candidates,
+        language: appLanguage,
+      })
+      if (cancelled) return
+      if (!results) {
+        // Graceful fallback: clear AI results, keep client-filtered deck.
+        setSemanticByProfileId(null)
+        setAiFilterStatus('error')
+        return
+      }
+      const map = new Map<number, SemanticFilterResult>()
+      for (const r of results) map.set(r.profileId, r)
+      setSemanticByProfileId(map)
+      setAiFilterStatus('active')
+    })()
+
+    return () => {
+      cancelled = true
+    }
+    // candidateIdsKey is a stable string-hash of clientFilteredProfiles ids
+    // so this effect only re-fires when the actual candidate set changes,
+    // not on every render of the parent.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trimmedAiPrompt, candidateIdsKey, appLanguage])
+
+  // Apply the semantic filter on top of the client-filtered list. Keep
+  // profiles for which the model returned matches=true OR didn't return
+  // any result (defensive — never over-filter when the model is silent).
+  const filteredProfiles = useMemo(() => {
+    if (!semanticByProfileId || semanticByProfileId.size === 0) {
+      return clientFilteredProfiles
+    }
+    return clientFilteredProfiles.filter((p) => {
+      const r = semanticByProfileId.get(p.id)
+      return !r || r.matches !== false
+    })
+  }, [clientFilteredProfiles, semanticByProfileId])
+
   // D3 — hydrate filter preferences from the cloud on auth.
   // backendSavePreferences has always written to user_preferences; this
   // is the matching read. Cloud values override the local defaults so
@@ -1183,6 +1286,9 @@ function App() {
           maxAge: cloud.maxAge,
           city: cloud.city,
           interest: cloud.interest,
+          // Phase B (E4): the viewer's free-text AI prompt now persists in
+          // the cloud too. Drives the semantic filter; survives device + domain.
+          aiPreferencePrompt: cloud.aiPreferencePrompt,
         }))
       }
       // Mark hydration complete so the next filter change triggers a save.
@@ -2778,6 +2884,8 @@ function App() {
             openProfileDetail={openProfileDetail}
             pushToast={pushToast}
             pushNotification={pushNotification}
+            aiFilterStatus={aiFilterStatus}
+            aiFilterPrompt={trimmedAiPrompt}
           />
         )}
         {screen === 'activity' && (
