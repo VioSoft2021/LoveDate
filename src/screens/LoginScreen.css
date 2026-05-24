@@ -50,20 +50,51 @@
   to { transform: scaleY(1); }
 }
 
-/* ── Hero content — centered, sparse, slow ─────────────────────── */
+/* ── Editorial mark — top-right corner ────────────────────────────
+   Tiny "Édition · 2026" anchors the empty space in the upper-right
+   quadrant. Sets the tone: this is a journal/edition, not a SaaS app.
+   Loro Piana + Aesop both use vertical / cornered tags like this. */
+.login-hero-edition {
+  position: absolute;
+  top: clamp(1.6rem, 4vh, 2.4rem);
+  right: clamp(2.4rem, 9vw, 9rem);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+  margin: 0;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.4);
+  line-height: 1;
+  animation: prive-hero-fade-in 1600ms cubic-bezier(0.22, 1, 0.36, 1) 400ms both;
+}
+.login-hero-edition span:last-child {
+  color: rgba(244, 220, 168, 0.6);
+  font-size: 0.62rem;
+  letter-spacing: 0.32em;
+}
+
+/* ── Hero content — editorial spread across full viewport ──────
+   The content is anchored to the left side (max 36rem column) and
+   distributed vertically: masthead top, tagline middle, doors bottom.
+   The right side stays empty (held by the gold rule + edition mark)
+   like the margin of a magazine page. */
 .login-hero {
   position: relative;
   z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: clamp(1.2rem, 2.5vh, 2rem);
-  max-width: 32rem;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  align-items: stretch;
+  justify-items: start;
+  text-align: left;
+  max-width: min(36rem, 50vw);
   width: 100%;
-  margin: 0 auto;
-  padding: clamp(2rem, 6vh, 4rem) 1.5rem;
+  margin: 0 auto 0 max(clamp(2rem, 8vw, 7rem), env(safe-area-inset-left));
+  padding: clamp(3rem, 8vh, 5.5rem) 0 clamp(4.5rem, 10vh, 7rem);
   min-height: 100dvh;
   box-sizing: border-box;
   animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -73,8 +104,14 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Wordmark — small + precise. Editorial scale, not display scale.
-   Reads as the masthead of a quiet magazine, not a SaaS hero. */
+.login-hero-masthead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+/* Wordmark — small + precise, top-anchored masthead. */
 .login-hero-wordmark {
   font-family: 'Bodoni Moda', 'Playfair Display', 'Cormorant Garamond', serif;
   font-weight: 900;
@@ -98,30 +135,28 @@
   margin: 0;
 }
 
-/* Tagline — italic, small, generous gap above. The whisper of a
-   tagline, not a headline. */
+/* Tagline — middle row of the grid, vertically centered.
+   Sized up a touch from v4 (was 1.25rem max) so it carries the
+   visual center of the page now that the layout is wider. */
 .login-hero-tagline {
+  align-self: center;
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
-  font-size: clamp(1.05rem, 1.8vw, 1.25rem);
-  color: rgba(244, 220, 168, 0.82);
+  font-size: clamp(1.4rem, 2.4vw, 1.85rem);
+  color: rgba(244, 220, 168, 0.9);
   letter-spacing: 0.01em;
-  max-width: 26ch;
-  margin: clamp(1.5rem, 3vh, 2.5rem) 0 0;
-  line-height: 1.5;
+  max-width: 22ch;
+  margin: 0;
+  line-height: 1.4;
   font-weight: 400;
 }
 
-/* Three "doors" — text links, no pills, no borders, no shadows.
-   Tiny Cinzel uppercase + letterspaced, gold, hover gets a thin
-   gold underline that draws from the center. Equally weighted —
-   members deserve the same respect as prospects. */
+/* Three "doors" — bottom row of the grid, left-aligned. */
 .login-hero-doors {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  margin-top: clamp(2rem, 4vh, 3rem);
+  align-items: flex-start;
+  gap: 0.9rem;
 }
 .login-hero-door {
   position: relative;
@@ -133,26 +168,27 @@
   color: rgba(244, 220, 168, 0.85);
   background: none;
   border: none;
-  padding: 0.6rem 0.4rem;
+  padding: 0.5rem 0;
   cursor: pointer;
-  transition: color 220ms ease;
+  transition: color 220ms ease, transform 220ms ease;
+  text-align: left;
 }
 .login-hero-door::after {
   content: '';
   position: absolute;
-  left: 50%;
-  bottom: 0.35rem;
+  left: 0;
+  bottom: 0.25rem;
   width: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(244, 220, 168, 0.85) 50%, transparent 100%);
-  transform: translateX(-50%);
+  background: linear-gradient(90deg, rgba(244, 220, 168, 0.95) 0%, transparent 100%);
   transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .login-hero-door:hover {
   color: #f4dca8;
+  transform: translateX(3px);
 }
 .login-hero-door:hover::after {
-  width: 80%;
+  width: 75%;
 }
 
 /* ── Footer: language picker only ───────────────────────── */
@@ -196,9 +232,35 @@
 }
 
 /* ── Narrow viewport tuning ──────────────────────────────── */
+@media (max-width: 760px) {
+  /* On narrow screens the editorial-margin layout (left-anchored
+     column with empty right column) doesn't work — the right margin
+     would swallow most of the viewport. Re-center the column. */
+  .login-hero {
+    max-width: 30rem;
+    margin: 0 auto;
+    padding: clamp(2rem, 6vh, 3.5rem) 1.5rem clamp(4rem, 9vh, 6rem);
+    justify-items: center;
+    text-align: center;
+  }
+  .login-hero-masthead { align-items: center; }
+  .login-hero-tagline { max-width: 22ch; }
+  .login-hero-doors { align-items: center; }
+  .login-hero-door { text-align: center; }
+  .login-hero-door::after {
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, transparent 0%, rgba(244, 220, 168, 0.95) 50%, transparent 100%);
+  }
+  .login-hero-door:hover::after { width: 70%; }
+  .login-hero-rule { right: 1.2rem; }
+  .login-hero-edition {
+    top: 1.2rem;
+    right: 1.2rem;
+  }
+}
 @media (max-width: 480px) {
-  .login-hero-rule { right: 1.5rem; }
-  .login-hero-doors { gap: 0.85rem; }
+  .login-hero-doors { gap: 0.75rem; }
   .login-hero-door { font-size: 0.65rem; letter-spacing: 0.36em; }
 }
 

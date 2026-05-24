@@ -153,16 +153,25 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     return (
       <main className="login-shell login-shell--hero">
         <div className="grain" aria-hidden="true" />
-
-        {/* A single thin gold rule on the right edge — a column gutter
-            from a magazine page. Draws itself slowly on mount, then
-            breathes very softly. Replaces the particles + heart that
-            were 'too aggressive'. */}
         <span className="login-hero-rule" aria-hidden="true" />
 
+        {/* Editorial mark in the top-right corner — issue number style.
+            Anchors the negative space + sets the tone (this is a journal,
+            an edition, not a SaaS landing). */}
+        <p className="login-hero-edition" aria-hidden="true">
+          <span>Édition</span>
+          <span>2026</span>
+        </p>
+
+        {/* Spread the content across the viewport in editorial rhythm:
+              top-left  → masthead (PRIVÉ + slogan)
+              middle    → the brand promise as a pull-quote
+              bottom    → the three doors + (offscreen footer) language */}
         <section className="login-hero">
-          <h1 className="login-hero-wordmark" aria-label="Privé">PRIVÉ</h1>
-          <p className="login-hero-slogan">Members only &middot; By design</p>
+          <header className="login-hero-masthead">
+            <h1 className="login-hero-wordmark" aria-label="Privé">PRIVÉ</h1>
+            <p className="login-hero-slogan">Members only &middot; By design</p>
+          </header>
 
           <p className="login-hero-tagline">{copy.auth.heroTagline}</p>
 
