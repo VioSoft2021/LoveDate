@@ -91,6 +91,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
     completed: false,
     lovePersonality: null,
     reveal: selfProfile.lovePersonality?.reveal ?? null,
+    position: 'intro',
   })
   const [bio, setBio] = React.useState(selfProfile.bio)
 
@@ -454,16 +455,21 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         )}
       </section>
 
-      {step !== 'welcome' && step !== 'ready' && (
-        <footer className="onboarding-footer">
-          <button type="button" className="ghost" onClick={back}>
-            {copy.back}
-          </button>
-          <button type="button" className="onboarding-primary-btn" onClick={advance}>
-            {step === 'bio' ? copy.finish : copy.continue}
-          </button>
-        </footer>
-      )}
+      {/* Hide the outer Back/Continue mid-quiz — the carousel owns its own
+          navigation while the user moves through the 14 items. The outer
+          footer reappears once they reach the result card (Continue → bio). */}
+      {step !== 'welcome' &&
+        step !== 'ready' &&
+        !(step === 'quiz' && quizSnapshot.position !== 'intro' && quizSnapshot.position !== 'result') && (
+          <footer className="onboarding-footer">
+            <button type="button" className="ghost" onClick={back}>
+              {copy.back}
+            </button>
+            <button type="button" className="onboarding-primary-btn" onClick={advance}>
+              {step === 'bio' ? copy.finish : copy.continue}
+            </button>
+          </footer>
+        )}
     </main>
   )
 }

@@ -1,0 +1,380 @@
+/* Cinematic Love Personality quiz — one-card-at-a-time carousel.
+   Gold-on-navy palette consistent with onboarding + destination screens.
+   Each card fades + slides up on mount via a CSS keyframe triggered by
+   the React `key` swap. No JS animation library. */
+
+.lp-quiz {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  width: 100%;
+  max-width: 32rem;
+  margin: 0 auto;
+}
+
+/* ── Progress bar (top) ──────────────────────────────────────────── */
+.lp-quiz-progress {
+  position: relative;
+  height: 3px;
+  background: rgba(216, 184, 109, 0.18);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.lp-quiz-progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(105deg, #cfad61, #e8c679);
+  border-radius: 999px;
+  transition: width 420ms ease;
+}
+
+/* ── Card stage ──────────────────────────────────────────────────── */
+.lp-quiz-stage {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-height: 28rem;
+}
+.lp-quiz-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  width: 100%;
+  padding: 1.8rem 1.4rem 2rem;
+  animation: lp-quiz-card-in 380ms ease both;
+}
+@keyframes lp-quiz-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Intro card ──────────────────────────────────────────────────── */
+.lp-quiz-card-intro,
+.lp-quiz-card-interlude {
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  gap: 1.4rem;
+  padding: 3rem 1.5rem;
+}
+.lp-quiz-eyebrow {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.78);
+}
+.lp-quiz-title {
+  margin: 0;
+  font-family: 'Bodoni Moda', 'Cormorant Garamond', serif;
+  font-size: 2.2rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+  color: #f4dca8;
+}
+.lp-quiz-body {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(232, 242, 255, 0.88);
+  max-width: 24rem;
+}
+
+.lp-quiz-primary-btn {
+  margin-top: 0.6rem;
+  padding: 0.95rem 2.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #1a1a2c;
+  background: linear-gradient(105deg, #cfad61, #e8c679);
+  border: none;
+  border-radius: 0.8rem;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(216, 184, 109, 0.32);
+  transition: all 160ms;
+}
+.lp-quiz-primary-btn:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 10px 24px rgba(216, 184, 109, 0.5);
+  transform: translateY(-1px);
+}
+.lp-quiz-skip-link,
+.lp-quiz-back-link {
+  background: none;
+  border: none;
+  margin-top: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: 0.92rem;
+  color: rgba(232, 242, 255, 0.55);
+  cursor: pointer;
+  align-self: center;
+  transition: color 180ms;
+}
+.lp-quiz-skip-link:hover,
+.lp-quiz-back-link:hover {
+  color: rgba(244, 220, 168, 0.9);
+}
+
+/* ── Question card ───────────────────────────────────────────────── */
+.lp-quiz-card-question {
+  align-items: stretch;
+  gap: 1.6rem;
+  padding-top: 1.4rem;
+}
+.lp-quiz-card-head {
+  display: grid;
+  grid-template-columns: 2rem 1fr 2rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+.lp-quiz-back {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  font-size: 1rem;
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.32);
+  border-radius: 999px;
+  color: rgba(244, 220, 168, 0.85);
+  cursor: pointer;
+  transition: all 140ms;
+}
+.lp-quiz-back:hover {
+  border-color: rgba(216, 184, 109, 0.78);
+  color: #f0d99b;
+  transform: translateX(-1px);
+}
+.lp-quiz-back-spacer {
+  width: 2rem;
+}
+.lp-quiz-step-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: rgba(244, 220, 168, 0.78);
+  text-align: center;
+  line-height: 1.3;
+}
+.lp-quiz-prompt {
+  margin: 0;
+  padding: 1.8rem 0.4rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.7rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: rgba(244, 220, 168, 0.98);
+  text-align: center;
+}
+
+/* ── Likert pills row ────────────────────────────────────────────── */
+.lp-quiz-pills {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+.lp-quiz-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.75rem 0.3rem;
+  font-family: inherit;
+  color: rgba(216, 230, 250, 0.78);
+  background: rgba(8, 12, 30, 0.55);
+  border: 1px solid rgba(216, 184, 109, 0.22);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 160ms ease;
+  min-width: 0;
+}
+.lp-quiz-pill:hover {
+  border-color: rgba(216, 184, 109, 0.55);
+  color: #f0d99b;
+  transform: translateY(-1px);
+}
+.lp-quiz-pill.is-active {
+  color: #1a1a2c;
+  background: linear-gradient(105deg, #cfad61, #e8c679);
+  border-color: rgba(216, 184, 109, 0.9);
+  font-weight: 600;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(216, 184, 109, 0.35);
+}
+.lp-quiz-pill-value {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 1.3rem;
+  font-weight: 500;
+  line-height: 1;
+}
+.lp-quiz-pill-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.15;
+}
+
+/* ── Interlude card ──────────────────────────────────────────────── */
+.lp-quiz-interlude-title {
+  margin: 0;
+  font-family: 'Bodoni Moda', 'Cormorant Garamond', serif;
+  font-size: 2.6rem;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: #f4dca8;
+  line-height: 1.15;
+}
+
+/* ── Result card ─────────────────────────────────────────────────── */
+.lp-quiz-card-result {
+  align-items: stretch;
+  gap: 1.2rem;
+}
+.lp-quiz-reveal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  text-align: center;
+}
+.lp-quiz-reveal-archetype {
+  margin: 0;
+  font-family: 'Bodoni Moda', 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: #f4dca8;
+}
+.lp-quiz-reveal-headline {
+  margin: 0 0 0.6rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: rgba(244, 220, 168, 0.95);
+}
+.lp-quiz-reveal-paragraph {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgba(232, 242, 255, 0.9);
+  text-align: left;
+}
+.lp-quiz-reveal-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  text-align: left;
+}
+.lp-quiz-reveal-chips-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.75);
+}
+.lp-quiz-reveal-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.lp-quiz-reveal-chip {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.82rem;
+  color: #1a1a2c;
+  background: linear-gradient(105deg, #cfad61, #e8c679);
+  border-radius: 999px;
+  font-weight: 500;
+}
+.lp-quiz-reveal-chip.is-soft {
+  color: rgba(244, 220, 168, 0.95);
+  background: rgba(207, 173, 97, 0.16);
+  border: 1px solid rgba(216, 184, 109, 0.45);
+  font-weight: 400;
+}
+.lp-quiz-reveal-pending {
+  margin: 0;
+  padding: 2rem 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  text-align: center;
+  color: rgba(232, 242, 255, 0.7);
+}
+
+.lp-quiz-bigfive {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 1rem 0 0;
+  border-top: 1px solid rgba(216, 184, 109, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.lp-quiz-bigfive-row {
+  display: grid;
+  grid-template-columns: 9rem 1fr 2.6rem;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: rgba(232, 242, 255, 0.9);
+}
+.lp-quiz-bigfive-label {
+  letter-spacing: 0.02em;
+}
+.lp-quiz-bigfive-bar {
+  position: relative;
+  height: 0.42rem;
+  background: rgba(8, 12, 30, 0.55);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.lp-quiz-bigfive-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(105deg, #cfad61, #e8c679);
+  border-radius: 999px;
+  transition: width 420ms ease;
+}
+.lp-quiz-bigfive-value {
+  text-align: right;
+  font-family: 'Bodoni Moda', serif;
+  font-size: 0.92rem;
+  color: #f4dca8;
+}
+.lp-quiz-attachment-line {
+  margin: 0.6rem 0 0;
+  font-size: 0.95rem;
+  color: rgba(232, 242, 255, 0.92);
+  text-align: center;
+}
+
+/* Tighten the pills on narrow phones so the labels still fit. */
+@media (max-width: 28rem) {
+  .lp-quiz-prompt {
+    font-size: 1.4rem;
+    padding: 1.2rem 0.2rem;
+  }
+  .lp-quiz-title {
+    font-size: 1.85rem;
+  }
+  .lp-quiz-interlude-title {
+    font-size: 2.1rem;
+  }
+  .lp-quiz-pill-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.03em;
+  }
+  .lp-quiz-bigfive-row {
+    grid-template-columns: 7rem 1fr 2.4rem;
+    font-size: 0.78rem;
+  }
+}

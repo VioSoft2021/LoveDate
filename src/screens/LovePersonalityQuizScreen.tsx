@@ -1,5 +1,4 @@
 import React from 'react'
-import { UI_TEXT } from '../constants'
 import type { AppLanguage, SelfProfile } from '../domain'
 import {
   type LikertAnswer,
@@ -13,9 +12,9 @@ import { Logo } from '../components/Logo'
 import './LovePersonalityScreen.css'
 
 // Standalone host for the LovePersonalityQuiz component — used for the
-// retake flow from Profile. No onboarding chrome (no progress dots, no
-// photo step, no city detector). Save commits the new lovePersonality
-// into SelfProfile and returns to the destination screen.
+// retake flow from Profile. The carousel owns its own intro card + chrome;
+// this wrapper just provides Cancel (top-left) and a Save action that
+// appears only once the user reaches the result step.
 
 export type LovePersonalityQuizScreenProps = {
   appLanguage: AppLanguage
@@ -32,7 +31,6 @@ export const LovePersonalityQuizScreen: React.FC<LovePersonalityQuizScreenProps>
   onSaved,
   onCancel,
 }) => {
-  const onboardingCopy = UI_TEXT[appLanguage].onboarding
   const ro = appLanguage === 'ro'
 
   const [snapshot, setSnapshot] = React.useState<LovePersonalityQuizSnapshot>({
@@ -40,13 +38,11 @@ export const LovePersonalityQuizScreen: React.FC<LovePersonalityQuizScreenProps>
     completed: Boolean(selfProfile.personalityAnswers && selfProfile.personalityAnswers.length === 14),
     lovePersonality: selfProfile.lovePersonality ?? null,
     reveal: selfProfile.lovePersonality?.reveal ?? null,
+    position: 'intro',
   })
 
   const handleSave = () => {
-    if (!snapshot.completed || !snapshot.lovePersonality) {
-      // Should be disabled via the button; defensive return.
-      return
-    }
+    if (!snapshot.completed || !snapshot.lovePersonality) return
     const lovePersonalityWithReveal: LovePersonality = snapshot.reveal
       ? { ...snapshot.lovePersonality, reveal: snapshot.reveal }
       : snapshot.lovePersonality
@@ -58,6 +54,10 @@ export const LovePersonalityQuizScreen: React.FC<LovePersonalityQuizScreenProps>
     onSaved()
   }
 
+  // Show Save only on the result card. Anywhere else, the carousel owns
+  // the moment and shouldn't compete with a chunky footer button.
+  const showSave = snapshot.position === 'result'
+
   return (
     <main className="love-personality-shell">
       <header className="love-personality-head">
@@ -68,32 +68,29 @@ export const LovePersonalityQuizScreen: React.FC<LovePersonalityQuizScreenProps>
       </header>
 
       <section className="love-personality-quiz-section">
-        <h1 className="love-personality-quiz-title">{onboardingCopy.quizTitle}</h1>
-        <p className="love-personality-quiz-subtitle">{onboardingCopy.quizSubtitle}</p>
-        <p className="love-personality-quiz-body">{onboardingCopy.quizBody}</p>
-
         <LovePersonalityQuiz
           appLanguage={appLanguage}
           selfName={selfProfile.name}
           initialAnswers={snapshot.answers}
           onChange={setSnapshot}
-          hideTitle
         />
       </section>
 
-      <footer className="love-personality-footer love-personality-quiz-footer">
-        <button
-          type="button"
-          className="love-personality-primary-btn"
-          onClick={handleSave}
-          disabled={!snapshot.completed}
-        >
-          {ro ? 'Salvează și înapoi la profil' : 'Save & return to profile'}
-        </button>
-        <button type="button" className="ghost love-personality-ghost-btn" onClick={onCancel}>
-          {ro ? 'Anulează' : 'Cancel'}
-        </button>
-      </footer>
+      {showSave && (
+        <footer className="love-personality-footer love-personality-quiz-footer">
+          <button
+            type="button"
+            className="love-personality-primary-btn"
+            onClick={handleSave}
+            disabled={!snapshot.completed}
+          >
+            {ro ? 'Salvează și înapoi la profil' : 'Save & return to profile'}
+          </button>
+          <button type="button" className="ghost love-personality-ghost-btn" onClick={onCancel}>
+            {ro ? 'Anulează' : 'Cancel'}
+          </button>
+        </footer>
+      )}
     </main>
   )
 }

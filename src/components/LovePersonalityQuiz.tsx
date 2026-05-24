@@ -11,40 +11,65 @@ import {
 } from '../services/compatibility'
 import { backendInvokeLovePersonalityReveal } from '../services/ai/lovePersonalityReveal'
 import type { AppLanguage } from '../domain'
+import './LovePersonalityQuiz.css'
 
-// Reusable Love Personality quiz block. Owns the 14 Likert answers,
-// the live preview, the Claude reveal fetch + cache. Shared by:
-//   - OnboardingScreen (wraps in wizard chrome with Continue/Back)
-//   - LovePersonalityQuizScreen (wraps in standalone Save/Cancel chrome)
+// Cinematic one-question-at-a-time Love Personality assessment.
+// 17 cards total: intro + 10 BFI items + interlude + 4 attachment items + result.
+// Auto-advances after a brief delay on each answer tap; user can step back
+// via the arrow in the card header. CSS fade animates each card in.
 //
-// CSS reused from src/screens/OnboardingScreen.css (the onboarding-quiz-*
-// + onboarding-likert-* + onboarding-quiz-reveal-* class families). The
-// OnboardingScreen.css import lives in the parent screen files; this
-// component doesn't import CSS itself so it's invariant to host context.
+// Parents (OnboardingScreen, LovePersonalityQuizScreen) consume `position`
+// from the snapshot to decide when to show their own outer chrome — they
+// hide back/continue/save mid-quiz so the carousel can own the moment.
 
 export type LovePersonalityQuizSnapshot = {
-  /** Sparse array of length 14. undefined slots mean unanswered. */
   answers: Array<LikertAnswer | undefined>
-  /** True when every slot is a valid 1..5 Likert. */
   completed: boolean
-  /** Derived bigFive + attachment when completed, else null. */
   lovePersonality: LovePersonality | null
-  /** Claude-generated reveal when both answers complete + fetch returned. */
   reveal: LovePersonalityReveal | null
+  /** Carousel position — parents use this to decide their own chrome. */
+  position: 'intro' | 'question' | 'interlude' | 'result'
 }
 
 export type LovePersonalityQuizProps = {
   appLanguage: AppLanguage
-  /** Used by the reveal so Claude can address the user warmly. Optional. */
   selfName?: string
-  /** Pre-populate with existing answers (e.g. for a retake). */
   initialAnswers?: Array<LikertAnswer | undefined>
-  /** Notified after every answer change AND when the reveal arrives. */
   onChange?: (snapshot: LovePersonalityQuizSnapshot) => void
-  /** Hide the H1 / subtitle / body block — standalone hosts use their own header. */
-  hideTitle?: boolean
-  /** When provided, renders a "Skip for now" button below the result panel. */
+  /** Small italic "Skip for now" link under the intro/question cards. */
   onSkip?: () => void
+}
+
+// Card layout (17 steps total):
+//   0           intro
+//   1..10       Q1..Q10 (BFI-10)
+//   11          interlude ("Now: how you love")
+//   12..15      Q11..Q14 (Attachment)
+//   16          result
+const TOTAL_STEPS = 17
+const FIRST_BIG_FIVE_STEP = 1
+const LAST_BIG_FIVE_STEP = 10
+const INTERLUDE_STEP = 11
+const FIRST_ATTACHMENT_STEP = 12
+const LAST_ATTACHMENT_STEP = 15
+const RESULT_STEP = 16
+const AUTO_ADVANCE_MS = 360
+
+const stepToQuestionIndex = (step: number): number | null => {
+  if (step >= FIRST_BIG_FIVE_STEP && step <= LAST_BIG_FIVE_STEP) {
+    return step - FIRST_BIG_FIVE_STEP
+  }
+  if (step >= FIRST_ATTACHMENT_STEP && step <= LAST_ATTACHMENT_STEP) {
+    return step - FIRST_ATTACHMENT_STEP + BIG_FIVE_QUESTION_COUNT
+  }
+  return null
+}
+
+const stepPosition = (step: number): LovePersonalityQuizSnapshot['position'] => {
+  if (step === 0) return 'intro'
+  if (step === INTERLUDE_STEP) return 'interlude'
+  if (step === RESULT_STEP) return 'result'
+  return 'question'
 }
 
 const emptyAnswers = (): Array<LikertAnswer | undefined> =>
@@ -53,12 +78,13 @@ const emptyAnswers = (): Array<LikertAnswer | undefined> =>
 const buildSnapshot = (
   answers: Array<LikertAnswer | undefined>,
   reveal: LovePersonalityReveal | null,
+  step: number,
 ): LovePersonalityQuizSnapshot => {
   const completed = answers.every((value): value is LikertAnswer => value !== undefined)
   const lovePersonality = completed
     ? lovePersonalityFromAnswers(answers as LikertAnswer[])
     : null
-  return { answers, completed, lovePersonality, reveal }
+  return { answers, completed, lovePersonality, reveal, position: stepPosition(step) }
 }
 
 export const LovePersonalityQuiz: React.FC<LovePersonalityQuizProps> = ({
@@ -66,29 +92,23 @@ export const LovePersonalityQuiz: React.FC<LovePersonalityQuizProps> = ({
   selfName,
   initialAnswers,
   onChange,
-  hideTitle,
   onSkip,
 }) => {
   const copy = UI_TEXT[appLanguage].onboarding
-  const t = (template: string, vars: Record<string, string | number>) =>
-    Object.entries(vars).reduce(
-      (s, [k, v]) => s.replace(`{${k}}`, String(v)),
-      template,
-    )
+  const ro = appLanguage === 'ro'
 
-  const [answers, setAnswers] = React.useState<Array<LikertAnswer | undefined>>(
-    () => {
-      if (!initialAnswers) return emptyAnswers()
-      const seed = emptyAnswers()
-      for (let i = 0; i < PERSONALITY_QUESTION_COUNT && i < initialAnswers.length; i += 1) {
-        const v = initialAnswers[i]
-        if (v === 1 || v === 2 || v === 3 || v === 4 || v === 5) {
-          seed[i] = v
-        }
+  const [answers, setAnswers] = React.useState<Array<LikertAnswer | undefined>>(() => {
+    if (!initialAnswers) return emptyAnswers()
+    const seed = emptyAnswers()
+    for (let i = 0; i < PERSONALITY_QUESTION_COUNT && i < initialAnswers.length; i += 1) {
+      const v = initialAnswers[i]
+      if (v === 1 || v === 2 || v === 3 || v === 4 || v === 5) {
+        seed[i] = v
       }
-      return seed
-    },
-  )
+    }
+    return seed
+  })
+  const [step, setStep] = React.useState(0)
   const [reveal, setReveal] = React.useState<LovePersonalityReveal | null>(null)
   const [revealLoading, setRevealLoading] = React.useState(false)
 
@@ -101,19 +121,16 @@ export const LovePersonalityQuiz: React.FC<LovePersonalityQuizProps> = ({
     ? lovePersonalityFromAnswers(completeAnswers)
     : null
 
-  // Notify parent whenever the snapshot changes. Done via effect so we don't
-  // call onChange during render (would trigger setState-during-render warnings).
+  // Notify parent on every change.
   const onChangeRef = React.useRef(onChange)
   React.useEffect(() => {
     onChangeRef.current = onChange
   }, [onChange])
   React.useEffect(() => {
-    onChangeRef.current?.(buildSnapshot(answers, reveal))
-  }, [answers, reveal])
+    onChangeRef.current?.(buildSnapshot(answers, reveal, step))
+  }, [answers, reveal, step])
 
-  // Fire the Claude reveal as soon as all 14 answers are in. Cached by
-  // hash(bigFive + attachment + language) for 30 days — changing one
-  // answer and back is free.
+  // Fire Claude reveal when all 14 answers are in.
   React.useEffect(() => {
     if (!previewLovePersonality) return
     if (revealLoading) return
@@ -135,7 +152,7 @@ export const LovePersonalityQuiz: React.FC<LovePersonalityQuizProps> = ({
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only the answer hash + language drive refetches
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     appLanguage,
     previewLovePersonality?.attachment,
@@ -146,155 +163,212 @@ export const LovePersonalityQuiz: React.FC<LovePersonalityQuizProps> = ({
     previewLovePersonality?.bigFive.neuroticism,
   ])
 
+  const questionIndex = stepToQuestionIndex(step)
   const quizQuestions = getPersonalityQuestions(appLanguage)
+  const currentQuestion = questionIndex !== null ? quizQuestions[questionIndex] : null
+
+  const goToStep = (next: number) => {
+    setStep(Math.max(0, Math.min(TOTAL_STEPS - 1, next)))
+  }
+  const advance = () => goToStep(step + 1)
+  const back = () => goToStep(step - 1)
+
+  // Auto-advance: pause briefly after the user taps so the gold-fill
+  // animation lands, then fade to the next card.
+  const handleAnswer = (value: LikertAnswer) => {
+    if (questionIndex === null) return
+    setAnswers((current) => {
+      const next = [...current]
+      next[questionIndex] = value
+      return next
+    })
+    window.setTimeout(() => {
+      setStep((s) => Math.min(TOTAL_STEPS - 1, s + 1))
+    }, AUTO_ADVANCE_MS)
+  }
+
+  // Progress bar — based on answers recorded, so backing up doesn't shrink it.
+  const answeredCount = answers.filter((v) => v !== undefined).length
+  const progressPercent =
+    step === 0
+      ? 0
+      : step === RESULT_STEP
+        ? 100
+        : Math.round((answeredCount / PERSONALITY_QUESTION_COUNT) * 100)
+
+  const isQuestionStep = questionIndex !== null
+  const isFirstQuestion = step === FIRST_BIG_FIVE_STEP
 
   return (
-    <>
-      {!hideTitle && (
-        <>
-          <h1>{copy.quizTitle}</h1>
-          <p className="onboarding-quiz-subtitle">{copy.quizSubtitle}</p>
-          <p>{copy.quizBody}</p>
-        </>
-      )}
-      <p className="onboarding-quiz-stem">{copy.quizBigFiveStem}</p>
-      <ol className="onboarding-quiz-list">
-        {quizQuestions.map((q, idx) => (
-          <React.Fragment key={q.id}>
-            {idx === BIG_FIVE_QUESTION_COUNT && (
-              <li className="onboarding-quiz-section-break" aria-hidden="true">
-                <p className="onboarding-quiz-stem">{copy.quizAttachmentStem}</p>
-              </li>
-            )}
-            <li className="onboarding-quiz-item">
-              <p className="onboarding-quiz-prompt">
-                <span className="onboarding-quiz-number">{idx + 1}.</span> {q.prompt}
-              </p>
-              <div className="onboarding-likert" role="radiogroup" aria-label={q.prompt}>
-                {([1, 2, 3, 4, 5] as const).map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    role="radio"
-                    aria-checked={answers[idx] === value}
-                    className={
-                      answers[idx] === value
-                        ? 'onboarding-likert-cell is-active'
-                        : 'onboarding-likert-cell'
-                    }
-                    onClick={() =>
-                      setAnswers((current) => {
-                        const next = [...current]
-                        next[idx] = value
-                        return next
-                      })
-                    }
-                    title={copy.quizLikertLabels[value - 1]}
-                  >
-                    <span className="onboarding-likert-value">{value}</span>
-                    <span className="onboarding-likert-cell-label">
-                      {copy.quizLikertLabels[value - 1]}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </li>
-          </React.Fragment>
-        ))}
-      </ol>
-      {previewLovePersonality ? (
-        <div className="onboarding-quiz-result">
-          <p className="onboarding-quiz-result-label">{copy.quizResultTitle}</p>
-          {reveal ? (
-            <div className="onboarding-quiz-reveal">
-              <p className="onboarding-quiz-reveal-archetype">{reveal.archetypeName}</p>
-              <p className="onboarding-quiz-reveal-headline">{reveal.headline}</p>
-              {reveal.description.split(/\n\n+/).map((paragraph, idx) => (
-                <p key={idx} className="onboarding-quiz-reveal-paragraph">
-                  {paragraph}
-                </p>
-              ))}
-              {reveal.strengths.length > 0 && (
-                <div className="onboarding-quiz-reveal-chips">
-                  <span className="onboarding-quiz-reveal-chips-label">
-                    {copy.quizStrengthsLabel}
-                  </span>
-                  <div className="onboarding-quiz-reveal-chips-row">
-                    {reveal.strengths.map((s, idx) => (
-                      <span key={idx} className="onboarding-quiz-reveal-chip">{s}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {reveal.growthEdges.length > 0 && (
-                <div className="onboarding-quiz-reveal-chips">
-                  <span className="onboarding-quiz-reveal-chips-label">
-                    {copy.quizGrowthEdgesLabel}
-                  </span>
-                  <div className="onboarding-quiz-reveal-chips-row">
-                    {reveal.growthEdges.map((s, idx) => (
-                      <span key={idx} className="onboarding-quiz-reveal-chip is-soft">
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : null}
-          <ul className="onboarding-quiz-bigfive">
-            {(
-              [
-                ['openness', copy.quizDimensionOpenness, previewLovePersonality.bigFive.openness],
-                ['conscientiousness', copy.quizDimensionConscientiousness, previewLovePersonality.bigFive.conscientiousness],
-                ['extraversion', copy.quizDimensionExtraversion, previewLovePersonality.bigFive.extraversion],
-                ['agreeableness', copy.quizDimensionAgreeableness, previewLovePersonality.bigFive.agreeableness],
-                ['emotionalStability', copy.quizDimensionEmotionalStability, 100 - previewLovePersonality.bigFive.neuroticism],
-              ] as const
-            ).map(([key, label, value]) => (
-              <li key={key} className="onboarding-quiz-bigfive-row">
-                <span className="onboarding-quiz-bigfive-label">{label}</span>
-                <span className="onboarding-quiz-bigfive-bar" aria-hidden="true">
-                  <span
-                    className="onboarding-quiz-bigfive-fill"
-                    style={{ width: `${Math.round(value)}%` }}
-                  />
-                </span>
-                <span className="onboarding-quiz-bigfive-value">{Math.round(value)}%</span>
-              </li>
-            ))}
-          </ul>
-          <p className="onboarding-quiz-attachment">
-            <strong>{copy.quizAttachmentResultLabel}:</strong>{' '}
-            {copy.quizAttachmentLabels[previewLovePersonality.attachment]}
-          </p>
-          {!reveal ? (
-            <p className="onboarding-quiz-reveal-pending">
-              {revealLoading ? copy.quizRevealLoading : copy.quizRevealPending}
-            </p>
-          ) : null}
+    <div className="lp-quiz">
+      {step > 0 && (
+        <div className="lp-quiz-progress" aria-hidden="true">
+          <div className="lp-quiz-progress-fill" style={{ width: `${progressPercent}%` }} />
         </div>
-      ) : (
-        <p className="onboarding-quiz-progress soft">
-          {t(copy.quizProgress, {
-            n: answers.filter((v) => v !== undefined).length,
-            total: PERSONALITY_QUESTION_COUNT,
-          })}
-        </p>
       )}
-      {onSkip ? (
-        <button
-          type="button"
-          className="onboarding-quiz-skip"
-          onClick={() => {
-            setAnswers(emptyAnswers())
-            setReveal(null)
-            onSkip()
-          }}
-        >
-          {copy.quizSkipForNow}
-        </button>
-      ) : null}
-    </>
+
+      <div className="lp-quiz-stage">
+        {step === 0 && (
+          <div className="lp-quiz-card lp-quiz-card-intro" key="intro">
+            <p className="lp-quiz-eyebrow">{copy.quizSubtitle}</p>
+            <h1 className="lp-quiz-title">{copy.quizTitle}</h1>
+            <p className="lp-quiz-body">{copy.quizBody}</p>
+            <button type="button" className="lp-quiz-primary-btn" onClick={advance}>
+              {ro ? 'Începe' : 'Begin'}
+            </button>
+            {onSkip ? (
+              <button type="button" className="lp-quiz-skip-link" onClick={onSkip}>
+                {copy.quizSkipForNow}
+              </button>
+            ) : null}
+          </div>
+        )}
+
+        {isQuestionStep && currentQuestion && (
+          <div className="lp-quiz-card lp-quiz-card-question" key={`q-${step}`}>
+            <div className="lp-quiz-card-head">
+              {!isFirstQuestion ? (
+                <button
+                  type="button"
+                  className="lp-quiz-back"
+                  onClick={back}
+                  aria-label={ro ? 'Înapoi' : 'Back'}
+                >
+                  ←
+                </button>
+              ) : (
+                <span className="lp-quiz-back-spacer" />
+              )}
+              <span className="lp-quiz-step-label">
+                {step <= LAST_BIG_FIVE_STEP
+                  ? copy.quizBigFiveStem
+                  : copy.quizAttachmentStem}
+              </span>
+              <span className="lp-quiz-back-spacer" />
+            </div>
+            <p className="lp-quiz-prompt">{currentQuestion.prompt}</p>
+            <div
+              className="lp-quiz-pills"
+              role="radiogroup"
+              aria-label={currentQuestion.prompt}
+            >
+              {([1, 2, 3, 4, 5] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={answers[questionIndex] === value}
+                  className={
+                    answers[questionIndex] === value
+                      ? 'lp-quiz-pill is-active'
+                      : 'lp-quiz-pill'
+                  }
+                  onClick={() => handleAnswer(value)}
+                >
+                  <span className="lp-quiz-pill-value">{value}</span>
+                  <span className="lp-quiz-pill-label">
+                    {copy.quizLikertLabels[value - 1]}
+                  </span>
+                </button>
+              ))}
+            </div>
+            {onSkip ? (
+              <button type="button" className="lp-quiz-skip-link" onClick={onSkip}>
+                {copy.quizSkipForNow}
+              </button>
+            ) : null}
+          </div>
+        )}
+
+        {step === INTERLUDE_STEP && (
+          <div className="lp-quiz-card lp-quiz-card-interlude" key="interlude">
+            <p className="lp-quiz-eyebrow">{ro ? 'Acum' : 'Now'}</p>
+            <h2 className="lp-quiz-interlude-title">
+              {ro ? 'Cum iubești.' : 'How you love.'}
+            </h2>
+            <p className="lp-quiz-body">{copy.quizAttachmentStem}</p>
+            <button type="button" className="lp-quiz-primary-btn" onClick={advance}>
+              {ro ? 'Continuă' : 'Continue'}
+            </button>
+            <button type="button" className="lp-quiz-back-link" onClick={back}>
+              ← {ro ? 'Înapoi' : 'Back'}
+            </button>
+          </div>
+        )}
+
+        {step === RESULT_STEP && previewLovePersonality && (
+          <div className="lp-quiz-card lp-quiz-card-result" key="result">
+            <p className="lp-quiz-eyebrow">{copy.quizResultTitle}</p>
+            {reveal ? (
+              <div className="lp-quiz-reveal">
+                <p className="lp-quiz-reveal-archetype">{reveal.archetypeName}</p>
+                <p className="lp-quiz-reveal-headline">{reveal.headline}</p>
+                {reveal.description.split(/\n\n+/).map((paragraph, idx) => (
+                  <p key={idx} className="lp-quiz-reveal-paragraph">
+                    {paragraph}
+                  </p>
+                ))}
+                {reveal.strengths.length > 0 && (
+                  <div className="lp-quiz-reveal-chips">
+                    <span className="lp-quiz-reveal-chips-label">
+                      {copy.quizStrengthsLabel}
+                    </span>
+                    <div className="lp-quiz-reveal-chips-row">
+                      {reveal.strengths.map((s, idx) => (
+                        <span key={idx} className="lp-quiz-reveal-chip">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {reveal.growthEdges.length > 0 && (
+                  <div className="lp-quiz-reveal-chips">
+                    <span className="lp-quiz-reveal-chips-label">
+                      {copy.quizGrowthEdgesLabel}
+                    </span>
+                    <div className="lp-quiz-reveal-chips-row">
+                      {reveal.growthEdges.map((s, idx) => (
+                        <span key={idx} className="lp-quiz-reveal-chip is-soft">
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="lp-quiz-reveal-pending">
+                {revealLoading ? copy.quizRevealLoading : copy.quizRevealPending}
+              </p>
+            )}
+            <ul className="lp-quiz-bigfive">
+              {(
+                [
+                  ['openness', copy.quizDimensionOpenness, previewLovePersonality.bigFive.openness],
+                  ['conscientiousness', copy.quizDimensionConscientiousness, previewLovePersonality.bigFive.conscientiousness],
+                  ['extraversion', copy.quizDimensionExtraversion, previewLovePersonality.bigFive.extraversion],
+                  ['agreeableness', copy.quizDimensionAgreeableness, previewLovePersonality.bigFive.agreeableness],
+                  ['emotionalStability', copy.quizDimensionEmotionalStability, 100 - previewLovePersonality.bigFive.neuroticism],
+                ] as const
+              ).map(([key, label, value]) => (
+                <li key={key} className="lp-quiz-bigfive-row">
+                  <span className="lp-quiz-bigfive-label">{label}</span>
+                  <span className="lp-quiz-bigfive-bar" aria-hidden="true">
+                    <span
+                      className="lp-quiz-bigfive-fill"
+                      style={{ width: `${Math.round(value)}%` }}
+                    />
+                  </span>
+                  <span className="lp-quiz-bigfive-value">{Math.round(value)}%</span>
+                </li>
+              ))}
+            </ul>
+            <p className="lp-quiz-attachment-line">
+              <strong>{copy.quizAttachmentResultLabel}:</strong>{' '}
+              {copy.quizAttachmentLabels[previewLovePersonality.attachment]}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
