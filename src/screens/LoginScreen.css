@@ -167,22 +167,26 @@
   border-color: rgba(231, 197, 118, 0.78);
 }
 
-/* ── "Back" link on the card view (for return-to-hero) ──── */
+/* ── "Back" link on the card view (returns to hero) ─────
+   Was absolutely-positioned at top-left and overlapped the Privé
+   wordmark on narrower cards. Now rendered as a normal block at
+   the top of the card, left-aligned, so it takes its own vertical
+   space above the wordmark without ever overlapping. */
 .login-back-to-hero {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
+  display: block;
+  align-self: flex-start;
+  width: fit-content;
   background: none;
   border: none;
-  color: rgba(244, 220, 168, 0.75);
+  color: rgba(244, 220, 168, 0.78);
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
   font-size: 0.95rem;
   cursor: pointer;
-  padding: 0.3rem 0.6rem;
+  padding: 0.35rem 0.6rem;
+  margin: 0 auto 0.6rem 0;
   border-radius: 0.4rem;
   transition: color 180ms ease;
-  z-index: 3;
 }
 .login-back-to-hero:hover {
   color: #f4dca8;

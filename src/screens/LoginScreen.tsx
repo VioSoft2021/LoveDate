@@ -332,19 +332,24 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         )}
 
         {/* Public waitlist — shown when invite codes are required so
-            strangers without a code have a clear path. Reachable from
-            the hero state (primary CTA) and from the inline ghost
-            "Request access" link inside the auth form. */}
+            strangers without a code have a clear path. When the hero is
+            enabled the visitor reached this card through a deliberate
+            "I have an invite code" / "Sign in" choice, so the inline
+            "Request access" toggle would be redundant; they can use the
+            ← Back link to return to the hero and pick that CTA there.
+            Without the hero (test/dev mode) we keep the legacy toggle. */}
         {runtimeConfig.auth.requireInviteCode ? (
           <div className="login-waitlist">
             {!showWaitlist ? (
-              <button
-                type="button"
-                className="ghost login-waitlist-toggle"
-                onClick={() => setShowWaitlist(true)}
-              >
-                {copy.waitlist.requestAccessLink}
-              </button>
+              !heroEnabled ? (
+                <button
+                  type="button"
+                  className="ghost login-waitlist-toggle"
+                  onClick={() => setShowWaitlist(true)}
+                >
+                  {copy.waitlist.requestAccessLink}
+                </button>
+              ) : null
             ) : waitlistStatus === 'success' ? (
               <div className="login-waitlist-success">
                 <h2>{copy.waitlist.successTitle}</h2>
