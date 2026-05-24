@@ -145,87 +145,51 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   }
 
   // ── Hero state ─────────────────────────────────────────────────────
+  // V4 (2026-05-24) — "Editorial Silence". Stripped to what real luxury
+  // houses do: vast negative space, small precise type, almost no
+  // decoration, one ambient thread of light. No pills, no heart visual,
+  // no drifting particles. The composition IS the typography.
   if (viewMode === 'hero') {
     return (
       <main className="login-shell login-shell--hero">
         <div className="grain" aria-hidden="true" />
 
-        {/* Drifting gold particles — pure CSS, no JS. ~20 motes that
-            float upward at varied delays, giving the page constant
-            subtle life like dust catching candlelight. */}
-        <div className="login-hero-particles" aria-hidden="true">
-          {Array.from({ length: 22 }).map((_, idx) => (
-            <span key={idx} className={`login-hero-mote login-hero-mote--${idx % 5}`} />
-          ))}
-        </div>
+        {/* A single thin gold rule on the right edge — a column gutter
+            from a magazine page. Draws itself slowly on mount, then
+            breathes very softly. Replaces the particles + heart that
+            were 'too aggressive'. */}
+        <span className="login-hero-rule" aria-hidden="true" />
 
-        <article className="login-hero-layout">
-          {/* Left column: text content. Stacks centered on mobile. */}
-          <section className="login-hero-text">
-            <h1 className="login-hero-wordmark" aria-label="Privé">
-              <span aria-hidden="true">PRIVÉ</span>
-            </h1>
-            <p className="login-hero-slogan">Members only · By design</p>
-            <p className="login-hero-tagline">{copy.auth.heroTagline}</p>
+        <section className="login-hero">
+          <h1 className="login-hero-wordmark" aria-label="Privé">PRIVÉ</h1>
+          <p className="login-hero-slogan">Members only &middot; By design</p>
 
-            {/* Three equal-weight access paths. For a "members only · by
-                design" brand, all three visitor types — prospects, invited
-                new arrivals, and returning members — deserve the same
-                respect at the door. No primary, no secondary, no faded
-                footnote. The user reads the labels and picks their lane. */}
-            <div className="login-hero-actions">
-              <button
-                type="button"
-                className="login-hero-cta"
-                onClick={goToWaitlist}
-              >
-                <span className="login-hero-cta-label">{copy.auth.heroRequestAccess}</span>
-              </button>
-              <button
-                type="button"
-                className="login-hero-cta"
-                onClick={() => goToAuth('register')}
-              >
-                <span className="login-hero-cta-label">{copy.auth.heroHaveInvite}</span>
-              </button>
-              <button
-                type="button"
-                className="login-hero-cta"
-                onClick={() => goToAuth('login')}
-              >
-                <span className="login-hero-cta-label">{copy.auth.heroSignIn}</span>
-              </button>
-            </div>
-          </section>
+          <p className="login-hero-tagline">{copy.auth.heroTagline}</p>
 
-          {/* Right column: animated gold heart-stroke visual. Hidden
-              on narrow screens (text takes over the whole viewport). */}
-          <aside className="login-hero-visual" aria-hidden="true">
-            <svg
-              viewBox="0 0 200 200"
-              className="login-hero-heart"
-              xmlns="http://www.w3.org/2000/svg"
+          <nav className="login-hero-doors" aria-label="Access">
+            <button
+              type="button"
+              className="login-hero-door"
+              onClick={goToWaitlist}
             >
-              <defs>
-                <linearGradient id="heartGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#cfad61" />
-                  <stop offset="50%" stopColor="#e8c679" />
-                  <stop offset="100%" stopColor="#f4dca8" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M100,170 C40,130 20,90 20,60 C20,35 40,20 60,20 C80,20 95,35 100,55 C105,35 120,20 140,20 C160,20 180,35 180,60 C180,90 160,130 100,170 Z"
-                fill="none"
-                stroke="url(#heartGold)"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="login-hero-heart-path"
-              />
-            </svg>
-            <div className="login-hero-bloom" />
-          </aside>
-        </article>
+              {copy.auth.heroRequestAccess}
+            </button>
+            <button
+              type="button"
+              className="login-hero-door"
+              onClick={() => goToAuth('register')}
+            >
+              {copy.auth.heroHaveInvite}
+            </button>
+            <button
+              type="button"
+              className="login-hero-door"
+              onClick={() => goToAuth('login')}
+            >
+              {copy.auth.heroSignIn}
+            </button>
+          </nav>
+        </section>
 
         <footer className="login-hero-footer">
           <label className="login-hero-language">
