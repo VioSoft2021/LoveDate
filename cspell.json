@@ -54,7 +54,17 @@
     "extraversion", "Extraversion", "organised", "energised", "stabilises",
     "Bartholomew", "psychometric", "Likert", "OCEAN", "neuroticism", "Neuroticism",
     "Rammstedt", "Anthropic", "anthropic", "Sonnet",
-    "deno", "Deno"
+    "deno", "Deno",
+    "Privé", "MBTI", "stabilise", "energises",
+    "Sigur", "Anxios", "Stil", "Evitant", "Dezorganizat",
+    "confortabil", "apropierea", "independența", "stabilizeze", "partenerul",
+    "preocupat", "dorește", "apropiere", "profundă", "uneori", "teme", "respingere",
+    "detașat", "contează", "enorm", "intimitatea", "poate", "părea", "sufocantă",
+    "temător", "greu", "aibă", "încredere", "deplină", "abordată", "precaut",
+    "utilizatorul", "Scrie", "dezvăluire", "iubire", "bazată", "datele",
+    "Scoruri", "atașament", "Evaluări",
+    "textul", "ROMÂNĂ", "NATURALĂ", "traducere", "literală", "engleză", "Folosește",
+    "diacritice", "corecte", "Evită", "anglicismele", "cuvânt", "românesc", "curat"
   ],
   "ignorePaths": [
     "node_modules",
