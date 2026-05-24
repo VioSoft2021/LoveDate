@@ -60,7 +60,6 @@ const buildSelfProfile = (overrides: Partial<SelfProfile> = {}): SelfProfile => 
   socialPromotionOptIn: false,
   travelMode: false,
   photos: ['https://example.com/a.jpg'],
-  personalityAnswers: ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A'],
   ...overrides,
 })
 
@@ -73,18 +72,9 @@ const buildProps = (overrides: Partial<ProfileScreenProps> = {}): ProfileScreenP
     setProfileDraft: vi.fn(),
     handleProfileDraftChange: vi.fn(),
     handleProfileDraftToggle: vi.fn(),
-    handlePersonalityAnswerChange: vi.fn(),
     saveMyProfile: vi.fn((e) => e.preventDefault()),
     profileSaveErrors: [],
-    selfPersonalityCode: 'CMFR',
-    selfTypeGuide: { code: 'CMFR', label: 'The Builder', summary: 'Builds things.' },
-    selfCognitiveFunctions: {
-      primary: 'Pa',
-      support: 'Su',
-      tertiary: 'Te',
-      shadow: 'Sh',
-    },
-    draftPersonalityCode: 'CMFR',
+    selfLovePersonality: null,
     socialConnectedCount: 0,
     photoUrlInput: '',
     setPhotoUrlInput: vi.fn(),
@@ -316,26 +306,15 @@ describe('ProfileScreen — AI Profile Writer + Photo Coach', () => {
   })
 })
 
-describe('ProfileScreen — personality test', () => {
-  it('changing a personality answer select fires handlePersonalityAnswerChange', () => {
-    const handlePersonalityAnswerChange = vi.fn()
-    const { container } = render(
-      <ProfileScreen {...buildProps({ handlePersonalityAnswerChange })} />,
-    )
-    // Personality questions render <select> elements with A/B options.
-    // Find a select whose options are exactly two (A + B). Take the first.
-    const selects = Array.from(container.querySelectorAll<HTMLSelectElement>('select'))
-    const personalitySelect = selects.find(
-      (s) =>
-        s.options.length === 2 &&
-        s.options[0].value === 'A' &&
-        s.options[1].value === 'B',
-    )
-    expect(personalitySelect).toBeDefined()
-    fireEvent.change(personalitySelect!, { target: { value: 'B' } })
-    expect(handlePersonalityAnswerChange).toHaveBeenCalled()
-    // Second arg should be 'B'; first arg is the question index (≥0).
-    const lastCall = handlePersonalityAnswerChange.mock.calls.at(-1)
-    expect(lastCall?.[1]).toBe('B')
+describe('ProfileScreen — personality section', () => {
+  // Tier A (2026-05-24) — the inline A/B quiz inside ProfileScreen was
+  // removed; the new 14-Likert assessment lives in Onboarding only.
+  // Profile now shows a CTA to "Open guide" linking to PersonalityGuideScreen.
+  it('renders the personality section with the open-guide CTA', () => {
+    render(<ProfileScreen {...buildProps()} />)
+    const openGuideBtn = screen
+      .getAllByRole('button')
+      .find((b) => /open.*guide|see the framework/i.test(b.textContent || ''))
+    expect(openGuideBtn).toBeDefined()
   })
 })

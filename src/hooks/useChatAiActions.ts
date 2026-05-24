@@ -1,12 +1,7 @@
 import { useCallback, useEffect } from 'react'
 import { backendInvokeIcebreaker } from '../services/ai/icebreaker'
 import { backendInvokeDatePlanner } from '../services/ai/datePlanner'
-import {
-  PERSONALITY_TYPE_GUIDE,
-  UI_TEXT,
-  translateInterestForSentence,
-} from '../constants'
-import { personalityCodeFromAnswers } from '../services/compatibility'
+import { UI_TEXT, translateInterestForSentence } from '../constants'
 import type {
   AppLanguage,
   ChatMessage,
@@ -84,11 +79,7 @@ export const useChatAiActions = ({
       const interest = target.interests[0] ?? 'coffee'
       const interestTwo = target.interests[1] ?? 'music'
       const chemistry = getChemistryInsights(target).chemistryScore
-      const localTypeCode =
-        target.personalityCode || personalityCodeFromAnswers(target.personalityAnswers)
-      const typeLabel =
-        PERSONALITY_TYPE_GUIDE.find((type) => type.code === localTypeCode)?.label ??
-        localTypeCode
+      const vibeLabel = target.vibe || target.relationshipGoal
       const zodiac = target.zodiac
 
       const suggestions: string[] = []
@@ -98,7 +89,7 @@ export const useChatAiActions = ({
         )
       }
       suggestions.push(
-        `You seem like a ${typeLabel.toLowerCase()} and I like that energy. Want to do a quick ${interest} plan this week and see how we vibe live?`,
+        `Your ${vibeLabel.toLowerCase()} energy is doing it for me. Want to do a quick ${interest} plan this week and see how we vibe live?`,
       )
       suggestions.push(
         `I noticed our chemistry score is around ${chemistry}% - I’m into this connection. What kind of date feels most “you”: ${interest} or ${interestTwo}?`,

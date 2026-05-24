@@ -103,15 +103,40 @@ export const UI_TEXT = {
       cityBody: 'City matters for distance and matching. We only show the city to others — never the exact location.',
       labelCity: 'City',
       labelHometown: 'Hometown (optional)',
-      // Step 5: Love Personality quiz (renamed from "Privé code" — 2026-05-22)
+      // Step 5: Love Personality quiz — Tier A (2026-05-24): scientifically
+      // validated 14-question instrument (BFI-10 + Bartholomew RQ). All
+      // 14 items use a 5-point Likert; results derive Big Five + primary
+      // attachment style, then Claude writes a per-user reveal (Phase 3).
       quizTitle: 'Discover your Love Personality',
       quizSubtitle: 'The way you love',
-      quizBody: 'Eight quick questions. Your Love Personality lets the AI match you with compatible people.',
+      quizBody: 'Fourteen short statements, grounded in real relationship psychology. Your Love Personality lets the AI match you with people who actually fit.',
       quizQuestionOf: 'Question {n} of {total}',
+      quizBigFiveStem: 'I see myself as someone who…',
+      quizAttachmentStem: 'How well does this describe how you feel in close relationships?',
+      quizLikertLabels: [
+        'Strongly disagree',
+        'Disagree',
+        'Neutral',
+        'Agree',
+        'Strongly agree',
+      ],
+      quizDimensionOpenness: 'Openness',
+      quizDimensionConscientiousness: 'Conscientiousness',
+      quizDimensionExtraversion: 'Extraversion',
+      quizDimensionAgreeableness: 'Agreeableness',
+      quizDimensionEmotionalStability: 'Emotional Stability',
+      quizAttachmentResultLabel: 'Attachment style',
+      quizAttachmentLabels: {
+        secure: 'Secure',
+        anxious: 'Anxious',
+        avoidant: 'Avoidant',
+        disorganized: 'Disorganized',
+      },
       quizResultTitle: 'Your Love Personality',
-      // Phase A round 2 — quiz is skippable while Master rethinks the
-      // questions + response options. Empty quizAnswers signal "skipped";
-      // no personality code is computed for these users.
+      quizRevealPending: 'A cinematic reveal — written for you alone — will arrive once your profile is live.',
+      quizProgress: '{n} of {total} answered',
+      // Quiz remains skippable — empty answers store no lovePersonality;
+      // the Profile screen prompts the user to take it later.
       quizSkipForNow: 'Skip for now — I\'ll take it later',
       // Step 6: Bio
       bioTitle: 'A few words about you',
@@ -405,6 +430,17 @@ export const UI_TEXT = {
       aboutMe: 'About Me',
       personalityCode: 'Love Personality',
       lovePersonalitySubtitle: 'The way you love',
+      // Tier A (2026-05-24) — Big Five + Attachment surface keys
+      lovePersonalityTitle: 'Love Personality',
+      openness: 'Openness',
+      conscientiousness: 'Conscientiousness',
+      extraversion: 'Extraversion',
+      agreeableness: 'Agreeableness',
+      emotionalStability: 'Emotional Stability',
+      attachmentStyleLabel: 'Attachment style',
+      lovePersonalityAwaitingReveal: 'Your Love Personality is being prepared…',
+      lovePersonalityNotTaken: 'Take the Love Personality assessment in Onboarding to unlock smarter matching.',
+      lovePersonalityRetakeHint: 'Your Love Personality is on file. Open the guide to see the framework or retake from Onboarding.',
       primary: 'Primary',
       support: 'Support',
       tertiary: 'Tertiary',
@@ -632,13 +668,40 @@ export const UI_TEXT = {
       cityBody: 'Orașul contează pentru distanță și potriviri. Afișăm doar orașul altora — niciodată locația exactă.',
       labelCity: 'Oraș',
       labelHometown: 'Oraș natal (opțional)',
-      // Pas 5: Personalitatea în iubire (redenumit din „cod Privé" — 2026-05-22)
+      // Pas 5: Personalitatea în iubire — Tier A (2026-05-24): instrument
+      // validat științific (BFI-10 + RQ Bartholomew). 14 itemi pe scală
+      // Likert 1-5; rezultă scorurile Big Five + stilul principal de
+      // atașament, iar Claude scrie ulterior dezvăluirea per utilizator.
       quizTitle: 'Descoperă-ți personalitatea în iubire',
       quizSubtitle: 'Felul în care iubești',
-      quizBody: 'Opt întrebări rapide. Personalitatea ta în iubire ajută AI-ul să te potrivească cu oameni compatibili.',
+      quizBody: 'Paisprezece afirmații scurte, bazate pe psihologia reală a relațiilor. Personalitatea ta în iubire permite AI-ului să te potrivească cu oameni care chiar se potrivesc.',
       quizQuestionOf: 'Întrebarea {n} din {total}',
+      quizBigFiveStem: 'Mă văd ca pe cineva care…',
+      quizAttachmentStem: 'Cât de bine te descrie asta în relațiile apropiate?',
+      quizLikertLabels: [
+        'Dezacord puternic',
+        'Dezacord',
+        'Neutru',
+        'De acord',
+        'Acord puternic',
+      ],
+      quizDimensionOpenness: 'Deschidere',
+      quizDimensionConscientiousness: 'Conștiinciozitate',
+      quizDimensionExtraversion: 'Extraversiune',
+      quizDimensionAgreeableness: 'Amabilitate',
+      quizDimensionEmotionalStability: 'Stabilitate emoțională',
+      quizAttachmentResultLabel: 'Stil de atașament',
+      quizAttachmentLabels: {
+        secure: 'Sigur',
+        anxious: 'Anxios',
+        avoidant: 'Evitant',
+        disorganized: 'Dezorganizat',
+      },
       quizResultTitle: 'Personalitatea ta în iubire',
-      // Phase A round 2 — testul poate fi sărit deocamdată
+      quizRevealPending: 'O dezvăluire cinematografică — scrisă doar pentru tine — va sosi după ce profilul tău devine activ.',
+      quizProgress: '{n} din {total} răspunsuri',
+      // Testul poate fi sărit — răspunsurile goale nu stochează lovePersonality;
+      // ecranul de profil te invită să-l reiei mai târziu.
       quizSkipForNow: 'Sari peste deocamdată — fac testul mai târziu',
       // Pas 6: Bio
       bioTitle: 'Câteva cuvinte despre tine',
@@ -932,6 +995,17 @@ export const UI_TEXT = {
       aboutMe: 'Despre mine',
       personalityCode: 'Personalitatea ta în iubire',
       lovePersonalitySubtitle: 'Felul în care iubești',
+      // Tier A (2026-05-24) — Big Five + Atașament
+      lovePersonalityTitle: 'Personalitatea în iubire',
+      openness: 'Deschidere',
+      conscientiousness: 'Conștiinciozitate',
+      extraversion: 'Extraversiune',
+      agreeableness: 'Amabilitate',
+      emotionalStability: 'Stabilitate emoțională',
+      attachmentStyleLabel: 'Stil de atașament',
+      lovePersonalityAwaitingReveal: 'Personalitatea ta în iubire se pregătește…',
+      lovePersonalityNotTaken: 'Fă evaluarea Personalitatea în iubire în Onboarding pentru potriviri mai inteligente.',
+      lovePersonalityRetakeHint: 'Evaluarea Personalitatea în iubire este înregistrată. Deschide ghidul pentru a vedea cadrul sau reia evaluarea din Onboarding.',
       primary: 'Principal',
       support: 'Auxiliar',
       tertiary: 'Terțiar',

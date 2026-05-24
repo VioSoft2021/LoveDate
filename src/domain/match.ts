@@ -7,7 +7,6 @@ export type MatchAnalysis = {
   ageGap: number
   reasons: string[]
   caution: string | null
-  pairCode: string
   // Populated by the AI match-score Edge Function (E3 + E6 deepening).
   // Empty arrays when only the heuristic baseline is available.
   frictionPoints?: string[]

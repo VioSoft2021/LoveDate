@@ -9,6 +9,7 @@ import type {
   DatePlan,
 } from '../domain'
 import type { Profile } from '../services/priveApi'
+import type { AttachmentStyle, BigFiveScores } from '../services/compatibility'
 
 type ChatPreview = {
   profile: Profile
@@ -17,11 +18,10 @@ type ChatPreview = {
   unread: number
 }
 
-type TypeGuide = { code: string; label: string; summary: string } | null | undefined
-type CognitiveFunctions =
-  | { primary: string; support: string; tertiary: string; shadow: string }
-  | null
-  | undefined
+const ATTACHMENT_LABELS: Record<AppLanguage, Record<AttachmentStyle, string>> = {
+  en: { secure: 'Secure', anxious: 'Anxious', avoidant: 'Avoidant', disorganized: 'Disorganized' },
+  ro: { secure: 'Sigur', anxious: 'Anxios', avoidant: 'Evitant', disorganized: 'Dezorganizat' },
+}
 
 export type ChatScreenProps = {
   appLanguage: AppLanguage
@@ -32,9 +32,8 @@ export type ChatScreenProps = {
   setActiveChatId: (id: number | null) => void
   selectedChatProfile: Profile | null
   selectedChatChemistry: ChemistryInsights | null
-  selectedChatPersonalityCode: string | null
-  selectedChatTypeGuide: TypeGuide
-  selectedChatCognitiveFunctions: CognitiveFunctions
+  selectedChatBigFive: BigFiveScores | null
+  selectedChatAttachment: AttachmentStyle | null
   selectedChatMessages: ChatMessage[]
   selectedChatCallHistory: CallLogEntry[]
   hiddenChatMessageCount: number
@@ -71,9 +70,8 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
   setActiveChatId,
   selectedChatProfile,
   selectedChatChemistry,
-  selectedChatPersonalityCode,
-  selectedChatTypeGuide,
-  selectedChatCognitiveFunctions,
+  selectedChatBigFive,
+  selectedChatAttachment,
   selectedChatMessages,
   selectedChatCallHistory,
   hiddenChatMessageCount,
@@ -253,21 +251,26 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
                 {selectedChatChemistry?.cognitiveOverlapScore ?? 0}% {'•'} {copy.chats.zodiac}:{' '}
                 {selectedChatChemistry?.zodiacAligned ? copy.discover.aligned : copy.discover.neutral}
               </p>
-              <p className="chat-compatibility-line">
-                <strong>{copy.chats.type}:</strong>{' '}
-                {selectedChatPersonalityCode ?? copy.chats.unknown}
-                {selectedChatTypeGuide ? ` - ${selectedChatTypeGuide.label}` : ''}
-              </p>
+              {selectedChatAttachment ? (
+                <p className="chat-compatibility-line">
+                  <strong>{copy.chats.type}:</strong>{' '}
+                  {ATTACHMENT_LABELS[appLanguage][selectedChatAttachment]}
+                </p>
+              ) : null}
               <p className="chat-compatibility-line">
                 <strong>{copy.chats.zodiac}:</strong> {selectedChatProfile.zodiac}{' '}
                 {ZODIAC_EMOJI[selectedChatProfile.zodiac] ?? ''} {'•'}{' '}
                 {getZodiacDescription(selectedChatProfile.zodiac, appLanguage)?.overview ??
                   copy.chats.uniqueCosmicSignature}
               </p>
-              {selectedChatCognitiveFunctions ? (
+              {selectedChatBigFive ? (
                 <p className="chat-compatibility-line">
-                  <strong>{copy.chats.cognitive}:</strong> {selectedChatCognitiveFunctions.primary}{' '}
-                  {'•'} {selectedChatCognitiveFunctions.support}
+                  <strong>{copy.chats.cognitive}:</strong>{' '}
+                  O {Math.round(selectedChatBigFive.openness)}% {'•'}{' '}
+                  C {Math.round(selectedChatBigFive.conscientiousness)}% {'•'}{' '}
+                  E {Math.round(selectedChatBigFive.extraversion)}% {'•'}{' '}
+                  A {Math.round(selectedChatBigFive.agreeableness)}% {'•'}{' '}
+                  S {Math.round(100 - selectedChatBigFive.neuroticism)}%
                 </p>
               ) : null}
             </section>

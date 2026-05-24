@@ -1,14 +1,6 @@
 import { useCallback, useState } from 'react'
-import {
-  PERSONALITY_COGNITIVE_FUNCTIONS,
-  ZODIAC_COMPATIBILITY,
-} from '../constants'
-import {
-  compatibilityFromAnswers,
-  compatibilityFromCodes,
-  personalityCodeFromAnswers,
-} from '../services/compatibility'
-import { cognitiveFunctionTokens } from '../utils'
+import { ZODIAC_COMPATIBILITY } from '../constants'
+import { compatibilityFromBigFiveAttachment } from '../services/compatibility'
 import {
   backendInvokeMatchScore,
   type AiMatchScoreResult,
@@ -74,20 +66,17 @@ export const useMatchScoring = ({
         ),
       )
       const ageGap = Math.abs(selfProfile.age - profile.age)
-      // Other users' raw answers are no longer publicly readable as of
-      // the 2026-05-19 privacy migration. Fall back to the code-based
-      // heuristic — lower fidelity but doesn't require their raw
-      // answers. E3 AI scoring then overlays the real assessment on
+      // Tier A (2026-05-24) — score from public Big Five + Attachment fields
+      // that sync_discoverable_profile derives from the candidate's private
+      // Likert answers. Returns 50 (neutral) when either side hasn't taken
+      // the new assessment yet. E3 AI scoring overlays smarter reasons on
       // the top card.
-      const personalityScore = profile.personalityCode
-        ? compatibilityFromCodes(
-            selfProfile.personalityAnswers,
-            profile.personalityCode,
-          )
-        : compatibilityFromAnswers(
-            selfProfile.personalityAnswers,
-            profile.personalityAnswers,
-          )
+      const personalityScore = compatibilityFromBigFiveAttachment(
+        selfProfile.lovePersonality?.bigFive ?? null,
+        selfProfile.lovePersonality?.attachment ?? null,
+        profile.bigFive ?? null,
+        profile.attachmentStyle ?? null,
+      )
       const myZodiacCompat = ZODIAC_COMPATIBILITY[selfProfile.zodiac] ?? []
       const zodiacAligned = myZodiacCompat.includes(profile.zodiac)
       const intentAligned =
@@ -111,10 +100,6 @@ export const useMatchScoring = ({
       score += profile.verified ? 3 : 0
       const finalScore = Math.max(1, Math.min(99, Math.round(score)))
 
-      const myCode = personalityCodeFromAnswers(selfProfile.personalityAnswers)
-      const theirCode =
-        profile.personalityCode ||
-        personalityCodeFromAnswers(profile.personalityAnswers)
       const reasons: string[] = []
       if (personalityScore >= 82) {
         reasons.push('Your personality rhythm is strongly aligned.')
@@ -165,7 +150,7 @@ export const useMatchScoring = ({
         ageGap,
         reasons: reasons.slice(0, 4),
         caution,
-        pairCode: `${myCode} x ${theirCode}`,
+        // pairCode removed Tier A — DMFR archetype codes deprecated.
       }
     },
     [selfProfile],
@@ -179,25 +164,12 @@ export const useMatchScoring = ({
   const getChemistryInsights = useCallback(
     (profile: Profile): ChemistryInsights => {
       const match = getMatchAnalysis(profile)
-      const myCode = personalityCodeFromAnswers(selfProfile.personalityAnswers)
-      const myStack = PERSONALITY_COGNITIVE_FUNCTIONS[myCode]
-      const theirCode =
-        profile.personalityCode ||
-        personalityCodeFromAnswers(profile.personalityAnswers)
-      const theirStack = PERSONALITY_COGNITIVE_FUNCTIONS[theirCode]
-
-      let cognitiveOverlapScore = 48
-      if (myStack && theirStack) {
-        const mine = cognitiveFunctionTokens(myStack)
-        const theirs = cognitiveFunctionTokens(theirStack)
-        const overlapCount = mine.filter((token) => theirs.includes(token)).length
-        const primaryMatch = mine[0] && theirs[0] && mine[0] === theirs[0]
-        const supportMatch = mine[1] && theirs[1] && mine[1] === theirs[1]
-        cognitiveOverlapScore = Math.min(
-          98,
-          36 + overlapCount * 14 + (primaryMatch ? 18 : 0) + (supportMatch ? 8 : 0),
-        )
-      }
+      // Tier A — Big Five "overlap" replaces the old cognitive-function
+      // token overlap. The number is the same compatibility score the
+      // match analysis already produced (personalityScore is already a
+      // Big Five + Attachment blend); we surface it again under the
+      // "cognitive overlap" name so existing UI keeps working.
+      const cognitiveOverlapScore = match.personalityScore
 
       const chemistryScore = Math.max(
         1,
@@ -213,8 +185,8 @@ export const useMatchScoring = ({
       )
 
       const summary = match.zodiacAligned
-        ? 'Strong chemistry signal from cognitive overlap and zodiac alignment.'
-        : 'Good chemistry driven mostly by cognitive-function overlap and compatibility.'
+        ? 'Strong chemistry signal from personality alignment and zodiac.'
+        : 'Good chemistry driven mostly by personality and lifestyle alignment.'
 
       return {
         chemistryScore,
@@ -223,7 +195,7 @@ export const useMatchScoring = ({
         summary,
       }
     },
-    [getMatchAnalysis, selfProfile.personalityAnswers],
+    [getMatchAnalysis],
   )
 
   // ── AI overlay fetch ─────────────────────────────────────────────

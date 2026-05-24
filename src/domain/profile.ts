@@ -1,4 +1,4 @@
-import type { PersonalityAnswer } from '../services/compatibility'
+import type { LovePersonality, LikertAnswer } from '../services/compatibility'
 import type { SocialConnections } from './social'
 
 export type SelfProfile = {
@@ -37,5 +37,12 @@ export type SelfProfile = {
   socialPromotionOptIn: boolean
   travelMode: boolean
   photos: string[]
-  personalityAnswers: PersonalityAnswer[]
+  // Tier A (2026-05-24) — replaces the previous personalityAnswers binary array.
+  // Raw quiz answers (14 Likert items, 1-5) kept locally until cloud sync derives
+  // the public Big Five vector + attachment style. The full LovePersonality
+  // (scores + attachment + Claude-generated reveal) is rebuilt on hydration
+  // from cloud + cache, so a missing value here just means "user hasn't taken
+  // the new assessment yet."
+  personalityAnswers?: LikertAnswer[]
+  lovePersonality?: LovePersonality
 }

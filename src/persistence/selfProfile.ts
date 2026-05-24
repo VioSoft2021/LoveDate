@@ -4,12 +4,28 @@ import {
   EMPTY_SELF_PROFILE,
   SOCIAL_PLATFORM_META,
 } from '../constants'
-import {
-  PERSONALITY_QUESTIONS,
-  sanitizeAnswers,
-  type PersonalityAnswer,
-} from '../services/compatibility'
+import { PERSONALITY_QUESTION_COUNT, type LikertAnswer } from '../services/compatibility'
 import { backendReadSelfProfile } from '../services/backendApi'
+
+/**
+ * Tier A — sanitize the 14 Likert answers (1-5 integers). Anything outside
+ * range or missing returns null so we can detect "user hasn't taken the
+ * new assessment yet."
+ */
+const sanitizeLikertAnswers = (raw: unknown): LikertAnswer[] | undefined => {
+  if (!Array.isArray(raw) || raw.length !== PERSONALITY_QUESTION_COUNT) {
+    return undefined
+  }
+  const cleaned: LikertAnswer[] = []
+  for (const v of raw) {
+    if (v === 1 || v === 2 || v === 3 || v === 4 || v === 5) {
+      cleaned.push(v)
+    } else {
+      return undefined // any invalid value → treat as not-yet-taken
+    }
+  }
+  return cleaned
+}
 
 export const normalizeSelfProfile = (raw: unknown): SelfProfile => {
   try {
@@ -98,10 +114,8 @@ export const normalizeSelfProfile = (raw: unknown): SelfProfile => {
           : EMPTY_SELF_PROFILE.socialPromotionOptIn,
       travelMode: typeof parsed.travelMode === 'boolean' ? parsed.travelMode : EMPTY_SELF_PROFILE.travelMode,
       photos: safePhotos.length > 0 ? safePhotos : EMPTY_SELF_PROFILE.photos,
-      personalityAnswers:
-        sanitizeAnswers(parsed.personalityAnswers).length === PERSONALITY_QUESTIONS.length
-          ? (sanitizeAnswers(parsed.personalityAnswers) as PersonalityAnswer[])
-          : EMPTY_SELF_PROFILE.personalityAnswers,
+      personalityAnswers: sanitizeLikertAnswers(parsed.personalityAnswers),
+      lovePersonality: parsed.lovePersonality,
     }
   } catch {
     return EMPTY_SELF_PROFILE
@@ -147,4 +161,5 @@ export const toProfileDraft = (profile: SelfProfile) => ({
   travelMode: profile.travelMode,
   photos: profile.photos,
   personalityAnswers: profile.personalityAnswers,
+  lovePersonality: profile.lovePersonality,
 })

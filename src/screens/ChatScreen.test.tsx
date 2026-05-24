@@ -42,7 +42,6 @@ const buildProfile = (overrides: Partial<Profile> = {}): Profile => ({
   verified: true,
   relationshipGoal: 'Long-term',
   zodiac: 'Aries',
-  personalityAnswers: ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A'],
   ...overrides,
 })
 
@@ -55,9 +54,8 @@ const baseProps: ChatScreenProps = {
   setActiveChatId: vi.fn(),
   selectedChatProfile: null,
   selectedChatChemistry: null,
-  selectedChatPersonalityCode: null,
-  selectedChatTypeGuide: null,
-  selectedChatCognitiveFunctions: null,
+  selectedChatBigFive: null,
+  selectedChatAttachment: null,
   selectedChatMessages: [],
   selectedChatCallHistory: [],
   hiddenChatMessageCount: 0,

@@ -1,5 +1,4 @@
 import type { Filters, SelfProfile, SocialConnections, SocialPlatform } from '../domain'
-import { PERSONALITY_QUESTIONS } from '../services/compatibility'
 
 export const SOCIAL_PLATFORM_META: Array<{
   id: SocialPlatform
@@ -91,7 +90,7 @@ export const DEFAULT_SELF_PROFILE: SelfProfile = {
     'https://images.unsplash.com/photo-1521119989659-a83eee488004?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=3000&q=100&dpr=2&fm=webp',
   ],
-  personalityAnswers: ['B', 'A', 'A', 'A', 'A', 'A', 'A', 'A'],
+  // Tier A — personality starts unset; user takes the assessment in onboarding.
 }
 
 // Dropdown option lists. Some are gated by DB CHECK constraints (gender,
@@ -166,5 +165,5 @@ export const EMPTY_SELF_PROFILE: SelfProfile = {
   socialPromotionOptIn: false,
   travelMode: false,
   photos: [],
-  personalityAnswers: Array(PERSONALITY_QUESTIONS.length).fill(''),
+  // Tier A — personality undefined until user completes new assessment.
 }

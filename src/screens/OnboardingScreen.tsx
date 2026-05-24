@@ -3,14 +3,15 @@ import {
   GENDER_OPTIONS,
   RELATIONSHIP_INTENT_OPTIONS,
   UI_TEXT,
-  getPersonalityTypeGuide,
   translateLifestyleOption,
   translateRelationshipIntent,
 } from '../constants'
 import {
   getPersonalityQuestions,
-  personalityCodeFromAnswers,
-  type PersonalityAnswer,
+  lovePersonalityFromAnswers,
+  BIG_FIVE_QUESTION_COUNT,
+  PERSONALITY_QUESTION_COUNT,
+  type LikertAnswer,
 } from '../services/compatibility'
 import { detectMyLocation, isLocationError } from '../services/geolocation'
 import { backendUploadProfilePhoto } from '../services/backendApi'
@@ -81,8 +82,20 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const [city, setCity] = React.useState(selfProfile.city)
   const [hometown, setHometown] = React.useState(selfProfile.hometown)
   const [photos, setPhotos] = React.useState<string[]>(selfProfile.photos ?? [])
-  const [quizAnswers, setQuizAnswers] = React.useState<PersonalityAnswer[]>(
-    selfProfile.personalityAnswers ?? Array(8).fill('A'),
+  // Tier A — 14 Likert answers (1-5). undefined slots = not yet answered;
+  // the user can advance with partial answers by hitting Skip, in which
+  // case the array stays sparse and lovePersonalityFromAnswers returns null.
+  const [quizAnswers, setQuizAnswers] = React.useState<Array<LikertAnswer | undefined>>(
+    () => {
+      const initial: Array<LikertAnswer | undefined> = Array(PERSONALITY_QUESTION_COUNT).fill(undefined)
+      const existing = selfProfile.personalityAnswers
+      if (existing && existing.length === PERSONALITY_QUESTION_COUNT) {
+        for (let i = 0; i < PERSONALITY_QUESTION_COUNT; i += 1) {
+          initial[i] = existing[i]
+        }
+      }
+      return initial
+    },
   )
   const [bio, setBio] = React.useState(selfProfile.bio)
 
@@ -200,6 +213,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   // Commit the wizard's draft into the real selfProfile state. The
   // App's existing sync effect picks this up and saves to the cloud.
   const finish = () => {
+    const completeAnswers: LikertAnswer[] | undefined = quizAnswers.every(
+      (value): value is LikertAnswer => value !== undefined,
+    )
+      ? (quizAnswers as LikertAnswer[])
+      : undefined
+    const computedLovePersonality = completeAnswers
+      ? lovePersonalityFromAnswers(completeAnswers) ?? undefined
+      : undefined
     setSelfProfile((current) => ({
       ...current,
       name: name.trim(),
@@ -209,7 +230,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       city: city.trim(),
       hometown: hometown.trim(),
       photos,
-      personalityAnswers: quizAnswers,
+      personalityAnswers: completeAnswers,
+      lovePersonality: computedLovePersonality ?? current.lovePersonality,
       bio: bio.trim(),
     }))
     onComplete()
@@ -217,10 +239,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
   // Personality questions for current language
   const quizQuestions = getPersonalityQuestions(appLanguage)
-  const computedPersonalityCode = personalityCodeFromAnswers(quizAnswers)
-  const personalityType = getPersonalityTypeGuide(appLanguage).find(
-    (entry) => entry.code === computedPersonalityCode,
+  const completeAnswers: LikertAnswer[] | null = quizAnswers.every(
+    (value): value is LikertAnswer => value !== undefined,
   )
+    ? (quizAnswers as LikertAnswer[])
+    : null
+  const previewLovePersonality = completeAnswers
+    ? lovePersonalityFromAnswers(completeAnswers)
+    : null
 
   // ── Render ──────────────────────────────────────────────────────
   return (
@@ -406,72 +432,104 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             <h1>{copy.quizTitle}</h1>
             <p className="onboarding-quiz-subtitle">{copy.quizSubtitle}</p>
             <p>{copy.quizBody}</p>
+            <p className="onboarding-quiz-stem">{copy.quizBigFiveStem}</p>
             <ol className="onboarding-quiz-list">
               {quizQuestions.map((q, idx) => (
-                <li key={q.id} className="onboarding-quiz-item">
-                  <p className="onboarding-quiz-prompt">{q.prompt}</p>
-                  <div className="onboarding-segments" role="radiogroup">
-                    <button
-                      type="button"
-                      role="radio"
-                      aria-checked={quizAnswers[idx] === 'A'}
-                      className={
-                        quizAnswers[idx] === 'A'
-                          ? 'onboarding-segment is-active'
-                          : 'onboarding-segment'
-                      }
-                      onClick={() =>
-                        setQuizAnswers((current) => {
-                          const next = [...current]
-                          next[idx] = 'A'
-                          return next
-                        })
-                      }
+                <React.Fragment key={q.id}>
+                  {idx === BIG_FIVE_QUESTION_COUNT && (
+                    <li className="onboarding-quiz-section-break" aria-hidden="true">
+                      <p className="onboarding-quiz-stem">{copy.quizAttachmentStem}</p>
+                    </li>
+                  )}
+                  <li className="onboarding-quiz-item">
+                    <p className="onboarding-quiz-prompt">
+                      <span className="onboarding-quiz-number">{idx + 1}.</span> {q.prompt}
+                    </p>
+                    <div
+                      className="onboarding-likert"
+                      role="radiogroup"
+                      aria-label={q.prompt}
                     >
-                      A) {q.optionA}
-                    </button>
-                    <button
-                      type="button"
-                      role="radio"
-                      aria-checked={quizAnswers[idx] === 'B'}
-                      className={
-                        quizAnswers[idx] === 'B'
-                          ? 'onboarding-segment is-active'
-                          : 'onboarding-segment'
-                      }
-                      onClick={() =>
-                        setQuizAnswers((current) => {
-                          const next = [...current]
-                          next[idx] = 'B'
-                          return next
-                        })
-                      }
-                    >
-                      B) {q.optionB}
-                    </button>
-                  </div>
-                </li>
+                      {([1, 2, 3, 4, 5] as const).map((value) => (
+                        <button
+                          key={value}
+                          type="button"
+                          role="radio"
+                          aria-checked={quizAnswers[idx] === value}
+                          className={
+                            quizAnswers[idx] === value
+                              ? 'onboarding-likert-cell is-active'
+                              : 'onboarding-likert-cell'
+                          }
+                          onClick={() =>
+                            setQuizAnswers((current) => {
+                              const next = [...current]
+                              next[idx] = value
+                              return next
+                            })
+                          }
+                          title={copy.quizLikertLabels[value - 1]}
+                        >
+                          <span className="onboarding-likert-value">{value}</span>
+                          <span className="onboarding-likert-cell-label">
+                            {copy.quizLikertLabels[value - 1]}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </li>
+                </React.Fragment>
               ))}
             </ol>
-            <div className="onboarding-quiz-result">
-              <p className="onboarding-quiz-result-label">{copy.quizResultTitle}</p>
-              <p className="onboarding-quiz-result-code">{computedPersonalityCode}</p>
-              {personalityType ? (
-                <>
-                  <p className="onboarding-quiz-result-label-name">{personalityType.label}</p>
-                  <p className="onboarding-quiz-result-summary">{personalityType.summary}</p>
-                </>
-              ) : null}
-            </div>
-            {/* Phase A round 2 — "Skip for now" while Master rethinks the
-                quiz questions + response options. Empty quizAnswers signal
-                "skipped": finish() commits an empty array and the user
-                has no personality code until they take the quiz later. */}
+            {previewLovePersonality ? (
+              <div className="onboarding-quiz-result">
+                <p className="onboarding-quiz-result-label">{copy.quizResultTitle}</p>
+                <ul className="onboarding-quiz-bigfive">
+                  {(
+                    [
+                      ['openness', copy.quizDimensionOpenness, previewLovePersonality.bigFive.openness],
+                      ['conscientiousness', copy.quizDimensionConscientiousness, previewLovePersonality.bigFive.conscientiousness],
+                      ['extraversion', copy.quizDimensionExtraversion, previewLovePersonality.bigFive.extraversion],
+                      ['agreeableness', copy.quizDimensionAgreeableness, previewLovePersonality.bigFive.agreeableness],
+                      ['emotionalStability', copy.quizDimensionEmotionalStability, 100 - previewLovePersonality.bigFive.neuroticism],
+                    ] as const
+                  ).map(([key, label, value]) => (
+                    <li key={key} className="onboarding-quiz-bigfive-row">
+                      <span className="onboarding-quiz-bigfive-label">{label}</span>
+                      <span className="onboarding-quiz-bigfive-bar" aria-hidden="true">
+                        <span
+                          className="onboarding-quiz-bigfive-fill"
+                          style={{ width: `${Math.round(value)}%` }}
+                        />
+                      </span>
+                      <span className="onboarding-quiz-bigfive-value">{Math.round(value)}%</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="onboarding-quiz-attachment">
+                  <strong>{copy.quizAttachmentResultLabel}:</strong>{' '}
+                  {copy.quizAttachmentLabels[previewLovePersonality.attachment]}
+                </p>
+                <p className="onboarding-quiz-reveal-pending">
+                  {copy.quizRevealPending}
+                </p>
+              </div>
+            ) : (
+              <p className="onboarding-quiz-progress soft">
+                {t(copy.quizProgress, {
+                  n: quizAnswers.filter((v) => v !== undefined).length,
+                  total: PERSONALITY_QUESTION_COUNT,
+                })}
+              </p>
+            )}
+            {/* Skip remains while users explore — empty answers means no
+                lovePersonality is stored, and the profile prompts them to
+                take it from the Profile screen later. */}
             <button
               type="button"
               className="onboarding-quiz-skip"
               onClick={() => {
-                setQuizAnswers([])
+                setQuizAnswers(Array(PERSONALITY_QUESTION_COUNT).fill(undefined))
                 advance()
               }}
             >

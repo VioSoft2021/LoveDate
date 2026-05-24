@@ -1,7 +1,7 @@
 import React from 'react'
 import { UI_TEXT, ZODIAC_EMOJI, initialFilters, translateInterest } from '../constants'
 import { buildHighResImageUrl } from '../utils'
-import { compatibilityFromAnswers } from '../services/compatibility'
+import { compatibilityFromBigFiveAttachment } from '../services/compatibility'
 import { distanceBetweenCities, formatDistance } from '../services/cityDistance'
 import type {
   AppLanguage,
@@ -546,9 +546,11 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
                 {topProfileMatchAnalysis?.score ?? getCompatibilityScore(topProfile)}% {'•'}{' '}
                 {copy.discover.personality}:{' '}
                 {topProfileMatchAnalysis?.personalityScore ??
-                  compatibilityFromAnswers(
-                    selfProfile.personalityAnswers,
-                    topProfile.personalityAnswers,
+                  compatibilityFromBigFiveAttachment(
+                    selfProfile.lovePersonality?.bigFive ?? null,
+                    selfProfile.lovePersonality?.attachment ?? null,
+                    topProfile.bigFive ?? null,
+                    topProfile.attachmentStyle ?? null,
                   )}
                 %
               </p>
@@ -560,7 +562,6 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
                   {topProfileChemistry.zodiacAligned ? copy.discover.aligned : copy.discover.neutral}
                 </p>
               ) : null}
-              <p className="compatibility-score">{topProfileMatchAnalysis?.pairCode}</p>
               {topProfileMatchAnalysis?.reasons?.length ? (
                 <ul className="discover-reasons-list">
                   {topProfileMatchAnalysis.reasons.slice(0, 3).map((reason) => (

@@ -1,6 +1,5 @@
 export * from './circles'
 export * from './labelTranslations'
-export * from './personality'
 export * from './profile'
 export * from './uiText'
 export * from './zodiac'

@@ -1,5 +1,5 @@
 import { createSupabaseClient } from './supabaseClient'
-import { sanitizeAnswers, type PersonalityAnswer } from './compatibility'
+import type { AttachmentStyle, BigFiveScores } from './compatibility'
 
 export type Profile = {
   id: number
@@ -17,12 +17,14 @@ export type Profile = {
   verified: boolean
   relationshipGoal: 'Long-term' | 'Short-term' | 'Friends' | 'Figuring it out'
   zodiac: string
-  personalityAnswers: PersonalityAnswer[]
-  // 4-letter code (e.g. CSOA) derived server-side from the OWNER's
-  // private quiz answers, exposed publicly so other clients can rank.
-  // Undefined when the row predates the 2026-05-19 migration; callers
-  // fall back to deriving from `personalityAnswers` in that case.
-  personalityCode?: string
+  // Tier A (2026-05-24) — public derived fields from the new Love
+  // Personality assessment. Computed server-side from the OWNER's
+  // private Likert answers (which never leave profile_private). Both
+  // are optional: undefined means the user hasn't taken the new
+  // assessment yet, in which case match-scoring falls back to a
+  // neutral 50 and the UI prompts them to take it.
+  bigFive?: BigFiveScores
+  attachmentStyle?: AttachmentStyle
 }
 
 const toHighResPhoto = (url: string): string => {
@@ -126,10 +128,37 @@ const mapProfileRow = (row: Record<string, unknown>): Profile | null => {
     row.extras && typeof row.extras === 'object'
       ? (row.extras as Record<string, unknown>)
       : {}
-  const personalityAnswers = sanitizeAnswers(extras.personalityAnswers)
-  const personalityCode =
-    typeof row.personality_code === 'string' && row.personality_code.length === 4
-      ? row.personality_code
+  // Tier A — read the new Big Five vector + attachment style from the
+  // public profiles columns. Both are optional; undefined when the user
+  // hasn't taken the new Love Personality assessment yet.
+  const bigFiveRaw = row.big_five && typeof row.big_five === 'object'
+    ? (row.big_five as Record<string, unknown>)
+    : null
+  const isFiniteNum = (v: unknown): v is number =>
+    typeof v === 'number' && Number.isFinite(v)
+  const bigFive: BigFiveScores | undefined =
+    bigFiveRaw &&
+    isFiniteNum(bigFiveRaw.openness) &&
+    isFiniteNum(bigFiveRaw.conscientiousness) &&
+    isFiniteNum(bigFiveRaw.extraversion) &&
+    isFiniteNum(bigFiveRaw.agreeableness) &&
+    isFiniteNum(bigFiveRaw.neuroticism)
+      ? {
+          openness: bigFiveRaw.openness,
+          conscientiousness: bigFiveRaw.conscientiousness,
+          extraversion: bigFiveRaw.extraversion,
+          agreeableness: bigFiveRaw.agreeableness,
+          neuroticism: bigFiveRaw.neuroticism,
+        }
+      : undefined
+  const attachmentStyleRaw =
+    typeof row.attachment_style === 'string' ? row.attachment_style : null
+  const attachmentStyle: AttachmentStyle | undefined =
+    attachmentStyleRaw === 'secure' ||
+    attachmentStyleRaw === 'anxious' ||
+    attachmentStyleRaw === 'avoidant' ||
+    attachmentStyleRaw === 'disorganized'
+      ? attachmentStyleRaw
       : undefined
 
   return {
@@ -148,12 +177,8 @@ const mapProfileRow = (row: Record<string, unknown>): Profile | null => {
     verified: Boolean(row.verified),
     relationshipGoal,
     zodiac: String(row.zodiac ?? 'Libra'),
-    // Other users' raw answers moved server-only on 2026-05-19. When extras
-    // doesn't carry the answers (the post-migration steady state for
-    // everyone but the viewer themselves), return [] — the deck heuristic
-    // falls back to personality_code via compatibilityFromCodes.
-    personalityAnswers: personalityAnswers.length === 8 ? personalityAnswers : [],
-    personalityCode,
+    bigFive,
+    attachmentStyle,
   }
 }
 

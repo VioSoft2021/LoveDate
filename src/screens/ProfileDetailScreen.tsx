@@ -1,16 +1,16 @@
 import React from 'react'
 import {
   UI_TEXT,
-  getPersonalityCognitiveFunctions,
-  getPersonalityTypeGuide,
   getZodiacDeepDive,
   getZodiacDescription,
   ZODIAC_EMOJI,
 } from '../constants'
 import { getProfilePhotos, getProfilePrompts } from '../utils'
 import {
-  compatibilityFromAnswers,
-  personalityCodeFromAnswers,
+  compatibilityFromBigFiveAttachment,
+  type AttachmentStyle,
+  type BigFiveScores,
+  type LovePersonality,
 } from '../services/compatibility'
 import { distanceBetweenCities, formatDistance } from '../services/cityDistance'
 import type {
@@ -21,11 +21,26 @@ import type {
 } from '../domain'
 import type { Profile } from '../services/priveApi'
 
+const ATTACHMENT_LABELS_EN: Record<AttachmentStyle, string> = {
+  secure: 'Secure',
+  anxious: 'Anxious',
+  avoidant: 'Avoidant',
+  disorganized: 'Disorganized',
+}
+const ATTACHMENT_LABELS_RO: Record<AttachmentStyle, string> = {
+  secure: 'Sigur',
+  anxious: 'Anxios',
+  avoidant: 'Evitant',
+  disorganized: 'Dezorganizat',
+}
+
 export type ProfileDetailScreenProps = {
   appLanguage: AppLanguage
   selectedDetailProfile: Profile | null
   selfProfile: SelfProfile
-  selfPersonalityCode: string
+  selfLovePersonality: LovePersonality | null
+  selectedDetailBigFive: BigFiveScores | null
+  selectedDetailAttachment: AttachmentStyle | null
   selectedDetailMatchAnalysis: MatchAnalysis | null
   selectedDetailChemistry: ChemistryInsights | null
   getCompatibilityScore: (profile: Profile) => number
@@ -46,7 +61,9 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
   appLanguage,
   selectedDetailProfile,
   selfProfile,
-  selfPersonalityCode,
+  selfLovePersonality,
+  selectedDetailBigFive,
+  selectedDetailAttachment,
   selectedDetailMatchAnalysis,
   selectedDetailChemistry,
   getCompatibilityScore,
@@ -75,16 +92,13 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
     )
   }
 
-  const selectedDetailPersonalityCode = personalityCodeFromAnswers(
-    selectedDetailProfile.personalityAnswers,
-  )
-  const selectedDetailTypeGuide = getPersonalityTypeGuide(appLanguage).find(
-    (item) => item.code === selectedDetailPersonalityCode,
-  )
-  const selectedDetailCognitiveFunctions =
-    getPersonalityCognitiveFunctions(appLanguage)[selectedDetailPersonalityCode]
   const zodiacDescription = getZodiacDescription(selectedDetailProfile.zodiac, appLanguage)
   const zodiacDeepDive = getZodiacDeepDive(selectedDetailProfile.zodiac, appLanguage)
+  const attachmentLabel = selectedDetailAttachment
+    ? appLanguage === 'ro'
+      ? ATTACHMENT_LABELS_RO[selectedDetailAttachment]
+      : ATTACHMENT_LABELS_EN[selectedDetailAttachment]
+    : null
 
   return (
     <section className="profile-detail">
@@ -102,14 +116,14 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
         <p>
           {copy.profile.personalityFit}:{' '}
           {selectedDetailMatchAnalysis?.personalityScore ??
-            compatibilityFromAnswers(
-              selfProfile.personalityAnswers,
-              selectedDetailProfile.personalityAnswers,
+            compatibilityFromBigFiveAttachment(
+              selfLovePersonality?.bigFive ?? null,
+              selfLovePersonality?.attachment ?? null,
+              selectedDetailBigFive,
+              selectedDetailAttachment,
             )}
-          %{' • '}
-          {copy.profile.pair}:{' '}
-          {selectedDetailMatchAnalysis?.pairCode ??
-            `${selfPersonalityCode} x ${selectedDetailPersonalityCode}`}
+          %
+          {attachmentLabel ? ` • ${copy.profile.attachmentStyleLabel ?? 'Attachment'}: ${attachmentLabel}` : ''}
         </p>
         <p>{selectedDetailProfile.vibe}</p>
         <p>{selectedDetailProfile.bio}</p>
@@ -197,32 +211,36 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
             <p className="soft">{selectedDetailChemistry.summary}</p>
           </section>
         ) : null}
-        {selectedDetailTypeGuide ? (
-          <p>
-            <strong>{copy.profile.type}:</strong> {selectedDetailPersonalityCode} -{' '}
-            {selectedDetailTypeGuide.label}
-          </p>
-        ) : null}
-        {selectedDetailCognitiveFunctions ? (
+        {selectedDetailBigFive ? (
           <section className="match-insights">
-            <h3>{copy.profile.cognitiveFunctionsTitle}</h3>
+            <h3>{copy.profile.lovePersonalityTitle ?? 'Love Personality'}</h3>
             <ul>
               <li>
-                <strong>{copy.profile.primary}:</strong>{' '}
-                {selectedDetailCognitiveFunctions.primary}
+                <strong>{copy.profile.openness ?? 'Openness'}:</strong>{' '}
+                {Math.round(selectedDetailBigFive.openness)}%
               </li>
               <li>
-                <strong>{copy.profile.support}:</strong>{' '}
-                {selectedDetailCognitiveFunctions.support}
+                <strong>{copy.profile.conscientiousness ?? 'Conscientiousness'}:</strong>{' '}
+                {Math.round(selectedDetailBigFive.conscientiousness)}%
               </li>
               <li>
-                <strong>{copy.profile.tertiary}:</strong>{' '}
-                {selectedDetailCognitiveFunctions.tertiary}
+                <strong>{copy.profile.extraversion ?? 'Extraversion'}:</strong>{' '}
+                {Math.round(selectedDetailBigFive.extraversion)}%
               </li>
               <li>
-                <strong>{copy.profile.shadow}:</strong>{' '}
-                {selectedDetailCognitiveFunctions.shadow}
+                <strong>{copy.profile.agreeableness ?? 'Agreeableness'}:</strong>{' '}
+                {Math.round(selectedDetailBigFive.agreeableness)}%
               </li>
+              <li>
+                <strong>{copy.profile.emotionalStability ?? 'Emotional Stability'}:</strong>{' '}
+                {Math.round(100 - selectedDetailBigFive.neuroticism)}%
+              </li>
+              {attachmentLabel ? (
+                <li>
+                  <strong>{copy.profile.attachmentStyleLabel ?? 'Attachment style'}:</strong>{' '}
+                  {attachmentLabel}
+                </li>
+              ) : null}
             </ul>
           </section>
         ) : null}

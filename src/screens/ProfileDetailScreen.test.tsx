@@ -46,7 +46,6 @@ const buildSelfProfile = (): SelfProfile => ({
   socialPromotionOptIn: false,
   travelMode: false,
   photos: [],
-  personalityAnswers: ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A'],
 })
 
 const buildProfile = (overrides: Partial<Profile> = {}): Profile => ({
@@ -65,7 +64,6 @@ const buildProfile = (overrides: Partial<Profile> = {}): Profile => ({
   verified: true,
   relationshipGoal: 'Long-term',
   zodiac: 'Aries',
-  personalityAnswers: ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A'],
   ...overrides,
 })
 
@@ -73,7 +71,9 @@ const baseProps: ProfileDetailScreenProps = {
   appLanguage: 'en',
   selectedDetailProfile: buildProfile(),
   selfProfile: buildSelfProfile(),
-  selfPersonalityCode: 'CMFR',
+  selfLovePersonality: null,
+  selectedDetailBigFive: null,
+  selectedDetailAttachment: null,
   selectedDetailMatchAnalysis: null,
   selectedDetailChemistry: null,
   getCompatibilityScore: vi.fn().mockReturnValue(73),
@@ -134,7 +134,6 @@ describe('ProfileDetailScreen — rendering the selected profile', () => {
     const analysis: MatchAnalysis = {
       score: 88,
       personalityScore: 75,
-      pairCode: 'CMFR x ABCD',
       sharedInterests: ['coffee'],
       intentAligned: true,
       zodiacAligned: true,
@@ -146,7 +145,6 @@ describe('ProfileDetailScreen — rendering the selected profile', () => {
       <ProfileDetailScreen {...baseProps} selectedDetailMatchAnalysis={analysis} />,
     )
     expect(screen.getByText(/88%/)).toBeInTheDocument()
-    expect(screen.getByText(/CMFR x ABCD/)).toBeInTheDocument()
   })
 
   it('renders bio + vibe + city + gender + distance', () => {
@@ -162,7 +160,6 @@ describe('ProfileDetailScreen — rendering the selected profile', () => {
     const analysis: MatchAnalysis = {
       score: 75,
       personalityScore: 80,
-      pairCode: 'CMFR x ABCD',
       sharedInterests: ['coffee'],
       intentAligned: true,
       zodiacAligned: false,
@@ -179,7 +176,6 @@ describe('ProfileDetailScreen — rendering the selected profile', () => {
     const analysis: MatchAnalysis = {
       score: 40,
       personalityScore: 50,
-      pairCode: 'CMFR x DSOA',
       sharedInterests: [],
       intentAligned: false,
       zodiacAligned: false,

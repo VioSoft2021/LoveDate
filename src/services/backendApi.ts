@@ -695,8 +695,22 @@ export const backendEnsureDiscoverableProfile = async (
       promptTwo: profile.promptTwo ?? '',
       promptThree: profile.promptThree ?? '',
       dealbreakers: profile.dealbreakers ?? [],
-      personalityAnswers: profile.personalityAnswers ?? [],
     },
+    // Tier A (2026-05-24) — new validated personality assessment. The first 10
+    // answers are BFI-10 Big Five; the last 4 are Bartholomew RQ attachment
+    // ratings (in the fixed style order: secure, anxious, avoidant, disorganized).
+    // sync_discoverable_profile derives the public Big Five vector + primary
+    // attachment style server-side; raw answers stay in profile_private.
+    bigFiveAnswers: Array.isArray(profile.personalityAnswers)
+      ? (profile.personalityAnswers as unknown[]).slice(0, 10).filter(
+          (v): v is number => typeof v === 'number' && v >= 1 && v <= 5,
+        )
+      : undefined,
+    attachmentRatings: Array.isArray(profile.personalityAnswers)
+      ? (profile.personalityAnswers as unknown[]).slice(10, 14).filter(
+          (v): v is number => typeof v === 'number' && v >= 1 && v <= 5,
+        )
+      : undefined,
   }
 
   const { error } = await supabase.rpc('sync_discoverable_profile', {

@@ -20,10 +20,7 @@ import {
   translateLifestyleOption,
   translateRelationshipIntent,
 } from '../constants'
-import {
-  getPersonalityQuestions,
-  type PersonalityAnswer,
-} from '../services/compatibility'
+import type { LikertAnswer, LovePersonality } from '../services/compatibility'
 import { toProfileDraft } from '../persistence'
 import { formatUiText } from '../utils'
 import {
@@ -43,12 +40,6 @@ import type {
   SelfProfile,
 } from '../domain'
 
-type TypeGuide = { code: string; label: string; summary: string } | null | undefined
-type CognitiveFunctions =
-  | { primary: string; support: string; tertiary: string; shadow: string }
-  | null
-  | undefined
-
 export type ProfileScreenProps = {
   appLanguage: AppLanguage
   selfProfile: SelfProfile
@@ -59,13 +50,9 @@ export type ProfileScreenProps = {
     value: string,
   ) => void
   handleProfileDraftToggle: (field: 'travelMode', value: boolean) => void
-  handlePersonalityAnswerChange: (index: number, value: PersonalityAnswer) => void
   saveMyProfile: (event: React.FormEvent<HTMLFormElement>) => void
   profileSaveErrors: string[]
-  selfPersonalityCode: string
-  selfTypeGuide: TypeGuide
-  selfCognitiveFunctions: CognitiveFunctions
-  draftPersonalityCode: string
+  selfLovePersonality: LovePersonality | null
   socialConnectedCount: number
   // photo studio
   photoUrlInput: string
@@ -100,13 +87,9 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
   setProfileDraft,
   handleProfileDraftChange,
   handleProfileDraftToggle,
-  handlePersonalityAnswerChange,
   saveMyProfile,
   profileSaveErrors,
-  selfPersonalityCode,
-  selfTypeGuide,
-  selfCognitiveFunctions,
-  draftPersonalityCode,
+  selfLovePersonality,
   socialConnectedCount,
   photoUrlInput,
   setPhotoUrlInput,
@@ -322,24 +305,25 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
             {selfProfile.jobTitle} {copy.profile.jobAtCompany} {selfProfile.company} {'•'}{' '}
             {translateRelationshipIntent(selfProfile.lookingFor, appLanguage)}
           </p>
-          <p className="compatibility-score">
-            {copy.profile.personalityCode}: {selfPersonalityCode}
-          </p>
-          {selfTypeGuide ? (
+          {selfLovePersonality?.reveal ? (
+            <>
+              <p className="compatibility-score">
+                {copy.profile.lovePersonalityTitle ?? 'Love Personality'}:{' '}
+                {selfLovePersonality.reveal.archetypeName}
+              </p>
+              <p className="soft">{selfLovePersonality.reveal.headline}</p>
+            </>
+          ) : selfLovePersonality ? (
             <p className="soft">
-              {selfTypeGuide.label}: {selfTypeGuide.summary}
+              {copy.profile.lovePersonalityAwaitingReveal ??
+                'Your Love Personality is being prepared…'}
             </p>
-          ) : null}
-          {selfCognitiveFunctions ? (
-            <ul className="profile-cognitive-list">
-              <li>
-                <strong>{copy.profile.primary}:</strong> {selfCognitiveFunctions.primary}
-              </li>
-              <li>
-                <strong>{copy.profile.support}:</strong> {selfCognitiveFunctions.support}
-              </li>
-            </ul>
-          ) : null}
+          ) : (
+            <p className="soft">
+              {copy.profile.lovePersonalityNotTaken ??
+                'Take the Love Personality assessment in Onboarding to unlock smarter matching.'}
+            </p>
+          )}
           <p className="soft">
             {copy.profile.zodiacNote}:{' '}
             {getZodiacDescription(selfProfile.zodiac, appLanguage)?.overview ??
@@ -687,8 +671,11 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
             <summary>{copy.profile.personalityQuiz}</summary>
             <div className="profile-editor-grid">
               <p className="soft full-width">
-                {copy.profile.compatibilityCode}: <strong>{draftPersonalityCode}</strong>.{' '}
-                {copy.profile.pickOption}
+                {selfLovePersonality
+                  ? copy.profile.lovePersonalityRetakeHint ??
+                    'Your Love Personality assessment is on file. Open the guide to see the framework or retake it from Onboarding.'
+                  : copy.profile.lovePersonalityNotTaken ??
+                    'Take the Love Personality assessment in Onboarding to unlock smarter matching.'}
               </p>
               <button
                 type="button"
@@ -697,23 +684,6 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
               >
                 {copy.profile.openGuide}
               </button>
-              {getPersonalityQuestions(appLanguage).map((question, index) => (
-                <label key={question.id} className="full-width">
-                  {question.prompt}
-                  <select
-                    value={profileDraft.personalityAnswers[index] ?? 'A'}
-                    onChange={(event) =>
-                      handlePersonalityAnswerChange(
-                        index,
-                        event.target.value === 'B' ? 'B' : 'A',
-                      )
-                    }
-                  >
-                    <option value="A">A) {question.optionA}</option>
-                    <option value="B">B) {question.optionB}</option>
-                  </select>
-                </label>
-              ))}
             </div>
           </details>
 

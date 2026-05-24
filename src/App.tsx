@@ -95,12 +95,7 @@ import {
   rollbackLastSuperLikeEvent,
 } from './services/engagementLimits'
 import { canUsePassport, getActivePlan, setActivePlan as persistActivePlan } from './services/planGate'
-import {
-  PERSONALITY_QUESTIONS,
-  personalityCodeFromAnswers,
-  sanitizeAnswers,
-  type PersonalityAnswer,
-} from './services/compatibility'
+import { PERSONALITY_QUESTION_COUNT, type LikertAnswer } from './services/compatibility'
 import {
   SAFETY_CATEGORIES,
   createSafetyReport,
@@ -184,15 +179,10 @@ import {
   ZODIAC_COMPATIBILITY,
   ZODIAC_OPTIONS,
   CIRCLE_SEED,
-  PERSONALITY_COGNITIVE_FUNCTIONS,
-  PERSONALITY_DIMENSIONS,
-  PERSONALITY_TYPE_GUIDE,
   UI_TEXT,
   ZODIAC_DEEP_DIVE,
   ZODIAC_DESCRIPTIONS,
   ZODIAC_EMOJI,
-  getPersonalityCognitiveFunctions,
-  getPersonalityTypeGuide,
   translateInterestForSentence,
 } from './constants'
 import {
@@ -239,17 +229,11 @@ const CHAT_RENDER_WINDOW = 120
 // Profile constants (initialFilters, ZODIAC_COMPATIBILITY, DEFAULT_SELF_PROFILE, EMPTY_SELF_PROFILE,
 // all *_OPTIONS arrays) now live in src/constants/profile.ts.
 
-// PERSONALITY_DIMENSIONS moved to src/constants/personality.ts.
-
-// PERSONALITY_TYPE_GUIDE moved to src/constants/personality.ts.
-
-// PERSONALITY_COGNITIVE_FUNCTIONS moved to src/constants/personality.ts.
-
 // ZODIAC_DESCRIPTIONS moved to src/constants/zodiac.ts.
 
 // ZODIAC_DEEP_DIVE moved to src/constants/zodiac.ts.
 
-// cognitiveFunctionTokens, parseRoute, buildPath, readRouteFromWindow now live in src/utils/.
+// parseRoute, buildPath, readRouteFromWindow now live in src/utils/.
 
 // readAuth, readHistory now live in src/persistence/ (imported above).
 
@@ -584,7 +568,7 @@ function App() {
       selfProfile.photos.length >= 3,
       selfProfile.jobTitle.trim().length > 1,
       selfProfile.languages.length >= 1,
-      selfProfile.personalityAnswers.length === PERSONALITY_QUESTIONS.length,
+      (selfProfile.personalityAnswers?.length ?? 0) === PERSONALITY_QUESTION_COUNT,
     ]
     const completed = checks.filter(Boolean).length
     return Math.round((completed / checks.length) * 100)
@@ -2350,13 +2334,16 @@ function App() {
     [setProfileDraft, setProfileSaveStatus],
   )
 
-  const handlePersonalityAnswerChange = (questionIndex: number, answer: PersonalityAnswer) => {
+  const handlePersonalityAnswerChange = (questionIndex: number, answer: LikertAnswer) => {
     setProfileDraft((current) => {
-      const nextAnswers = [...current.personalityAnswers]
+      const existing = current.personalityAnswers ?? Array<LikertAnswer | undefined>(PERSONALITY_QUESTION_COUNT).fill(undefined)
+      const nextAnswers = [...existing] as Array<LikertAnswer | undefined>
       nextAnswers[questionIndex] = answer
       return {
         ...current,
-        personalityAnswers: nextAnswers,
+        personalityAnswers: nextAnswers.every((value): value is LikertAnswer => value !== undefined)
+          ? (nextAnswers as LikertAnswer[])
+          : current.personalityAnswers,
       }
     })
     setProfileSaveStatus('idle')
@@ -2386,9 +2373,11 @@ function App() {
       .slice(0, 8)
     const photos = profileDraft.photos.filter((value) => value.trim().length > 0).slice(0, 9)
     const personalityAnswers =
-      sanitizeAnswers(profileDraft.personalityAnswers).length === PERSONALITY_QUESTIONS.length
-        ? (sanitizeAnswers(profileDraft.personalityAnswers) as PersonalityAnswer[])
-        : EMPTY_SELF_PROFILE.personalityAnswers
+      Array.isArray(profileDraft.personalityAnswers) &&
+      profileDraft.personalityAnswers.length === PERSONALITY_QUESTION_COUNT &&
+      profileDraft.personalityAnswers.every((v): v is LikertAnswer => v === 1 || v === 2 || v === 3 || v === 4 || v === 5)
+        ? (profileDraft.personalityAnswers as LikertAnswer[])
+        : undefined
 
     // Relaxed for beta. Onboarding required-fields flow is a future
     // conversation; for now just need a name so we have something to
@@ -2441,6 +2430,7 @@ function App() {
       travelMode: profileDraft.travelMode,
       photos: photos.length > 0 ? photos : EMPTY_SELF_PROFILE.photos,
       personalityAnswers,
+      lovePersonality: selfProfile.lovePersonality,
     }
 
     setSelfProfile(nextProfile)
@@ -2715,72 +2705,16 @@ function App() {
     )
   }, [activeModerationReportId, moderationReportsFiltered])
 
-  const selfPersonalityCode = useMemo(
-    () => personalityCodeFromAnswers(selfProfile.personalityAnswers),
-    [selfProfile.personalityAnswers],
-  )
-  const selfTypeGuide = useMemo(
-    () =>
-      getPersonalityTypeGuide(appLanguage).find((type) => type.code === selfPersonalityCode) ??
-      null,
-    [appLanguage, selfPersonalityCode],
-  )
-  const selfCognitiveFunctions = useMemo(
-    () => getPersonalityCognitiveFunctions(appLanguage)[selfPersonalityCode] ?? null,
-    [appLanguage, selfPersonalityCode],
-  )
-  const draftPersonalityCode = useMemo(
-    () => personalityCodeFromAnswers(profileDraft.personalityAnswers),
-    [profileDraft.personalityAnswers],
-  )
-  const selectedDetailPersonalityCode = useMemo(
-    () =>
-      selectedDetailProfile
-        ? selectedDetailProfile.personalityCode ||
-          personalityCodeFromAnswers(selectedDetailProfile.personalityAnswers)
-        : null,
-    [selectedDetailProfile],
-  )
-  const selectedDetailTypeGuide = useMemo(
-    () =>
-      selectedDetailPersonalityCode
-        ? getPersonalityTypeGuide(appLanguage).find(
-            (type) => type.code === selectedDetailPersonalityCode,
-          ) ?? null
-        : null,
-    [appLanguage, selectedDetailPersonalityCode],
-  )
-  const selectedDetailCognitiveFunctions = useMemo(
-    () =>
-      selectedDetailPersonalityCode
-        ? getPersonalityCognitiveFunctions(appLanguage)[selectedDetailPersonalityCode] ?? null
-        : null,
-    [appLanguage, selectedDetailPersonalityCode],
-  )
-  const selectedChatPersonalityCode = useMemo(
-    () =>
-      selectedChatProfile
-        ? selectedChatProfile.personalityCode ||
-          personalityCodeFromAnswers(selectedChatProfile.personalityAnswers)
-        : null,
-    [selectedChatProfile],
-  )
-  const selectedChatTypeGuide = useMemo(
-    () =>
-      selectedChatPersonalityCode
-        ? getPersonalityTypeGuide(appLanguage).find(
-            (type) => type.code === selectedChatPersonalityCode,
-          ) ?? null
-        : null,
-    [appLanguage, selectedChatPersonalityCode],
-  )
-  const selectedChatCognitiveFunctions = useMemo(
-    () =>
-      selectedChatPersonalityCode
-        ? getPersonalityCognitiveFunctions(appLanguage)[selectedChatPersonalityCode] ?? null
-        : null,
-    [appLanguage, selectedChatPersonalityCode],
-  )
+  // Tier A (2026-05-24) — old DMFR personality code is gone. Screens now consume
+  // the LovePersonality object (Big Five + Attachment + optional Claude reveal).
+  // For remote profiles we only have the public derived fields (bigFive +
+  // attachmentStyle); we don't reconstruct a full LovePersonality from those,
+  // so screens read those two fields directly.
+  const selfLovePersonality = selfProfile.lovePersonality ?? null
+  const selectedDetailBigFive = selectedDetailProfile?.bigFive ?? null
+  const selectedDetailAttachment = selectedDetailProfile?.attachmentStyle ?? null
+  const selectedChatBigFive = selectedChatProfile?.bigFive ?? null
+  const selectedChatAttachment = selectedChatProfile?.attachmentStyle ?? null
   const selectedChatChemistry = useMemo(
     () => (selectedChatProfile ? getChemistryInsights(selectedChatProfile) : null),
     [selectedChatProfile, getChemistryInsights],
@@ -2958,9 +2892,8 @@ function App() {
             setActiveChatId={setActiveChatId}
             selectedChatProfile={selectedChatProfile ?? null}
             selectedChatChemistry={selectedChatChemistry ?? null}
-            selectedChatPersonalityCode={selectedChatPersonalityCode ?? null}
-            selectedChatTypeGuide={selectedChatTypeGuide}
-            selectedChatCognitiveFunctions={selectedChatCognitiveFunctions}
+            selectedChatBigFive={selectedChatBigFive}
+            selectedChatAttachment={selectedChatAttachment}
             selectedChatMessages={selectedChatMessages}
             selectedChatCallHistory={selectedChatCallHistory}
             hiddenChatMessageCount={hiddenChatMessageCount}
@@ -2996,13 +2929,9 @@ function App() {
             setProfileDraft={setProfileDraft}
             handleProfileDraftChange={handleProfileDraftChange}
             handleProfileDraftToggle={handleProfileDraftToggle}
-            handlePersonalityAnswerChange={handlePersonalityAnswerChange}
             saveMyProfile={saveMyProfile}
             profileSaveErrors={profileSaveErrors}
-            selfPersonalityCode={selfPersonalityCode}
-            selfTypeGuide={selfTypeGuide}
-            selfCognitiveFunctions={selfCognitiveFunctions}
-            draftPersonalityCode={draftPersonalityCode}
+            selfLovePersonality={selfLovePersonality}
             socialConnectedCount={socialConnectedCount}
             photoUrlInput={photoUrlInput}
             setPhotoUrlInput={setPhotoUrlInput}
@@ -3033,7 +2962,7 @@ function App() {
         {screen === 'personality-guide' && (
           <PersonalityGuideScreen
             appLanguage={appLanguage}
-            selfPersonalityCode={selfPersonalityCode}
+            selfLovePersonality={selfLovePersonality}
             onBackToProfile={() => navigate('profile')}
           />
         )}
@@ -3116,7 +3045,9 @@ function App() {
             appLanguage={appLanguage}
             selectedDetailProfile={selectedDetailProfile ?? null}
             selfProfile={selfProfile}
-            selfPersonalityCode={selfPersonalityCode}
+            selfLovePersonality={selfLovePersonality}
+            selectedDetailBigFive={selectedDetailBigFive}
+            selectedDetailAttachment={selectedDetailAttachment}
             selectedDetailMatchAnalysis={selectedDetailMatchAnalysis ?? null}
             selectedDetailChemistry={selectedDetailChemistry ?? null}
             getCompatibilityScore={getCompatibilityScore}
