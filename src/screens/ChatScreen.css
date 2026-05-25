@@ -1,0 +1,704 @@
+/* ===========================================================
+   Privé — Chat screen luxury redesign (2026-05-25)
+   ===========================================================
+   Chat is where users spend ~20% of their session. The audit
+   flagged: sent vs received messages indistinguishable;
+   two-pane layout cramped on mobile; AI panels are bare lists;
+   compatibility panel dense small text. This file fixes those.
+   All selectors scoped under .chats-layout so styles do not
+   leak to other screens that reuse base classes like .msg.
+   =========================================================== */
+
+/* ── Chat list (left pane) ──────────────────────────────── */
+.chats-layout .chat-list {
+  border-right: 1px solid rgba(216, 184, 109, 0.12);
+  background:
+    linear-gradient(180deg, rgba(244, 220, 168, 0.02), transparent 30%),
+    rgba(8, 12, 35, 0.45);
+}
+
+.chats-layout .chat-tools {
+  padding: 0.85rem;
+  border-bottom: 1px solid rgba(216, 184, 109, 0.1);
+}
+
+.chats-layout .chat-tools input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.92rem;
+  letter-spacing: 0.005em;
+  padding: 0.7rem 0.95rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(216, 184, 109, 0.2);
+  background: rgba(8, 12, 35, 0.62);
+  color: rgba(244, 244, 250, 0.94);
+  transition: border-color 240ms ease, box-shadow 240ms ease, background 240ms ease;
+}
+.chats-layout .chat-tools input::placeholder {
+  color: rgba(232, 242, 255, 0.32);
+  font-style: italic;
+}
+.chats-layout .chat-tools input:focus {
+  outline: none;
+  border-color: rgba(244, 220, 168, 0.72);
+  box-shadow: 0 0 0 3px rgba(216, 184, 109, 0.18);
+  background: rgba(10, 14, 42, 0.8);
+}
+
+.chats-layout .chat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 0.85rem 0.95rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(216, 184, 109, 0.06);
+  text-align: left;
+  cursor: pointer;
+  transition: background 220ms ease;
+}
+.chats-layout .chat-item:hover {
+  background: linear-gradient(90deg, rgba(244, 220, 168, 0.05), transparent 70%);
+}
+.chats-layout .chat-item.active {
+  background: linear-gradient(90deg, rgba(244, 220, 168, 0.1), transparent 80%);
+  border-left: 2px solid #f4dca8;
+  padding-left: calc(0.95rem - 2px);
+}
+
+.chats-layout .chat-avatar-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+.chats-layout .chat-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid rgba(216, 184, 109, 0.22);
+  display: block;
+}
+.chats-layout .chat-online-dot {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 0.62rem;
+  height: 0.62rem;
+  background: #6ddc8f;
+  border-radius: 999px;
+  border: 2px solid rgba(8, 12, 35, 1);
+  box-shadow: 0 0 6px rgba(109, 220, 143, 0.55);
+}
+
+.chats-layout .chat-item-body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.4rem;
+  align-items: center;
+}
+.chats-layout .chat-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  min-width: 0;
+}
+.chats-layout .chat-meta strong {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.92);
+  font-weight: 500;
+}
+.chats-layout .chat-meta span {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.92rem;
+  line-height: 1.3;
+  color: rgba(232, 242, 255, 0.6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chats-layout .chat-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+}
+.chats-layout .chat-status small {
+  font-family: 'Cinzel', serif;
+  font-size: 0.52rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.45);
+}
+.chats-layout .badge-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 0.4rem;
+  font-family: 'Bodoni Moda', serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #060a1f;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(216, 184, 109, 0.32);
+}
+
+/* ── Chat thread (right pane) ──────────────────────────── */
+.chats-layout .chat-thread {
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(244, 220, 168, 0.03), transparent 70%),
+    rgba(6, 10, 31, 0.7);
+}
+
+.chats-layout .chat-thread > header {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(216, 184, 109, 0.14);
+  background: rgba(8, 12, 35, 0.5);
+}
+
+.chats-layout .chat-back-btn,
+.chats-layout .chat-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.2);
+  border-radius: 999px;
+  color: rgba(244, 220, 168, 0.78);
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease, background 240ms ease;
+  flex: 0 0 auto;
+}
+.chats-layout .chat-back-btn:hover,
+.chats-layout .chat-icon-btn:hover {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.55);
+  background: rgba(244, 220, 168, 0.04);
+}
+.chats-layout .chat-icon-btn.is-active {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.7);
+  background: linear-gradient(135deg, rgba(244, 220, 168, 0.1), transparent 70%);
+}
+.chats-layout .chat-back-btn svg,
+.chats-layout .chat-icon-btn svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.chats-layout .chat-header-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex: 1;
+  min-width: 0;
+}
+.chats-layout .chat-header-profile h2 {
+  margin: 0;
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+  color: rgba(244, 244, 250, 0.94);
+}
+.chats-layout .chat-presence {
+  margin: 0.05rem 0 0;
+  font-family: 'Cinzel', serif;
+  font-size: 0.52rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(216, 184, 109, 0.65);
+}
+.chats-layout .chat-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ── Compatibility panel — redesigned as gold-rule card ─── */
+.chats-layout .chat-compatibility-panel {
+  margin: 0.85rem 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(216, 184, 109, 0.16);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 168, 0.04), rgba(216, 184, 109, 0.01)),
+    rgba(8, 12, 35, 0.5);
+}
+.chats-layout .chat-compatibility-panel .compatibility-score {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: rgba(244, 244, 250, 0.92);
+  margin: 0 0 0.4rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid rgba(216, 184, 109, 0.5);
+}
+.chats-layout .chat-compatibility-line {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: rgba(232, 242, 255, 0.72);
+  margin: 0.28rem 0;
+}
+.chats-layout .chat-compatibility-line strong {
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.56rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.62);
+  margin-right: 0.4rem;
+  font-weight: 500;
+}
+
+/* ── AI panels (coach + planner + call history) ───────── */
+.chats-layout .chat-ai-coach,
+.chats-layout .chat-date-planner,
+.chats-layout .chat-call-history {
+  margin: 0 1rem 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(216, 184, 109, 0.14);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 168, 0.02), rgba(216, 184, 109, 0.01)),
+    rgba(8, 12, 35, 0.4);
+}
+
+.chats-layout .chat-ai-coach-head,
+.chats-layout .chat-date-planner-head,
+.chats-layout .chat-call-history-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.55rem;
+}
+.chats-layout .chat-ai-coach-head .compatibility-score,
+.chats-layout .chat-date-planner-head .compatibility-score,
+.chats-layout .chat-call-history-head .compatibility-score {
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.62rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.78);
+  font-weight: 500;
+  margin: 0;
+  padding: 0;
+  border: none;
+  flex: 1;
+  min-width: 8rem;
+}
+
+.chats-layout .chat-ai-coach-head .ghost,
+.chats-layout .chat-date-planner-head .ghost,
+.chats-layout .chat-call-history-head .ghost {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.85);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.3);
+  border-radius: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease;
+}
+.chats-layout .chat-ai-coach-head .ghost:hover:not(:disabled),
+.chats-layout .chat-date-planner-head .ghost:hover:not(:disabled),
+.chats-layout .chat-call-history-head .ghost:hover:not(:disabled) {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.55);
+}
+
+.chats-layout .chat-ai-dismiss {
+  width: 1.7rem;
+  height: 1.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.2);
+  color: rgba(244, 220, 168, 0.65);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: color 240ms ease, border-color 240ms ease;
+}
+.chats-layout .chat-ai-dismiss:hover {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.55);
+}
+
+/* AI suggestions — italic Cormorant cards with hover lift */
+.chats-layout .chat-ai-suggestion-list {
+  display: grid;
+  gap: 0.45rem;
+}
+.chats-layout .chat-ai-suggestion {
+  text-align: left;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: rgba(244, 244, 250, 0.92);
+  padding: 0.7rem 0.95rem;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(216, 184, 109, 0.14);
+  background: rgba(10, 14, 42, 0.55);
+  cursor: pointer;
+  transition: border-color 240ms ease, transform 240ms ease, background 240ms ease;
+}
+.chats-layout .chat-ai-suggestion:hover {
+  border-color: rgba(216, 184, 109, 0.4);
+  background: linear-gradient(135deg, rgba(244, 220, 168, 0.05), transparent 70%);
+  transform: translateY(-1px);
+}
+
+/* Date plan cards */
+.chats-layout .chat-date-plan-list {
+  display: grid;
+  gap: 0.55rem;
+}
+.chats-layout .chat-date-plan-card {
+  padding: 0.85rem 0.95rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(216, 184, 109, 0.14);
+  background: rgba(10, 14, 42, 0.55);
+}
+.chats-layout .chat-date-plan-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.chats-layout .chat-date-plan-top strong {
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  color: rgba(244, 244, 250, 0.95);
+}
+.chats-layout .chat-date-plan-budget {
+  font-family: 'Cinzel', serif;
+  font-size: 0.56rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.78);
+  border: 1px solid rgba(216, 184, 109, 0.32);
+  border-radius: 999px;
+  padding: 0.28rem 0.55rem;
+}
+.chats-layout .chat-date-plan-meta {
+  font-family: 'Cinzel', serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.6);
+  margin: 0.15rem 0 0.4rem;
+}
+.chats-layout .chat-date-plan-pitch {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.96rem;
+  line-height: 1.5;
+  color: rgba(232, 242, 255, 0.86);
+  margin: 0 0 0.55rem;
+}
+
+/* Call history items */
+.chats-layout .chat-call-history-list {
+  display: grid;
+  gap: 0.45rem;
+}
+.chats-layout .chat-call-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(216, 184, 109, 0.12);
+  background: rgba(10, 14, 42, 0.5);
+}
+.chats-layout .chat-call-history-item strong {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.85);
+}
+.chats-layout .chat-call-history-item p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  color: rgba(232, 242, 255, 0.55);
+  margin: 0.2rem 0 0;
+}
+
+/* Mini buttons across panels */
+.chats-layout .mini-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.78);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.24);
+  border-radius: 0.4rem;
+  padding: 0.42rem 0.75rem;
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease;
+}
+.chats-layout .mini-btn:hover {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.55);
+}
+
+.chats-layout .chat-ai-coach .soft,
+.chats-layout .chat-date-planner .soft,
+.chats-layout .chat-call-history .soft {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: rgba(232, 242, 255, 0.5);
+  margin: 0.2rem 0 0;
+}
+
+/* ── Messages — distinguished sender vs receiver bubbles ── */
+.chats-layout .messages {
+  flex: 1;
+  padding: 1rem 1rem 0.6rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.chats-layout .messages-toolbar {
+  text-align: center;
+  padding: 0.45rem 0 0;
+}
+
+.chats-layout .msg {
+  max-width: min(78%, 32rem);
+  padding: 0.7rem 0.95rem 0.55rem;
+  border-radius: 1rem;
+  margin: 0;
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: 1.02rem;
+  line-height: 1.5;
+  color: rgba(244, 244, 250, 0.95);
+  position: relative;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+.chats-layout .msg span:last-child {
+  display: block;
+  margin-top: 0.4rem;
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.52rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.5);
+}
+
+.chats-layout .msg.me {
+  align-self: flex-end;
+  background: linear-gradient(135deg, rgba(207, 173, 97, 0.22), rgba(244, 220, 168, 0.12));
+  border: 1px solid rgba(216, 184, 109, 0.32);
+  border-bottom-right-radius: 0.3rem;
+  box-shadow: 0 4px 14px rgba(216, 184, 109, 0.1);
+}
+
+.chats-layout .msg.them {
+  align-self: flex-start;
+  background: linear-gradient(135deg, rgba(28, 36, 78, 0.62), rgba(20, 26, 58, 0.85));
+  border: 1px solid rgba(216, 184, 109, 0.12);
+  border-bottom-left-radius: 0.3rem;
+}
+
+.chats-layout .msg-media {
+  display: block;
+  margin: 0.4rem 0 0.2rem;
+  max-width: 100%;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(216, 184, 109, 0.18);
+}
+.chats-layout .msg-audio {
+  display: block;
+  margin: 0.35rem 0 0.2rem;
+  width: 100%;
+}
+
+.chats-layout .msg-call-actions {
+  margin-top: 0.4rem;
+  display: flex;
+  gap: 0.4rem;
+}
+
+/* ── Attachment preview row ──────────────────────────────── */
+.chats-layout .chat-attachment-preview {
+  margin: 0 1rem 0.55rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(216, 184, 109, 0.2);
+  background: rgba(8, 12, 35, 0.55);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  color: rgba(232, 242, 255, 0.85);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.chats-layout .chat-attachment-preview strong {
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.78);
+}
+
+/* ── Composer — gold focus, polished icon buttons + send ─ */
+.chats-layout .chat-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0.9rem 0.85rem;
+  border-top: 1px solid rgba(216, 184, 109, 0.14);
+  background: rgba(8, 12, 35, 0.6);
+}
+
+.chats-layout .chat-input input[type='text'] {
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.96rem;
+  padding: 0.78rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(216, 184, 109, 0.22);
+  background: rgba(10, 14, 42, 0.7);
+  color: rgba(244, 244, 250, 0.95);
+  transition: border-color 240ms ease, box-shadow 240ms ease, background 240ms ease;
+}
+.chats-layout .chat-input input[type='text']::placeholder {
+  color: rgba(232, 242, 255, 0.34);
+  font-style: italic;
+}
+.chats-layout .chat-input input[type='text']:focus {
+  outline: none;
+  border-color: rgba(244, 220, 168, 0.7);
+  box-shadow: 0 0 0 3px rgba(216, 184, 109, 0.18);
+  background: rgba(10, 14, 42, 0.85);
+}
+
+.chats-layout .chat-input .chat-icon-btn {
+  width: 2.4rem;
+  height: 2.4rem;
+}
+.chats-layout .chat-input .chat-icon-btn.danger {
+  color: #d89479;
+  border-color: rgba(216, 116, 89, 0.45);
+}
+
+.chats-layout .chat-send-btn {
+  width: 2.6rem;
+  height: 2.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  border: 1px solid rgba(216, 184, 109, 0.7);
+  color: #060a1f;
+  cursor: pointer;
+  transition: transform 240ms ease, box-shadow 240ms ease, filter 240ms ease;
+  box-shadow: 0 4px 14px rgba(216, 184, 109, 0.22);
+}
+.chats-layout .chat-send-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(216, 184, 109, 0.34);
+  filter: brightness(1.06);
+}
+.chats-layout .chat-send-btn svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── Empty thread state ──────────────────────────────────── */
+.chats-layout .chat-thread .state-box {
+  text-align: center;
+  padding: clamp(2.5rem, 8vh, 4.5rem) 1.5rem;
+  margin: auto;
+}
+.chats-layout .chat-thread .state-box .pill {
+  display: inline-block;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.72);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.32);
+  border-radius: 999px;
+  padding: 0.4rem 0.95rem;
+  margin: 0 0 1.2rem;
+}
+.chats-layout .chat-thread .state-box h1 {
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  font-weight: 500;
+  font-size: clamp(1.3rem, 2.5vw, 1.85rem);
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  color: rgba(232, 242, 255, 0.82);
+  margin: 0;
+}
+
+/* ── Mobile polish ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  .chats-layout .chat-compatibility-panel,
+  .chats-layout .chat-ai-coach,
+  .chats-layout .chat-date-planner,
+  .chats-layout .chat-call-history {
+    margin-left: 0.7rem;
+    margin-right: 0.7rem;
+  }
+  .chats-layout .chat-input {
+    padding: 0.6rem 0.7rem 0.75rem;
+    gap: 0.4rem;
+  }
+  .chats-layout .msg {
+    max-width: 86%;
+    font-size: 1rem;
+  }
+}

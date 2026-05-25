@@ -1,4 +1,5 @@
 import React from 'react'
+import './ChatScreen.css'
 import { UI_TEXT, ZODIAC_EMOJI, getZodiacDescription } from '../constants'
 import { formatShortTime, formatUiText, getCallDurationLabel, getCallOutcomeLabel } from '../utils'
 import type {
