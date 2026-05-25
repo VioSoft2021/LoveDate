@@ -192,23 +192,3 @@ describe('SettingsScreen — Danger Zone account deletion', () => {
   })
 })
 
-describe('SettingsScreen — moderation gate', () => {
-  it('hides the Open Moderation button when not admin', () => {
-    render(<SettingsScreen {...baseProps} isModerationAdmin={false} />)
-    expect(screen.queryByRole('button', { name: /Moderation/i })).not.toBeInTheDocument()
-  })
-
-  it('shows Open Moderation button when admin and clicking fires onOpenModeration', () => {
-    const onOpenModeration = vi.fn()
-    render(
-      <SettingsScreen
-        {...baseProps}
-        isModerationAdmin={true}
-        onOpenModeration={onOpenModeration}
-      />,
-    )
-    const btn = screen.getByRole('button', { name: /Moderation/i })
-    fireEvent.click(btn)
-    expect(onOpenModeration).toHaveBeenCalled()
-  })
-})

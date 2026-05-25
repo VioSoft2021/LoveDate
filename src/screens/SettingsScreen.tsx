@@ -306,12 +306,6 @@ const SettingsScreenInner: React.FC<SettingsScreenProps> = ({
         ) : (
           <p className="soft">{copy.settings.noReports}</p>
         )}
-        {isModerationAdmin ? (
-          <button type="button" className="ghost" onClick={onOpenModeration}>
-            {copy.settings.openModeration}
-          </button>
-        ) : null}
-
         <hr className="setting-separator" />
         <div className="danger-zone">
           <strong>{copy.settings.dangerZone}</strong>

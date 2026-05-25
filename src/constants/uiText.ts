@@ -333,7 +333,6 @@ export const UI_TEXT = {
       reportsSubmitted: 'Reports submitted',
       openReports: 'Open reports',
       noReports: 'No safety reports yet.',
-      openModeration: 'Open Moderation Center',
       dangerZone: 'Danger zone',
       deleteAccount: 'Delete my account',
       deleteAccountWarning:
@@ -907,7 +906,6 @@ export const UI_TEXT = {
       reportsSubmitted: 'Raportări trimise',
       openReports: 'Raportări deschise',
       noReports: 'Nu există încă raportări de siguranță.',
-      openModeration: 'Deschide centrul de moderare',
       dangerZone: 'Zonă sensibilă',
       deleteAccount: 'Șterge contul meu',
       deleteAccountWarning:
