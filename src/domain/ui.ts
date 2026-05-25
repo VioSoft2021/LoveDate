@@ -5,7 +5,6 @@ export type AppScreen =
   | 'onboarding'
   | 'discover'
   | 'activity'
-  | 'circles'
   | 'chats'
   | 'profile'
   | 'love-personality'

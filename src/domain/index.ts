@@ -1,6 +1,5 @@
 export * from './call'
 export * from './chat'
-export * from './circles'
 export * from './discovery'
 export * from './match'
 export * from './photoStudio'

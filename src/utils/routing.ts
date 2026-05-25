@@ -13,10 +13,6 @@ export const parseRoute = (path: string): { screen: AppScreen; profileId: number
     return { screen: 'activity', profileId: null }
   }
 
-  if (path === '/circles') {
-    return { screen: 'circles', profileId: null }
-  }
-
   if (path === '/chats') {
     return { screen: 'chats', profileId: null }
   }
@@ -66,10 +62,6 @@ export const buildPath = (screen: AppScreen, profileId: number | null): string =
 
   if (screen === 'personality-guide') {
     return '/personality-guide'
-  }
-
-  if (screen === 'circles') {
-    return '/circles'
   }
 
   return `/${screen}`

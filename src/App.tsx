@@ -37,10 +37,8 @@ import { useReports } from './hooks/useReports'
 import { useToasts } from './hooks/useToasts'
 import { useEngagement } from './hooks/useEngagement'
 import { useAppSettings } from './hooks/useAppSettings'
-import { useCirclesState } from './hooks/useCirclesState'
 import { ActivityScreen } from './screens/ActivityScreen'
 import { ChatScreen } from './screens/ChatScreen'
-import { CirclesScreen } from './screens/CirclesScreen'
 import { DiscoverScreen } from './screens/DiscoverScreen'
 import { LoginScreen } from './screens/LoginScreen'
 import { ModerationScreen } from './screens/ModerationScreen'
@@ -117,8 +115,6 @@ import type {
   CallState,
   ChatMessage,
   ChemistryInsights,
-  Circle,
-  CirclePost,
   DatePlan,
   Filters,
   HiddenEntry,
@@ -142,9 +138,6 @@ import {
   AUTH_STORAGE_KEY,
   CALL_HISTORY_STORAGE_KEY,
   CHAT_THREADS_STORAGE_KEY,
-  CIRCLES_JOINED_STORAGE_KEY,
-  CIRCLES_POSTS_STORAGE_KEY,
-  CIRCLES_RSVP_STORAGE_KEY,
   HISTORY_STORAGE_KEY,
   normalizeSelfProfile,
   persistAppLanguage,
@@ -152,10 +145,7 @@ import {
   readAuth,
   readCallHistory,
   readChatThreads,
-  readCircleRsvps,
-  readCirclePosts,
   readHistory,
-  readJoinedCircles,
   readSelfProfile,
   readOnboardedFlag,
   persistOnboardedFlag,
@@ -180,7 +170,6 @@ import {
   WORKOUT_OPTIONS,
   ZODIAC_COMPATIBILITY,
   ZODIAC_OPTIONS,
-  CIRCLE_SEED,
   UI_TEXT,
   ZODIAC_DEEP_DIVE,
   ZODIAC_DESCRIPTIONS,
@@ -221,8 +210,6 @@ export type { Filters }
 // Storage keys live in src/persistence/keys.ts (imported via the persistence barrel).
 const CHAT_RENDER_WINDOW = 120
 
-// CIRCLE_SEED moved to src/constants/circles.ts.
-
 // SOCIAL_PLATFORM_META, DEFAULT_SOCIAL_CONNECTIONS now in src/constants/profile.ts
 
 // buildHighResImageUrl, toDataUrl, getStrongPasswordError, normalizeProfilePhotos
@@ -241,7 +228,7 @@ const CHAT_RENDER_WINDOW = 120
 
 // normalizeSelfProfile, readSelfProfile, toProfileDraft now live in src/persistence/selfProfile.ts.
 
-// readChatThreads, readCallHistory, readJoinedCircles, readCirclePosts, readCircleRsvps now live in src/persistence/.
+// readChatThreads, readCallHistory now live in src/persistence/.
 
 // formatShortTime, sanitizeRoomPart, buildCallRoom, getCallOutcomeLabel, getCallDurationLabel
 // now live in src/utils/ (call.ts / format.ts).
@@ -282,9 +269,6 @@ function App() {
           HISTORY_STORAGE_KEY,
           CHAT_THREADS_STORAGE_KEY,
           CALL_HISTORY_STORAGE_KEY,
-          CIRCLES_JOINED_STORAGE_KEY,
-          CIRCLES_POSTS_STORAGE_KEY,
-          CIRCLES_RSVP_STORAGE_KEY,
           'lovedate:blocked-profiles',
           'lovedate:moderation-queue',
         ].forEach((key) => window.localStorage.removeItem(key))
@@ -385,16 +369,6 @@ function App() {
     matchQueueIds, setMatchQueueIds,
   } = chat
   const [callHistory, setCallHistory] = useState<CallLogEntry[]>(() => readCallHistory())
-  // Circles UI state moves into useCirclesState.
-  const circles = useCirclesState()
-  const {
-    circleSearch, setCircleSearch,
-    joinedCircleIds, setJoinedCircleIds,
-    circlePosts, setCirclePosts,
-    circlePostDraft, setCirclePostDraft,
-    selectedCircleId, setSelectedCircleId,
-    circleRsvps, setCircleRsvps,
-  } = circles
   // unreadChats / matchQueueIds / chatAttachmentDraft / showFullChatHistory /
   // isRecordingVoice now live in useChatState above.
   //
@@ -720,18 +694,6 @@ function App() {
   useEffect(() => {
     window.localStorage.setItem(CALL_HISTORY_STORAGE_KEY, JSON.stringify(callHistory))
   }, [callHistory])
-
-  useEffect(() => {
-    window.localStorage.setItem(CIRCLES_JOINED_STORAGE_KEY, JSON.stringify(joinedCircleIds))
-  }, [joinedCircleIds])
-
-  useEffect(() => {
-    window.localStorage.setItem(CIRCLES_POSTS_STORAGE_KEY, JSON.stringify(circlePosts))
-  }, [circlePosts])
-
-  useEffect(() => {
-    window.localStorage.setItem(CIRCLES_RSVP_STORAGE_KEY, JSON.stringify(circleRsvps))
-  }, [circleRsvps])
 
   useEffect(() => {
     saveBlockedProfileIds(blockedProfileIds)
@@ -2616,73 +2578,6 @@ function App() {
     shouldStickToBottomRef.current = distanceFromBottom < 96
   }
 
-  const filteredCircles = useMemo(() => {
-    const query = circleSearch.trim().toLowerCase()
-    if (query.length === 0) {
-      return CIRCLE_SEED
-    }
-    return CIRCLE_SEED.filter((circle) => {
-      const searchable = [circle.name, circle.theme, circle.description, ...circle.tags].join(' ').toLowerCase()
-      return searchable.includes(query)
-    })
-  }, [circleSearch])
-
-  useEffect(() => {
-    if (!filteredCircles.some((circle) => circle.id === selectedCircleId) && filteredCircles.length > 0) {
-      setSelectedCircleId(filteredCircles[0].id)
-    }
-  }, [filteredCircles, selectedCircleId, setSelectedCircleId])
-
-  const selectedCircle = useMemo(
-    () => CIRCLE_SEED.find((circle) => circle.id === selectedCircleId) ?? filteredCircles[0] ?? null,
-    [selectedCircleId, filteredCircles],
-  )
-
-  const selectedCirclePosts = useMemo(() => {
-    if (!selectedCircle) {
-      return []
-    }
-    return circlePosts
-      .filter((post) => post.circleId === selectedCircle.id)
-      .sort((a, b) => b.createdAt - a.createdAt)
-      .slice(0, 20)
-  }, [circlePosts, selectedCircle])
-
-  const toggleCircleJoin = useCallback((circleId: string) => {
-    setJoinedCircleIds((current) =>
-      current.includes(circleId) ? current.filter((id) => id !== circleId) : [...current, circleId],
-    )
-  }, [setJoinedCircleIds])
-
-  const toggleCircleRsvp = useCallback((eventId: string) => {
-    setCircleRsvps((current) => ({ ...current, [eventId]: !current[eventId] }))
-  }, [setCircleRsvps])
-
-  const publishCirclePost = useCallback(() => {
-    if (!selectedCircle) {
-      return
-    }
-    const text = circlePostDraft.trim()
-    if (text.length < 8) {
-      pushToast('Write at least a short thought before posting.', 'error')
-      return
-    }
-    if (!joinedCircleIds.includes(selectedCircle.id)) {
-      pushToast('Join the circle first to post there.', 'error')
-      return
-    }
-    const nextPost: CirclePost = {
-      id: `circle_post_${Date.now()}`,
-      circleId: selectedCircle.id,
-      author: selfProfile.name,
-      text,
-      createdAt: Date.now(),
-    }
-    setCirclePosts((current) => [nextPost, ...current])
-    setCirclePostDraft('')
-    pushToast('Posted to the circle feed.', 'success')
-  }, [selectedCircle, circlePostDraft, joinedCircleIds, selfProfile.name, pushToast, setCirclePostDraft, setCirclePosts])
-
   const unreadNotificationCount = useMemo(
     () => notifications.reduce((count, item) => count + (item.read ? 0 : 1), 0),
     [notifications],
@@ -2691,7 +2586,6 @@ function App() {
   const navItems: Array<{ key: AppScreen; label: string; badge?: number }> = [
     { key: 'discover', label: copy.nav.discover },
     { key: 'activity', label: copy.nav.activity },
-    { key: 'circles', label: copy.nav.circles, badge: joinedCircleIds.length > 0 ? joinedCircleIds.length : undefined },
     { key: 'chats', label: copy.nav.chats, badge: Object.values(unreadChats).reduce((sum, count) => sum + count, 0) },
     {
       key: 'moderation',
@@ -2913,24 +2807,6 @@ function App() {
               navigate('chats')
             }}
             onViewProfile={(profileId) => openProfileDetail(profileId, 'activity')}
-          />
-        )}
-        {screen === 'circles' && (
-          <CirclesScreen
-            appLanguage={appLanguage}
-            circleSearch={circleSearch}
-            setCircleSearch={setCircleSearch}
-            filteredCircles={filteredCircles}
-            joinedCircleIds={joinedCircleIds}
-            selectedCircle={selectedCircle ?? null}
-            setSelectedCircleId={setSelectedCircleId}
-            toggleCircleJoin={toggleCircleJoin}
-            circleRsvps={circleRsvps}
-            toggleCircleRsvp={toggleCircleRsvp}
-            circlePostDraft={circlePostDraft}
-            setCirclePostDraft={setCirclePostDraft}
-            publishCirclePost={publishCirclePost}
-            selectedCirclePosts={selectedCirclePosts}
           />
         )}
         {screen === 'chats' && (
@@ -3202,8 +3078,7 @@ function App() {
         items={[
           { key: 'discover', label: copy.nav.discover },
           { key: 'activity', label: copy.nav.activity, badge: notifications.filter((n) => !n.read).length },
-          { key: 'circles', label: copy.nav.circles, badge: joinedCircleIds.length > 0 ? joinedCircleIds.length : undefined },
-          { key: 'chats', label: copy.nav.chats, badge: Object.values(unreadChats).reduce((s, c) => s + c, 0) },
+                { key: 'chats', label: copy.nav.chats, badge: Object.values(unreadChats).reduce((s, c) => s + c, 0) },
           ...(isModerationAdmin
             ? [{ key: 'moderation' as const, label: copy.nav.moderation, badge: safetyReports.filter((r) => r.status === 'open').length }]
             : []),

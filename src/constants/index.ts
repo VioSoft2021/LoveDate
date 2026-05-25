@@ -1,4 +1,3 @@
-export * from './circles'
 export * from './labelTranslations'
 export * from './profile'
 export * from './uiText'

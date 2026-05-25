@@ -1,7 +1,6 @@
 export * from './auth'
 export * from './calls'
 export * from './chat'
-export * from './circles'
 export * from './history'
 export * from './keys'
 export * from './language'

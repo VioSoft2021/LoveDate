@@ -80,7 +80,6 @@ describe('parseRoute', () => {
     expect(parseRoute('/').screen).toBe('login')
     expect(parseRoute('/discover').screen).toBe('discover')
     expect(parseRoute('/activity').screen).toBe('activity')
-    expect(parseRoute('/circles').screen).toBe('circles')
     expect(parseRoute('/chats').screen).toBe('chats')
     expect(parseRoute('/profile').screen).toBe('profile')
     expect(parseRoute('/settings').screen).toBe('settings')
@@ -126,7 +125,6 @@ describe('buildPath', () => {
       'login',
       'discover',
       'activity',
-      'circles',
       'chats',
       'profile',
       'settings',
