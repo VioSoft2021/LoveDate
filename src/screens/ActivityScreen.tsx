@@ -1,4 +1,5 @@
 import React from 'react'
+import './ActivityScreen.css'
 import { UI_TEXT, translateRelationshipIntent } from '../constants'
 import type { AppLanguage } from '../domain'
 import type { Profile } from '../services/priveApi'
