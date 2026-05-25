@@ -36,11 +36,34 @@
   pointer-events: none;
 }
 
-/* ── Logo column (left) ─────────────────────────────────────────── */
-.top-bar.top-bar > div:first-child {
+/* ── Brand column (left) — crest + wordmark together ──────────── */
+.top-bar.top-bar > div:first-child,
+.top-bar.top-bar > .top-bar-brand {
   display: inline-flex;
   align-items: center;
+  gap: clamp(0.4rem, 1.2vw, 0.75rem);
   min-height: 2.6rem;
+}
+
+/* The crest in the header — small, with a soft gold halo. Sized so
+   it aligns with the cap-height of the PRIVÉ wordmark beside it. */
+.top-bar.top-bar .top-bar-crest {
+  display: block;
+  height: clamp(28px, 3.6vh, 40px);
+  width: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+  filter: drop-shadow(0 2px 6px rgba(216, 184, 109, 0.32))
+          drop-shadow(0 0 10px rgba(244, 220, 168, 0.18));
+  flex: 0 0 auto;
+}
+
+/* On narrow phones tighten further so the brand block + nav + exit
+   group all fit comfortably in a single row. */
+@media (max-width: 540px) {
+  .top-bar.top-bar .top-bar-crest {
+    height: 26px;
+  }
 }
 
 /* ── Nav column (center) ────────────────────────────────────────── */

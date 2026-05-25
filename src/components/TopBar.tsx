@@ -50,7 +50,18 @@ export const TopBar: React.FC<TopBarProps> = ({
 }) => {
   return (
     <header className="top-bar">
-      <div>
+      <div className="top-bar-brand">
+        {/* House seal — appears in the header of every authenticated
+            screen so the crest reads as the persistent brand mark, not
+            something only the landing page sees. */}
+        <img
+          className="top-bar-crest"
+          src="./crests/crest-3.png?v=2"
+          alt=""
+          aria-hidden="true"
+          loading="eager"
+          decoding="async"
+        />
         <Logo variant="compact" size="md" />
       </div>
       <nav className="bottom-nav" aria-label="Primary navigation">
