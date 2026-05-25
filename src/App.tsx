@@ -803,6 +803,47 @@ function App() {
     }
   }, [isAuthenticated, userEmail, setProfileDraft, setSelfProfile])
 
+  // Auto-persist selfProfile changes to localStorage + cloud (debounced).
+  //
+  // Why: prior to this effect, only the editor's "Save Profile" button
+  // and the `saveSelfProfilePatch` helper would persist changes. Other
+  // setSelfProfile sources — completing the personality quiz from the
+  // retake screen, the LovePersonalityScreen auto-fire-reveal commit,
+  // the Photo Coach verification badge award — only updated React state.
+  // The data evaporated on next reload because cloud hydration would
+  // restore the older saved profile.
+  //
+  // This effect watches selfProfile and pushes any change through to
+  // backendSaveSelfProfile (local cache + Supabase upsert). Debounced
+  // 800ms so rapid form-typing doesn't spam the cloud, and gated on
+  // cloudProfileHydrated so the initial cloud read doesn't echo itself
+  // back to the cloud during mount.
+  const profileSaveDebounceRef = useRef<number | null>(null)
+  useEffect(() => {
+    if (!isAuthenticated || !cloudProfileHydrated) {
+      return
+    }
+    if (profileSaveDebounceRef.current !== null) {
+      window.clearTimeout(profileSaveDebounceRef.current)
+    }
+    profileSaveDebounceRef.current = window.setTimeout(() => {
+      void backendSaveSelfProfile(
+        userEmail,
+        selfProfile as unknown as Record<string, unknown>,
+      ).catch(() => {
+        // Cloud sync failed — local cache still has the change; the next
+        // successful save will reconcile. Don't toast here because this
+        // effect fires on every selfProfile change and a toast storm
+        // would mask real signal.
+      })
+    }, 800)
+    return () => {
+      if (profileSaveDebounceRef.current !== null) {
+        window.clearTimeout(profileSaveDebounceRef.current)
+      }
+    }
+  }, [selfProfile, isAuthenticated, cloudProfileHydrated, userEmail])
+
   useEffect(() => {
     if (!isAuthenticated) {
       return
