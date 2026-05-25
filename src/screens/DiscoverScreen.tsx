@@ -1,4 +1,5 @@
 import React from 'react'
+import './DiscoverScreen.css'
 import { UI_TEXT, ZODIAC_EMOJI, initialFilters, translateInterest } from '../constants'
 import { buildHighResImageUrl } from '../utils'
 import { compatibilityFromBigFiveAttachment } from '../services/compatibility'
@@ -260,47 +261,16 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
           className="discover-ai-chip"
           onClick={() => navigate('filters')}
           aria-label={ro ? 'Editează filtrul AI' : 'Edit AI filter'}
-          style={{
-            alignSelf: 'center',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.55rem',
-            margin: '0.4rem auto 0.9rem',
-            padding: '0.45rem 0.95rem',
-            background: 'linear-gradient(105deg, rgba(207,173,97,0.18), rgba(232,198,121,0.22))',
-            border: '1px solid rgba(216,184,109,0.5)',
-            borderRadius: '999px',
-            color: '#f4dca8',
-            fontFamily: "'Cormorant Garamond', 'Bodoni Moda', serif",
-            fontStyle: 'italic',
-            fontSize: '0.92rem',
-            cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(216,184,109,0.18)',
-            maxWidth: 'min(92vw, 36rem)',
-          }}
         >
-          <span style={{
-            fontFamily: "'Cinzel', serif",
-            fontStyle: 'normal',
-            fontSize: '0.6rem',
-            letterSpacing: '0.28em',
-            textTransform: 'uppercase',
-            color: 'rgba(244,220,168,0.88)',
-          }}>
+          <span className="discover-ai-chip-eyebrow">
             {ro ? 'AI ascultă' : 'AI listening'}
           </span>
-          <span style={{ opacity: 0.85 }}>&middot;</span>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {aiChipPromptDisplay}
-          </span>
-          <span style={{ opacity: 0.85 }}>&middot;</span>
-          <span style={{
-            fontFamily: "'Bodoni Moda', serif",
-            fontStyle: 'normal',
-            color: '#f4dca8',
-          }}>
+          <span aria-hidden="true">&middot;</span>
+          <span className="discover-ai-chip-prompt">{aiChipPromptDisplay}</span>
+          <span aria-hidden="true">&middot;</span>
+          <span className="discover-ai-chip-count">
             {aiFilterStatus === 'fetching'
-              ? (ro ? '…' : '…')
+              ? '…'
               : `${filteredProfiles.length} ${ro ? (filteredProfiles.length === 1 ? 'potrivire' : 'potriviri') : (filteredProfiles.length === 1 ? 'match' : 'matches')}`}
           </span>
         </button>

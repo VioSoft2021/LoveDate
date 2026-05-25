@@ -1,0 +1,711 @@
+/* ===========================================================
+   Privé — Discover screen luxury redesign (2026-05-25)
+   ===========================================================
+   This is where users spend ~40% of their session. Until now
+   the deck inherited generic styling: tiny compatibility text,
+   admin-panel KPI strip, bare empty/loading states, no swipe
+   micro-feedback, and an AI filter chip whose styles lived
+   inline in the .tsx. This file lifts the surface to the
+   LoginScreen + Quiz tier and pulls the inline styles out into
+   proper CSS classes.
+   All selectors scoped under .discover-redesign so styles do
+   not leak into other screens.
+   =========================================================== */
+
+/* ── AI filter chip — extracted from inline styles ───────── */
+.discover-redesign .discover-ai-chip {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.5rem auto 1rem;
+  padding: 0.55rem 1.1rem;
+  background:
+    linear-gradient(105deg, rgba(207, 173, 97, 0.18), rgba(232, 198, 121, 0.22));
+  border: 1px solid rgba(216, 184, 109, 0.5);
+  border-radius: 999px;
+  color: #f4dca8;
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: 0.96rem;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(216, 184, 109, 0.18);
+  max-width: min(92vw, 36rem);
+  transition: box-shadow 240ms ease, transform 240ms ease, border-color 240ms ease;
+}
+.discover-redesign .discover-ai-chip:hover {
+  border-color: rgba(216, 184, 109, 0.75);
+  box-shadow: 0 8px 22px rgba(216, 184, 109, 0.32);
+  transform: translateY(-1px);
+}
+.discover-redesign .discover-ai-chip-eyebrow {
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.6rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.88);
+}
+.discover-redesign .discover-ai-chip-prompt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.discover-redesign .discover-ai-chip-count {
+  font-family: 'Bodoni Moda', serif;
+  font-style: normal;
+  color: #f4dca8;
+}
+
+/* ── KPI strip + control buttons ────────────────────────── */
+.discover-redesign .discover-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.1rem;
+  margin: 0 0 1rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(216, 184, 109, 0.16);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 168, 0.03), rgba(216, 184, 109, 0.01)),
+    rgba(10, 14, 39, 0.55);
+}
+
+.discover-redesign .discover-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+}
+
+.discover-redesign .discover-kpi {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.18rem;
+}
+
+.discover-redesign .discover-kpi-value {
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: clamp(1.4rem, 2.4vw, 1.85rem);
+  line-height: 1;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.discover-redesign .discover-kpi-label {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.62);
+}
+
+.discover-redesign .discover-metric-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.discover-redesign .discover-metric-btn {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: rgba(244, 220, 168, 0.85);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.28);
+  border-radius: 0.5rem;
+  padding: 0.6rem 1.05rem;
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease, transform 240ms ease;
+}
+.discover-redesign .discover-metric-btn:hover {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.6);
+  transform: translateY(-1px);
+}
+
+/* ── State boxes — loading / error / no-results / completion ── */
+.discover-redesign .state-box,
+.discover-redesign .match-summary {
+  text-align: center;
+  padding: clamp(2rem, 5vh, 3.5rem) 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(216, 184, 109, 0.14);
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(244, 220, 168, 0.05), transparent 70%),
+    rgba(10, 14, 39, 0.55);
+  margin: 1.5rem auto;
+  max-width: 40rem;
+}
+
+.discover-redesign .state-box .pill,
+.discover-redesign .match-summary .pill {
+  display: inline-block;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.72);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.32);
+  border-radius: 999px;
+  padding: 0.4rem 0.95rem;
+  margin: 0 0 1.2rem;
+}
+
+.discover-redesign .state-box h1,
+.discover-redesign .match-summary h1 {
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: clamp(1.4rem, 2.6vw, 1.95rem);
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  color: rgba(244, 244, 250, 0.94);
+  margin: 0 0 1.5rem;
+}
+
+.discover-redesign .summary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7rem;
+}
+
+.discover-redesign .summary-actions button {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #060a1f;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  border: 1px solid rgba(216, 184, 109, 0.7);
+  border-radius: 0.5rem;
+  padding: 0.78rem 1.5rem;
+  cursor: pointer;
+  transition: transform 240ms ease, box-shadow 240ms ease, filter 240ms ease;
+  box-shadow: 0 6px 18px rgba(216, 184, 109, 0.18);
+}
+.discover-redesign .summary-actions button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(216, 184, 109, 0.3);
+  filter: brightness(1.05);
+}
+.discover-redesign .summary-actions button.ghost {
+  background: transparent;
+  color: rgba(244, 220, 168, 0.85);
+  border: 1px solid rgba(216, 184, 109, 0.32);
+  box-shadow: none;
+}
+.discover-redesign .summary-actions button.ghost:hover {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.6);
+}
+
+/* ── Hidden-breakdown panel (self-diagnosis) ──────────────── */
+.discover-redesign .hidden-breakdown {
+  margin: 0.5rem auto 1rem;
+  padding: 0.85rem 1.05rem;
+  border-radius: 0.82rem;
+  border: 1px solid rgba(216, 184, 109, 0.2);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 168, 0.04), transparent 60%),
+    rgba(10, 14, 39, 0.5);
+  max-width: 44rem;
+}
+.discover-redesign .hidden-breakdown > summary {
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.78);
+  list-style: none;
+  transition: color 240ms ease;
+}
+.discover-redesign .hidden-breakdown > summary:hover {
+  color: #f4dca8;
+}
+.discover-redesign .hidden-breakdown > summary::-webkit-details-marker {
+  display: none;
+}
+.discover-redesign .hidden-breakdown-list {
+  margin: 0.7rem 0 0.6rem;
+  padding-left: 1.1rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.96rem;
+  line-height: 1.5;
+  color: rgba(232, 242, 255, 0.78);
+}
+.discover-redesign .hidden-breakdown-list strong {
+  font-family: 'Bodoni Moda', serif;
+  font-style: normal;
+  color: #f4dca8;
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+.discover-redesign .hidden-breakdown-names {
+  color: rgba(232, 242, 255, 0.55);
+}
+.discover-redesign .hidden-breakdown-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+.discover-redesign .hidden-breakdown-actions .ghost {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.78);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.24);
+  border-radius: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease;
+}
+.discover-redesign .hidden-breakdown-actions .ghost:hover {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.5);
+}
+
+/* ── Swipe deck — the centerpiece ─────────────────────────── */
+.discover-redesign .profile-card {
+  border-radius: 1.1rem;
+  border: 1px solid rgba(216, 184, 109, 0.18);
+  box-shadow:
+    0 22px 50px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(216, 184, 109, 0.04) inset;
+  transition: box-shadow 280ms ease, transform 220ms ease;
+}
+.discover-redesign .profile-card.front {
+  cursor: grab;
+}
+.discover-redesign .profile-card.front:hover {
+  box-shadow:
+    0 26px 56px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(216, 184, 109, 0.12) inset;
+}
+.discover-redesign .profile-card.front.dragging {
+  cursor: grabbing;
+  box-shadow:
+    0 32px 64px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(216, 184, 109, 0.22) inset;
+}
+.discover-redesign .profile-card.back {
+  opacity: 0.65;
+}
+
+/* Photo overlay — editorial gradient + name in Bodoni gold */
+.discover-redesign .card-photo-overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 1.5rem 1.4rem 1.2rem;
+  background: linear-gradient(
+    to top,
+    rgba(6, 10, 31, 0.88) 0%,
+    rgba(6, 10, 31, 0.65) 35%,
+    rgba(6, 10, 31, 0.2) 75%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.discover-redesign .discover-card-name {
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  margin: 0 0 0.35rem;
+  background: linear-gradient(135deg, #f4dca8 0%, #ffffff 50%, #f4dca8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.discover-redesign .discover-presence-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.56rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.85);
+  margin: 0 0 0.35rem;
+}
+
+.discover-redesign .discover-status-dot {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  background: #6ddc8f;
+  border-radius: 999px;
+  box-shadow: 0 0 8px rgba(109, 220, 143, 0.62);
+}
+
+.discover-redesign .discover-location-line {
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.35;
+  color: rgba(244, 244, 250, 0.86);
+  margin: 0;
+}
+
+/* LIKE / NOPE feedback badges — gold + amber with scale-in */
+.discover-redesign .badge.like,
+.discover-redesign .badge.nope {
+  position: absolute;
+  top: 1.2rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.34em;
+  font-weight: 700;
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.5rem;
+  border: 2px solid currentColor;
+  background: rgba(6, 10, 31, 0.4);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+.discover-redesign .badge.like {
+  right: 1.2rem;
+  color: #f4dca8;
+  text-shadow: 0 2px 10px rgba(216, 184, 109, 0.5);
+  transform: rotate(12deg);
+}
+.discover-redesign .badge.nope {
+  left: 1.2rem;
+  color: #d89479;
+  text-shadow: 0 2px 10px rgba(216, 116, 89, 0.4);
+  transform: rotate(-12deg);
+}
+
+/* ── Side panel — info + actions ─────────────────────────── */
+.discover-redesign .discover-info-panel {
+  border-radius: 1rem;
+  border: 1px solid rgba(216, 184, 109, 0.18);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 168, 0.03), rgba(216, 184, 109, 0.01)),
+    rgba(10, 14, 39, 0.55);
+  padding: 1.2rem 1.25rem;
+}
+
+.discover-redesign .discover-side-name {
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: clamp(1.35rem, 2.4vw, 1.7rem);
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  margin: 0 0 0.4rem;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.discover-redesign .discover-zodiac-line {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.66);
+  margin: 0 0 0.7rem;
+}
+
+/* Compatibility scores — promoted from "tiny text" to luxury element */
+.discover-redesign .compatibility-score {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.02rem;
+  line-height: 1.5;
+  color: rgba(244, 244, 250, 0.86);
+  margin: 0.3rem 0 0.6rem;
+  padding: 0.55rem 0.85rem;
+  border-left: 2px solid rgba(216, 184, 109, 0.42);
+  background: linear-gradient(90deg, rgba(244, 220, 168, 0.06), transparent 80%);
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.discover-redesign .discover-reasons-list {
+  list-style: none;
+  margin: 0.6rem 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.discover-redesign .discover-reasons-list li {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  color: rgba(232, 242, 255, 0.86);
+  padding: 0.45rem 0.7rem 0.45rem 1.05rem;
+  border-radius: 0.4rem;
+  position: relative;
+  background: rgba(8, 12, 35, 0.42);
+}
+.discover-redesign .discover-reasons-list li::before {
+  content: '·';
+  position: absolute;
+  left: 0.5rem;
+  top: 0.42rem;
+  color: rgba(216, 184, 109, 0.7);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* Deeper-why disclosure */
+.discover-redesign .discover-deeper-why {
+  margin: 0.5rem 0 0.7rem;
+}
+.discover-redesign .discover-deeper-why > summary {
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.7);
+  list-style: none;
+  padding: 0.35rem 0;
+  transition: color 240ms ease;
+}
+.discover-redesign .discover-deeper-why > summary:hover {
+  color: #f4dca8;
+}
+.discover-redesign .discover-deeper-why > summary::-webkit-details-marker {
+  display: none;
+}
+.discover-redesign .discover-deeper-why[open] .discover-deeper-why-show,
+.discover-redesign .discover-deeper-why:not([open]) .discover-deeper-why-hide {
+  display: none;
+}
+.discover-redesign .discover-deeper-section {
+  margin: 0.55rem 0;
+}
+.discover-redesign .discover-deeper-section em {
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.55rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.62);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+.discover-redesign .discover-deeper-section ul {
+  margin: 0;
+  padding-left: 1rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: rgba(232, 242, 255, 0.78);
+}
+
+/* Spotlight pill + vibe + interest chips */
+.discover-redesign .mini-label,
+.discover-redesign .discover-spotlight-pill {
+  display: inline-block;
+  font-family: 'Cinzel', serif;
+  font-size: 0.56rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.72);
+  border: 1px solid rgba(216, 184, 109, 0.28);
+  border-radius: 999px;
+  padding: 0.32rem 0.75rem;
+  margin: 0.5rem 0 0.4rem;
+  background: transparent;
+}
+
+.discover-redesign .vibe {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: rgba(244, 244, 250, 0.86);
+  margin: 0.4rem 0 0.65rem;
+}
+
+.discover-redesign .discover-interest-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0.8rem;
+}
+.discover-redesign .discover-interest-chips span {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.78);
+  border: 1px solid rgba(216, 184, 109, 0.22);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  background: rgba(8, 12, 35, 0.4);
+}
+
+.discover-redesign .details-link {
+  display: block;
+  width: 100%;
+  margin: 0.6rem 0 0.2rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: rgba(244, 220, 168, 0.85);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.3);
+  border-radius: 0.5rem;
+  padding: 0.7rem 1.2rem;
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease, background 240ms ease;
+}
+.discover-redesign .details-link:hover {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.6);
+  background: linear-gradient(135deg, rgba(244, 220, 168, 0.04), transparent 70%);
+}
+
+/* ── Action cluster — Pass / Super-Like / Like ──────────── */
+.discover-redesign .discover-action-cluster {
+  display: flex;
+  gap: 0.55rem;
+  margin: 0.7rem 0 0.4rem;
+  justify-content: stretch;
+}
+
+.discover-redesign .discover-action-cluster button {
+  flex: 1;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.85rem 0.7rem;
+  border-radius: 0.55rem;
+  cursor: pointer;
+  transition: transform 240ms ease, box-shadow 240ms ease, filter 240ms ease, color 240ms ease, border-color 240ms ease;
+}
+
+.discover-redesign .pass-action {
+  color: rgba(244, 220, 168, 0.7);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.22);
+}
+.discover-redesign .pass-action:hover:not(:disabled) {
+  color: rgba(216, 116, 89, 0.95);
+  border-color: rgba(216, 116, 89, 0.4);
+  transform: translateY(-1px);
+}
+
+.discover-redesign .super-action {
+  color: #060a1f;
+  background: linear-gradient(135deg, #7edff5 0%, #c3eef9 50%, #7edff5 100%);
+  border: 1px solid rgba(126, 223, 245, 0.7);
+  box-shadow: 0 4px 14px rgba(126, 223, 245, 0.22);
+}
+.discover-redesign .super-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(126, 223, 245, 0.35);
+  filter: brightness(1.05);
+}
+
+.discover-redesign .like-action {
+  color: #060a1f;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  border: 1px solid rgba(216, 184, 109, 0.72);
+  box-shadow: 0 4px 14px rgba(216, 184, 109, 0.22);
+}
+.discover-redesign .like-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(216, 184, 109, 0.35);
+  filter: brightness(1.05);
+}
+
+.discover-redesign .discover-action-cluster button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Hint footer — keyboard map + status ─────────────────── */
+.discover-redesign .discover-hint {
+  margin-top: 0.85rem;
+  padding: 0.7rem 0.85rem;
+  border-top: 1px solid rgba(216, 184, 109, 0.12);
+}
+
+.discover-redesign .discover-keymap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.56rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.6);
+  margin: 0 0 0.45rem;
+}
+.discover-redesign .discover-keymap b {
+  color: rgba(244, 220, 168, 0.85);
+  font-family: 'Bodoni Moda', serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0;
+  margin-right: 0.32rem;
+}
+
+.discover-redesign .discover-hint p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: rgba(232, 242, 255, 0.55);
+  margin: 0.25rem 0;
+}
+
+.discover-redesign .discover-hint .result {
+  color: rgba(244, 220, 168, 0.85);
+}
+
+/* ── Mobile — stack KPI strip, collapse action cluster ───── */
+@media (max-width: 700px) {
+  .discover-redesign .discover-metrics {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.7rem 0.85rem;
+  }
+  .discover-redesign .discover-kpis {
+    justify-content: space-between;
+    gap: 0.6rem;
+  }
+  .discover-redesign .discover-metric-controls {
+    justify-content: stretch;
+  }
+  .discover-redesign .discover-metric-controls .discover-metric-btn {
+    flex: 1;
+    padding: 0.55rem 0.4rem;
+  }
+  .discover-redesign .discover-keymap {
+    gap: 0.55rem;
+  }
+}
