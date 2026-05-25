@@ -83,10 +83,12 @@
 
 /* Édition mark removed (2026-05-25) per Master's annotation. */
 
-/* ── Hero layout — responsive 2-column on desktop, 1-column on mobile
-   Desktop ≥900px: grid with seal+masthead on the left, tagline+pen
-   animation on the right, doors centered at the bottom spanning both.
-   Mobile <900px: single centered column (everything stacks vertically). */
+/* ── Hero layout — mobile baseline + desktop magazine-spread override
+   Mobile (default): everything stacks in a centered vertical column.
+   Desktop (≥900px): two columns ANCHORED to the viewport edges (not
+   centered against the page axis). The middle of the viewport stays
+   empty, like a magazine spread. Each column's content is centered
+   inside its own column so the crest naturally aligns over the wordmark. */
 .login-hero {
   position: relative;
   z-index: 2;
@@ -108,18 +110,17 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Left column container — seal + masthead.
-   On mobile: just a flex column. On desktop: ends-justified
-   against the central axis (right-aligned content). */
+/* Left column — seal + masthead + doors, all centered horizontally
+   inside the column (so the crest naturally aligns over PRIVÉ). */
 .login-hero-left {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(1rem, 2.5vh, 1.8rem);
+  gap: clamp(1.2rem, 3vh, 2.2rem);
   animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Right column container — the writing wrap (pen + tagline). */
+/* Right column — the writing wrap (pen + single-line tagline). */
 .login-hero-right {
   display: flex;
   flex-direction: column;
@@ -128,7 +129,7 @@
   animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) 0.6s both;
 }
 
-/* Masthead: PRIVÉ wordmark + slogan, beneath the crest in left col. */
+/* Masthead: PRIVÉ wordmark + slogan, beneath the crest. */
 .login-hero-masthead {
   display: flex;
   flex-direction: column;
@@ -159,93 +160,92 @@
   margin: 0;
 }
 
-/* ── The writing wrap — pen + tagline lines ──────────────────
-   The pen icon is positioned absolutely and animated to travel
-   across each line of the tagline. Each tagline line has its own
-   clip-path reveal animation that's synced with the pen's path. */
+/* ── The writing wrap — pen + single-line tagline ──────────
+   Pen and tagline share the same 5-second animation timeline starting
+   1.6s after page load. Pen's left position and tagline's clip-path
+   right-inset both go from 0% → 100% over the same duration with
+   linear easing, so the pen's TIP (at SVG x=0) always sits exactly
+   at the leading edge of the revealed text. */
 .login-hero-writing {
   position: relative;
-  max-width: 24ch;
-  padding-top: 2.2rem; /* leaves room for the pen above line 1 */
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  /* Width tuned so the full single-line tagline fits without wrapping
+     at desktop sizes. Min set so on smaller "desktop" viewports it
+     still has room. */
+  width: clamp(280px, 38vw, 540px);
+  padding-top: 2.4rem; /* room for the pen above the writing line */
 }
 
 .login-hero-pen {
   position: absolute;
-  top: 0;
+  /* Bottom edge of the pen sits AT the top of the tagline text, so
+     the tip (at SVG bottom-left, viewBox y=40) lands roughly on the
+     baseline. left: 0 → calc(100% - tip_width) over animation. */
+  bottom: 0.05em;
   left: 0;
-  width: clamp(28px, 3vw, 38px);
-  height: clamp(28px, 3vw, 38px);
+  width: clamp(38px, 4vw, 56px);
+  height: auto;
   opacity: 0;
-  filter: drop-shadow(0 4px 10px rgba(216, 184, 109, 0.32));
-  /* Total cycle 5s starting 1.6s after page load:
-     - 0–37% (1.6s → 3.45s): travel across line 1
-     - 37–48% (3.45s → 4.0s): jump to line 2 (fade out / fade in)
-     - 48–100% (4.0s → 5.45s): travel across line 2 */
-  animation: prive-pen-write 5s linear 1.6s both;
+  filter: drop-shadow(0 4px 10px rgba(216, 184, 109, 0.42))
+          drop-shadow(0 0 14px rgba(244, 220, 168, 0.18));
   z-index: 3;
+  /* Pen and tagline share the EXACT same animation duration + delay +
+     easing, so they move in perfect lockstep. */
+  animation: prive-pen-write 5s linear 1.6s both;
 }
 @keyframes prive-pen-write {
-  0%   { left: 0;     top: 0;     opacity: 0; }
+  0%   { left: 0;    opacity: 0; }
   3%   { opacity: 1; }
-  37%  { left: calc(100% - 38px); top: 0;     opacity: 1; }
-  42%  { left: calc(100% - 38px); top: 0;     opacity: 0; }
-  48%  { left: 0;     top: 1.7em; opacity: 0; }
-  52%  { opacity: 1; }
-  87%  { left: calc(100% - 38px); top: 1.7em; opacity: 1; }
-  96%  { opacity: 0.4; }
-  100% { left: calc(100% - 38px); top: 1.7em; opacity: 0; }
+  100% { left: 100%; opacity: 1; }
 }
 
-/* The tagline — italic Cormorant, split into 2 spans (lines),
-   each revealed via clip-path animation synced with the pen. */
 .login-hero-tagline {
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
-  font-size: clamp(1.3rem, 2.4vw, 1.8rem);
+  font-size: clamp(1.3rem, 2.4vw, 1.85rem);
   color: rgba(244, 220, 168, 0.95);
   letter-spacing: 0.01em;
   margin: 0;
   line-height: 1.35;
   font-weight: 400;
-  text-align: center;
+  /* Force single line so the pen has a single horizontal path. The
+     viewport width will determine if it wraps; widths are set on the
+     writing wrap to keep it on one line for typical desktop sizes. */
+  white-space: nowrap;
+  text-align: left;
+  overflow: hidden;
 }
 
-.login-hero-tagline .tagline-line {
-  display: block;
+.login-hero-tagline .tagline-text {
+  display: inline-block;
+  /* Reveals from left to right via clip-path inset animation —
+     synced with the pen's left:0→100% by sharing duration/delay. */
   clip-path: inset(0 100% 0 0);
+  animation: prive-tagline-reveal 5s linear 1.6s both;
   will-change: clip-path;
-}
-.login-hero-tagline .tagline-line-1 {
-  animation: prive-tagline-reveal 1.85s linear 1.6s both;
-}
-.login-hero-tagline .tagline-line-2 {
-  animation: prive-tagline-reveal 1.85s linear 4.0s both;
 }
 @keyframes prive-tagline-reveal {
   to { clip-path: inset(0 0% 0 0); }
 }
 
-/* prefers-reduced-motion — render statically with both lines visible. */
+/* prefers-reduced-motion — render statically (tagline fully visible,
+   pen hidden). */
 @media (prefers-reduced-motion: reduce) {
   .login-hero-pen {
     animation: none;
     opacity: 0;
   }
-  .login-hero-tagline .tagline-line {
+  .login-hero-tagline .tagline-text {
     animation: none;
     clip-path: inset(0 0% 0 0);
   }
 }
 
-/* ── Three doors — centered at the bottom of the hero ──────── */
+/* ── Three doors — vertical stack within the left column. ─── */
 .login-hero-doors {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.8rem;
-  animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) 1.3s both;
 }
 .login-hero-door {
   position: relative;
@@ -286,39 +286,32 @@
   left: 10%;
 }
 
-/* ── Desktop 2-column layout (≥900px) ─────────────────────────
-   The hero becomes a CSS grid: left/right columns + a bottom
-   doors row that spans both columns. The crest sits in the
-   left column, the pen-written tagline in the right column. */
+/* ── Desktop magazine-spread (≥900px) ─────────────────────────
+   Columns ANCHORED to viewport edges (not centered against the
+   page axis). The middle stays empty. */
 @media (min-width: 900px) {
   .login-hero {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr auto;
-    grid-template-areas:
-      "left right"
-      "doors doors";
+    /* Take the full viewport width, with padding from each edge
+       matching the pre-crest editorial layout. */
+    max-width: none;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
-    max-width: min(72rem, 92vw);
-    gap: clamp(2rem, 5vw, 5rem) clamp(2.5rem, 6vw, 6rem);
+    justify-content: space-between;
+    text-align: left;
+    padding: clamp(2rem, 5vh, 4rem) clamp(2rem, 8vw, 7rem);
+    gap: clamp(2rem, 6vw, 6rem);
   }
+  /* Each column claims ~40% of the viewport width and stays anchored
+     to its respective edge via space-between on the parent. */
   .login-hero-left {
-    grid-area: left;
-    align-items: flex-end;
-    text-align: right;
+    flex: 0 1 auto;
+    max-width: 22rem;
   }
   .login-hero-right {
-    grid-area: right;
-    align-items: flex-start;
-    text-align: left;
-  }
-  .login-hero-doors {
-    grid-area: doors;
-    flex-direction: row;
-    justify-content: center;
-    gap: clamp(1.5rem, 4vw, 3rem);
-    padding-top: clamp(1rem, 2vh, 2rem);
+    flex: 0 1 auto;
+    max-width: 30rem;
   }
 }
 

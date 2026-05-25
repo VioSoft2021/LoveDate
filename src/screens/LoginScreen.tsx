@@ -154,15 +154,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       <main className="login-shell login-shell--hero">
         <div className="grain" aria-hidden="true" />
 
-        {/* Layout (2026-05-25 final pass — Master's annotated screenshot):
-            - Desktop ≥900px: 2-column grid. Left column = crest + wordmark
-              + slogan. Right column = tagline written by an animated pen.
-              Doors centered at the bottom spanning both columns.
+        {/* Layout (2026-05-25 final pass v2 — after Master's "horrible"
+            feedback on v1):
+            - Desktop ≥900px: 2 columns anchored to viewport edges (not
+              centered). Left column FLUSH LEFT, right column FLUSH RIGHT.
+              The middle of the page is empty space (like a magazine
+              spread). Each column's content centered horizontally inside
+              its own column so the crest sits CENTERED OVER the wordmark.
+            - Left column: crest + wordmark + slogan + doors (like the
+              pre-crest layout had it — content centered, anchored left).
+            - Right column: single-line tagline revealed horizontally by a
+              pen whose tip TRACKS the leading edge of the reveal.
             - Mobile: vertical centered column (everything stacks).
-            - Édition mark deleted (per Master's yellow circles).
-            - Language picker label deleted, the <select> itself stays. */}
+            - Édition mark deleted; language picker label deleted, dropdown stays. */}
         <section className="login-hero">
-          {/* LEFT column — the seal (crest) + masthead (wordmark + slogan) */}
+          {/* LEFT column — seal, masthead, doors. All centered within
+              the column so the crest naturally aligns over the wordmark. */}
           <div className="login-hero-left">
             <div className="login-hero-seal">
               <img
@@ -177,95 +184,81 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <h1 className="login-hero-wordmark" aria-label="Privé">PRIVÉ</h1>
               <p className="login-hero-slogan">Members only &middot; By design</p>
             </header>
+            <nav className="login-hero-doors" aria-label="Access">
+              <button
+                type="button"
+                className="login-hero-door"
+                onClick={goToWaitlist}
+              >
+                {copy.auth.heroRequestAccess}
+              </button>
+              <button
+                type="button"
+                className="login-hero-door"
+                onClick={() => goToAuth('register')}
+              >
+                {copy.auth.heroHaveInvite}
+              </button>
+              <button
+                type="button"
+                className="login-hero-door"
+                onClick={() => goToAuth('login')}
+              >
+                {copy.auth.heroSignIn}
+              </button>
+            </nav>
           </div>
 
-          {/* RIGHT column — the brand promise written by a pen. The text is
-              split into two lines (controlled via newline in the i18n string)
-              and revealed via clip-path while a pen icon travels along
-              just above the writing line. */}
+          {/* RIGHT column — the brand promise written by a pen. Single
+              horizontal line; the pen's tip is at the viewBox left edge
+              (x=0) so positioning the pen at left:N% puts the tip exactly
+              at N% of the writing container. */}
           <div className="login-hero-right">
             <div className="login-hero-writing">
-              {/* The pen — a small fountain pen icon, animated to travel
-                  across line 1, jump to line 2, travel across line 2. */}
               <svg
                 className="login-hero-pen"
-                viewBox="0 0 36 36"
+                viewBox="0 0 50 40"
                 aria-hidden="true"
               >
                 <defs>
-                  <linearGradient id="penGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#f4dca8" />
-                    <stop offset="50%" stopColor="#cfad61" />
+                  <linearGradient id="penGold" x1="0%" y1="100%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#cfad61" />
+                    <stop offset="40%" stopColor="#f4dca8" />
                     <stop offset="100%" stopColor="#8b6b2c" />
                   </linearGradient>
                 </defs>
-                <g transform="rotate(-30 18 18)">
-                  <path
-                    d="M 14 4 L 22 4 L 21 24 L 15 24 Z"
-                    fill="url(#penGold)"
-                    stroke="rgba(80,55,15,0.6)"
-                    strokeWidth="0.4"
-                  />
-                  <path
-                    d="M 15 24 L 18 32 L 21 24 Z"
-                    fill="url(#penGold)"
-                    stroke="rgba(50,30,10,0.7)"
-                    strokeWidth="0.3"
-                  />
-                  <line
-                    x1="18" y1="26" x2="18" y2="31"
-                    stroke="rgba(30,15,5,0.8)" strokeWidth="0.6"
-                  />
-                  <line
-                    x1="14" y1="10" x2="22" y2="10"
-                    stroke="rgba(80,55,15,0.7)" strokeWidth="0.5"
-                  />
-                </g>
+                {/* Pen body — angled from upper-right down to a sharp tip
+                    at the SVG's left edge (viewBox x=0, y=40). The body
+                    tapers as it descends so the tip looks like a real
+                    fountain-pen nib. */}
+                <path
+                  d="M 38 2 L 48 12 L 8 36 L 3 38 L 0 40 L 2 35 L 4 32 L 38 2 Z"
+                  fill="url(#penGold)"
+                  stroke="rgba(80,55,15,0.7)"
+                  strokeWidth="0.5"
+                />
+                {/* Tip slit — thin dark line at the nib for realism */}
+                <line
+                  x1="2.5" y1="36" x2="0.5" y2="39.5"
+                  stroke="rgba(30,15,5,0.8)" strokeWidth="0.6"
+                  strokeLinecap="round"
+                />
+                {/* Cap separator near upper-right */}
+                <line
+                  x1="34" y1="3" x2="44" y2="13"
+                  stroke="rgba(80,55,15,0.8)" strokeWidth="0.5"
+                />
+                {/* Subtle highlight on the body for dimension */}
+                <line
+                  x1="40" y1="6" x2="6" y2="35"
+                  stroke="rgba(255,248,231,0.4)" strokeWidth="0.4"
+                />
               </svg>
-
-              {/* The tagline — split into 2 spans (one per line) so each
-                  reveals separately and the pen jumps line-to-line. */}
               <p className="login-hero-tagline">
-                {(copy.auth.heroTagline.includes('\n')
-                  ? copy.auth.heroTagline.split('\n')
-                  : [copy.auth.heroTagline]
-                ).map((line, idx) => (
-                  <span
-                    key={idx}
-                    className={`tagline-line tagline-line-${idx + 1}`}
-                  >
-                    {line}
-                  </span>
-                ))}
+                <span className="tagline-text">{copy.auth.heroTagline}</span>
               </p>
             </div>
           </div>
-
-          {/* The three doors — equal weight, centered at the bottom,
-              spanning both columns on desktop. */}
-          <nav className="login-hero-doors" aria-label="Access">
-            <button
-              type="button"
-              className="login-hero-door"
-              onClick={goToWaitlist}
-            >
-              {copy.auth.heroRequestAccess}
-            </button>
-            <button
-              type="button"
-              className="login-hero-door"
-              onClick={() => goToAuth('register')}
-            >
-              {copy.auth.heroHaveInvite}
-            </button>
-            <button
-              type="button"
-              className="login-hero-door"
-              onClick={() => goToAuth('login')}
-            >
-              {copy.auth.heroSignIn}
-            </button>
-          </nav>
         </section>
 
         {/* Language picker — label deleted per Master's instruction
