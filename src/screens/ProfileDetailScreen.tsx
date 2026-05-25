@@ -109,6 +109,25 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
         </button>
         <h2>
           {selectedDetailProfile.name}, {selectedDetailProfile.age}
+          {selectedDetailProfile.verified && (
+            <span
+              className="profile-detail-verified-badge"
+              title={ro ? 'Profil verificat de Privé AI' : 'Verified by Privé AI'}
+              aria-label={ro ? 'Profil verificat' : 'Verified profile'}
+            >
+              <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true">
+                <path
+                  d="M3.5 8.2l3 3 6-6.4"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </svg>
+              {ro ? 'Verificat' : 'Verified'}
+            </span>
+          )}
         </h2>
         <p>
           {copy.profile.compatibilityScore}:{' '}

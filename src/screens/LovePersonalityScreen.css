@@ -78,7 +78,9 @@
 .love-personality-archetype {
   margin: 0.4rem 0 0.6rem;
   font-family: 'Bodoni Moda', 'Cormorant Garamond', serif;
-  font-size: 2.6rem;
+  /* Responsive: was a flat 2.6rem that overflowed narrow phones and
+     looked small on wide screens. Now scales 1.7 → 2.6rem. */
+  font-size: clamp(1.7rem, 5.5vw, 2.6rem);
   font-weight: 500;
   letter-spacing: 0.02em;
   line-height: 1.1;
@@ -345,7 +347,8 @@
 .love-personality-empty h1 {
   margin: 0;
   font-family: 'Bodoni Moda', serif;
-  font-size: 2rem;
+  /* Responsive: was a flat 2rem that felt tight on phones. */
+  font-size: clamp(1.5rem, 5vw, 2.1rem);
   font-weight: 500;
   color: #f4dca8;
 }

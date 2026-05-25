@@ -36,6 +36,31 @@
   transform: translateX(-2px);
 }
 
+/* ── Photo-verified badge — gold pill in the candidate header */
+.profile-detail .profile-detail-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.7rem;
+  padding: 0.28rem 0.6rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #060a1f;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  border: 1px solid rgba(216, 184, 109, 0.72);
+  border-radius: 999px;
+  box-shadow: 0 3px 10px rgba(216, 184, 109, 0.32);
+  vertical-align: middle;
+  -webkit-text-fill-color: #060a1f;
+  background-clip: padding-box;
+}
+.profile-detail .profile-detail-verified-badge svg {
+  flex: 0 0 auto;
+}
+
 /* ── Name header — Bodoni gold gradient ─────────────────── */
 .profile-detail .profile-summary > h2 {
   font-family: 'Bodoni Moda', 'Playfair Display', serif;

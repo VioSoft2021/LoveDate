@@ -25,6 +25,29 @@
   overflow-y: visible;
 }
 
+/* ── Photo-verified badge — gold pill next to the name ──── */
+.profile-screen .profile-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.55rem;
+  padding: 0.22rem 0.55rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.5rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #060a1f;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  border: 1px solid rgba(216, 184, 109, 0.72);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(216, 184, 109, 0.32);
+  vertical-align: middle;
+}
+.profile-screen .profile-verified-badge svg {
+  flex: 0 0 auto;
+}
+
 /* ── Editor masthead ─────────────────────────────────────── */
 .profile-screen .profile-editor > h2 {
   font-family: 'Bodoni Moda', 'Playfair Display', 'Cormorant Garamond', serif;

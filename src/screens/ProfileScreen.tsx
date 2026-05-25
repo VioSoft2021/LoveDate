@@ -81,6 +81,10 @@ export type ProfileScreenProps = {
   onOpenLovePersonality: () => void
   onOpenLovePersonalityQuiz: () => void
   onOpenSettings: () => void
+  /** Fired when the AI Photo Coach result clears the verification
+   *  threshold (avg score ≥7 across ≥3 rated photos). Parent sets
+   *  selfProfile.verificationBadge to 'photo-verified'. */
+  onAwardPhotoVerified?: () => void
 }
 
 const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
@@ -119,6 +123,7 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
   onOpenLovePersonality,
   onOpenLovePersonalityQuiz,
   onOpenSettings,
+  onAwardPhotoVerified,
 }) => {
   const copy = UI_TEXT[appLanguage]
 
@@ -249,6 +254,18 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
         setPhotoCoachResult(null)
       } else {
         setPhotoCoachResult(result)
+        // Auto-award the photo-verified badge when the Coach's average
+        // score crosses the threshold. Requires at least 3 rated photos
+        // so a single well-shot selfie can't game the badge. The actual
+        // state machine (never downgrade from id-verified) lives in the
+        // parent — we just signal "threshold passed".
+        const rated = result.perPhoto.filter((p) => typeof p.score === 'number')
+        if (rated.length >= 3) {
+          const avg = rated.reduce((sum, p) => sum + p.score, 0) / rated.length
+          if (avg >= 7 && onAwardPhotoVerified) {
+            onAwardPhotoVerified()
+          }
+        }
       }
     } catch {
       setPhotoCoachError(copy.profile.photoCoachError)
@@ -264,6 +281,7 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
     appLanguage,
     copy.profile.photoCoachNoPhotos,
     copy.profile.photoCoachError,
+    onAwardPhotoVerified,
   ])
 
   return (
@@ -294,6 +312,34 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
               <div className="profile-summary-overlay">
                 <h3>
                   {selfProfile.name}, {selfProfile.age}
+                  {selfProfile.verificationBadge &&
+                    selfProfile.verificationBadge !== 'none' && (
+                      <span
+                        className="profile-verified-badge"
+                        title={
+                          appLanguage === 'ro'
+                            ? 'Profil verificat de Privé AI'
+                            : 'Verified by Privé AI'
+                        }
+                        aria-label={
+                          appLanguage === 'ro'
+                            ? 'Profil verificat'
+                            : 'Verified profile'
+                        }
+                      >
+                        <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true">
+                          <path
+                            d="M3.5 8.2l3 3 6-6.4"
+                            stroke="currentColor"
+                            strokeWidth="2.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            fill="none"
+                          />
+                        </svg>
+                        {appLanguage === 'ro' ? 'Verificat' : 'Verified'}
+                      </span>
+                    )}
                 </h3>
                 <p>
                   {selfProfile.city} {'•'} {selfProfile.vibe}

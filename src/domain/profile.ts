@@ -37,6 +37,12 @@ export type SelfProfile = {
   socialPromotionOptIn: boolean
   travelMode: boolean
   photos: string[]
+  // Auto-awarded by AI Photo Coach when the average score crosses the
+  // verification threshold (≥7/10 across at least 3 rated photos).
+  // Surfaces as a gold "Verified" badge on the user's own profile and
+  // on candidate profiles. 'none' is the default; 'id-verified' is
+  // reserved for a future paid verification flow.
+  verificationBadge?: 'none' | 'photo-verified' | 'id-verified'
   // Tier A (2026-05-24) — replaces the previous personalityAnswers binary array.
   // Raw quiz answers (14 Likert items, 1-5) kept locally until cloud sync derives
   // the public Big Five vector + attachment style. The full LovePersonality
