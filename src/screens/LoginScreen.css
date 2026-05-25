@@ -162,13 +162,16 @@
 .login-hero-tagline {
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
-  /* Scales down more on narrow phones so each line (the longer one
-     is ~30 chars in EN) fits without wrapping. Was clamp(1.7rem, 3vw,
-     2.6rem) — minimum too large for 320–400px viewports, causing the
-     first line to break into 2, producing 3+ total lines. */
-  font-size: clamp(1.25rem, 4vw, 2.3rem);
+  /* Master's mobile screenshot showed "Where the noise of every o[ther]"
+     still overflowing the viewport edge at the previous 1.25rem min.
+     Dropped to 1.05rem min so the longest line (~30 chars in EN) fits
+     comfortably even on 360–400px phones with safe-area padding. */
+  font-size: clamp(1.05rem, 3.8vw, 2.2rem);
   color: rgba(244, 220, 168, 0.95);
-  letter-spacing: 0.01em;
+  /* Slight letter-spacing tighten (0.01em → 0) lets the longer line
+     fit in a few more pixels of viewport width without dropping the
+     font size further. */
+  letter-spacing: 0;
   margin: 0;
   line-height: 1.4;
   font-weight: 400;
