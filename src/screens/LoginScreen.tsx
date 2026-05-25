@@ -154,18 +154,59 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       <main className="login-shell login-shell--hero">
         <div className="grain" aria-hidden="true" />
 
-        {/* "The Meeting" — the centerpiece animation. Two gold orbs drift
-            in along curved paths from opposite sides of the viewport, touch
-            at the visual center (bloom flashes softly), then continue past
-            each other and out of view. ~16s cycle. Tells the brand story
-            IN MOTION instead of as a static symbol: two paths converge,
-            briefly meet, then continue — the vesica piscis as gesture, not
-            ornament. Hidden on phones (no empty space to occupy). */}
-        <div className="login-hero-meeting" aria-hidden="true">
-          <div className="meeting-bloom" />
-          <div className="meeting-orb meeting-orb-a" />
-          <div className="meeting-orb meeting-orb-b" />
-        </div>
+        {/* "Calligraphy" — a single gold hairline curve draws itself
+            across the empty right-side of the viewport like a fountain
+            pen writing a signature. Three different paths rotate through
+            (42s total cycle, 14s per stroke). Each stroke draws over 7s,
+            holds for ~5s while the ink "dries", fades over ~1.5s, brief
+            silence, then the next path begins on a fresh canvas.
+            Brand-deep: Privé as a hand-signed editorial mark.
+            Hidden on phones (no centre void on narrow viewports). */}
+        <svg
+          className="login-hero-calligraphy"
+          viewBox="0 0 1000 800"
+          preserveAspectRatio="xMidYMid meet"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id="calliGold" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#cfad61" />
+              <stop offset="50%" stopColor="#f4dca8" />
+              <stop offset="100%" stopColor="#cfad61" />
+            </linearGradient>
+          </defs>
+          {/* Stroke 1 — flowing horizontal signature with a final descent.
+              The most "signature-like" of the three: opens with a gentle
+              swell, settles, finishes with a small downward flourish. */}
+          <path
+            className="calli-path calli-path-1"
+            d="M 80 380 C 180 300, 300 440, 420 360 S 620 220, 760 360 S 880 520, 960 420"
+            stroke="url(#calliGold)"
+            strokeWidth="1.6"
+            fill="none"
+            strokeLinecap="round"
+          />
+          {/* Stroke 2 — descending elegance: starts high-left, drops in
+              a smooth diagonal, terminates with a small upward hook. */}
+          <path
+            className="calli-path calli-path-2"
+            d="M 120 200 Q 280 420, 480 320 T 820 400 Q 920 420, 960 480"
+            stroke="url(#calliGold)"
+            strokeWidth="1.6"
+            fill="none"
+            strokeLinecap="round"
+          />
+          {/* Stroke 3 — ascending flourish: rises from bottom-left through
+              a long curve, finishes with a small rounded apex top-right. */}
+          <path
+            className="calli-path calli-path-3"
+            d="M 180 660 Q 360 540, 560 600 T 880 500 C 940 470, 970 380, 920 280"
+            stroke="url(#calliGold)"
+            strokeWidth="1.6"
+            fill="none"
+            strokeLinecap="round"
+          />
+        </svg>
 
         {/* Editorial mark in the top-right corner — issue number style.
             Anchors the upper-right negative space. */}
