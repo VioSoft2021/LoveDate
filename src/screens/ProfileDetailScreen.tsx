@@ -1,4 +1,5 @@
 import React from 'react'
+import './ProfileDetailScreen.css'
 import {
   UI_TEXT,
   getZodiacDeepDive,

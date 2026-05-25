@@ -1,0 +1,492 @@
+/* ===========================================================
+   Privé — Profile detail luxury redesign (2026-05-25)
+   ===========================================================
+   The "tap into a candidate card" surface. Audit grade: 2/5
+   ("Wikipedia text dump, utilitarian Big Five bars, no
+   hierarchy"). This file builds the editorial structure: gold
+   Bodoni name header, luxury compatibility callouts, attachment
+   chip in header (audit-requested), match-insight cards as
+   gold-rule sections, gold-gradient Big Five bars, hover-glow
+   action buttons.
+   All selectors scoped under .profile-detail so styles do not
+   leak to other screens.
+   =========================================================== */
+
+/* ── Back button — editorial link, not a generic ghost ──── */
+.profile-detail .profile-summary > button.ghost:first-of-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: rgba(244, 220, 168, 0.72);
+  background: transparent;
+  border: none;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  margin-bottom: 0.85rem;
+  transition: color 240ms ease, transform 240ms ease;
+  align-self: flex-start;
+}
+.profile-detail .profile-summary > button.ghost:first-of-type:hover {
+  color: #f4dca8;
+  transform: translateX(-2px);
+}
+
+/* ── Name header — Bodoni gold gradient ─────────────────── */
+.profile-detail .profile-summary > h2 {
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: clamp(1.7rem, 3.5vw, 2.5rem);
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  margin: 0 0 0.5rem;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ── Compat + Personality scores — promoted to gold-rule callouts ── */
+.profile-detail .profile-summary > p:nth-of-type(1),
+.profile-detail .profile-summary > p:nth-of-type(2) {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.02rem;
+  line-height: 1.45;
+  color: rgba(244, 244, 250, 0.92);
+  margin: 0.35rem 0;
+  padding: 0.5rem 0.85rem;
+  border-left: 2px solid rgba(216, 184, 109, 0.5);
+  background: linear-gradient(90deg, rgba(244, 220, 168, 0.06), transparent 80%);
+  border-radius: 0 0.45rem 0.45rem 0;
+}
+
+/* ── Vibe / bio / location lines ────────────────────────── */
+.profile-detail .profile-summary > p:nth-of-type(3) {
+  /* The vibe line */
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 1.45;
+  color: rgba(244, 220, 168, 0.85);
+  margin: 0.85rem 0 0.4rem;
+}
+.profile-detail .profile-summary > p:nth-of-type(4) {
+  /* The bio paragraph */
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-size: 1.08rem;
+  line-height: 1.55;
+  color: rgba(232, 242, 255, 0.88);
+  margin: 0.4rem 0 0.8rem;
+}
+.profile-detail .profile-summary > p:nth-of-type(5) {
+  /* Gender • city • distance */
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.65);
+  margin: 0.3rem 0 0.7rem;
+}
+
+/* ── Attachment chip — gold pill in header (audit-requested) ── */
+.profile-detail .profile-detail-chips-row {
+  margin: 0.4rem 0 0.85rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.profile-detail .profile-detail-attachment-chip {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: #060a1f;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  border: 1px solid rgba(216, 184, 109, 0.7);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  box-shadow: 0 4px 12px rgba(216, 184, 109, 0.2);
+}
+
+/* ── Zodiac line + soft prose ──────────────────────────── */
+.profile-detail .profile-summary > p:nth-of-type(6) {
+  /* The Zodiac: Leo ♌ line */
+  font-family: 'Cinzel', serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.78);
+  margin: 0.5rem 0 0.4rem;
+}
+.profile-detail .profile-summary > p.soft {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: rgba(232, 242, 255, 0.65);
+  margin: 0.3rem 0 0.6rem;
+}
+
+/* ── Match-insight cards — gold-rule editorial sections ─── */
+.profile-detail .match-insights {
+  margin: 1.1rem 0;
+  padding: 1rem 1.1rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(216, 184, 109, 0.18);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 168, 0.03), rgba(216, 184, 109, 0.01)),
+    rgba(10, 14, 39, 0.55);
+}
+
+.profile-detail .match-insights h3 {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: #f4dca8;
+  margin: 0 0 0.85rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid rgba(216, 184, 109, 0.18);
+}
+
+.profile-detail .match-insights p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: rgba(232, 242, 255, 0.86);
+  margin: 0.4rem 0;
+}
+
+.profile-detail .match-insights p strong {
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.6rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.78);
+  font-weight: 500;
+  margin-right: 0.35rem;
+}
+
+.profile-detail .match-insights ul {
+  list-style: none;
+  margin: 0.55rem 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.profile-detail .match-insights ul li {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  color: rgba(232, 242, 255, 0.86);
+  padding: 0.55rem 0.7rem 0.55rem 1.05rem;
+  border-radius: 0.45rem;
+  position: relative;
+  background: rgba(8, 12, 35, 0.4);
+}
+.profile-detail .match-insights ul li::before {
+  content: '·';
+  position: absolute;
+  left: 0.5rem;
+  top: 0.42rem;
+  color: rgba(216, 184, 109, 0.7);
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.profile-detail .match-insights ul li strong {
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.56rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.78);
+  font-weight: 500;
+  margin-right: 0.35rem;
+  display: inline-block;
+}
+
+.profile-detail .match-insights .soft {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: rgba(232, 242, 255, 0.55);
+  margin: 0.5rem 0 0;
+  padding-top: 0.55rem;
+  border-top: 1px dashed rgba(216, 184, 109, 0.12);
+}
+
+/* ── Big Five bars — gold gradient luxury ─────────────────── */
+.profile-detail .profile-detail-bigfive-card .profile-detail-bigfive-bars {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0;
+  margin: 0;
+}
+
+.profile-detail .profile-detail-bigfive-row {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) 1fr auto;
+  align-items: center;
+  gap: 0.85rem;
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+.profile-detail .profile-detail-bigfive-row::before {
+  display: none !important;
+}
+
+.profile-detail .profile-detail-bigfive-label {
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.78);
+}
+
+.profile-detail .profile-detail-bigfive-bar {
+  height: 0.45rem;
+  border-radius: 999px;
+  background: rgba(8, 12, 35, 0.7);
+  border: 1px solid rgba(216, 184, 109, 0.12);
+  overflow: hidden;
+  position: relative;
+}
+
+.profile-detail .profile-detail-bigfive-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #cfad61 0%, #f4dca8 60%, #ffffff 100%);
+  box-shadow: 0 0 8px rgba(216, 184, 109, 0.3);
+  border-radius: 999px;
+  transition: width 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.profile-detail .profile-detail-bigfive-value {
+  font-family: 'Bodoni Moda', serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: rgba(244, 220, 168, 0.95);
+  min-width: 2.8rem;
+  text-align: right;
+}
+
+/* ── Action buttons — Report / Block / Moderate ──────────── */
+.profile-detail .summary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin: 1.1rem 0 0.65rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(216, 184, 109, 0.12);
+}
+
+.profile-detail .summary-actions button.ghost {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: rgba(244, 220, 168, 0.78);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.28);
+  border-radius: 0.5rem;
+  padding: 0.7rem 1.15rem;
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease, transform 240ms ease, box-shadow 240ms ease;
+}
+.profile-detail .summary-actions button.ghost:hover {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.55);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(216, 184, 109, 0.14);
+}
+
+.profile-detail .summary-actions button.danger {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: rgba(216, 116, 89, 0.85);
+  background: transparent;
+  border: 1px solid rgba(216, 116, 89, 0.32);
+  border-radius: 0.5rem;
+  padding: 0.7rem 1.15rem;
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease, background 240ms ease, transform 240ms ease;
+}
+.profile-detail .summary-actions button.danger:hover {
+  color: #ecb39c;
+  border-color: rgba(216, 116, 89, 0.6);
+  background: linear-gradient(135deg, rgba(216, 116, 89, 0.08), transparent 70%);
+  transform: translateY(-1px);
+}
+
+/* ── Prompts list (bottom of summary) ─────────────────────── */
+.profile-detail .profile-summary > ul:last-of-type {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+.profile-detail .profile-summary > ul:last-of-type li {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: rgba(232, 242, 255, 0.78);
+  padding: 0.7rem 0.95rem;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(216, 184, 109, 0.1);
+  background: rgba(10, 14, 39, 0.45);
+}
+
+/* ── Detail photos column ────────────────────────────────── */
+.profile-detail .detail-photos {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.7rem;
+}
+
+.profile-detail .photo-card {
+  border-radius: 0.85rem;
+  overflow: hidden;
+  border: 1px solid rgba(216, 184, 109, 0.14);
+  background: rgba(8, 12, 35, 0.4);
+  transition: transform 280ms ease, border-color 280ms ease, box-shadow 280ms ease;
+}
+.profile-detail .photo-card:hover {
+  border-color: rgba(216, 184, 109, 0.42);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.42), 0 0 24px rgba(216, 184, 109, 0.12);
+}
+/* First photo: hero — taller, ribbon mark */
+.profile-detail .photo-card:first-child {
+  position: relative;
+}
+.profile-detail .photo-card:first-child::after {
+  content: 'PRIMARY';
+  position: absolute;
+  top: 0.85rem;
+  left: 0.85rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.5rem;
+  letter-spacing: 0.36em;
+  color: #060a1f;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  padding: 0.3rem 0.62rem;
+  border-radius: 0.35rem;
+  z-index: 2;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.profile-detail .photo-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: zoom-in;
+}
+.profile-detail .photo-button img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.profile-detail .photo-button:hover img {
+  transform: scale(1.03);
+}
+
+/* ── Empty state (profile not found) ─────────────────────── */
+.profile-detail > .state-box {
+  text-align: center;
+  padding: clamp(2.5rem, 8vh, 4.5rem) 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(216, 184, 109, 0.16);
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(244, 220, 168, 0.05), transparent 70%),
+    rgba(10, 14, 39, 0.55);
+  max-width: 36rem;
+  margin: 2rem auto;
+}
+.profile-detail > .state-box .pill {
+  display: inline-block;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.72);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.32);
+  border-radius: 999px;
+  padding: 0.4rem 0.95rem;
+  margin: 0 0 1.2rem;
+}
+.profile-detail > .state-box h1 {
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  font-weight: 500;
+  font-size: clamp(1.4rem, 2.6vw, 1.95rem);
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  color: rgba(232, 242, 255, 0.86);
+  margin: 0 0 1.4rem;
+}
+.profile-detail > .state-box button {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #060a1f;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  border: 1px solid rgba(216, 184, 109, 0.7);
+  border-radius: 0.5rem;
+  padding: 0.78rem 1.5rem;
+  cursor: pointer;
+  transition: transform 240ms ease, box-shadow 240ms ease, filter 240ms ease;
+  box-shadow: 0 6px 18px rgba(216, 184, 109, 0.18);
+}
+.profile-detail > .state-box button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(216, 184, 109, 0.3);
+  filter: brightness(1.05);
+}
+
+/* ── Mobile — single column, tighten Big Five label width ── */
+@media (max-width: 700px) {
+  .profile-detail .profile-detail-bigfive-row {
+    grid-template-columns: minmax(6rem, 9rem) 1fr auto;
+    gap: 0.6rem;
+  }
+  .profile-detail .profile-detail-bigfive-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.24em;
+  }
+  .profile-detail .summary-actions button {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+  .profile-detail .photo-card:first-child::after {
+    font-size: 0.45rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
