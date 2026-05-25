@@ -91,26 +91,43 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
       </header>
 
       <section className="filters filters--ai" aria-label={f.title}>
-        {/* ── 1. AI preference prompt ─────────────────────────────────
-           The headline control. Threads into E3 Sonnet as viewerPreference;
-           Claude factors it into the score and the displayed reasons. */}
-        <label className="filter-field filter-field--prompt">
-          <span className="filter-field-label">{f.aiPromptLabel}</span>
-          <textarea
-            className="filter-prompt-input"
-            rows={3}
-            placeholder={f.aiPromptPlaceholder}
-            value={filters.aiPreferencePrompt}
-            onChange={(event) =>
-              setFilters((current) => ({
-                ...current,
-                aiPreferencePrompt: event.target.value,
-              }))
-            }
-            maxLength={400}
-          />
-          <span className="filter-field-hint">{f.aiPromptHint}</span>
-        </label>
+        {/* ── 1. AI HERO — the protagonist of this screen ─────────────
+           The free-text prompt threads into E3 Sonnet as viewerPreference;
+           Claude factors it into the score and the displayed reasons.
+           Visually elevated above the constraints below to signal that
+           the AI does the heavy lifting, not the toggles. */}
+        <div className="filter-ai-hero">
+          <p className="filter-ai-eyebrow" aria-hidden="true">
+            <span className="filter-ai-pulse" />
+            <span className="filter-ai-eyebrow-brand">{f.aiEyebrow}</span>
+            <span className="filter-ai-eyebrow-sep">·</span>
+            <span className="filter-ai-eyebrow-state">{f.aiEyebrowState}</span>
+          </p>
+          <label className="filter-field filter-field--prompt">
+            <span className="filter-field-label filter-field-label--hero">
+              {f.aiPromptLabel}
+            </span>
+            <textarea
+              className="filter-prompt-input"
+              rows={3}
+              placeholder={f.aiPromptPlaceholder}
+              value={filters.aiPreferencePrompt}
+              onChange={(event) =>
+                setFilters((current) => ({
+                  ...current,
+                  aiPreferencePrompt: event.target.value,
+                }))
+              }
+              maxLength={400}
+            />
+            <span className="filter-field-hint">{f.aiPromptHint}</span>
+          </label>
+        </div>
+
+        {/* ── Constraints group — the hard filters live below the AI hero
+           so it's visually obvious that these are secondary. */}
+        <div className="filter-constraints">
+        <p className="filter-constraints-eyebrow">{f.hardConstraints}</p>
 
         {/* ── 2. Looking-for segmented row ─────────────────────────── */}
         <fieldset className="filter-field filter-field--segments">
@@ -220,6 +237,7 @@ export const FilterScreen: React.FC<FilterScreenProps> = ({
           />
         </div>
 
+        </div>
         {/* ── 6. Reset all ────────────────────────────────────────── */}
         <button
           type="button"

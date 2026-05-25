@@ -53,7 +53,8 @@ const Harness: React.FC<{
 describe('FilterScreen — AI-first rendering', () => {
   it('renders the headline AI prompt input', () => {
     render(<Harness />)
-    expect(screen.getByText('What are you looking for?')).toBeInTheDocument()
+    // New AI-First hero label (2026-05-25) — was "What are you looking for?"
+    expect(screen.getByText(/tell us who you'?re looking for/i)).toBeInTheDocument()
     expect(
       screen.getByPlaceholderText(/someone serious, into hiking/i),
     ).toBeInTheDocument()
