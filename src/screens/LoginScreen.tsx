@@ -166,52 +166,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             rhythm. Each section fades in with a staggered delay so the
             page reads as it appears, like an invitation being unfolded. */}
         <section className="login-hero">
-          {/* The house seal — crest above + handwritten manifesto fragment.
-              First thing the eye lands on. */}
+          {/* The house seal — the crest sits alone as the visual anchor.
+              The "A quiet room, by invitation only" calligraphy was removed
+              (2026-05-25 evening) — Master flagged that "quiet room" lands
+              creepy on a dating brand (interrogation room / padded cell
+              echoes). The crest now carries the brand statement by itself. */}
           <div className="login-hero-seal">
             <img
               className="login-hero-crest"
-              src="./crests/crest-3.png"
+              src="./crests/crest-3.png?v=2"
               alt=""
               loading="eager"
               decoding="async"
             />
-            <svg
-              className="login-hero-calligraphy"
-              viewBox="0 0 1200 140"
-              preserveAspectRatio="xMidYMid meet"
-              aria-hidden="true"
-            >
-              <defs>
-                <linearGradient id="calliGold" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#cfad61" />
-                  <stop offset="50%" stopColor="#f4dca8" />
-                  <stop offset="100%" stopColor="#cfad61" />
-                </linearGradient>
-              </defs>
-              <text
-                x="600"
-                y="90"
-                textAnchor="middle"
-                className="calli-text calli-text-fill"
-                fill="url(#calliGold)"
-              >
-                {copy.auth.heroCalligraphy}
-              </text>
-              <text
-                x="600"
-                y="90"
-                textAnchor="middle"
-                className="calli-text calli-text-stroke"
-                fill="none"
-                stroke="url(#calliGold)"
-                strokeWidth="0.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                {copy.auth.heroCalligraphy}
-              </text>
-            </svg>
           </div>
 
           {/* The masthead — PRIVÉ wordmark + small-caps slogan. */}

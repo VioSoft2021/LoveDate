@@ -66,78 +66,18 @@
   to   { transform: scale(1.012); }
 }
 
-/* The calligraphy — Great Vibes cursive rendering the manifesto
-   opening. Inline below the crest, sized to fit comfortably in
-   the centered column. */
-.login-hero-calligraphy {
-  width: clamp(280px, 32vw, 460px);
-  height: auto;
-  pointer-events: none;
-  filter: drop-shadow(0 0 12px rgba(244, 220, 168, 0.22));
-}
-
-.login-hero-calligraphy .calli-text {
-  font-family: 'Great Vibes', 'Allura', 'Dancing Script', cursive;
-  font-size: 68px;
-  letter-spacing: 0.01em;
-}
-
-/* Calligraphy ONE-TIME reveal on page load (was cyclic 14s before;
-   with the crest as the centerpiece, a cyclic redraw competes for
-   attention). Now: stroke draws once over ~3 seconds starting at
-   1.6s (after the crest has settled). The gold ink fill fades in
-   right as the outline completes. Both stay visible forever after. */
-.login-hero-calligraphy .calli-text-stroke {
-  /* Generous dash length covers any glyph outline at 68px. */
-  stroke-dasharray: 4000;
-  stroke-dashoffset: 4000;
-  opacity: 0;
-  animation: prive-calli-stroke 3s ease-out 1.6s both;
-  will-change: stroke-dashoffset, opacity;
-}
-@keyframes prive-calli-stroke {
-  0%   { stroke-dashoffset: 4000; opacity: 0; }
-  4%   { opacity: 1; }
-  100% { stroke-dashoffset: 0;    opacity: 1; }
-}
-
-.login-hero-calligraphy .calli-text-fill {
-  opacity: 0;
-  animation: prive-calli-fill 2.2s ease-out 3.4s both;
-  will-change: opacity;
-}
-@keyframes prive-calli-fill {
-  from { opacity: 0; }
-  to   { opacity: 0.92; }
-}
-
-/* prefers-reduced-motion — freeze a static, fully-rendered version. */
+/* prefers-reduced-motion — freeze the crest at rest (no breath). */
 @media (prefers-reduced-motion: reduce) {
   .login-hero-seal,
   .login-hero-crest {
     animation: none;
   }
-  .login-hero-calligraphy .calli-text-fill {
-    animation: none;
-    opacity: 0.92;
-  }
-  .login-hero-calligraphy .calli-text-stroke {
-    animation: none;
-    stroke-dashoffset: 0;
-    opacity: 0.5;
-  }
 }
 
-/* Narrow phones — scale crest + cursive down so the column fits. */
+/* Narrow phones — scale the crest down so the column fits. */
 @media (max-width: 540px) {
   .login-hero-crest {
     width: clamp(150px, 36vw, 200px);
-  }
-  .login-hero-calligraphy {
-    width: min(94vw, 360px);
-  }
-  .login-hero-calligraphy .calli-text {
-    font-size: 50px;
   }
 }
 
