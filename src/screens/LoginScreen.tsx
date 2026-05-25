@@ -154,24 +154,58 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       <main className="login-shell login-shell--hero">
         <div className="grain" aria-hidden="true" />
 
-        {/* TEMPORARY crest comparison view — 3 options stacked on the
-            right side so Master can evaluate each at scale on the actual
-            hero. Once he picks one, this block gets replaced with the
-            final integration (single crest + animation + the calligraphy
-            beneath it). Calligraphy hidden during comparison. */}
-        <div className="login-hero-crest-compare" aria-hidden="true">
-          <figure className="crest-option crest-option--1">
-            <img src="./crests/crest-1.jpeg" alt="Crest option I" />
-            <figcaption>I</figcaption>
-          </figure>
-          <figure className="crest-option crest-option--2">
-            <img src="./crests/crest-2.jpeg" alt="Crest option II" />
-            <figcaption>II</figcaption>
-          </figure>
-          <figure className="crest-option crest-option--3">
-            <img src="./crests/crest-3.jpeg" alt="Crest option III" />
-            <figcaption>III</figcaption>
-          </figure>
+        {/* The brand mark column — crest above, handwritten manifesto
+            opening beneath. Lives on the right side of the hero, centred
+            vertically. Reads as: the house seal + a personal note. */}
+        <div className="login-hero-mark" aria-hidden="true">
+          <img
+            className="login-hero-crest"
+            src="./crests/crest-3.png"
+            alt=""
+            loading="eager"
+            decoding="async"
+          />
+          <svg
+            className="login-hero-calligraphy"
+            viewBox="0 0 1200 200"
+            preserveAspectRatio="xMidYMid meet"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient id="calliGold" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#cfad61" />
+                <stop offset="50%" stopColor="#f4dca8" />
+                <stop offset="100%" stopColor="#cfad61" />
+              </linearGradient>
+            </defs>
+            {/* Filled text (bottom layer) — fades in once the outline is
+                drawn so the letters "settle with ink" at the end. */}
+            <text
+              x="600"
+              y="120"
+              textAnchor="middle"
+              className="calli-text calli-text-fill"
+              fill="url(#calliGold)"
+            >
+              {copy.auth.heroCalligraphy}
+            </text>
+            {/* Outlined text (top layer) — stroke draws via dashoffset to
+                create the "writing" effect; remains visible over the fill
+                as a fine pen outline, fades together with the fill at end. */}
+            <text
+              x="600"
+              y="120"
+              textAnchor="middle"
+              className="calli-text calli-text-stroke"
+              fill="none"
+              stroke="url(#calliGold)"
+              strokeWidth="0.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              {copy.auth.heroCalligraphy}
+            </text>
+          </svg>
         </div>
 
         {/* Editorial mark in the top-right corner — issue number style.
