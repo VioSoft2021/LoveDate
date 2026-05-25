@@ -378,6 +378,36 @@
   .login-hero-door { font-size: 0.65rem; letter-spacing: 0.36em; }
 }
 
+/* ── Card brand block — crest + wordmark + slogan ──────
+   Mirrors the seal-and-masthead pairing from the hero so the
+   sign-in / register card feels like the same house, not a
+   plain form. Crest sits centered above the wordmark with a
+   gentle gold halo (drop-shadow filter) matching the TopBar
+   and hero treatments. */
+.login-card-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 0.4rem;
+}
+
+.login-card-crest {
+  display: block;
+  height: clamp(64px, 11vh, 96px);
+  width: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+  filter: drop-shadow(0 3px 8px rgba(216, 184, 109, 0.36))
+          drop-shadow(0 0 14px rgba(244, 220, 168, 0.2));
+}
+
+@media (max-width: 540px) {
+  .login-card-crest {
+    height: 58px;
+  }
+}
+
 /* ── "Back" link on the card view (returns to hero) ─────
    Was absolutely-positioned at top-left and overlapped the Privé
    wordmark on narrower cards. Now rendered as a normal block at

@@ -258,7 +258,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             {copy.auth.heroBack}
           </button>
         )}
-        <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
+        <div className="login-card-brand">
+          <img
+            className="login-card-crest"
+            src="./crests/crest-3.png?v=2"
+            alt=""
+            aria-hidden="true"
+            loading="eager"
+            decoding="async"
+          />
+          <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
+        </div>
         <div className="login-language-row">
           <label>
             {copy.auth.language}
