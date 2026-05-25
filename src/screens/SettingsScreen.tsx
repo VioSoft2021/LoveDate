@@ -1,4 +1,5 @@
 import React from 'react'
+import './SettingsScreen.css'
 import { SOCIAL_PLATFORM_META, UI_TEXT } from '../constants'
 import { formatUiText } from '../utils'
 import { formatShortTime } from '../utils'

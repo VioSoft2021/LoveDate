@@ -1,0 +1,622 @@
+/* ===========================================================
+   Privé — Settings screen luxury redesign (2026-05-25)
+   ===========================================================
+   The control center. Audit grade: 2/5 (bare HTML checkboxes,
+   flat status labels, clunky list layouts). This file gives
+   each section the editorial accordion treatment, custom
+   gold toggles, refined plan + notification cards, and a
+   semantic-amber danger zone.
+   All selectors scoped under .settings-screen.
+   =========================================================== */
+
+/* ── Hero card — pill + Bodoni heading + status grid ────── */
+.settings-screen .settings-hero-card {
+  padding: 1.3rem 1.4rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(216, 184, 109, 0.18);
+  background:
+    radial-gradient(ellipse 60% 50% at 0% 0%, rgba(244, 220, 168, 0.04), transparent 70%),
+    rgba(10, 14, 39, 0.55);
+  margin: 0 0 1rem;
+}
+
+.settings-screen .settings-hero-copy .pill {
+  display: inline-block;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.56rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.7);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.3);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  margin: 0 0 0.85rem;
+}
+
+.settings-screen .settings-hero-copy h1 {
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: clamp(1.5rem, 2.8vw, 2.1rem);
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  margin: 0 0 0.45rem;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.settings-screen .settings-hero-copy .soft {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: rgba(232, 242, 255, 0.65);
+  margin: 0 0 1rem;
+  max-width: 38rem;
+}
+
+.settings-screen .settings-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.6rem;
+  margin: 0.85rem 0 0;
+}
+.settings-screen .settings-status-grid p {
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(216, 184, 109, 0.12);
+  background: rgba(8, 12, 35, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.settings-screen .settings-status-grid strong {
+  font-family: 'Cinzel', serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.6);
+  font-weight: 500;
+}
+.settings-screen .settings-status-grid span {
+  font-family: 'Bodoni Moda', serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: rgba(244, 220, 168, 0.92);
+}
+
+/* ── Section accordions — match LoginScreen tier ────────── */
+.settings-screen .settings-card {
+  border-radius: 0.85rem;
+  border: 1px solid rgba(216, 184, 109, 0.14);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 168, 0.02), rgba(216, 184, 109, 0.01)),
+    rgba(10, 14, 39, 0.5);
+  overflow: hidden;
+  margin: 0 0 0.85rem;
+  transition: border-color 240ms ease;
+}
+.settings-screen .settings-card[open] {
+  border-color: rgba(216, 184, 109, 0.32);
+}
+
+.settings-screen details.settings-card > summary {
+  list-style: none;
+  cursor: pointer;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: rgba(232, 213, 178, 0.72);
+  background: transparent;
+  padding: 1rem 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: color 240ms ease, background 240ms ease;
+}
+.settings-screen details.settings-card > summary:hover {
+  color: #f4dca8;
+}
+.settings-screen details.settings-card[open] > summary {
+  color: #f4dca8;
+  background: linear-gradient(135deg, rgba(244, 220, 168, 0.05), transparent 65%);
+  border-bottom: 1px solid rgba(216, 184, 109, 0.18);
+}
+.settings-screen details.settings-card > summary::-webkit-details-marker {
+  display: none;
+}
+.settings-screen details.settings-card > summary::after {
+  content: '+';
+  font-family: 'Cinzel', serif;
+  font-size: 1.05rem;
+  font-weight: 300;
+  color: rgba(244, 220, 168, 0.55);
+}
+.settings-screen details.settings-card[open] > summary::after {
+  content: '−';
+  color: #f4dca8;
+}
+
+/* Section inner padding */
+.settings-screen .settings-card > *:not(summary) {
+  padding-left: 1.1rem;
+  padding-right: 1.1rem;
+}
+.settings-screen .settings-card > *:not(summary):first-of-type {
+  padding-top: 0.95rem;
+}
+.settings-screen .settings-card > *:not(summary):last-child {
+  padding-bottom: 1rem;
+}
+
+/* ── Setting rows — label + checkbox toggle (custom styled) ── */
+.settings-screen .setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: rgba(232, 213, 178, 0.78);
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(216, 184, 109, 0.08);
+}
+.settings-screen .setting-row:last-of-type {
+  border-bottom: none;
+}
+
+/* Custom gold checkbox/toggle */
+.settings-screen .setting-row input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 2.4rem;
+  height: 1.3rem;
+  border-radius: 999px;
+  background: rgba(8, 12, 35, 0.7);
+  border: 1px solid rgba(216, 184, 109, 0.22);
+  position: relative;
+  cursor: pointer;
+  transition: background 240ms ease, border-color 240ms ease;
+  flex: 0 0 auto;
+}
+.settings-screen .setting-row input[type='checkbox']::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0.15rem;
+  width: 0.95rem;
+  height: 0.95rem;
+  background: rgba(216, 184, 109, 0.55);
+  border-radius: 999px;
+  transform: translateY(-50%);
+  transition: left 240ms cubic-bezier(0.22, 1, 0.36, 1), background 240ms ease;
+}
+.settings-screen .setting-row input[type='checkbox']:checked {
+  background: linear-gradient(135deg, rgba(207, 173, 97, 0.3), rgba(244, 220, 168, 0.22));
+  border-color: rgba(216, 184, 109, 0.65);
+}
+.settings-screen .setting-row input[type='checkbox']:checked::before {
+  left: calc(100% - 1.1rem);
+  background: linear-gradient(135deg, #f4dca8, #cfad61);
+  box-shadow: 0 0 8px rgba(216, 184, 109, 0.5);
+}
+.settings-screen .setting-row input[type='checkbox']:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(216, 184, 109, 0.22);
+}
+
+/* Setting row with a select instead of checkbox */
+.settings-screen .setting-row--select select {
+  font-family: inherit;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  padding: 0.55rem 2rem 0.55rem 0.9rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgba(216, 184, 109, 0.25);
+  background: rgba(8, 12, 35, 0.7);
+  color: rgba(244, 244, 250, 0.9);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(216, 184, 109, 0.6) 50%),
+    linear-gradient(135deg, rgba(216, 184, 109, 0.6) 50%, transparent 50%);
+  background-position:
+    calc(100% - 13px) calc(50% - 2px),
+    calc(100% - 8px) calc(50% - 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  transition: border-color 240ms ease, box-shadow 240ms ease;
+}
+.settings-screen .setting-row--select select:focus {
+  outline: none;
+  border-color: rgba(244, 220, 168, 0.7);
+  box-shadow: 0 0 0 3px rgba(216, 184, 109, 0.18);
+}
+
+/* Soft helper copy under sections */
+.settings-screen .settings-card .soft {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.96rem;
+  line-height: 1.5;
+  color: rgba(232, 242, 255, 0.55);
+  margin: 0.5rem 0;
+}
+
+.settings-screen .settings-card > p {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  color: rgba(232, 242, 255, 0.82);
+  margin: 0.4rem 0;
+}
+.settings-screen .settings-card > p strong {
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.56rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.62);
+  font-weight: 500;
+  margin-right: 0.35rem;
+}
+
+/* ── Social grid ────────────────────────────────────────── */
+.settings-screen .social-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.65rem;
+  margin: 0.75rem 0;
+}
+.settings-screen .social-item-card {
+  padding: 0.85rem 0.95rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(216, 184, 109, 0.14);
+  background: rgba(8, 12, 35, 0.5);
+  transition: border-color 240ms ease;
+}
+.settings-screen .social-item-card:hover {
+  border-color: rgba(216, 184, 109, 0.32);
+}
+.settings-screen .social-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  margin-bottom: 0.45rem;
+}
+.settings-screen .social-item-head strong {
+  font-family: 'Cinzel', serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.85);
+  font-weight: 500;
+}
+.settings-screen .social-status {
+  font-family: 'Cinzel', serif;
+  font-size: 0.5rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.42);
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(232, 213, 178, 0.22);
+}
+.settings-screen .social-status.is-connected {
+  color: #060a1f;
+  background: linear-gradient(135deg, #cfad61, #f4dca8);
+  border-color: rgba(216, 184, 109, 0.7);
+  font-weight: 600;
+}
+
+/* ── Plan picker + plan info ────────────────────────────── */
+.settings-screen .plan-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  margin: 0.4rem 0 0.7rem;
+}
+.settings-screen .plan-picker label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.7);
+}
+.settings-screen .plan-picker select {
+  font-family: inherit;
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.55rem 2rem 0.55rem 0.9rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgba(216, 184, 109, 0.3);
+  background: rgba(8, 12, 35, 0.7);
+  color: #f4dca8;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(216, 184, 109, 0.6) 50%),
+    linear-gradient(135deg, rgba(216, 184, 109, 0.6) 50%, transparent 50%);
+  background-position:
+    calc(100% - 13px) calc(50% - 2px),
+    calc(100% - 8px) calc(50% - 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.settings-screen .plan-picker select:focus {
+  outline: none;
+  border-color: rgba(244, 220, 168, 0.7);
+  box-shadow: 0 0 0 3px rgba(216, 184, 109, 0.18);
+}
+
+/* ── Notifications list ─────────────────────────────────── */
+.settings-screen .notification-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.55rem 0;
+}
+.settings-screen .notification-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'title time'
+    'body  body';
+  gap: 0.2rem 0.85rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(216, 184, 109, 0.14);
+  background: rgba(10, 14, 39, 0.55);
+  transition: border-color 240ms ease;
+  margin: 0;
+}
+.settings-screen .notification-item:hover {
+  border-color: rgba(216, 184, 109, 0.34);
+}
+.settings-screen .notification-item.read {
+  opacity: 0.55;
+}
+.settings-screen .notification-item strong {
+  grid-area: title;
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.85);
+  font-weight: 500;
+  margin: 0;
+}
+.settings-screen .notification-item small {
+  grid-area: time;
+  font-family: 'Cinzel', serif;
+  font-size: 0.5rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.4);
+}
+.settings-screen .notification-item span {
+  grid-area: body;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.94rem;
+  line-height: 1.45;
+  color: rgba(232, 242, 255, 0.78);
+}
+
+/* ── Safety section: blocked + reports list ─────────────── */
+.settings-screen .settings-card--safety ul {
+  list-style: none;
+  margin: 0.55rem 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+.settings-screen .settings-card--safety ul li {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.94rem;
+  line-height: 1.45;
+  color: rgba(232, 242, 255, 0.78);
+  padding: 0.55rem 0.7rem 0.55rem 1.05rem;
+  border-radius: 0.45rem;
+  position: relative;
+  background: rgba(8, 12, 35, 0.42);
+}
+.settings-screen .settings-card--safety ul li::before {
+  content: '·';
+  position: absolute;
+  left: 0.5rem;
+  top: 0.42rem;
+  color: rgba(216, 184, 109, 0.7);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* ── Buttons inside settings ────────────────────────────── */
+.settings-screen .settings-card button.ghost {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: rgba(244, 220, 168, 0.85);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.28);
+  border-radius: 0.5rem;
+  padding: 0.65rem 1.05rem;
+  cursor: pointer;
+  margin: 0.4rem 0;
+  transition: color 240ms ease, border-color 240ms ease, transform 240ms ease;
+}
+.settings-screen .settings-card button.ghost:hover {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.55);
+  transform: translateY(-1px);
+}
+
+.settings-screen .settings-card button.mini-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.78);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.24);
+  border-radius: 0.4rem;
+  padding: 0.42rem 0.78rem;
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease;
+}
+.settings-screen .settings-card button.mini-btn:hover:not(:disabled) {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.55);
+}
+.settings-screen .settings-card button.mini-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+/* ── Separator + Danger zone ────────────────────────────── */
+.settings-screen .setting-separator {
+  border: none;
+  border-top: 1px dashed rgba(216, 184, 109, 0.18);
+  margin: 1.2rem 0 0.85rem;
+}
+
+.settings-screen .danger-zone {
+  padding: 1rem 1.1rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(216, 116, 89, 0.32);
+  background:
+    linear-gradient(135deg, rgba(216, 116, 89, 0.08), transparent 70%),
+    rgba(40, 24, 12, 0.4);
+}
+.settings-screen .danger-zone > strong {
+  display: block;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: #ecb39c;
+  font-weight: 500;
+  margin: 0 0 0.55rem;
+}
+.settings-screen .danger-zone > .soft {
+  color: rgba(250, 222, 200, 0.7);
+  margin: 0 0 0.85rem;
+}
+
+.settings-screen .danger,
+.settings-screen .settings-card button.danger {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #ecb39c;
+  background: transparent;
+  border: 1px solid rgba(216, 116, 89, 0.55);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.3rem;
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease, background 240ms ease, transform 240ms ease;
+}
+.settings-screen .danger:hover:not(:disabled),
+.settings-screen .settings-card button.danger:hover:not(:disabled) {
+  color: #ffd4c0;
+  border-color: rgba(216, 116, 89, 0.85);
+  background: linear-gradient(135deg, rgba(216, 116, 89, 0.14), transparent 70%);
+  transform: translateY(-1px);
+}
+.settings-screen .danger:disabled,
+.settings-screen .settings-card button.danger:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.settings-screen .danger-zone-confirm {
+  margin-top: 0.5rem;
+  display: grid;
+  gap: 0.6rem;
+}
+.settings-screen .danger-zone-confirm label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.7);
+}
+.settings-screen .danger-zone-confirm input {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(216, 116, 89, 0.42);
+  background: rgba(8, 12, 35, 0.7);
+  color: #ffd4c0;
+  transition: border-color 240ms ease, box-shadow 240ms ease;
+}
+.settings-screen .danger-zone-confirm input:focus {
+  outline: none;
+  border-color: rgba(216, 116, 89, 0.85);
+  box-shadow: 0 0 0 3px rgba(216, 116, 89, 0.18);
+}
+.settings-screen .danger-zone-confirm .summary-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.settings-screen .bio-writer-error {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: rgba(244, 180, 160, 0.85);
+  margin: 0;
+}
+
+/* ── Summary-actions (used in social cards too) ─────────── */
+.settings-screen .settings-card .summary-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.45rem;
+}
+
+/* ── Mobile polish ──────────────────────────────────────── */
+@media (max-width: 700px) {
+  .settings-screen .settings-hero-card {
+    padding: 1rem 1.05rem;
+  }
+  .settings-screen .settings-status-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .settings-screen .settings-card > *:not(summary) {
+    padding-left: 0.9rem;
+    padding-right: 0.9rem;
+  }
+  .settings-screen .setting-row {
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+}
