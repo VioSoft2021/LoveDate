@@ -1,21 +1,22 @@
 /* ===========================================================
-   Privé — FilterScreen luxury AI-First redesign (2026-05-25)
+   Privé — FilterScreen as a journal entry (2026-05-25)
    ===========================================================
-   The previous layout split pills (left) from sliders (right)
-   into an off-balance two-column thing with empty space in
-   between. This rewrite commits to single-column flow with
-   the AI free-text prompt promoted to a luxury HERO card so
-   the user instantly understands: AI does the matching, the
-   toggles below are just constraints.
+   The welcome film promises Privé AI does the matching. Toggles
+   below the prompt contradicted that promise. This rewrite
+   strips the constraint controls entirely — the filter is now a
+   single luxury journal page where the user writes a wish to
+   their AI matchmaker. Hairline gold rules frame the writing
+   area like ruled paper; a date stamp anchors the corner; the
+   AI listening pulse is the only "machine" element on the page.
    =========================================================== */
 
 /* ── Outer card ─────────────────────────────────────────── */
-.filter-screen.filter-screen--ai {
-  max-width: 34rem;
+.filter-screen.filter-screen--ai.filter-screen--journal {
+  max-width: 38rem;
   margin: 2rem auto;
   padding: 1.6rem 1.4rem 1.85rem;
   background:
-    radial-gradient(ellipse 70% 50% at 50% 0%, rgba(244, 220, 168, 0.04), transparent 65%),
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(244, 220, 168, 0.05), transparent 65%),
     linear-gradient(180deg, rgba(20, 24, 45, 0.92) 0%, rgba(14, 17, 32, 0.94) 100%);
   border: 1px solid rgba(216, 184, 109, 0.2);
   border-radius: 1.25rem;
@@ -23,8 +24,8 @@
   color: #edf3ff;
 }
 
-/* ── Header: title + live match counter ─────────────────── */
-.filter-screen--ai .filter-screen-head {
+/* ── Header: title + match counter ──────────────────────── */
+.filter-screen--journal .filter-screen-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -33,7 +34,7 @@
   padding-bottom: 0.85rem;
   border-bottom: 1px solid rgba(216, 184, 109, 0.16);
 }
-.filter-screen--ai .filter-screen-head h1 {
+.filter-screen--journal .filter-screen-head h1 {
   margin: 0;
   font-family: 'Bodoni Moda', 'Playfair Display', 'Cormorant Garamond', serif;
   font-weight: 700;
@@ -46,9 +47,10 @@
   -webkit-text-fill-color: transparent;
   color: transparent;
 }
-/* Match count: italic Cormorant when zero (soft, not punishing),
-   gold Cinzel when there are matches (celebratory). */
-.filter-screen--ai .filter-match-count {
+
+/* Match count: italic Cormorant when zero (soft),
+   gold when there are matches (celebratory). */
+.filter-screen--journal .filter-match-count {
   margin: 0;
   font-family: 'Cormorant Garamond', serif;
   font-style: italic;
@@ -56,7 +58,7 @@
   letter-spacing: 0.01em;
   color: rgba(232, 242, 255, 0.55);
 }
-.filter-screen--ai .filter-match-count strong {
+.filter-screen--journal .filter-match-count strong {
   font-family: 'Bodoni Moda', serif;
   font-style: normal;
   font-weight: 600;
@@ -64,42 +66,51 @@
   color: rgba(232, 242, 255, 0.7);
   margin-right: 0.3rem;
 }
-/* When match count is non-zero, light it up gold via :has() */
-.filter-screen--ai .filter-match-count:not(:has(strong:empty)) strong {
+.filter-screen--journal .filter-match-count:not(:has(strong:empty)) strong {
   background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* ── Main filters body (single column) ──────────────────── */
-.filter-screen--ai .filters--ai {
+/* ── Filters body ──────────────────────────────────────── */
+.filter-screen--journal .filters--ai {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.4rem;
 }
 
-/* ── AI HERO — the protagonist ─────────────────────────── */
-.filter-screen--ai .filter-ai-hero {
+/* ── AI HERO — the journal page itself ─────────────────── */
+.filter-screen--journal .filter-ai-hero {
   position: relative;
-  padding: 1.3rem 1.35rem 1.4rem;
+  padding: 1.5rem 1.5rem 1.7rem;
   border-radius: 1rem;
-  border: 1px solid rgba(216, 184, 109, 0.42);
+  border: 1px solid rgba(216, 184, 109, 0.32);
   background:
-    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(244, 220, 168, 0.09), transparent 60%),
-    linear-gradient(135deg, rgba(244, 220, 168, 0.05), rgba(216, 184, 109, 0.02)),
-    rgba(8, 12, 35, 0.5);
+    radial-gradient(ellipse 90% 70% at 50% 0%, rgba(244, 220, 168, 0.07), transparent 60%),
+    linear-gradient(135deg, rgba(244, 220, 168, 0.04), rgba(216, 184, 109, 0.01)),
+    rgba(8, 12, 35, 0.55);
   box-shadow:
-    0 10px 30px rgba(216, 184, 109, 0.12),
-    0 0 0 1px rgba(216, 184, 109, 0.08) inset;
+    0 12px 32px rgba(216, 184, 109, 0.1),
+    0 0 0 1px rgba(216, 184, 109, 0.06) inset;
 }
 
-/* AI eyebrow: gold animated pulse dot + brand + state ─── */
-.filter-screen--ai .filter-ai-eyebrow {
+/* ── Marginalia row — eyebrow on left, date stamp on right
+   Mirrors the editorial framing on LoginScreen (Édition + lang). */
+.filter-screen--journal .filter-journal-marginalia {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+  flex-wrap: wrap;
+}
+
+.filter-screen--journal .filter-ai-eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  margin: 0 0 0.95rem;
+  margin: 0;
   font-family: 'Cinzel', 'Bodoni Moda', serif;
   font-size: 0.58rem;
   letter-spacing: 0.4em;
@@ -107,7 +118,7 @@
   font-weight: 500;
   color: rgba(244, 220, 168, 0.78);
 }
-.filter-screen--ai .filter-ai-pulse {
+.filter-screen--journal .filter-ai-pulse {
   display: inline-block;
   width: 0.46rem;
   height: 0.46rem;
@@ -127,16 +138,16 @@
     opacity: 1;
   }
 }
-.filter-screen--ai .filter-ai-eyebrow-brand {
+.filter-screen--journal .filter-ai-eyebrow-brand {
   color: #f4dca8;
   font-weight: 600;
 }
-.filter-screen--ai .filter-ai-eyebrow-sep {
+.filter-screen--journal .filter-ai-eyebrow-sep {
   color: rgba(216, 184, 109, 0.4);
   letter-spacing: 0;
   margin: 0 0.15rem;
 }
-.filter-screen--ai .filter-ai-eyebrow-state {
+.filter-screen--journal .filter-ai-eyebrow-state {
   color: rgba(232, 213, 178, 0.62);
   font-style: italic;
   font-family: 'Cormorant Garamond', 'Cinzel', serif;
@@ -146,16 +157,29 @@
   font-weight: 400;
 }
 
-/* Hero label — Bodoni gold gradient invitation */
-.filter-screen--ai .filter-field-label--hero {
+/* Date stamp — corner anchor that says "this is a journal entry,
+   not a settings form". Updates daily. */
+.filter-screen--journal .filter-journal-date {
+  margin: 0;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.54rem;
+  letter-spacing: 0.44em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.45);
+  text-align: right;
+  font-weight: 500;
+}
+
+/* Hero label — italic Bodoni gradient invitation */
+.filter-screen--journal .filter-field-label--hero {
   display: block;
   font-family: 'Bodoni Moda', 'Playfair Display', serif;
   font-weight: 600;
   font-style: italic;
-  font-size: clamp(1.3rem, 2.5vw, 1.7rem);
+  font-size: clamp(1.45rem, 2.8vw, 1.95rem);
   letter-spacing: 0.01em;
   line-height: 1.25;
-  margin: 0 0 0.85rem;
+  margin: 0 0 1.1rem;
   background: linear-gradient(135deg, #f4dca8 0%, #ffffff 60%, #f4dca8 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -164,232 +188,144 @@
   text-transform: none;
 }
 
-/* The textarea itself — italic Cormorant prose field */
-.filter-screen--ai .filter-prompt-input {
+/* ── Journal page — hairline rules above + below the textarea
+   evoke ruled paper. Subtle gold gradient that fades at the edges
+   so it doesn't look like a hard border. */
+.filter-screen--journal .filter-journal-page {
+  position: relative;
+  padding: 0.6rem 0;
+}
+.filter-screen--journal .filter-journal-rule {
+  display: block;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(216, 184, 109, 0.42) 15%,
+    rgba(244, 220, 168, 0.7) 50%,
+    rgba(216, 184, 109, 0.42) 85%,
+    transparent 100%
+  );
+}
+.filter-screen--journal .filter-journal-rule--top {
+  margin-bottom: 1rem;
+}
+.filter-screen--journal .filter-journal-rule--bottom {
+  margin-top: 1rem;
+}
+
+/* The textarea — large, breathing, italic Cormorant prose,
+   no visible border because the gold rules above and below
+   are the visual frame. */
+.filter-screen--journal .filter-prompt-input {
   width: 100%;
   display: block;
   box-sizing: border-box;
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
-  font-size: 1.1rem;
-  line-height: 1.55;
+  font-size: 1.18rem;
+  line-height: 1.7;
   letter-spacing: 0.005em;
-  padding: 1rem 1.1rem;
-  border-radius: 0.7rem;
-  border: 1px solid rgba(216, 184, 109, 0.28);
-  background: rgba(8, 12, 35, 0.65);
+  padding: 0.4rem 0.2rem;
+  border: none;
+  background: transparent;
   color: rgba(244, 244, 250, 0.96);
   resize: vertical;
-  min-height: 5rem;
-  transition: border-color 240ms ease, box-shadow 240ms ease, background 240ms ease;
-}
-.filter-screen--ai .filter-prompt-input::placeholder {
-  color: rgba(232, 242, 255, 0.36);
-  font-style: italic;
-}
-.filter-screen--ai .filter-prompt-input:focus {
+  min-height: 8rem;
+  transition: color 240ms ease;
+  /* Subtle inset shadow on focus to suggest "active writing surface"
+     without breaking the rule-paper feel. */
   outline: none;
-  border-color: rgba(244, 220, 168, 0.82);
-  box-shadow: 0 0 0 3px rgba(216, 184, 109, 0.22);
-  background: rgba(10, 14, 42, 0.85);
 }
-
-/* Hint line under the prompt */
-.filter-screen--ai .filter-field-hint {
-  display: block;
-  margin-top: 0.7rem;
-  font-family: 'Cormorant Garamond', serif;
+.filter-screen--journal .filter-prompt-input::placeholder {
+  color: rgba(232, 242, 255, 0.32);
   font-style: italic;
-  font-size: 0.94rem;
-  line-height: 1.45;
-  color: rgba(232, 242, 255, 0.55);
 }
-
-/* ── Constraints section (the "secondary" controls) ─────── */
-.filter-screen--ai .filter-constraints {
-  display: flex;
-  flex-direction: column;
-  gap: 1.15rem;
-  padding-top: 0.65rem;
+.filter-screen--journal .filter-prompt-input:focus {
+  color: rgba(244, 244, 250, 1);
 }
-
-.filter-screen--ai .filter-constraints-eyebrow {
-  margin: 0 0 0.2rem;
-  font-family: 'Cinzel', 'Bodoni Moda', serif;
-  font-size: 0.58rem;
-  letter-spacing: 0.4em;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: rgba(216, 184, 109, 0.42);
-  padding-bottom: 0.55rem;
-  border-bottom: 1px dashed rgba(216, 184, 109, 0.18);
-}
-
-/* ── Field rows (label + control, stacked) ──────────────── */
-.filter-screen--ai .filter-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-.filter-screen--ai .filter-field-label {
-  font-family: 'Cinzel', 'Bodoni Moda', serif;
-  font-size: 0.6rem;
-  letter-spacing: 0.38em;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: rgba(232, 213, 178, 0.7);
-  padding: 0;
-}
-.filter-screen--ai .filter-field-label-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.6rem;
-}
-.filter-screen--ai .filter-range-value {
-  font-family: 'Bodoni Moda', serif;
-  font-weight: 600;
-  font-size: 0.95rem;
-  letter-spacing: 0.04em;
-  color: #f4dca8;
-}
-
-/* ── Segmented pills (tighter, more refined) ────────────── */
-.filter-screen--ai .filter-segments {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-.filter-screen--ai .filter-segment {
-  flex: 0 1 auto;
-  padding: 0.5rem 0.95rem;
-  font-family: 'Cinzel', 'Bodoni Moda', serif;
-  font-size: 0.62rem;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: rgba(232, 213, 178, 0.72);
-  background: transparent;
-  border: 1px solid rgba(216, 184, 109, 0.22);
-  border-radius: 999px;
-  cursor: pointer;
-  text-align: center;
-  min-width: 0;
-  transition: color 240ms ease, border-color 240ms ease, background 240ms ease;
-}
-.filter-screen--ai .filter-segment:hover {
-  color: #f4dca8;
-  border-color: rgba(216, 184, 109, 0.5);
-}
-.filter-screen--ai .filter-segment.is-active {
-  color: #060a1f;
-  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
-  border-color: rgba(216, 184, 109, 0.82);
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(216, 184, 109, 0.22);
-}
-
-/* ── Range sliders — full-width gold thumb ─────────────── */
-.filter-screen--ai .filter-field--range input[type='range'] {
-  width: 100%;
-  -webkit-appearance: none;
-  appearance: none;
-  height: 0.35rem;
-  border-radius: 999px;
+/* When the user is writing, glow the rules in response */
+.filter-screen--journal .filter-prompt-input:focus ~ .filter-journal-rule,
+.filter-screen--journal .filter-journal-page:has(.filter-prompt-input:focus) .filter-journal-rule {
   background: linear-gradient(
     90deg,
-    rgba(216, 184, 109, 0.45) 0%,
-    rgba(216, 184, 109, 0.18) 100%
+    transparent 0%,
+    rgba(244, 220, 168, 0.68) 15%,
+    #f4dca8 50%,
+    rgba(244, 220, 168, 0.68) 85%,
+    transparent 100%
   );
-  outline: none;
-  cursor: pointer;
-}
-.filter-screen--ai .filter-field--range input[type='range']::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 1.1rem;
-  height: 1.1rem;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #f4dca8, #cfad61);
-  border: 1px solid rgba(216, 184, 109, 0.8);
-  box-shadow: 0 2px 8px rgba(216, 184, 109, 0.35);
-  cursor: grab;
-  transition: transform 220ms ease, box-shadow 220ms ease;
-}
-.filter-screen--ai .filter-field--range input[type='range']::-webkit-slider-thumb:hover {
-  transform: scale(1.08);
-  box-shadow: 0 4px 14px rgba(216, 184, 109, 0.55);
-}
-.filter-screen--ai .filter-field--range input[type='range']::-moz-range-thumb {
-  width: 1.1rem;
-  height: 1.1rem;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #f4dca8, #cfad61);
-  border: 1px solid rgba(216, 184, 109, 0.8);
-  box-shadow: 0 2px 8px rgba(216, 184, 109, 0.35);
-  cursor: grab;
-}
-.filter-screen--ai .filter-range-pair {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
 }
 
-/* ── Reset all — editorial link, not chunky button ─────── */
-.filter-screen--ai .filter-reset-all {
-  align-self: flex-start;
-  margin-top: 0.6rem;
+/* Hint line under the journal page */
+.filter-screen--journal .filter-field-hint {
+  display: block;
+  margin-top: 1rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.96rem;
+  line-height: 1.5;
+  color: rgba(232, 242, 255, 0.55);
+  text-align: center;
+}
+
+/* ── Reset all — editorial gold link, not chunky button ── */
+.filter-screen--journal .filter-reset-all {
+  align-self: center;
+  margin-top: 0.4rem;
   font-family: 'Cinzel', 'Bodoni Moda', serif;
   font-size: 0.62rem;
   letter-spacing: 0.4em;
   text-transform: uppercase;
   font-weight: 500;
-  color: rgba(244, 220, 168, 0.75);
+  color: rgba(244, 220, 168, 0.72);
   background: transparent;
-  border: 1px solid rgba(216, 184, 109, 0.25);
-  border-radius: 0.5rem;
-  padding: 0.65rem 1.2rem;
+  border: none;
+  padding: 0.55rem 0.4rem;
   cursor: pointer;
   position: relative;
-  transition: color 240ms ease, border-color 240ms ease, transform 240ms ease;
+  transition: color 240ms ease, transform 240ms ease;
 }
-.filter-screen--ai .filter-reset-all:hover {
+.filter-screen--journal .filter-reset-all::after {
+  content: '';
+  position: absolute;
+  left: 0.4rem;
+  right: 0.4rem;
+  bottom: 0.35rem;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(244, 220, 168, 0.7) 0%, transparent 100%);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.filter-screen--journal .filter-reset-all:hover {
   color: #f4dca8;
-  border-color: rgba(216, 184, 109, 0.55);
-  transform: translateY(-1px);
 }
-
-/* ── Closing rationale (italic Cormorant) ───────────────── */
-.filter-screen--ai .filter-screen-rationale {
-  margin: 1.3rem 0 0;
-  padding-top: 1rem;
-  border-top: 1px dashed rgba(216, 184, 109, 0.16);
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-size: 0.92rem;
-  line-height: 1.5;
-  color: rgba(232, 242, 255, 0.5);
-  text-align: center;
+.filter-screen--journal .filter-reset-all:hover::after {
+  transform: scaleX(0.85);
 }
 
 /* ── Mobile polish ──────────────────────────────────────── */
 @media (max-width: 700px) {
-  .filter-screen.filter-screen--ai {
+  .filter-screen.filter-screen--ai.filter-screen--journal {
     margin: 1rem auto;
     padding: 1.25rem 1.1rem 1.5rem;
   }
-  .filter-screen--ai .filter-ai-hero {
-    padding: 1.05rem 1.05rem 1.15rem;
+  .filter-screen--journal .filter-ai-hero {
+    padding: 1.2rem 1.15rem 1.3rem;
   }
-  .filter-screen--ai .filter-field-label--hero {
-    font-size: clamp(1.15rem, 5.5vw, 1.5rem);
+  .filter-screen--journal .filter-field-label--hero {
+    font-size: clamp(1.25rem, 5.5vw, 1.65rem);
   }
-  .filter-screen--ai .filter-segment {
-    padding: 0.5rem 0.8rem;
-    letter-spacing: 0.22em;
-    font-size: 0.58rem;
+  .filter-screen--journal .filter-prompt-input {
+    font-size: 1.1rem;
+    min-height: 9rem;
+  }
+  .filter-screen--journal .filter-journal-marginalia {
+    gap: 0.6rem;
+  }
+  .filter-screen--journal .filter-journal-date {
+    font-size: 0.5rem;
+    letter-spacing: 0.36em;
   }
 }

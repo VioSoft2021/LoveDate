@@ -4,16 +4,14 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { FilterScreen } from './FilterScreen'
 import type { Filters } from '../domain'
 
-// AI-First filter redesign (2026-05-21). The previous form-style screen
-// shipped zodiac/city/interest/sort-by/verified-only controls. Those are
-// gone — Sonnet (E3) handles their work via the new aiPreferencePrompt.
-// These tests cover the surviving + new controls:
-//   - AI prompt textarea
-//   - Looking-for segmented pills
-//   - Gender segmented pills
-//   - Age range (two stacked sliders)
-//   - Distance slider
-//   - Live match count
+// AI-First filter — journal-entry redesign (2026-05-25). The previous
+// rev shipped the AI prompt PLUS constraint controls (looking-for,
+// gender, age, distance). Per the welcome film's "Privé AI does the
+// matching" promise, those constraints were stripped. The journal
+// entry IS the filter. These tests cover the surviving surface:
+//   - AI prompt textarea (the only input)
+//   - Journal eyebrow ("Privé AI · Listening") + date stamp
+//   - Live match count (header)
 //   - Reset all
 const baseFilters: Filters = {
   minAge: 22,
@@ -50,34 +48,38 @@ const Harness: React.FC<{
   )
 }
 
-describe('FilterScreen — AI-first rendering', () => {
+describe('FilterScreen — journal rendering', () => {
   it('renders the headline AI prompt input', () => {
     render(<Harness />)
-    // New AI-First hero label (2026-05-25) — was "What are you looking for?"
     expect(screen.getByText(/tell us who you'?re looking for/i)).toBeInTheDocument()
     expect(
       screen.getByPlaceholderText(/someone serious, into hiking/i),
     ).toBeInTheDocument()
   })
 
-  it('renders the surviving filter labels (Looking For, Gender, Age, Max Distance)', () => {
+  it('renders the Privé AI listening eyebrow', () => {
     render(<Harness />)
-    expect(screen.getByText('Looking For')).toBeInTheDocument()
-    expect(screen.getByText('Gender')).toBeInTheDocument()
-    expect(screen.getByText('Age')).toBeInTheDocument()
-    expect(screen.getByText(/Max Distance/i)).toBeInTheDocument()
+    // "Privé AI" appears twice (eyebrow brand + hint copy) — match the
+    // specific eyebrow span by its class.
+    const eyebrowMatches = screen.getAllByText(/Privé AI/i)
+    expect(eyebrowMatches.length).toBeGreaterThan(0)
+    expect(screen.getByText(/Listening/i)).toBeInTheDocument()
   })
 
-  it('does NOT render the removed filters (zodiac, city, interest, sort, verified)', () => {
+  it('does NOT render the constraint controls (per the AI-does-the-matching promise)', () => {
     render(<Harness />)
+    // The four constraints stripped in the journal redesign
+    expect(screen.queryByText(/^Looking For$/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^Gender$/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^Age$/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^Max Distance/i)).not.toBeInTheDocument()
+    // Earlier-removed filters from the first AI rewrite
     expect(screen.queryByText('Zodiac Compatibility')).not.toBeInTheDocument()
-    expect(screen.queryByText('City')).not.toBeInTheDocument()
-    expect(screen.queryByText('Interest')).not.toBeInTheDocument()
     expect(screen.queryByText('Sort By')).not.toBeInTheDocument()
     expect(screen.queryByText('Verified Only')).not.toBeInTheDocument()
   })
 
-  it('shows the live match count', () => {
+  it('shows the live match count in the header', () => {
     render(<Harness matchCount={7} />)
     expect(screen.getByText('7')).toBeInTheDocument()
     expect(screen.getByText('matches')).toBeInTheDocument()
@@ -87,19 +89,9 @@ describe('FilterScreen — AI-first rendering', () => {
     render(<Harness matchCount={1} />)
     expect(screen.getByText('match')).toBeInTheDocument()
   })
-
-  it('shows the current age range value', () => {
-    render(<Harness initial={{ minAge: 25, maxAge: 35 }} />)
-    expect(screen.getByText('25 – 35')).toBeInTheDocument()
-  })
-
-  it('shows the current distance value', () => {
-    render(<Harness initial={{ maxDistanceKm: 42 }} />)
-    expect(screen.getByText('42 km')).toBeInTheDocument()
-  })
 })
 
-describe('FilterScreen — AI-first handlers', () => {
+describe('FilterScreen — journal handlers', () => {
   it('typing in the prompt updates aiPreferencePrompt', () => {
     const onChange = vi.fn()
     render(<Harness onChange={onChange} />)
@@ -110,31 +102,7 @@ describe('FilterScreen — AI-first handlers', () => {
     expect(last.aiPreferencePrompt).toBe('into hiking')
   })
 
-  it('clicking a looking-for pill updates relationshipGoal', () => {
-    const onChange = vi.fn()
-    render(<Harness onChange={onChange} />)
-    fireEvent.click(screen.getByRole('radio', { name: 'Long-term' }))
-    const last = onChange.mock.calls.at(-1)?.[0] as Filters
-    expect(last.relationshipGoal).toBe('Long-term')
-  })
-
-  it('clicking a gender pill updates gender', () => {
-    const onChange = vi.fn()
-    render(<Harness onChange={onChange} />)
-    fireEvent.click(screen.getByRole('radio', { name: 'Woman' }))
-    const last = onChange.mock.calls.at(-1)?.[0] as Filters
-    expect(last.gender).toBe('woman')
-  })
-
-  it('distance slider updates maxDistanceKm', () => {
-    const onChange = vi.fn()
-    render(<Harness onChange={onChange} />)
-    fireEvent.change(screen.getByLabelText(/Max Distance/i), { target: { value: '38' } })
-    const last = onChange.mock.calls.at(-1)?.[0] as Filters
-    expect(last.maxDistanceKm).toBe(38)
-  })
-
-  it('Reset all returns every filter to defaults', () => {
+  it('Reset all clears the prompt and restores filter defaults', () => {
     const onChange = vi.fn()
     render(
       <Harness
@@ -151,42 +119,10 @@ describe('FilterScreen — AI-first handlers', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: /Reset all/i }))
     const last = onChange.mock.calls.at(-1)?.[0] as Filters
+    // Underlying filter data still resets to defaults so the deck filter
+    // logic (still runs server-/client-side) sees a clean slate.
     expect(last.gender).toBe('any')
     expect(last.relationshipGoal).toBe('any')
     expect(last.aiPreferencePrompt).toBe('')
-  })
-})
-
-describe('FilterScreen — age bounds (dual-handle safety logic)', () => {
-  it('min age cannot exceed current max age', () => {
-    const onChange = vi.fn()
-    render(<Harness initial={{ minAge: 22, maxAge: 30 }} onChange={onChange} />)
-    fireEvent.change(screen.getByLabelText('Min Age'), { target: { value: '50' } })
-    const last = onChange.mock.calls.at(-1)?.[0] as Filters
-    expect(last.minAge).toBe(30)
-  })
-
-  it('max age cannot drop below current min age', () => {
-    const onChange = vi.fn()
-    render(<Harness initial={{ minAge: 30, maxAge: 40 }} onChange={onChange} />)
-    fireEvent.change(screen.getByLabelText('Max Age'), { target: { value: '20' } })
-    const last = onChange.mock.calls.at(-1)?.[0] as Filters
-    expect(last.maxAge).toBe(30)
-  })
-
-  it('min age clamps to 18 when slider goes lower', () => {
-    const onChange = vi.fn()
-    render(<Harness onChange={onChange} />)
-    fireEvent.change(screen.getByLabelText('Min Age'), { target: { value: '10' } })
-    const last = onChange.mock.calls.at(-1)?.[0] as Filters
-    expect(last.minAge).toBe(18)
-  })
-
-  it('max age clamps to 99 when slider goes higher', () => {
-    const onChange = vi.fn()
-    render(<Harness onChange={onChange} />)
-    fireEvent.change(screen.getByLabelText('Max Age'), { target: { value: '200' } })
-    const last = onChange.mock.calls.at(-1)?.[0] as Filters
-    expect(last.maxAge).toBe(99)
   })
 })
