@@ -220,10 +220,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <p className="login-hero-slogan">Members only &middot; By design</p>
           </header>
 
-          {/* The brand promise — italic tagline + editorial manifesto. */}
+          {/* The brand promise — a single italic line. The previous longer
+              manifesto paragraph was removed (2026-05-25 evening) so the
+              composition reads as: crest → calligraphy ("A quiet room, by
+              invitation only") → wordmark → THIS line → doors. Editorial
+              silence, no surplus prose. */}
           <div className="login-hero-body">
             <p className="login-hero-tagline">{copy.auth.heroTagline}</p>
-            <p className="login-hero-manifesto">{copy.auth.heroManifesto}</p>
           </div>
 
           {/* The three doors — equal weight, vertical stack. */}
