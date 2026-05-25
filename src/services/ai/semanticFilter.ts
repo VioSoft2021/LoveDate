@@ -41,7 +41,11 @@ type CacheEntry = {
 
 const CACHE_KEY_PREFIX = 'lovedate:ai-semantic-filter:'
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24 // 24h — same as icebreaker
-const CACHE_VERSION = 1
+// v2 (2026-05-25): bumped after the Edge Function system prompt was
+// rewritten to enforce hard constraints (age / gender / city / intent).
+// Old v1 cache entries were too lenient — invalidate them so users see
+// the new strict filtering immediately.
+const CACHE_VERSION = 2
 const MIN_PROMPT_LENGTH = 5
 
 /**
