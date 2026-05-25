@@ -49,7 +49,7 @@
    it aligns with the cap-height of the PRIVÉ wordmark beside it. */
 .top-bar.top-bar .top-bar-crest {
   display: block;
-  height: clamp(28px, 3.6vh, 40px);
+  height: clamp(48px, 6.4vh, 72px);
   width: auto;
   user-select: none;
   -webkit-user-drag: none;
@@ -58,11 +58,12 @@
   flex: 0 0 auto;
 }
 
-/* On narrow phones tighten further so the brand block + nav + exit
-   group all fit comfortably in a single row. */
+/* On narrow phones the crest still grows vs. the previous size but
+   stays small enough that the brand block + nav + exit group fit in
+   a single row. */
 @media (max-width: 540px) {
   .top-bar.top-bar .top-bar-crest {
-    height: 26px;
+    height: 44px;
   }
 }
 
