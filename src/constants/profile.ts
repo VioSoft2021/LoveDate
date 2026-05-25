@@ -22,14 +22,22 @@ export const DEFAULT_SOCIAL_CONNECTIONS: SocialConnections = {
 
 export const initialFilters: Filters = {
   minAge: 18,
-  maxAge: 60,
+  // Full adult range — was 60, which silently filtered out anyone over 60
+  // once the constraint UI was stripped (2026-05-25 journal redesign).
+  // AI parses any age preference from the journal entry instead.
+  maxAge: 99,
   city: '',
   interest: '',
   // Default to 'any' so a brand-new user with no opposite-gender profiles
   // in the deck doesn't see an empty discover screen on first run.
   gender: 'any',
   relationshipGoal: 'any',
-  maxDistanceKm: 60,
+  // Effectively unbounded — larger than Earth's diameter (~12,742 km) so
+  // the distance check at App.tsx:1140 always passes. AI infers location
+  // preference from the journal entry ("in Bucharest" / "anywhere in
+  // Romania" / "Europe-wide"). Was 60 km, which silently capped matches
+  // to the current city once the distance slider was removed (2026-05-25).
+  maxDistanceKm: 20000,
   verifiedOnly: false,
   sortBy: 'recommended',
   zodiacCompatibility: '',
