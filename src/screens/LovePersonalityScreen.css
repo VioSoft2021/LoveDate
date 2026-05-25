@@ -6,15 +6,23 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* WAS justify-content: center, which looked beautiful on short cards
+     (intro / questions / interlude) but caused tall content (the result
+     reveal + chips + Big Five bars + attachment) to overflow ABOVE the
+     viewport on phones — page scroll could reach the bottom but the top
+     (archetype name + headline + paragraph 1) became unreachable.
+     flex-start anchors to top; we compensate with generous top padding
+     so short cards still feel breathing-roomed, not top-hugging. */
+  justify-content: flex-start;
   background: linear-gradient(
     180deg,
     var(--prive-navy-deep) 0%,
     var(--prive-navy-1) 100%
   );
   color: #edf3ff;
-  padding: max(1rem, env(safe-area-inset-top)) 1rem
-    max(1rem, env(safe-area-inset-bottom)) 1rem;
+  padding: clamp(2rem, 6vh, 4rem) 1rem
+    max(1.5rem, env(safe-area-inset-bottom)) 1rem;
+  padding-top: max(clamp(2rem, 6vh, 4rem), env(safe-area-inset-top));
   box-sizing: border-box;
 }
 
