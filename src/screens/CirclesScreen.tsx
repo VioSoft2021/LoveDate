@@ -1,4 +1,5 @@
 import React from 'react'
+import './CirclesScreen.css'
 import { UI_TEXT } from '../constants'
 import { formatShortTime } from '../utils'
 import type { AppLanguage, Circle, CirclePost } from '../domain'
