@@ -1,4 +1,5 @@
 import React from 'react'
+import './ProfileScreen.css'
 import {
   CHILDREN_PLAN_OPTIONS,
   DRINKING_OPTIONS,

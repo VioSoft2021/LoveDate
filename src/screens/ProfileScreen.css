@@ -1,0 +1,775 @@
+/* ===========================================================
+   Privé — Profile editor luxury redesign (2026-05-25)
+   ===========================================================
+   The editor is where users WRITE THEMSELVES into Privé —
+   bio, photos, lifestyle, prompts, personality. Until now it
+   inherited generic admin-panel styling from App.css (cyan
+   focus rings, bare labels, system fonts). This file lifts
+   the editor surface to the LoginScreen tier: gold focus,
+   Cinzel small-caps labels, editorial section headers, and a
+   real primary save action.
+   All selectors are scoped under .profile-screen so we don't
+   leak gold-focus styles to other surfaces (signup wizard,
+   onboarding) that have their own treatment.
+   =========================================================== */
+
+/* ── Eliminate double-scrollbar UX bug ─────────────────────
+   The base App.css gave .profile-editor its own inner overflow
+   (max-height: calc(100vh - 8rem); overflow-y: auto) which
+   stacked a second scrollbar on top of the natural page scroll.
+   On phones two nested vertical scroll regions are unusable; on
+   desktop it's just visual noise. Let the page scroll handle
+   everything. */
+.profile-screen .profile-editor {
+  max-height: none;
+  overflow-y: visible;
+}
+
+/* ── Editor masthead ─────────────────────────────────────── */
+.profile-screen .profile-editor > h2 {
+  font-family: 'Bodoni Moda', 'Playfair Display', 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: clamp(1.45rem, 2.4vw, 1.9rem);
+  letter-spacing: 0.06em;
+  margin: 0 0 1rem;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ── Completeness panel — gold accent when missing,
+       quiet success when done. The "first impression"
+       at the top of the editor. ───────────────────────────── */
+.profile-screen .profile-completeness {
+  border-radius: 0.85rem;
+  border: 1px solid rgba(216, 184, 109, 0.22);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 168, 0.04), rgba(216, 184, 109, 0.02)),
+    rgba(12, 16, 48, 0.6);
+  padding: 0.95rem 1.1rem;
+  margin: 0 0 1.1rem;
+  font-size: 0.88rem;
+  color: rgba(232, 242, 255, 0.86);
+}
+
+.profile-screen .profile-completeness strong {
+  display: block;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.82);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.profile-screen .profile-completeness--done {
+  border-color: rgba(216, 184, 109, 0.42);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 168, 0.08), rgba(216, 184, 109, 0.04)),
+    rgba(12, 16, 48, 0.7);
+}
+
+.profile-screen .profile-completeness--done strong {
+  color: #f4dca8;
+}
+
+.profile-screen .profile-completeness .soft {
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  color: rgba(232, 242, 255, 0.7);
+  margin: 0 0 0.55rem;
+}
+
+.profile-screen .profile-completeness ul {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.3rem 0.85rem;
+}
+
+.profile-screen .profile-completeness li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+}
+
+.profile-screen .profile-completeness li.is-done {
+  color: rgba(244, 220, 168, 0.88);
+}
+.profile-screen .profile-completeness li.is-done span {
+  color: #f4dca8;
+  font-weight: 600;
+}
+
+.profile-screen .profile-completeness li.is-missing {
+  color: rgba(232, 242, 255, 0.55);
+}
+.profile-screen .profile-completeness li.is-missing span {
+  color: rgba(216, 184, 109, 0.5);
+}
+
+/* ── Section accordions — editorial small-caps headers ───── */
+.profile-screen .profile-editor-section {
+  border-radius: 0.82rem;
+  border: 1px solid rgba(216, 184, 109, 0.14);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 168, 0.02), rgba(216, 184, 109, 0.01)),
+    rgba(10, 14, 39, 0.55);
+  overflow: hidden;
+  transition: border-color 240ms ease, background 240ms ease;
+}
+
+.profile-screen .profile-editor-section[open] {
+  border-color: rgba(216, 184, 109, 0.34);
+}
+
+.profile-screen .profile-editor-section > summary {
+  list-style: none;
+  cursor: pointer;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: rgba(232, 213, 178, 0.72);
+  background: transparent;
+  padding: 1.05rem 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: color 240ms ease, background 240ms ease;
+}
+
+.profile-screen .profile-editor-section > summary:hover {
+  color: #f4dca8;
+}
+
+.profile-screen .profile-editor-section[open] > summary {
+  color: #f4dca8;
+  background: linear-gradient(135deg, rgba(244, 220, 168, 0.05), transparent 65%);
+  border-bottom: 1px solid rgba(216, 184, 109, 0.18);
+}
+
+.profile-screen .profile-editor-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.profile-screen .profile-editor-section > summary::after {
+  content: '+';
+  font-family: 'Cinzel', serif;
+  font-size: 1.05rem;
+  font-weight: 300;
+  line-height: 1;
+  color: rgba(244, 220, 168, 0.55);
+  transition: color 240ms ease, transform 240ms ease;
+}
+
+.profile-screen .profile-editor-section[open] > summary::after {
+  content: '−';
+  color: #f4dca8;
+}
+
+/* ── Field labels — Cinzel small-caps tag floating above field ── */
+.profile-screen .profile-editor label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.48rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.62);
+  font-weight: 500;
+}
+
+.profile-screen .profile-editor label.toggle {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+}
+
+.profile-screen .profile-editor label.toggle input[type='checkbox'] {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: #f4dca8;
+}
+
+/* ── Inputs / selects / textareas — gold focus, navy field ── */
+.profile-screen .profile-editor input,
+.profile-screen .profile-editor select,
+.profile-screen .profile-editor textarea,
+.profile-screen .photo-input-row input {
+  font-family: inherit;
+  font-size: 0.95rem;
+  letter-spacing: 0.005em;
+  min-height: 2.85rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(216, 184, 109, 0.18);
+  background: rgba(8, 12, 35, 0.62);
+  color: rgba(244, 244, 250, 0.96);
+  transition: border-color 240ms ease, box-shadow 240ms ease, background 240ms ease;
+}
+
+.profile-screen .profile-editor input::placeholder,
+.profile-screen .profile-editor textarea::placeholder {
+  color: rgba(232, 242, 255, 0.32);
+  font-style: italic;
+}
+
+/* Custom select chevron — gold caret instead of native triangle */
+.profile-screen .profile-editor select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(216, 184, 109, 0.6) 50%),
+    linear-gradient(135deg, rgba(216, 184, 109, 0.6) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) calc(50% - 2px),
+    calc(100% - 11px) calc(50% - 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 2.2rem;
+  cursor: pointer;
+}
+
+.profile-screen .profile-editor input:focus,
+.profile-screen .profile-editor select:focus,
+.profile-screen .profile-editor textarea:focus,
+.profile-screen .photo-input-row input:focus {
+  outline: none;
+  border-color: rgba(244, 220, 168, 0.72);
+  box-shadow: 0 0 0 3px rgba(216, 184, 109, 0.18);
+  background: rgba(10, 14, 42, 0.8);
+}
+
+/* Bio textarea — italic Cormorant for prose feel.
+   Resizable so users with long bios can expand. */
+.profile-screen .profile-editor textarea {
+  min-height: 5.8rem;
+  line-height: 1.55;
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-size: 1.08rem;
+  font-style: italic;
+  letter-spacing: 0.005em;
+  resize: vertical;
+}
+
+/* ── Location detect row — keep input inline with detect button ── */
+.profile-screen .location-input-row {
+  display: flex;
+  gap: 0.45rem;
+  align-items: stretch;
+}
+.profile-screen .location-input-row input {
+  flex: 1;
+  min-width: 0;
+}
+.profile-screen .location-detect-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 0.85rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.82);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.28);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: color 220ms ease, border-color 220ms ease;
+}
+.profile-screen .location-detect-btn:hover:not(:disabled) {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.55);
+}
+.profile-screen .location-detect-msg {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.86rem;
+  letter-spacing: 0.01em;
+}
+.profile-screen .location-detect-msg--success {
+  color: rgba(244, 220, 168, 0.85);
+}
+.profile-screen .location-detect-msg--error {
+  color: rgba(244, 180, 160, 0.85);
+}
+
+/* ── Save errors — soft amber, never harsh red ─────────────── */
+.profile-screen .profile-editor-errors {
+  border-color: rgba(216, 184, 109, 0.42);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 168, 0.06), rgba(216, 184, 109, 0.03)),
+    rgba(40, 24, 12, 0.55);
+  color: rgba(250, 232, 200, 0.94);
+}
+.profile-screen .profile-editor-errors strong {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #f4dca8;
+}
+
+/* ── Action bar — primary gold save, ghost LoginScreen-door style ── */
+.profile-screen .profile-editor-actions {
+  margin-top: 1.3rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid rgba(216, 184, 109, 0.14);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.profile-screen .profile-editor-actions button[type='submit'] {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #060a1f;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  border: 1px solid rgba(216, 184, 109, 0.7);
+  border-radius: 0.5rem;
+  padding: 0.88rem 1.7rem;
+  cursor: pointer;
+  transition: transform 240ms ease, box-shadow 240ms ease, filter 240ms ease;
+  box-shadow: 0 6px 22px rgba(216, 184, 109, 0.2);
+}
+
+.profile-screen .profile-editor-actions button[type='submit']:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(216, 184, 109, 0.32);
+  filter: brightness(1.05);
+}
+
+.profile-screen .profile-editor-actions button.ghost {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: rgba(244, 220, 168, 0.78);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.22);
+  border-radius: 0.5rem;
+  padding: 0.82rem 1.35rem;
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease, transform 240ms ease;
+}
+
+.profile-screen .profile-editor-actions button.ghost:hover {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.55);
+  transform: translateY(-1px);
+}
+
+/* ── AI bio writer block — elegant insert panel ────────────── */
+.profile-screen .bio-writer-block {
+  margin-top: 0.65rem;
+  padding: 1rem 1.1rem;
+  border-radius: 0.82rem;
+  border: 1px solid rgba(216, 184, 109, 0.16);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 168, 0.03), rgba(216, 184, 109, 0.01)),
+    rgba(10, 14, 39, 0.45);
+}
+
+.profile-screen .bio-writer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.7rem;
+  align-items: center;
+}
+
+.profile-screen .bio-writer-cta {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.88);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.32);
+  border-radius: 0.5rem;
+  padding: 0.7rem 1.15rem;
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease;
+}
+.profile-screen .bio-writer-cta:hover:not(:disabled) {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.55);
+}
+.profile-screen .bio-writer-cta:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.profile-screen .bio-writer-result {
+  margin-top: 0.6rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.profile-screen .bio-writer-critiques em,
+.profile-screen .bio-writer-rewrites em {
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.6rem;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.65);
+  display: block;
+  margin-bottom: 0.45rem;
+}
+
+.profile-screen .bio-writer-critiques ul {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: rgba(232, 242, 255, 0.78);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+}
+
+.profile-screen .bio-writer-rewrites ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.profile-screen .bio-writer-rewrite-card {
+  border-radius: 0.7rem;
+  border: 1px solid rgba(216, 184, 109, 0.14);
+  background: rgba(8, 12, 35, 0.55);
+  padding: 0.9rem 1.05rem 0.75rem;
+  transition: border-color 240ms ease, transform 240ms ease;
+}
+.profile-screen .bio-writer-rewrite-card:hover {
+  border-color: rgba(216, 184, 109, 0.34);
+  transform: translateY(-1px);
+}
+.profile-screen .bio-writer-rewrite-card p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: rgba(244, 244, 250, 0.94);
+  margin: 0 0 0.6rem;
+}
+
+.profile-screen .bio-writer-error {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.92rem;
+  color: rgba(244, 180, 160, 0.85);
+  margin: 0.4rem 0 0;
+}
+
+/* ── AI photo coach block — same aesthetic as bio writer ───── */
+.profile-screen .photo-coach-block {
+  margin-top: 0.75rem;
+  padding: 1rem 1.1rem;
+  border-radius: 0.82rem;
+  border: 1px solid rgba(216, 184, 109, 0.16);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 168, 0.03), rgba(216, 184, 109, 0.01)),
+    rgba(10, 14, 39, 0.45);
+}
+
+.profile-screen .photo-coach-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+  align-items: center;
+}
+
+.profile-screen .photo-coach-cta {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.88);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.32);
+  border-radius: 0.5rem;
+  padding: 0.7rem 1.15rem;
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease;
+}
+.profile-screen .photo-coach-cta:hover:not(:disabled) {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.55);
+}
+.profile-screen .photo-coach-cta:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.profile-screen .photo-coach-overall {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: rgba(244, 244, 250, 0.92);
+  margin: 0.35rem 0 0.45rem;
+}
+.profile-screen .photo-coach-primary {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.75);
+  margin: 0 0 0.6rem;
+}
+.profile-screen .photo-coach-error {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.92rem;
+  color: rgba(244, 180, 160, 0.85);
+  margin: 0.4rem 0 0;
+}
+
+.profile-screen .photo-coach-photo-list {
+  list-style: none;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.profile-screen .photo-coach-photo-card {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 0.95rem;
+  padding: 0.8rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(216, 184, 109, 0.12);
+  background: rgba(8, 12, 35, 0.55);
+  transition: border-color 240ms ease;
+}
+.profile-screen .photo-coach-photo-card:hover {
+  border-color: rgba(216, 184, 109, 0.24);
+}
+.profile-screen .photo-coach-photo-card.is-primary-pick {
+  border-color: rgba(216, 184, 109, 0.45);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 168, 0.06), rgba(216, 184, 109, 0.02)),
+    rgba(10, 14, 39, 0.65);
+}
+
+.profile-screen .photo-coach-photo-thumb {
+  width: 80px;
+  height: 80px;
+  border-radius: 0.45rem;
+  overflow: hidden;
+  background: rgba(8, 12, 35, 0.6);
+}
+.profile-screen .photo-coach-photo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-screen .photo-coach-photo-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin: 0 0 0.4rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.85);
+}
+.profile-screen .photo-coach-score {
+  color: rgba(216, 184, 109, 0.78);
+  font-weight: 600;
+}
+.profile-screen .photo-coach-bullets em {
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.55);
+  display: block;
+  margin: 0.45rem 0 0.2rem;
+}
+.profile-screen .photo-coach-bullets ul {
+  margin: 0;
+  padding-left: 1rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: rgba(232, 242, 255, 0.78);
+}
+
+/* ── Photo input row + upload field ────────────────────────── */
+.profile-screen .photo-input-row {
+  margin: 0.5rem 0 0.6rem;
+}
+.profile-screen .photo-input-row button.ghost {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.85);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.32);
+  border-radius: 0.5rem;
+  padding: 0 1.1rem;
+  min-height: 2.85rem;
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease;
+}
+.profile-screen .photo-input-row button.ghost:hover {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.6);
+}
+
+.profile-screen .upload-field {
+  display: block;
+  margin: 0.6rem 0;
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: rgba(232, 213, 178, 0.62);
+}
+.profile-screen .upload-field input[type='file'] {
+  display: block;
+  margin-top: 0.5rem;
+  font-family: inherit;
+  font-size: 0.86rem;
+  color: rgba(232, 242, 255, 0.78);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ── Draft photo grid — hover lift on each tile ───────────── */
+.profile-screen .draft-photo-grid {
+  margin: 0.75rem 0;
+}
+.profile-screen .draft-photo-item {
+  border-radius: 0.7rem;
+  overflow: hidden;
+  border: 1px solid rgba(216, 184, 109, 0.12);
+  transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease;
+}
+.profile-screen .draft-photo-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(216, 184, 109, 0.32);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+}
+.profile-screen .draft-photo-primary-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: #060a1f;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  padding: 0.36rem 0.7rem;
+  border-radius: 0.4rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* ── Mini buttons (use-this, retry, close, remove) ─────────── */
+.profile-screen .mini-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.78);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.24);
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease;
+}
+.profile-screen .mini-btn:hover {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.5);
+}
+
+/* ── Supporting copy inside sections ───────────────────────── */
+.profile-screen .profile-editor-section .soft {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: rgba(232, 242, 255, 0.62);
+}
+
+/* ── Personality quiz inline primary CTA (in the editor) ───── */
+.profile-screen .love-personality-inline-primary {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #060a1f;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  border: 1px solid rgba(216, 184, 109, 0.7);
+  border-radius: 0.5rem;
+  padding: 0.85rem 1.4rem;
+  cursor: pointer;
+  transition: transform 240ms ease, box-shadow 240ms ease, filter 240ms ease;
+  box-shadow: 0 6px 20px rgba(216, 184, 109, 0.18);
+}
+.profile-screen .love-personality-inline-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(216, 184, 109, 0.3);
+  filter: brightness(1.05);
+}
+
+/* ── Mobile — collapse grid + stack action buttons ─────────── */
+@media (max-width: 700px) {
+  .profile-screen .profile-editor-grid {
+    grid-template-columns: 1fr;
+  }
+  .profile-screen .profile-editor-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .profile-screen .profile-editor-actions button[type='submit'],
+  .profile-screen .profile-editor-actions button.ghost {
+    width: 100%;
+  }
+  .profile-screen .photo-coach-photo-card {
+    grid-template-columns: 60px 1fr;
+    gap: 0.65rem;
+  }
+  .profile-screen .photo-coach-photo-thumb {
+    width: 60px;
+    height: 60px;
+  }
+}
