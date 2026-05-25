@@ -161,36 +161,37 @@
 }
 
 /* ── The writing wrap — pen + single-line tagline ──────────
-   Pen and tagline share the same 5-second animation timeline starting
+   Pen and tagline share the same 9-second animation timeline starting
    1.6s after page load. Pen's left position and tagline's clip-path
    right-inset both go from 0% → 100% over the same duration with
    linear easing, so the pen's TIP (at SVG x=0) always sits exactly
    at the leading edge of the revealed text. */
 .login-hero-writing {
   position: relative;
-  /* Width tuned so the full single-line tagline fits without wrapping
-     at desktop sizes. Min set so on smaller "desktop" viewports it
-     still has room. */
-  width: clamp(280px, 38vw, 540px);
-  padding-top: 2.4rem; /* room for the pen above the writing line */
+  /* Use the full available width of the right column rather than a
+     hardcoded clamp — Master flagged the text was overflowing on his
+     screen. Now the writing wrap takes whatever room the column gives. */
+  width: 100%;
+  padding-top: 3rem; /* room for the pen above the writing line */
 }
 
 .login-hero-pen {
   position: absolute;
   /* Bottom edge of the pen sits AT the top of the tagline text, so
      the tip (at SVG bottom-left, viewBox y=40) lands roughly on the
-     baseline. left: 0 → calc(100% - tip_width) over animation. */
+     baseline. left: 0 → 100% over animation. */
   bottom: 0.05em;
   left: 0;
-  width: clamp(38px, 4vw, 56px);
+  width: clamp(46px, 5vw, 68px);
   height: auto;
   opacity: 0;
-  filter: drop-shadow(0 4px 10px rgba(216, 184, 109, 0.42))
-          drop-shadow(0 0 14px rgba(244, 220, 168, 0.18));
+  filter: drop-shadow(0 4px 12px rgba(216, 184, 109, 0.5))
+          drop-shadow(0 0 18px rgba(244, 220, 168, 0.22));
   z-index: 3;
   /* Pen and tagline share the EXACT same animation duration + delay +
-     easing, so they move in perfect lockstep. */
-  animation: prive-pen-write 5s linear 1.6s both;
+     easing, so they move in perfect lockstep. Slowed from 5s to 9s
+     per Master's "writing is too fast" feedback. */
+  animation: prive-pen-write 9s linear 1.6s both;
 }
 @keyframes prive-pen-write {
   0%   { left: 0;    opacity: 0; }
@@ -201,15 +202,14 @@
 .login-hero-tagline {
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
-  font-size: clamp(1.3rem, 2.4vw, 1.85rem);
+  /* Bigger per Master's "text is too small" feedback — was
+     clamp(1.3rem, 2.4vw, 1.85rem), now scales 1.6 → 2.4rem. */
+  font-size: clamp(1.6rem, 2.8vw, 2.4rem);
   color: rgba(244, 220, 168, 0.95);
   letter-spacing: 0.01em;
   margin: 0;
   line-height: 1.35;
   font-weight: 400;
-  /* Force single line so the pen has a single horizontal path. The
-     viewport width will determine if it wraps; widths are set on the
-     writing wrap to keep it on one line for typical desktop sizes. */
   white-space: nowrap;
   text-align: left;
   overflow: hidden;
@@ -220,7 +220,7 @@
   /* Reveals from left to right via clip-path inset animation —
      synced with the pen's left:0→100% by sharing duration/delay. */
   clip-path: inset(0 100% 0 0);
-  animation: prive-tagline-reveal 5s linear 1.6s both;
+  animation: prive-tagline-reveal 9s linear 1.6s both;
   will-change: clip-path;
 }
 @keyframes prive-tagline-reveal {
@@ -240,12 +240,17 @@
   }
 }
 
-/* ── Three doors — vertical stack within the left column. ─── */
+/* ── Three doors — vertical stack within the left column.
+   Per Master: the doors are NOT part of the branding (crest +
+   wordmark + slogan). Pushed visually away from the brand block
+   with a substantial margin-top so they read as a separate
+   "access paths" group, not a continuation of the masthead. */
 .login-hero-doors {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.8rem;
+  margin-top: clamp(2.5rem, 6vh, 4.5rem);
 }
 .login-hero-door {
   position: relative;
@@ -309,9 +314,12 @@
     flex: 0 1 auto;
     max-width: 22rem;
   }
+  /* Right column gets the lion's share of the available width so the
+     single-line tagline (and the pen that writes it) has room. */
   .login-hero-right {
-    flex: 0 1 auto;
-    max-width: 30rem;
+    flex: 1 1 auto;
+    max-width: 42rem;
+    min-width: 22rem;
   }
 }
 

@@ -217,42 +217,93 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <div className="login-hero-writing">
               <svg
                 className="login-hero-pen"
-                viewBox="0 0 50 40"
+                viewBox="-4 -2 54 44"
                 aria-hidden="true"
               >
                 <defs>
-                  <linearGradient id="penGold" x1="0%" y1="100%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#cfad61" />
-                    <stop offset="40%" stopColor="#f4dca8" />
+                  <linearGradient id="penBody" x1="100%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#f4dca8" />
+                    <stop offset="40%" stopColor="#cfad61" />
                     <stop offset="100%" stopColor="#8b6b2c" />
                   </linearGradient>
+                  <linearGradient id="penCap" x1="100%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#cfad61" />
+                    <stop offset="50%" stopColor="#8b6b2c" />
+                    <stop offset="100%" stopColor="#3a2810" />
+                  </linearGradient>
                 </defs>
-                {/* Pen body — angled from upper-right down to a sharp tip
-                    at the SVG's left edge (viewBox x=0, y=40). The body
-                    tapers as it descends so the tip looks like a real
-                    fountain-pen nib. */}
-                <path
-                  d="M 38 2 L 48 12 L 8 36 L 3 38 L 0 40 L 2 35 L 4 32 L 38 2 Z"
-                  fill="url(#penGold)"
-                  stroke="rgba(80,55,15,0.7)"
-                  strokeWidth="0.5"
-                />
-                {/* Tip slit — thin dark line at the nib for realism */}
-                <line
-                  x1="2.5" y1="36" x2="0.5" y2="39.5"
-                  stroke="rgba(30,15,5,0.8)" strokeWidth="0.6"
-                  strokeLinecap="round"
-                />
-                {/* Cap separator near upper-right */}
-                <line
-                  x1="34" y1="3" x2="44" y2="13"
-                  stroke="rgba(80,55,15,0.8)" strokeWidth="0.5"
-                />
-                {/* Subtle highlight on the body for dimension */}
-                <line
-                  x1="40" y1="6" x2="6" y2="35"
-                  stroke="rgba(255,248,231,0.4)" strokeWidth="0.4"
-                />
+                {/* Proper fountain pen — drawn vertical with tip at origin,
+                    then rotated 55° clockwise + translated so the tip
+                    lands at viewBox (0, 40). Composed of distinct
+                    fountain-pen anatomy parts: nib (with slit + breathing
+                    hole), section, body barrel, trim ring, cap, finial,
+                    pocket clip. */}
+                <g transform="translate(0 40) rotate(55)">
+                  {/* Nib — pointed gold triangle, darker than body */}
+                  <path
+                    d="M -2 -8 L 0 0 L 2 -8 L 2.2 -10 L -2.2 -10 Z"
+                    fill="#5a4520"
+                    stroke="#2a1a08"
+                    strokeWidth="0.2"
+                  />
+                  {/* Nib slit — the defining feature of a fountain pen */}
+                  <line
+                    x1="0" y1="-1" x2="0" y2="-8"
+                    stroke="#0a0500" strokeWidth="0.5"
+                    strokeLinecap="round"
+                  />
+                  {/* Breathing hole — small round dot at top of slit */}
+                  <circle cx="0" cy="-8.5" r="0.9" fill="#0a0500" />
+                  {/* Section — short taper between nib and body */}
+                  <path
+                    d="M -2.2 -10 L 2.2 -10 L 2.6 -14 L -2.6 -14 Z"
+                    fill="url(#penBody)"
+                  />
+                  {/* Trim ring — thin band where section meets body */}
+                  <rect
+                    x="-2.7" y="-14.5" width="5.4" height="0.7"
+                    fill="#3a2810"
+                  />
+                  {/* Body barrel — main uniform-width section */}
+                  <rect
+                    x="-2.6" y="-32" width="5.2" height="17.5"
+                    fill="url(#penBody)"
+                    stroke="#3a2810" strokeWidth="0.15"
+                  />
+                  {/* Cap trim ring */}
+                  <rect
+                    x="-2.9" y="-33.5" width="5.8" height="1.5"
+                    fill="#3a2810"
+                  />
+                  {/* Cap — slightly wider than body */}
+                  <rect
+                    x="-3.2" y="-46" width="6.4" height="12.5"
+                    rx="0.4"
+                    fill="url(#penCap)"
+                    stroke="#3a2810" strokeWidth="0.15"
+                  />
+                  {/* Cap top finial — small darker dome */}
+                  <ellipse
+                    cx="0" cy="-46" rx="3.4" ry="0.9"
+                    fill="#3a2810"
+                  />
+                  {/* Pocket clip — the gold arm hooked over the cap */}
+                  <path
+                    d="M 3.2 -44.5 L 3.5 -36 L 2.6 -33.5"
+                    stroke="url(#penCap)" strokeWidth="1.4"
+                    fill="none" strokeLinecap="round"
+                  />
+                  {/* Subtle highlight stripe down the cap for sheen */}
+                  <line
+                    x1="-1.2" y1="-45" x2="-1.2" y2="-34"
+                    stroke="rgba(255,248,231,0.4)" strokeWidth="0.6"
+                  />
+                  {/* Subtle highlight on the body */}
+                  <line
+                    x1="-1.4" y1="-31" x2="-1.4" y2="-15"
+                    stroke="rgba(255,248,231,0.32)" strokeWidth="0.5"
+                  />
+                </g>
               </svg>
               <p className="login-hero-tagline">
                 <span className="tagline-text">{copy.auth.heroTagline}</span>
