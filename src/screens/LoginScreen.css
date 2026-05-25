@@ -81,39 +81,12 @@
   }
 }
 
-/* ── Editorial mark — top-right corner ────────────────────────────
-   Tiny "Édition · 2026" anchors the empty space in the upper-right
-   quadrant. Sets the tone: this is a journal/edition, not a SaaS app.
-   Loro Piana + Aesop both use vertical / cornered tags like this. */
-.login-hero-edition {
-  position: absolute;
-  top: clamp(1.6rem, 4vh, 2.4rem);
-  left: clamp(2.4rem, 9vw, 9rem);
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.4rem;
-  margin: 0;
-  font-family: 'Cinzel', 'Bodoni Moda', serif;
-  font-size: 0.58rem;
-  letter-spacing: 0.42em;
-  text-transform: uppercase;
-  color: rgba(232, 213, 178, 0.4);
-  line-height: 1;
-  animation: prive-hero-fade-in 1600ms cubic-bezier(0.22, 1, 0.36, 1) 400ms both;
-}
-.login-hero-edition span:last-child {
-  color: rgba(244, 220, 168, 0.6);
-  font-size: 0.62rem;
-  letter-spacing: 0.32em;
-}
+/* Édition mark removed (2026-05-25) per Master's annotation. */
 
-/* ── Hero content — centered vertical invitation-card composition
-   The crest is the seal at the top; everything cascades beneath
-   it. The whole column is centered horizontally on the page; each
-   section fades in with a staggered delay so the page reads as it
-   appears, like an invitation card being unfolded. */
+/* ── Hero layout — responsive 2-column on desktop, 1-column on mobile
+   Desktop ≥900px: grid with seal+masthead on the left, tagline+pen
+   animation on the right, doors centered at the bottom spanning both.
+   Mobile <900px: single centered column (everything stacks vertically). */
 .login-hero {
   position: relative;
   z-index: 2;
@@ -122,8 +95,8 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  max-width: min(36rem, 92vw);
   width: 100%;
+  max-width: min(36rem, 92vw);
   margin: 0 auto;
   padding: clamp(3rem, 8vh, 5.5rem) clamp(1rem, 4vw, 2.5rem);
   min-height: 100dvh;
@@ -135,19 +108,34 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Masthead: PRIVÉ wordmark + slogan. Fades in 0.5s after the seal. */
+/* Left column container — seal + masthead.
+   On mobile: just a flex column. On desktop: ends-justified
+   against the central axis (right-aligned content). */
+.login-hero-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1rem, 2.5vh, 1.8rem);
+  animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Right column container — the writing wrap (pen + tagline). */
+.login-hero-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) 0.6s both;
+}
+
+/* Masthead: PRIVÉ wordmark + slogan, beneath the crest in left col. */
 .login-hero-masthead {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
 }
 
-/* Wordmark — refined size now that the crest carries the visual
-   anchor. Was 3-4.4rem when it WAS the centerpiece; now scaled
-   down to clamp(2.2rem, 4.4vw, 3.4rem) so it sits in dialogue
-   with the crest rather than competing. */
 .login-hero-wordmark {
   font-family: 'Bodoni Moda', 'Playfair Display', 'Cormorant Garamond', serif;
   font-weight: 900;
@@ -171,44 +159,87 @@
   margin: 0;
 }
 
-/* Body block — tagline + manifesto, centered. Fades in 0.9s. */
-.login-hero-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.2rem;
-  max-width: 40ch;
-  animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) 0.9s both;
+/* ── The writing wrap — pen + tagline lines ──────────────────
+   The pen icon is positioned absolutely and animated to travel
+   across each line of the tagline. Each tagline line has its own
+   clip-path reveal animation that's synced with the pen's path. */
+.login-hero-writing {
+  position: relative;
+  max-width: 24ch;
+  padding-top: 2.2rem; /* leaves room for the pen above line 1 */
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
+.login-hero-pen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(28px, 3vw, 38px);
+  height: clamp(28px, 3vw, 38px);
+  opacity: 0;
+  filter: drop-shadow(0 4px 10px rgba(216, 184, 109, 0.32));
+  /* Total cycle 5s starting 1.6s after page load:
+     - 0–37% (1.6s → 3.45s): travel across line 1
+     - 37–48% (3.45s → 4.0s): jump to line 2 (fade out / fade in)
+     - 48–100% (4.0s → 5.45s): travel across line 2 */
+  animation: prive-pen-write 5s linear 1.6s both;
+  z-index: 3;
+}
+@keyframes prive-pen-write {
+  0%   { left: 0;     top: 0;     opacity: 0; }
+  3%   { opacity: 1; }
+  37%  { left: calc(100% - 38px); top: 0;     opacity: 1; }
+  42%  { left: calc(100% - 38px); top: 0;     opacity: 0; }
+  48%  { left: 0;     top: 1.7em; opacity: 0; }
+  52%  { opacity: 1; }
+  87%  { left: calc(100% - 38px); top: 1.7em; opacity: 1; }
+  96%  { opacity: 0.4; }
+  100% { left: calc(100% - 38px); top: 1.7em; opacity: 0; }
+}
+
+/* The tagline — italic Cormorant, split into 2 spans (lines),
+   each revealed via clip-path animation synced with the pen. */
 .login-hero-tagline {
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
   font-size: clamp(1.3rem, 2.4vw, 1.8rem);
   color: rgba(244, 220, 168, 0.95);
   letter-spacing: 0.01em;
-  max-width: 26ch;
   margin: 0;
   line-height: 1.35;
   font-weight: 400;
   text-align: center;
 }
 
-/* Editorial manifesto paragraph — small italic prose, slightly
-   faded. Reads like the opening line of a journal. */
-.login-hero-manifesto {
-  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
-  font-style: italic;
-  font-size: clamp(0.95rem, 1.3vw, 1.05rem);
-  color: rgba(232, 242, 255, 0.62);
-  letter-spacing: 0.005em;
-  line-height: 1.65;
-  margin: 0;
-  max-width: 38ch;
-  text-align: center;
+.login-hero-tagline .tagline-line {
+  display: block;
+  clip-path: inset(0 100% 0 0);
+  will-change: clip-path;
+}
+.login-hero-tagline .tagline-line-1 {
+  animation: prive-tagline-reveal 1.85s linear 1.6s both;
+}
+.login-hero-tagline .tagline-line-2 {
+  animation: prive-tagline-reveal 1.85s linear 4.0s both;
+}
+@keyframes prive-tagline-reveal {
+  to { clip-path: inset(0 0% 0 0); }
 }
 
-/* Three "doors" — centered vertical stack at the bottom. Fades in 1.3s. */
+/* prefers-reduced-motion — render statically with both lines visible. */
+@media (prefers-reduced-motion: reduce) {
+  .login-hero-pen {
+    animation: none;
+    opacity: 0;
+  }
+  .login-hero-tagline .tagline-line {
+    animation: none;
+    clip-path: inset(0 0% 0 0);
+  }
+}
+
+/* ── Three doors — centered at the bottom of the hero ──────── */
 .login-hero-doors {
   display: flex;
   flex-direction: column;
@@ -231,8 +262,6 @@
   transition: color 220ms ease;
   text-align: center;
 }
-/* Underline draws from the center outward on hover — symmetric
-   gradient so it fades to transparent on both sides. */
 .login-hero-door::after {
   content: '';
   position: absolute;
@@ -257,46 +286,85 @@
   left: 10%;
 }
 
-/* ── Language picker — top-left corner ─────────────────────────
-   Was absolute-positioned at the bottom of the viewport, which on a
-   tall desktop screen pushed it well below the fold and made it
-   feel orphaned. Now sits in the top-left corner mirroring the
-   Édition mark on the top-right — two small "marginalia" elements
-   framing the page like running heads on a magazine spread. */
+/* ── Desktop 2-column layout (≥900px) ─────────────────────────
+   The hero becomes a CSS grid: left/right columns + a bottom
+   doors row that spans both columns. The crest sits in the
+   left column, the pen-written tagline in the right column. */
+@media (min-width: 900px) {
+  .login-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr auto;
+    grid-template-areas:
+      "left right"
+      "doors doors";
+    align-items: center;
+    justify-content: center;
+    max-width: min(72rem, 92vw);
+    gap: clamp(2rem, 5vw, 5rem) clamp(2.5rem, 6vw, 6rem);
+  }
+  .login-hero-left {
+    grid-area: left;
+    align-items: flex-end;
+    text-align: right;
+  }
+  .login-hero-right {
+    grid-area: right;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .login-hero-doors {
+    grid-area: doors;
+    flex-direction: row;
+    justify-content: center;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    padding-top: clamp(1rem, 2vh, 2rem);
+  }
+}
+
+/* ── Language picker — top-right corner ────────────────────────
+   The "APP LANGUAGE" label was deleted (2026-05-25 per Master);
+   just the <select> remains, sized as a compact dropdown. */
 .login-hero-footer {
   position: absolute;
-  top: clamp(1.6rem, 4vh, 2.4rem);
-  right: clamp(2.4rem, 9vw, 9rem);
+  top: clamp(1.4rem, 3.5vh, 2.2rem);
+  right: clamp(1.4rem, 4vw, 3rem);
   z-index: 3;
-  pointer-events: none;
-}
-.login-hero-language {
   pointer-events: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  font-family: 'Cinzel', 'Bodoni Moda', serif;
-  font-size: 0.58rem;
-  letter-spacing: 0.42em;
-  text-transform: uppercase;
-  color: rgba(232, 213, 178, 0.4);
 }
-.login-hero-language select {
-  font-family: inherit;
+.login-hero-language-select {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
   font-size: 0.62rem;
   letter-spacing: 0.32em;
-  text-transform: inherit;
+  text-transform: uppercase;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(216, 184, 109, 0.25);
-  color: rgba(244, 220, 168, 0.65);
-  padding: 0.2rem 0.4rem;
+  border-bottom: 1px solid rgba(216, 184, 109, 0.28);
+  color: rgba(244, 220, 168, 0.7);
+  padding: 0.25rem 0.4rem;
   cursor: pointer;
   border-radius: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(216, 184, 109, 0.6) 50%),
+    linear-gradient(135deg, rgba(216, 184, 109, 0.6) 50%, transparent 50%);
+  background-position:
+    calc(100% - 9px) calc(50% - 1px),
+    calc(100% - 5px) calc(50% - 1px);
+  background-size: 4px 4px, 4px 4px;
+  background-repeat: no-repeat;
+  padding-right: 1.4rem;
+  animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) 0.6s both;
 }
-.login-hero-language select:focus {
+.login-hero-language-select:focus {
   outline: none;
-  border-bottom-color: rgba(231, 197, 118, 0.7);
+  border-bottom-color: rgba(244, 220, 168, 0.75);
+  color: #f4dca8;
+}
+.login-hero-language-select option {
+  background: #0c1030;
+  color: rgba(244, 220, 168, 0.85);
 }
 
 /* ── Narrow viewport tuning ──────────────────────────────── */

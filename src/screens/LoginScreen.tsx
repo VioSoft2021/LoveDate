@@ -154,49 +154,95 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       <main className="login-shell login-shell--hero">
         <div className="grain" aria-hidden="true" />
 
-        {/* Editorial mark in the top-left corner — issue number style.
-            Anchors the upper-left negative space. */}
-        <p className="login-hero-edition" aria-hidden="true">
-          <span>Édition</span>
-          <span>2026</span>
-        </p>
-
-        {/* Vertical invitation-card composition. The crest is the seal
-            at the top; everything else cascades beneath it in editorial
-            rhythm. Each section fades in with a staggered delay so the
-            page reads as it appears, like an invitation being unfolded. */}
+        {/* Layout (2026-05-25 final pass — Master's annotated screenshot):
+            - Desktop ≥900px: 2-column grid. Left column = crest + wordmark
+              + slogan. Right column = tagline written by an animated pen.
+              Doors centered at the bottom spanning both columns.
+            - Mobile: vertical centered column (everything stacks).
+            - Édition mark deleted (per Master's yellow circles).
+            - Language picker label deleted, the <select> itself stays. */}
         <section className="login-hero">
-          {/* The house seal — the crest sits alone as the visual anchor.
-              The "A quiet room, by invitation only" calligraphy was removed
-              (2026-05-25 evening) — Master flagged that "quiet room" lands
-              creepy on a dating brand (interrogation room / padded cell
-              echoes). The crest now carries the brand statement by itself. */}
-          <div className="login-hero-seal">
-            <img
-              className="login-hero-crest"
-              src="./crests/crest-3.png?v=2"
-              alt=""
-              loading="eager"
-              decoding="async"
-            />
+          {/* LEFT column — the seal (crest) + masthead (wordmark + slogan) */}
+          <div className="login-hero-left">
+            <div className="login-hero-seal">
+              <img
+                className="login-hero-crest"
+                src="./crests/crest-3.png?v=2"
+                alt=""
+                loading="eager"
+                decoding="async"
+              />
+            </div>
+            <header className="login-hero-masthead">
+              <h1 className="login-hero-wordmark" aria-label="Privé">PRIVÉ</h1>
+              <p className="login-hero-slogan">Members only &middot; By design</p>
+            </header>
           </div>
 
-          {/* The masthead — PRIVÉ wordmark + small-caps slogan. */}
-          <header className="login-hero-masthead">
-            <h1 className="login-hero-wordmark" aria-label="Privé">PRIVÉ</h1>
-            <p className="login-hero-slogan">Members only &middot; By design</p>
-          </header>
+          {/* RIGHT column — the brand promise written by a pen. The text is
+              split into two lines (controlled via newline in the i18n string)
+              and revealed via clip-path while a pen icon travels along
+              just above the writing line. */}
+          <div className="login-hero-right">
+            <div className="login-hero-writing">
+              {/* The pen — a small fountain pen icon, animated to travel
+                  across line 1, jump to line 2, travel across line 2. */}
+              <svg
+                className="login-hero-pen"
+                viewBox="0 0 36 36"
+                aria-hidden="true"
+              >
+                <defs>
+                  <linearGradient id="penGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#f4dca8" />
+                    <stop offset="50%" stopColor="#cfad61" />
+                    <stop offset="100%" stopColor="#8b6b2c" />
+                  </linearGradient>
+                </defs>
+                <g transform="rotate(-30 18 18)">
+                  <path
+                    d="M 14 4 L 22 4 L 21 24 L 15 24 Z"
+                    fill="url(#penGold)"
+                    stroke="rgba(80,55,15,0.6)"
+                    strokeWidth="0.4"
+                  />
+                  <path
+                    d="M 15 24 L 18 32 L 21 24 Z"
+                    fill="url(#penGold)"
+                    stroke="rgba(50,30,10,0.7)"
+                    strokeWidth="0.3"
+                  />
+                  <line
+                    x1="18" y1="26" x2="18" y2="31"
+                    stroke="rgba(30,15,5,0.8)" strokeWidth="0.6"
+                  />
+                  <line
+                    x1="14" y1="10" x2="22" y2="10"
+                    stroke="rgba(80,55,15,0.7)" strokeWidth="0.5"
+                  />
+                </g>
+              </svg>
 
-          {/* The brand promise — a single italic line. The previous longer
-              manifesto paragraph was removed (2026-05-25 evening) so the
-              composition reads as: crest → calligraphy ("A quiet room, by
-              invitation only") → wordmark → THIS line → doors. Editorial
-              silence, no surplus prose. */}
-          <div className="login-hero-body">
-            <p className="login-hero-tagline">{copy.auth.heroTagline}</p>
+              {/* The tagline — split into 2 spans (one per line) so each
+                  reveals separately and the pen jumps line-to-line. */}
+              <p className="login-hero-tagline">
+                {(copy.auth.heroTagline.includes('\n')
+                  ? copy.auth.heroTagline.split('\n')
+                  : [copy.auth.heroTagline]
+                ).map((line, idx) => (
+                  <span
+                    key={idx}
+                    className={`tagline-line tagline-line-${idx + 1}`}
+                  >
+                    {line}
+                  </span>
+                ))}
+              </p>
+            </div>
           </div>
 
-          {/* The three doors — equal weight, vertical stack. */}
+          {/* The three doors — equal weight, centered at the bottom,
+              spanning both columns on desktop. */}
           <nav className="login-hero-doors" aria-label="Access">
             <button
               type="button"
@@ -222,17 +268,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           </nav>
         </section>
 
+        {/* Language picker — label deleted per Master's instruction
+            (2026-05-25), just the <select> remains. Stays in the
+            top-right corner. */}
         <footer className="login-hero-footer">
-          <label className="login-hero-language">
-            <span>{copy.auth.language}</span>
-            <select
-              value={appLanguage}
-              onChange={(event) => setAppLanguage(event.target.value as AppLanguage)}
-            >
-              <option value="en">{copy.auth.english}</option>
-              <option value="ro">{copy.auth.romanian}</option>
-            </select>
-          </label>
+          <select
+            className="login-hero-language-select"
+            value={appLanguage}
+            onChange={(event) => setAppLanguage(event.target.value as AppLanguage)}
+            aria-label={copy.auth.language}
+          >
+            <option value="en">{copy.auth.english}</option>
+            <option value="ro">{copy.auth.romanian}</option>
+          </select>
         </footer>
       </main>
     )

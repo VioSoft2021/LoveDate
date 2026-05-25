@@ -35,7 +35,11 @@ export const UI_TEXT = {
       // Request Access is the only chunky button, invite-code path is a quiet
       // link beneath it.
       heroEyebrow: 'By invitation',
-      heroTagline: 'Where the noise of every other dating app falls away',
+      // Two-line tagline written by the animated pen on the LoginScreen
+      // hero. \n marks the line break — the JSX splits on it to give each
+      // line its own clip-path reveal animation. Each line should feel
+      // visually balanced when rendered (line 2 slightly shorter than 1).
+      heroTagline: 'Where the noise of every other\ndating app falls away',
       // Editorial brand paragraph — small italic prose that fills the
       // visual space with meaning rather than decoration. Reads like
       // the opening line of a journal, not marketing copy.
@@ -597,7 +601,10 @@ export const UI_TEXT = {
       // Phase A — ecranul de start (oglindă a CTA-ului din filmul de prezentare)
       // Rebalansat 2026-05-24 — vezi nota EN de mai sus.
       heroEyebrow: 'Doar pe bază de invitație',
-      heroTagline: 'Unde zgomotul aplicațiilor de întâlniri se stinge',
+      // Două rânduri scrise de stiloul animat de pe ecranul de start.
+      // \n marchează separarea pe rânduri; JSX împarte după acest caracter
+      // ca să dea fiecărei linii propria animație de revelare.
+      heroTagline: 'Unde zgomotul aplicațiilor\nde întâlniri se stinge',
       // Paragraf editorial — proză italică mică care umple golul vizual cu sens.
       heroManifesto: 'O cameră liniștită, doar pe bază de invitație. Unde zgomotul aplicațiilor de întâlniri se stinge — și rămâne doar ce contează: potriviri atente, introduceri scrise cu grijă, și răbdarea de a cunoaște pe cineva real.',
       // Trei căi egale — toate la fel de respectate la intrare.
