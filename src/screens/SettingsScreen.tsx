@@ -259,8 +259,6 @@ const SettingsScreenInner: React.FC<SettingsScreenProps> = ({
             ? copy.settings.planEnabled
             : copy.settings.planUpgradeRequired}
         </p>
-        <p>{copy.settings.planBackendMode}: {backendMode}</p>
-        <p className="soft">{copy.settings.planSessionNote}</p>
       </details>
 
       <details className="profile-settings settings-card settings-card--notifications">
