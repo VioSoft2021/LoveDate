@@ -11,6 +11,7 @@ type UpdateBannerHandle = {
 // banner without prop drilling. The component registers itself on mount.
 let handle: UpdateBannerHandle | null = null
 
+// eslint-disable-next-line react-refresh/only-export-components -- imperative singleton co-located with its component; moving to a separate file would split coupled state
 export const showUpdateBanner = (onConfirm: () => void) => {
   handle?.show(onConfirm)
 }

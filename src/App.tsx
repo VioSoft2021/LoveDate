@@ -1534,9 +1534,9 @@ function App() {
     navigate('profile-detail', { profileId })
   }
 
-  const closeProfileDetail = () => {
+  const closeProfileDetail = useCallback(() => {
     navigate(previousScreen)
-  }
+  }, [navigate, previousScreen])
 
   const addSwipeHistory = useCallback((profileId: number, direction: SwipeDirection, wasMatch: boolean) => {
     setHistory((current) => {
@@ -1630,7 +1630,7 @@ function App() {
       })
       pushToast(`It's a match with ${profile.name}!`, 'success')
     },
-    [pushNotification, pushToast, setChatThreads, setMatchQueueIds, setUnreadChats],
+    [pushNotification, pushToast, setActiveMatch, setChatThreads, setMatchQueueIds, setUnreadChats],
   )
 
   const swipeCard = useCallback(
@@ -1713,8 +1713,6 @@ function App() {
       addSwipeHistory,
       setSwipeLog,
       onMatchConfirmed,
-      recordLikeEvent,
-      recordSuperLikeEvent,
       pushToast,
       refreshEngagementUsage,
       setExitDirection,
@@ -1756,9 +1754,11 @@ function App() {
     refreshEngagementUsage,
     rewindsLeft,
     pushToast,
+    setActiveMatch,
     setIndex,
     setLastIntent,
     setRewindsLeft,
+    setSwipeLog,
   ])
 
   const sendChatMessage = () => {
@@ -2519,7 +2519,7 @@ function App() {
     }
     const messages = chatThreads[selectedChatProfile.id] ?? []
     return showFullChatHistory ? messages : messages.slice(-CHAT_RENDER_WINDOW)
-  }, [selectedChatProfile, chatThreads, selfProfile.name, showFullChatHistory])
+  }, [selectedChatProfile, chatThreads, showFullChatHistory])
 
   const selectedChatCallHistory = useMemo(() => {
     if (!selectedChatProfile) {
@@ -2534,7 +2534,7 @@ function App() {
     }
     const messages = chatThreads[selectedChatProfile.id] ?? []
     return Math.max(0, messages.length - CHAT_RENDER_WINDOW)
-  }, [selectedChatProfile, chatThreads, selfProfile.name, showFullChatHistory])
+  }, [selectedChatProfile, chatThreads, showFullChatHistory])
 
   useEffect(() => {
     const container = messagesContainerRef.current
@@ -2590,7 +2590,7 @@ function App() {
     if (!filteredCircles.some((circle) => circle.id === selectedCircleId) && filteredCircles.length > 0) {
       setSelectedCircleId(filteredCircles[0].id)
     }
-  }, [filteredCircles, selectedCircleId])
+  }, [filteredCircles, selectedCircleId, setSelectedCircleId])
 
   const selectedCircle = useMemo(
     () => CIRCLE_SEED.find((circle) => circle.id === selectedCircleId) ?? filteredCircles[0] ?? null,
@@ -2611,11 +2611,11 @@ function App() {
     setJoinedCircleIds((current) =>
       current.includes(circleId) ? current.filter((id) => id !== circleId) : [...current, circleId],
     )
-  }, [])
+  }, [setJoinedCircleIds])
 
   const toggleCircleRsvp = useCallback((eventId: string) => {
     setCircleRsvps((current) => ({ ...current, [eventId]: !current[eventId] }))
-  }, [])
+  }, [setCircleRsvps])
 
   const publishCirclePost = useCallback(() => {
     if (!selectedCircle) {
@@ -2640,7 +2640,7 @@ function App() {
     setCirclePosts((current) => [nextPost, ...current])
     setCirclePostDraft('')
     pushToast('Posted to the circle feed.', 'success')
-  }, [selectedCircle, circlePostDraft, joinedCircleIds, selfProfile.name, pushToast])
+  }, [selectedCircle, circlePostDraft, joinedCircleIds, selfProfile.name, pushToast, setCirclePostDraft, setCirclePosts])
 
   const unreadNotificationCount = useMemo(
     () => notifications.reduce((count, item) => count + (item.read ? 0 : 1), 0),
