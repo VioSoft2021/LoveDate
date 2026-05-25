@@ -31,71 +31,174 @@
     linear-gradient(165deg, #060a1f 0%, #0c1030 45%, #0a0d28 100%);
 }
 
-/* ── Vertical gold totem (brand-owned SVG composition) ─────────
-   Replaces the single hairline. Top + bottom starbursts joined by
-   gold hairlines, with a vesica piscis (two overlapping circles)
-   at the visual center. Symbolic: two paths meeting, becoming one.
-   Tells the brand story without imagery. */
-.login-hero-totem {
+/* ── "The Meeting" centerpiece animation (replaces the static totem)
+   Two gold orbs drift along curved paths from opposite sides of the
+   viewport, touch at the visual center, bloom softly, then continue
+   past each other and out of view. ~16s cycle. The animation IS the
+   vesica piscis — drawn in motion, not as static ornament.
+   Tells the brand story: two paths converge, briefly meet, continue. */
+.login-hero-meeting {
   position: absolute;
-  top: 6vh;
-  bottom: 6vh;
-  right: clamp(2rem, 7vw, 7rem);
-  width: clamp(56px, 6vw, 80px);
-  height: auto;
-  z-index: 1;
+  inset: 0;
   pointer-events: none;
-  filter: drop-shadow(0 0 20px rgba(216, 184, 109, 0.18));
+  overflow: hidden;
+  z-index: 1;
 }
 
-/* Sequential draw-in animation on page load.
-   Top mark → top line → vesica (with bloom) → bottom line → bottom mark.
-   Total ~3.2s, then ambient breath on the vesica. */
-.login-hero-totem .totem-mark--top {
+.login-hero-meeting .meeting-orb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(10px, 1.1vw, 16px);
+  height: clamp(10px, 1.1vw, 16px);
+  border-radius: 999px;
+  background: radial-gradient(
+    circle at 35% 35%,
+    #fff8e7 0%,
+    #f4dca8 30%,
+    #cfad61 65%,
+    rgba(207, 173, 97, 0) 100%
+  );
+  box-shadow:
+    0 0 18px rgba(244, 220, 168, 0.55),
+    0 0 48px rgba(244, 220, 168, 0.28),
+    0 0 96px rgba(244, 220, 168, 0.12);
   opacity: 0;
-  animation: prive-totem-fade-in 700ms ease-out 200ms forwards;
+  will-change: transform, opacity;
 }
-.login-hero-totem .totem-line--top {
-  stroke-dasharray: 260;
-  stroke-dashoffset: 260;
-  animation: prive-totem-line-draw 1000ms cubic-bezier(0.65, 0, 0.35, 1) 700ms forwards;
+
+/* Orb A drifts in from the upper-left, arcs through the center,
+   continues out toward the lower-right. ease-in-out so the orb
+   accelerates into the meeting and decelerates as it exits. */
+.login-hero-meeting .meeting-orb-a {
+  animation: prive-meeting-travel-a 16s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
-.login-hero-totem .totem-bloom {
+@keyframes prive-meeting-travel-a {
+  0% {
+    transform: translate(8vw, 22vh) scale(0.8);
+    opacity: 0;
+  }
+  8% { opacity: 0.65; }
+  20% { transform: translate(22vw, 28vh) scale(0.9); }
+  35% { transform: translate(38vw, 38vh) scale(1); }
+  47% { transform: translate(48vw, 47vh) scale(1.15); }
+  50% {
+    transform: translate(50vw, 50vh) scale(1.3);
+    opacity: 1;
+  }
+  53% { transform: translate(52vw, 53vh) scale(1.15); }
+  65% { transform: translate(62vw, 62vh) scale(1); }
+  80% { transform: translate(78vw, 72vh) scale(0.9); }
+  92% { opacity: 0.45; }
+  100% {
+    transform: translate(94vw, 80vh) scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* Orb B is the mirror — enters from the lower-right, arcs through
+   center, exits toward the upper-left. Same duration, identical
+   easing, so the two orbs cross precisely at 50%. */
+.login-hero-meeting .meeting-orb-b {
+  animation: prive-meeting-travel-b 16s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes prive-meeting-travel-b {
+  0% {
+    transform: translate(92vw, 78vh) scale(0.8);
+    opacity: 0;
+  }
+  8% { opacity: 0.65; }
+  20% { transform: translate(78vw, 72vh) scale(0.9); }
+  35% { transform: translate(62vw, 62vh) scale(1); }
+  47% { transform: translate(52vw, 53vh) scale(1.15); }
+  50% {
+    transform: translate(50vw, 50vh) scale(1.3);
+    opacity: 1;
+  }
+  53% { transform: translate(48vw, 47vh) scale(1.15); }
+  65% { transform: translate(38vw, 38vh) scale(1); }
+  80% { transform: translate(22vw, 28vh) scale(0.9); }
+  92% { opacity: 0.45; }
+  100% {
+    transform: translate(8vw, 20vh) scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* The bloom — a soft radial gold haze that pulses when the orbs cross.
+   Anchored at the meeting point (50vw, 50vh). Stays invisible 0–45%,
+   peaks at 50–55%, fades out by 70%. */
+.login-hero-meeting .meeting-bloom {
+  position: absolute;
+  top: 50vh;
+  left: 50vw;
+  width: clamp(220px, 32vw, 480px);
+  height: clamp(220px, 32vw, 480px);
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 248, 231, 0.22) 0%,
+    rgba(244, 220, 168, 0.14) 18%,
+    rgba(216, 184, 109, 0.06) 42%,
+    rgba(216, 184, 109, 0) 70%
+  );
+  transform: translate(-50%, -50%) scale(0);
   opacity: 0;
-  transform-origin: 40px 350px;
-  animation:
-    prive-totem-fade-in 900ms ease-out 1500ms forwards,
-    prive-totem-bloom-breath 6s ease-in-out 3200ms infinite alternate;
+  filter: blur(2px);
+  animation: prive-meeting-bloom 16s ease-out infinite;
+  will-change: transform, opacity;
 }
-.login-hero-totem .totem-vesica {
-  opacity: 0;
-  transform-origin: 40px 350px;
-  animation:
-    prive-totem-fade-in 900ms ease-out 1500ms forwards,
-    prive-totem-vesica-breath 6s ease-in-out 3200ms infinite alternate;
+@keyframes prive-meeting-bloom {
+  0%, 44% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0.95;
+  }
+  58% {
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0.6;
+  }
+  72% {
+    transform: translate(-50%, -50%) scale(1.7);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
 }
-.login-hero-totem .totem-line--bottom {
-  stroke-dasharray: 260;
-  stroke-dashoffset: 260;
-  animation: prive-totem-line-draw 1000ms cubic-bezier(0.65, 0, 0.35, 1) 2200ms forwards;
+
+/* Honour reduced-motion preferences — if the user has prefers-reduced-motion
+   set, freeze the animation at the bloom moment so they still see the gold
+   composition but without the cyclic motion. */
+@media (prefers-reduced-motion: reduce) {
+  .login-hero-meeting .meeting-orb-a,
+  .login-hero-meeting .meeting-orb-b,
+  .login-hero-meeting .meeting-bloom {
+    animation: none;
+    opacity: 0.4;
+  }
+  .login-hero-meeting .meeting-orb-a {
+    transform: translate(35vw, 38vh) scale(1);
+  }
+  .login-hero-meeting .meeting-orb-b {
+    transform: translate(65vw, 62vh) scale(1);
+  }
+  .login-hero-meeting .meeting-bloom {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.35;
+  }
 }
-.login-hero-totem .totem-mark--bottom {
-  opacity: 0;
-  animation: prive-totem-fade-in 700ms ease-out 3000ms forwards;
-}
-@keyframes prive-totem-fade-in {
-  to { opacity: 1; }
-}
-@keyframes prive-totem-line-draw {
-  to { stroke-dashoffset: 0; }
-}
-@keyframes prive-totem-bloom-breath {
-  from { opacity: 0.5; transform: scale(0.92); }
-  to   { opacity: 0.9; transform: scale(1.06); }
-}
-@keyframes prive-totem-vesica-breath {
-  from { opacity: 0.78; }
-  to   { opacity: 1; }
+
+/* On phones the centre void doesn't exist — the content fills the
+   width and the orbs would distract. Hide entirely below 800px. */
+@media (max-width: 800px) {
+  .login-hero-meeting {
+    display: none;
+  }
 }
 
 /* ── Editorial mark — top-right corner ────────────────────────────
