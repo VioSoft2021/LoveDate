@@ -31,121 +31,147 @@
     linear-gradient(165deg, #060a1f 0%, #0c1030 45%, #0a0d28 100%);
 }
 
-/* ── "Calligraphy" centerpiece animation (replaces the totem + Meeting)
-   A single gold hairline curve draws itself across the empty right
-   side of the viewport, holds for a few seconds while the "ink dries",
-   fades, brief silence, then a different path begins. Three paths
-   rotate through a 42-second cycle (14s per stroke).
-   Reads as: Privé signs every match by hand. */
+/* ── "Calligraphy" centerpiece — the brand promise hand-written
+   The manifesto opening ("A quiet room, by invitation only") is
+   rendered in Great Vibes cursive on the empty right side of the
+   hero. Two stacked <text> elements:
+     1. Filled gold gradient (the "settled ink")
+     2. Outlined stroke (the "pen trace") with stroke-dashoffset
+        animation that reveals the strokes over ~6 seconds.
+   The fill fades in just as the outline finishes, so the eye sees
+   the letters first sketched, then filled. Holds ~4s, fades, brief
+   silence, repeats. ~14s per cycle. Reads as a personal note signed
+   by the brand: this is for you, by invitation. */
 .login-hero-calligraphy {
   position: absolute;
   top: 0;
   bottom: 0;
   right: 0;
-  /* Occupy roughly the right 65% of the viewport so the strokes
-     never collide with the typography column on the left. */
-  width: 65vw;
+  /* Occupy roughly the right 60% of the viewport so the text never
+     collides with the typography column on the left. */
+  width: 60vw;
   height: 100vh;
   pointer-events: none;
   z-index: 1;
-  /* Soft gold haze around each stroke — feels like ambient ink. */
-  filter: drop-shadow(0 0 14px rgba(244, 220, 168, 0.35));
+  /* Soft gold haze around the text — feels like ambient ink. */
+  filter: drop-shadow(0 0 16px rgba(244, 220, 168, 0.32));
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.login-hero-calligraphy .calli-path {
-  /* Larger than any of the actual path lengths (≤ ~1600 each) so the
-     "dash + gap" covers each path entirely. */
-  stroke-dasharray: 2400;
-  stroke-dashoffset: 2400;
+.login-hero-calligraphy .calli-text {
+  font-family: 'Great Vibes', 'Allura', 'Dancing Script', cursive;
+  font-size: 90px;
+  letter-spacing: 0.01em;
+}
+
+/* Filled gold text — appears beneath the outline as the "ink" that
+   settles once the pen has finished drawing. Fades in halfway through
+   the cycle. */
+.login-hero-calligraphy .calli-text-fill {
   opacity: 0;
+  animation: prive-calli-fill 14s ease-in-out infinite;
+  will-change: opacity;
+}
+@keyframes prive-calli-fill {
+  /* No ink visible during the drawing phase (0–50%). */
+  0%, 45% {
+    opacity: 0;
+  }
+  /* Ink settles into the letters as the pen finishes. */
+  60% {
+    opacity: 0.92;
+  }
+  /* Hold the settled ink. */
+  82% {
+    opacity: 0.92;
+  }
+  /* Fade out near the end of the cycle. */
+  95% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Outlined stroke text — the "pen trace" that draws first via
+   stroke-dashoffset. Stays visible over the fill as a fine highlight
+   outline, fades with the fill at the end. */
+.login-hero-calligraphy .calli-text-stroke {
+  /* Generous dash length so the dash + gap cover any glyph outline.
+     Cursive at 90px → individual glyph perimeters ≤ ~600 each; total
+     across all glyphs around 2000–3000. 4000 over-covers safely. */
+  stroke-dasharray: 4000;
+  stroke-dashoffset: 4000;
+  opacity: 0;
+  animation: prive-calli-stroke 14s ease-in-out infinite;
   will-change: stroke-dashoffset, opacity;
 }
-
-/* Three paths rotate through a 42s cycle. Each path's "turn" lasts
-   14s — draw (~7s), hold (~5s), fade (~1.5s), silence (~0.5s).
-   Negative animation-delay offsets each path so they don't overlap.
-   Phase math against the 42s loop:
-     Path 1 (delay 0s)   active 0–14s   → phases 0% – 33.33%
-     Path 2 (delay -28s) active 14–28s  → phases 33.33% – 66.66%
-     Path 3 (delay -14s) active 28–42s  → phases 66.66% – 100%
-   The keyframe definition below is the SAME for all three; the
-   delay alone shifts WHICH 14s window each path is "on stage". */
-.login-hero-calligraphy .calli-path-1 {
-  animation: prive-calli-draw 42s ease-in-out infinite;
-  animation-delay: 0s;
-}
-.login-hero-calligraphy .calli-path-2 {
-  animation: prive-calli-draw 42s ease-in-out infinite;
-  animation-delay: -28s;
-}
-.login-hero-calligraphy .calli-path-3 {
-  animation: prive-calli-draw 42s ease-in-out infinite;
-  animation-delay: -14s;
-}
-
-@keyframes prive-calli-draw {
-  /* 0%–33.33% of the 42s loop is THIS path's 14-second turn.
-     Outside that window the path stays invisible. */
+@keyframes prive-calli-stroke {
   0% {
-    stroke-dashoffset: 2400;
+    stroke-dashoffset: 4000;
     opacity: 0;
   }
-  /* Fade in instantly so the pen "touches the paper" at t=0. */
-  1% {
+  /* Pen touches paper. */
+  2% {
     opacity: 1;
   }
-  /* Drawing phase complete at ~7s (16.66% of 42s).
-     Use ease-out timing so the stroke decelerates at the end —
-     mimics a pen lifting slowly from paper rather than snapping off. */
-  16.66% {
+  /* Drawing phase complete at ~50% (7s). The outline is fully sketched. */
+  50% {
     stroke-dashoffset: 0;
     opacity: 1;
-    animation-timing-function: linear;
   }
-  /* Hold the dried stroke for ~5 seconds (12s of 42s = 28.57%). */
-  28% {
+  /* Hold the outline as the fill settles in. */
+  82% {
     stroke-dashoffset: 0;
     opacity: 1;
-    animation-timing-function: ease-in;
   }
-  /* Fade out over ~1.5 seconds (13.5s of 42s ≈ 32.14%). */
-  32% {
+  /* Fade outline together with the fill. */
+  95% {
     stroke-dashoffset: 0;
     opacity: 0;
   }
-  /* Brief silence (~0.5s) before the next path takes the stage. */
-  33.34% {
-    stroke-dashoffset: 2400;
-    opacity: 0;
-  }
-  /* Stay invisible for the remaining ~28s of the cycle. */
   100% {
-    stroke-dashoffset: 2400;
+    stroke-dashoffset: 0;
     opacity: 0;
   }
 }
 
-/* Honour prefers-reduced-motion — freeze a single drawn stroke
-   instead of cycling so motion-sensitive users still see the gold
-   composition. */
+/* Honour prefers-reduced-motion — render the text statically
+   (no drawing animation) so motion-sensitive users still see the
+   gold calligraphy without the cyclic motion. */
 @media (prefers-reduced-motion: reduce) {
-  .login-hero-calligraphy .calli-path {
+  .login-hero-calligraphy .calli-text-fill {
+    animation: none;
+    opacity: 0.92;
+  }
+  .login-hero-calligraphy .calli-text-stroke {
     animation: none;
     stroke-dashoffset: 0;
     opacity: 0.5;
   }
-  .login-hero-calligraphy .calli-path-2,
-  .login-hero-calligraphy .calli-path-3 {
+}
+
+/* Phones don't have the right-side void the calligraphy occupies —
+   the content fills the width, so the text would either overlap with
+   the manifesto or render too small to read. Hide below 800px. */
+@media (max-width: 800px) {
+  .login-hero-calligraphy {
     display: none;
   }
 }
 
-/* Phones don't have the right-side void the calligraphy occupies —
-   the content fills the width, so a stroke drawn there would either
-   overlap text or be invisible. Hide below 800px. */
-@media (max-width: 800px) {
-  .login-hero-calligraphy {
-    display: none;
+/* Scale the cursive down a touch on medium screens so it never wraps. */
+@media (max-width: 1280px) {
+  .login-hero-calligraphy .calli-text {
+    font-size: 72px;
+  }
+}
+@media (max-width: 1000px) {
+  .login-hero-calligraphy .calli-text {
+    font-size: 56px;
   }
 }
 

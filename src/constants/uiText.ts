@@ -40,6 +40,7 @@ export const UI_TEXT = {
       // visual space with meaning rather than decoration. Reads like
       // the opening line of a journal, not marketing copy.
       heroManifesto: 'A quiet room, by invitation only. Where the noise of every other dating app falls away — and what remains is rare: thoughtful matches, written introductions, and the patience to find someone real.',
+      heroCalligraphy: 'A quiet room, by invitation only',
       // Three equal access paths — same size + style so no visitor type
       // is implicitly demoted. Parallel verb-phrases.
       heroRequestAccess: 'Request access',
@@ -600,6 +601,7 @@ export const UI_TEXT = {
       heroTagline: 'viitorul felului în care vei cunoaște pe cineva',
       // Paragraf editorial — proză italică mică care umple golul vizual cu sens.
       heroManifesto: 'O cameră liniștită, doar pe bază de invitație. Unde zgomotul aplicațiilor de întâlniri se stinge — și rămâne doar ce contează: potriviri atente, introduceri scrise cu grijă, și răbdarea de a cunoaște pe cineva real.',
+      heroCalligraphy: 'O cameră liniștită, doar pe invitație',
       // Trei căi egale — toate la fel de respectate la intrare.
       heroRequestAccess: 'Solicită acces',
       heroHaveInvite: 'Folosește invitația',

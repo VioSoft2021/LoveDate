@@ -154,17 +154,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       <main className="login-shell login-shell--hero">
         <div className="grain" aria-hidden="true" />
 
-        {/* "Calligraphy" — a single gold hairline curve draws itself
-            across the empty right-side of the viewport like a fountain
-            pen writing a signature. Three different paths rotate through
-            (42s total cycle, 14s per stroke). Each stroke draws over 7s,
-            holds for ~5s while the ink "dries", fades over ~1.5s, brief
-            silence, then the next path begins on a fresh canvas.
-            Brand-deep: Privé as a hand-signed editorial mark.
-            Hidden on phones (no centre void on narrow viewports). */}
+        {/* "Calligraphy" — the brand statement written in cursive script
+            on the empty right side of the hero. Two stacked <text>
+            elements: the outline draws first (stroke-dashoffset), then a
+            gold-gradient fill fades in beneath it — so the words appear
+            as if a fountain pen first sketches the letters, then settles
+            with ink. Holds ~4s, fades ~1.5s, brief silence, repeats.
+            ~14s per cycle. Words taken from the manifesto opening — the
+            brand promise distilled. Hidden below 800px viewport. */}
         <svg
           className="login-hero-calligraphy"
-          viewBox="0 0 1000 800"
+          viewBox="0 0 1200 400"
           preserveAspectRatio="xMidYMid meet"
           aria-hidden="true"
         >
@@ -175,37 +175,33 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <stop offset="100%" stopColor="#cfad61" />
             </linearGradient>
           </defs>
-          {/* Stroke 1 — flowing horizontal signature with a final descent.
-              The most "signature-like" of the three: opens with a gentle
-              swell, settles, finishes with a small downward flourish. */}
-          <path
-            className="calli-path calli-path-1"
-            d="M 80 380 C 180 300, 300 440, 420 360 S 620 220, 760 360 S 880 520, 960 420"
-            stroke="url(#calliGold)"
-            strokeWidth="1.6"
+          {/* Filled text (bottom layer) — fades in once the outline is
+              drawn so the letters "settle with ink" at the end. */}
+          <text
+            x="600"
+            y="220"
+            textAnchor="middle"
+            className="calli-text calli-text-fill"
+            fill="url(#calliGold)"
+          >
+            {copy.auth.heroCalligraphy}
+          </text>
+          {/* Outlined text (top layer) — stroke draws via dashoffset to
+              create the "writing" effect; remains visible over the fill
+              as a fine pen outline, fades together with the fill at end. */}
+          <text
+            x="600"
+            y="220"
+            textAnchor="middle"
+            className="calli-text calli-text-stroke"
             fill="none"
-            strokeLinecap="round"
-          />
-          {/* Stroke 2 — descending elegance: starts high-left, drops in
-              a smooth diagonal, terminates with a small upward hook. */}
-          <path
-            className="calli-path calli-path-2"
-            d="M 120 200 Q 280 420, 480 320 T 820 400 Q 920 420, 960 480"
             stroke="url(#calliGold)"
-            strokeWidth="1.6"
-            fill="none"
+            strokeWidth="0.6"
             strokeLinecap="round"
-          />
-          {/* Stroke 3 — ascending flourish: rises from bottom-left through
-              a long curve, finishes with a small rounded apex top-right. */}
-          <path
-            className="calli-path calli-path-3"
-            d="M 180 660 Q 360 540, 560 600 T 880 500 C 940 470, 970 380, 920 280"
-            stroke="url(#calliGold)"
-            strokeWidth="1.6"
-            fill="none"
-            strokeLinecap="round"
-          />
+            strokeLinejoin="round"
+          >
+            {copy.auth.heroCalligraphy}
+          </text>
         </svg>
 
         {/* Editorial mark in the top-right corner — issue number style.
