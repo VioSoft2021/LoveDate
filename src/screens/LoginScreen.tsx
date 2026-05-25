@@ -154,22 +154,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       <main className="login-shell login-shell--hero">
         <div className="grain" aria-hidden="true" />
 
-        {/* Layout (2026-05-25 final pass v2 — after Master's "horrible"
-            feedback on v1):
-            - Desktop ≥900px: 2 columns anchored to viewport edges (not
-              centered). Left column FLUSH LEFT, right column FLUSH RIGHT.
-              The middle of the page is empty space (like a magazine
-              spread). Each column's content centered horizontally inside
-              its own column so the crest sits CENTERED OVER the wordmark.
-            - Left column: crest + wordmark + slogan + doors (like the
-              pre-crest layout had it — content centered, anchored left).
-            - Right column: single-line tagline revealed horizontally by a
-              pen whose tip TRACKS the leading edge of the reveal.
-            - Mobile: vertical centered column (everything stacks).
-            - Édition mark deleted; language picker label deleted, dropdown stays. */}
+        {/* Layout (2026-05-25 final pass v3 — Master's latest feedback):
+            - Branding bigger, occupies the left column (crest + wordmark
+              + slogan scale up).
+            - Right column: tagline in TWO lines (no pen, no animation
+              tracking — just clean clip-path reveals on each line).
+            - Doors moved OUT of the left column to a bottom row that
+              spans the full width of the page, horizontally centered.
+            - Mobile: everything stacks in a centered column. */}
         <section className="login-hero">
-          {/* LEFT column — seal, masthead, doors. All centered within
-              the column so the crest naturally aligns over the wordmark. */}
+          {/* LEFT column — seal + masthead. Doors no longer live here. */}
           <div className="login-hero-left">
             <div className="login-hero-seal">
               <img
@@ -184,132 +178,51 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <h1 className="login-hero-wordmark" aria-label="Privé">PRIVÉ</h1>
               <p className="login-hero-slogan">Members only &middot; By design</p>
             </header>
-            <nav className="login-hero-doors" aria-label="Access">
-              <button
-                type="button"
-                className="login-hero-door"
-                onClick={goToWaitlist}
-              >
-                {copy.auth.heroRequestAccess}
-              </button>
-              <button
-                type="button"
-                className="login-hero-door"
-                onClick={() => goToAuth('register')}
-              >
-                {copy.auth.heroHaveInvite}
-              </button>
-              <button
-                type="button"
-                className="login-hero-door"
-                onClick={() => goToAuth('login')}
-              >
-                {copy.auth.heroSignIn}
-              </button>
-            </nav>
           </div>
 
-          {/* RIGHT column — the brand promise written by a pen. Single
-              horizontal line; the pen's tip is at the viewBox left edge
-              (x=0) so positioning the pen at left:N% puts the tip exactly
-              at N% of the writing container. */}
+          {/* RIGHT column — two-line tagline. The pen is gone (Master
+              flagged it). Each line reveals sequentially via clip-path. */}
           <div className="login-hero-right">
-            <div className="login-hero-writing">
-              <svg
-                className="login-hero-pen"
-                viewBox="-4 -2 54 44"
-                aria-hidden="true"
-              >
-                <defs>
-                  <linearGradient id="penBody" x1="100%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#f4dca8" />
-                    <stop offset="40%" stopColor="#cfad61" />
-                    <stop offset="100%" stopColor="#8b6b2c" />
-                  </linearGradient>
-                  <linearGradient id="penCap" x1="100%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#cfad61" />
-                    <stop offset="50%" stopColor="#8b6b2c" />
-                    <stop offset="100%" stopColor="#3a2810" />
-                  </linearGradient>
-                </defs>
-                {/* Proper fountain pen — drawn vertical with tip at origin,
-                    then rotated 55° clockwise + translated so the tip
-                    lands at viewBox (0, 40). Composed of distinct
-                    fountain-pen anatomy parts: nib (with slit + breathing
-                    hole), section, body barrel, trim ring, cap, finial,
-                    pocket clip. */}
-                <g transform="translate(0 40) rotate(55)">
-                  {/* Nib — pointed gold triangle, darker than body */}
-                  <path
-                    d="M -2 -8 L 0 0 L 2 -8 L 2.2 -10 L -2.2 -10 Z"
-                    fill="#5a4520"
-                    stroke="#2a1a08"
-                    strokeWidth="0.2"
-                  />
-                  {/* Nib slit — the defining feature of a fountain pen */}
-                  <line
-                    x1="0" y1="-1" x2="0" y2="-8"
-                    stroke="#0a0500" strokeWidth="0.5"
-                    strokeLinecap="round"
-                  />
-                  {/* Breathing hole — small round dot at top of slit */}
-                  <circle cx="0" cy="-8.5" r="0.9" fill="#0a0500" />
-                  {/* Section — short taper between nib and body */}
-                  <path
-                    d="M -2.2 -10 L 2.2 -10 L 2.6 -14 L -2.6 -14 Z"
-                    fill="url(#penBody)"
-                  />
-                  {/* Trim ring — thin band where section meets body */}
-                  <rect
-                    x="-2.7" y="-14.5" width="5.4" height="0.7"
-                    fill="#3a2810"
-                  />
-                  {/* Body barrel — main uniform-width section */}
-                  <rect
-                    x="-2.6" y="-32" width="5.2" height="17.5"
-                    fill="url(#penBody)"
-                    stroke="#3a2810" strokeWidth="0.15"
-                  />
-                  {/* Cap trim ring */}
-                  <rect
-                    x="-2.9" y="-33.5" width="5.8" height="1.5"
-                    fill="#3a2810"
-                  />
-                  {/* Cap — slightly wider than body */}
-                  <rect
-                    x="-3.2" y="-46" width="6.4" height="12.5"
-                    rx="0.4"
-                    fill="url(#penCap)"
-                    stroke="#3a2810" strokeWidth="0.15"
-                  />
-                  {/* Cap top finial — small darker dome */}
-                  <ellipse
-                    cx="0" cy="-46" rx="3.4" ry="0.9"
-                    fill="#3a2810"
-                  />
-                  {/* Pocket clip — the gold arm hooked over the cap */}
-                  <path
-                    d="M 3.2 -44.5 L 3.5 -36 L 2.6 -33.5"
-                    stroke="url(#penCap)" strokeWidth="1.4"
-                    fill="none" strokeLinecap="round"
-                  />
-                  {/* Subtle highlight stripe down the cap for sheen */}
-                  <line
-                    x1="-1.2" y1="-45" x2="-1.2" y2="-34"
-                    stroke="rgba(255,248,231,0.4)" strokeWidth="0.6"
-                  />
-                  {/* Subtle highlight on the body */}
-                  <line
-                    x1="-1.4" y1="-31" x2="-1.4" y2="-15"
-                    stroke="rgba(255,248,231,0.32)" strokeWidth="0.5"
-                  />
-                </g>
-              </svg>
-              <p className="login-hero-tagline">
-                <span className="tagline-text">{copy.auth.heroTagline}</span>
-              </p>
-            </div>
+            <p className="login-hero-tagline">
+              {(copy.auth.heroTagline.includes('\n')
+                ? copy.auth.heroTagline.split('\n')
+                : [copy.auth.heroTagline]
+              ).map((line, idx) => (
+                <span
+                  key={idx}
+                  className={`tagline-line tagline-line-${idx + 1}`}
+                >
+                  {line}
+                </span>
+              ))}
+            </p>
           </div>
+
+          {/* BOTTOM row — three doors centered horizontally across the
+              full page width, separate from both columns above. */}
+          <nav className="login-hero-doors" aria-label="Access">
+            <button
+              type="button"
+              className="login-hero-door"
+              onClick={goToWaitlist}
+            >
+              {copy.auth.heroRequestAccess}
+            </button>
+            <button
+              type="button"
+              className="login-hero-door"
+              onClick={() => goToAuth('register')}
+            >
+              {copy.auth.heroHaveInvite}
+            </button>
+            <button
+              type="button"
+              className="login-hero-door"
+              onClick={() => goToAuth('login')}
+            >
+              {copy.auth.heroSignIn}
+            </button>
+          </nav>
         </section>
 
         {/* Language picker — label deleted per Master's instruction

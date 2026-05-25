@@ -44,21 +44,15 @@
   animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* The crest itself — sized to be the visual anchor of the hero
-   without dwarfing the wordmark beneath it. */
+/* The crest — bigger, dominates the left column as the brand anchor. */
 .login-hero-crest {
   display: block;
-  width: clamp(180px, 22vh, 280px);
+  width: clamp(220px, 32vh, 400px);
   height: auto;
   user-select: none;
   -webkit-user-drag: none;
-  /* Subtle gold halo behind the transparent PNG so the crest
-     reads as luminous rather than pasted-on. */
-  filter: drop-shadow(0 12px 30px rgba(216, 184, 109, 0.2))
-          drop-shadow(0 0 18px rgba(244, 220, 168, 0.1));
-  /* Gentle ambient breath — 1.2% scale oscillation over 9 seconds.
-     Starts after the load fade-in completes (delay matches that
-     animation's duration). Just enough to feel alive, not animated. */
+  filter: drop-shadow(0 14px 36px rgba(216, 184, 109, 0.24))
+          drop-shadow(0 0 22px rgba(244, 220, 168, 0.14));
   animation: prive-crest-breath 9s ease-in-out 2s infinite alternate;
 }
 @keyframes prive-crest-breath {
@@ -140,7 +134,8 @@
 .login-hero-wordmark {
   font-family: 'Bodoni Moda', 'Playfair Display', 'Cormorant Garamond', serif;
   font-weight: 900;
-  font-size: clamp(2.2rem, 4.4vw, 3.4rem);
+  /* Bigger per Master's "branding must be bigger" feedback. */
+  font-size: clamp(3rem, 6vw, 5.4rem);
   letter-spacing: 0.2em;
   line-height: 1;
   margin: 0;
@@ -153,104 +148,62 @@
 
 .login-hero-slogan {
   font-family: 'Cinzel', 'Bodoni Moda', serif;
-  font-size: 0.65rem;
+  font-size: clamp(0.72rem, 0.95vw, 0.95rem);
   letter-spacing: 0.46em;
   text-transform: uppercase;
-  color: rgba(232, 213, 178, 0.55);
+  color: rgba(232, 213, 178, 0.6);
   margin: 0;
 }
 
-/* ── The writing wrap — pen + single-line tagline ──────────
-   Pen and tagline share the same 9-second animation timeline starting
-   1.6s after page load. Pen's left position and tagline's clip-path
-   right-inset both go from 0% → 100% over the same duration with
-   linear easing, so the pen's TIP (at SVG x=0) always sits exactly
-   at the leading edge of the revealed text. */
-.login-hero-writing {
-  position: relative;
-  /* Use the full available width of the right column rather than a
-     hardcoded clamp — Master flagged the text was overflowing on his
-     screen. Now the writing wrap takes whatever room the column gives. */
-  width: 100%;
-  padding-top: 3rem; /* room for the pen above the writing line */
-}
-
-.login-hero-pen {
-  position: absolute;
-  /* Bottom edge of the pen sits AT the top of the tagline text, so
-     the tip (at SVG bottom-left, viewBox y=40) lands roughly on the
-     baseline. left: 0 → 100% over animation. */
-  bottom: 0.05em;
-  left: 0;
-  width: clamp(46px, 5vw, 68px);
-  height: auto;
-  opacity: 0;
-  filter: drop-shadow(0 4px 12px rgba(216, 184, 109, 0.5))
-          drop-shadow(0 0 18px rgba(244, 220, 168, 0.22));
-  z-index: 3;
-  /* Pen and tagline share the EXACT same animation duration + delay +
-     easing, so they move in perfect lockstep. Slowed from 5s to 9s
-     per Master's "writing is too fast" feedback. */
-  animation: prive-pen-write 9s linear 1.6s both;
-}
-@keyframes prive-pen-write {
-  0%   { left: 0;    opacity: 0; }
-  3%   { opacity: 1; }
-  100% { left: 100%; opacity: 1; }
-}
-
+/* ── Two-line tagline (no pen) ─────────────────────────────────
+   Master removed the pen — text now just appears via clip-path
+   reveals on each of the two lines, sequentially. Line 1 reveals
+   first, brief pause, then line 2. */
 .login-hero-tagline {
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
-  /* Bigger per Master's "text is too small" feedback — was
-     clamp(1.3rem, 2.4vw, 1.85rem), now scales 1.6 → 2.4rem. */
-  font-size: clamp(1.6rem, 2.8vw, 2.4rem);
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
   color: rgba(244, 220, 168, 0.95);
   letter-spacing: 0.01em;
   margin: 0;
-  line-height: 1.35;
+  line-height: 1.4;
   font-weight: 400;
-  white-space: nowrap;
   text-align: left;
-  overflow: hidden;
 }
 
-.login-hero-tagline .tagline-text {
-  display: inline-block;
-  /* Reveals from left to right via clip-path inset animation —
-     synced with the pen's left:0→100% by sharing duration/delay. */
+.login-hero-tagline .tagline-line {
+  display: block;
   clip-path: inset(0 100% 0 0);
-  animation: prive-tagline-reveal 9s linear 1.6s both;
   will-change: clip-path;
+}
+.login-hero-tagline .tagline-line-1 {
+  animation: prive-tagline-reveal 2.2s ease-out 1.6s both;
+}
+.login-hero-tagline .tagline-line-2 {
+  animation: prive-tagline-reveal 2.2s ease-out 3.9s both;
 }
 @keyframes prive-tagline-reveal {
   to { clip-path: inset(0 0% 0 0); }
 }
 
-/* prefers-reduced-motion — render statically (tagline fully visible,
-   pen hidden). */
+/* prefers-reduced-motion — render statically (both lines visible). */
 @media (prefers-reduced-motion: reduce) {
-  .login-hero-pen {
-    animation: none;
-    opacity: 0;
-  }
-  .login-hero-tagline .tagline-text {
+  .login-hero-tagline .tagline-line {
     animation: none;
     clip-path: inset(0 0% 0 0);
   }
 }
 
-/* ── Three doors — vertical stack within the left column.
-   Per Master: the doors are NOT part of the branding (crest +
-   wordmark + slogan). Pushed visually away from the brand block
-   with a substantial margin-top so they read as a separate
-   "access paths" group, not a continuation of the masthead. */
+/* ── Three doors — horizontal row at the bottom of the page,
+   centered, spanning the full hero width. Separate from the brand
+   block (they're access paths, not branding). */
 .login-hero-doors {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.8rem;
   margin-top: clamp(2.5rem, 6vh, 4.5rem);
+  animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) 1.2s both;
 }
 .login-hero-door {
   position: relative;
@@ -292,34 +245,41 @@
 }
 
 /* ── Desktop magazine-spread (≥900px) ─────────────────────────
-   Columns ANCHORED to viewport edges (not centered against the
-   page axis). The middle stays empty. */
+   Grid: left + right columns at the top, doors as a bottom row
+   that spans both columns and centers horizontally. Columns are
+   anchored to viewport edges with padding from each side. */
 @media (min-width: 900px) {
   .login-hero {
-    /* Take the full viewport width, with padding from each edge
-       matching the pre-crest editorial layout. */
     max-width: none;
     width: 100%;
-    display: flex;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr auto;
+    grid-template-areas:
+      "left right"
+      "doors doors";
     align-items: center;
-    justify-content: space-between;
     text-align: left;
     padding: clamp(2rem, 5vh, 4rem) clamp(2rem, 8vw, 7rem);
-    gap: clamp(2rem, 6vw, 6rem);
+    gap: clamp(2rem, 6vw, 6rem) clamp(2rem, 6vw, 6rem);
   }
-  /* Each column claims ~40% of the viewport width and stays anchored
-     to its respective edge via space-between on the parent. */
   .login-hero-left {
-    flex: 0 1 auto;
-    max-width: 22rem;
+    grid-area: left;
+    justify-self: start;
+    max-width: 30rem;
   }
-  /* Right column gets the lion's share of the available width so the
-     single-line tagline (and the pen that writes it) has room. */
   .login-hero-right {
-    flex: 1 1 auto;
-    max-width: 42rem;
-    min-width: 22rem;
+    grid-area: right;
+    justify-self: end;
+    max-width: 30rem;
+  }
+  /* Doors centered horizontally at the bottom, spanning both columns. */
+  .login-hero-doors {
+    grid-area: doors;
+    flex-direction: row;
+    justify-content: center;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    padding-top: clamp(1.5rem, 3vh, 2.5rem);
   }
 }
 
