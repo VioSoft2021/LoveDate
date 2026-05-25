@@ -154,55 +154,25 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       <main className="login-shell login-shell--hero">
         <div className="grain" aria-hidden="true" />
 
-        {/* "Calligraphy" — the brand statement written in cursive script
-            on the empty right side of the hero. Two stacked <text>
-            elements: the outline draws first (stroke-dashoffset), then a
-            gold-gradient fill fades in beneath it — so the words appear
-            as if a fountain pen first sketches the letters, then settles
-            with ink. Holds ~4s, fades ~1.5s, brief silence, repeats.
-            ~14s per cycle. Words taken from the manifesto opening — the
-            brand promise distilled. Hidden below 800px viewport. */}
-        <svg
-          className="login-hero-calligraphy"
-          viewBox="0 0 1200 400"
-          preserveAspectRatio="xMidYMid meet"
-          aria-hidden="true"
-        >
-          <defs>
-            <linearGradient id="calliGold" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#cfad61" />
-              <stop offset="50%" stopColor="#f4dca8" />
-              <stop offset="100%" stopColor="#cfad61" />
-            </linearGradient>
-          </defs>
-          {/* Filled text (bottom layer) — fades in once the outline is
-              drawn so the letters "settle with ink" at the end. */}
-          <text
-            x="600"
-            y="220"
-            textAnchor="middle"
-            className="calli-text calli-text-fill"
-            fill="url(#calliGold)"
-          >
-            {copy.auth.heroCalligraphy}
-          </text>
-          {/* Outlined text (top layer) — stroke draws via dashoffset to
-              create the "writing" effect; remains visible over the fill
-              as a fine pen outline, fades together with the fill at end. */}
-          <text
-            x="600"
-            y="220"
-            textAnchor="middle"
-            className="calli-text calli-text-stroke"
-            fill="none"
-            stroke="url(#calliGold)"
-            strokeWidth="0.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            {copy.auth.heroCalligraphy}
-          </text>
-        </svg>
+        {/* TEMPORARY crest comparison view — 3 options stacked on the
+            right side so Master can evaluate each at scale on the actual
+            hero. Once he picks one, this block gets replaced with the
+            final integration (single crest + animation + the calligraphy
+            beneath it). Calligraphy hidden during comparison. */}
+        <div className="login-hero-crest-compare" aria-hidden="true">
+          <figure className="crest-option crest-option--1">
+            <img src="./crests/crest-1.jpeg" alt="Crest option I" />
+            <figcaption>I</figcaption>
+          </figure>
+          <figure className="crest-option crest-option--2">
+            <img src="./crests/crest-2.jpeg" alt="Crest option II" />
+            <figcaption>II</figcaption>
+          </figure>
+          <figure className="crest-option crest-option--3">
+            <img src="./crests/crest-3.jpeg" alt="Crest option III" />
+            <figcaption>III</figcaption>
+          </figure>
+        </div>
 
         {/* Editorial mark in the top-right corner — issue number style.
             Anchors the upper-right negative space. */}

@@ -31,6 +31,95 @@
     linear-gradient(165deg, #060a1f 0%, #0c1030 45%, #0a0d28 100%);
 }
 
+/* ── TEMPORARY crest comparison view ─────────────────────────────
+   Three crest options stacked vertically on the right side of the
+   hero so Master can evaluate each at its actual display size before
+   we commit to one. Each crest is captioned with a Roman numeral so
+   he can tell me "let's go with II". Removed once the choice is made
+   and the final crest is integrated.
+   The first crest has a parchment/cream background that clashes with
+   the navy hero, so it gets a gold-bordered frame to visually contain
+   it. Crests II and III have navy backgrounds and blend naturally. */
+.login-hero-crest-compare {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: clamp(1rem, 4vw, 4rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1rem, 2.5vh, 2rem);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.login-hero-crest-compare .crest-option {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  /* Each crest renders at a comfortable evaluation size — large
+     enough to judge detail, small enough that three fit vertically
+     on a 1080p+ monitor. clamp() scales them down on shorter screens. */
+}
+
+.login-hero-crest-compare .crest-option img {
+  width: clamp(140px, 22vh, 240px);
+  height: clamp(140px, 22vh, 240px);
+  object-fit: contain;
+  border-radius: 0.6rem;
+  display: block;
+  background: rgba(8, 12, 35, 0.4);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(216, 184, 109, 0.18);
+}
+
+/* Crest I has a parchment background — give it a clear gold frame
+   so the cream area reads as intentional, not a mistake. */
+.login-hero-crest-compare .crest-option--1 img {
+  border: 2px solid rgba(216, 184, 109, 0.6);
+}
+
+/* Crests II + III have navy backgrounds — softer treatment. */
+.login-hero-crest-compare .crest-option--2 img,
+.login-hero-crest-compare .crest-option--3 img {
+  border: 1px solid rgba(216, 184, 109, 0.28);
+}
+
+.login-hero-crest-compare .crest-option figcaption {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.78);
+  padding-left: 0.5em;
+}
+
+/* Hide the calligraphy while we're in the crest-comparison phase. */
+.login-hero-calligraphy {
+  display: none;
+}
+
+/* On phones the right-side panel doesn't exist — stack the crests
+   below the manifesto so they're still reviewable on mobile. */
+@media (max-width: 800px) {
+  .login-hero-crest-compare {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    gap: 1rem;
+  }
+  .login-hero-crest-compare .crest-option img {
+    width: 110px;
+    height: 110px;
+  }
+}
+
 /* ── "Calligraphy" centerpiece — the brand promise hand-written
    The manifesto opening ("A quiet room, by invitation only") is
    rendered in Great Vibes cursive on the empty right side of the
