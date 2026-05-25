@@ -239,13 +239,13 @@ describe('ProfileScreen — navigation buttons', () => {
     expect(onOpenSettings).toHaveBeenCalled()
   })
 
-  it('"What this code means" button calls onOpenPersonalityGuide', () => {
+  it('"What does my Love Personality mean?" button calls onOpenPersonalityGuide', () => {
     const onOpenPersonalityGuide = vi.fn()
     render(<ProfileScreen {...buildProps({ onOpenPersonalityGuide })} />)
-    // There are two buttons that call onOpenPersonalityGuide (top + bottom).
-    // Either should fire it — pick the first.
+    // The editor's duplicate quiz section was removed (2026-05-25) — the
+    // surviving entry to the framework explainer lives in the About card.
     const buttons = screen.getAllByRole('button').filter((b) =>
-      /code means|personality guide/i.test(b.textContent || ''),
+      /love personality mean|love personality guide/i.test(b.textContent || ''),
     )
     expect(buttons.length).toBeGreaterThan(0)
     fireEvent.click(buttons[0])
@@ -311,12 +311,14 @@ describe('ProfileScreen — AI Profile Writer + Photo Coach', () => {
 describe('ProfileScreen — personality section', () => {
   // Tier A (2026-05-24) — the inline A/B quiz inside ProfileScreen was
   // removed; the new 14-Likert assessment lives in Onboarding only.
-  // Profile now shows a CTA to "Open guide" linking to PersonalityGuideScreen.
-  it('renders the personality section with the open-guide CTA', () => {
+  // (2026-05-25) — editor's redundant Personality Quiz <details> block
+  // also removed; the surviving entry to PersonalityGuideScreen is the
+  // "What does my Love Personality mean?" button in the About card.
+  it('exposes the framework-explainer CTA in the About card', () => {
     render(<ProfileScreen {...buildProps()} />)
-    const openGuideBtn = screen
+    const explainerBtn = screen
       .getAllByRole('button')
-      .find((b) => /open.*guide|see the framework/i.test(b.textContent || ''))
-    expect(openGuideBtn).toBeDefined()
+      .find((b) => /love personality mean|love personality guide/i.test(b.textContent || ''))
+    expect(explainerBtn).toBeDefined()
   })
 })

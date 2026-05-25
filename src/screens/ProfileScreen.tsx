@@ -754,43 +754,10 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
             </div>
           </details>
 
-          <details className="profile-editor-section">
-            <summary>{copy.profile.personalityQuiz}</summary>
-            <div className="profile-editor-grid">
-              <p className="soft full-width">
-                {selfLovePersonality
-                  ? copy.profile.lovePersonalityRetakeHint ??
-                    'Your Love Personality assessment is on file. Retake it any time or open the framework explainer.'
-                  : copy.profile.lovePersonalityNotTaken ??
-                    'Take the assessment to unlock smarter matching.'}
-              </p>
-              <button
-                type="button"
-                className="full-width love-personality-inline-primary"
-                onClick={onOpenLovePersonalityQuiz}
-              >
-                {selfLovePersonality
-                  ? copy.profile.lovePersonalityRetakeCta ?? 'Retake the assessment'
-                  : copy.profile.lovePersonalityTakeCta ?? 'Take the assessment →'}
-              </button>
-              {selfLovePersonality ? (
-                <button
-                  type="button"
-                  className="ghost full-width personality-guide-open"
-                  onClick={onOpenLovePersonality}
-                >
-                  {copy.profile.lovePersonalityOpenCta ?? 'Open your Love Personality →'}
-                </button>
-              ) : null}
-              <button
-                type="button"
-                className="ghost full-width personality-guide-open"
-                onClick={onOpenPersonalityGuide}
-              >
-                {copy.profile.openGuide}
-              </button>
-            </div>
-          </details>
+          {/* Personality Quiz section removed (2026-05-25) — every action it
+              offered (take/retake, open reveal, open guide) is already
+              available on the About card's preview block above. Keeping
+              both creates redundant entry points. */}
 
           <details className="profile-editor-section">
             <summary>{copy.profile.careerLifestyle}</summary>
