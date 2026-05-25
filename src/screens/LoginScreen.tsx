@@ -154,82 +154,79 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       <main className="login-shell login-shell--hero">
         <div className="grain" aria-hidden="true" />
 
-        {/* The brand mark column — crest above, handwritten manifesto
-            opening beneath. Lives on the right side of the hero, centred
-            vertically. Reads as: the house seal + a personal note. */}
-        <div className="login-hero-mark" aria-hidden="true">
-          <img
-            className="login-hero-crest"
-            src="./crests/crest-3.png"
-            alt=""
-            loading="eager"
-            decoding="async"
-          />
-          <svg
-            className="login-hero-calligraphy"
-            viewBox="0 0 1200 200"
-            preserveAspectRatio="xMidYMid meet"
-            aria-hidden="true"
-          >
-            <defs>
-              <linearGradient id="calliGold" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#cfad61" />
-                <stop offset="50%" stopColor="#f4dca8" />
-                <stop offset="100%" stopColor="#cfad61" />
-              </linearGradient>
-            </defs>
-            {/* Filled text (bottom layer) — fades in once the outline is
-                drawn so the letters "settle with ink" at the end. */}
-            <text
-              x="600"
-              y="120"
-              textAnchor="middle"
-              className="calli-text calli-text-fill"
-              fill="url(#calliGold)"
-            >
-              {copy.auth.heroCalligraphy}
-            </text>
-            {/* Outlined text (top layer) — stroke draws via dashoffset to
-                create the "writing" effect; remains visible over the fill
-                as a fine pen outline, fades together with the fill at end. */}
-            <text
-              x="600"
-              y="120"
-              textAnchor="middle"
-              className="calli-text calli-text-stroke"
-              fill="none"
-              stroke="url(#calliGold)"
-              strokeWidth="0.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              {copy.auth.heroCalligraphy}
-            </text>
-          </svg>
-        </div>
-
-        {/* Editorial mark in the top-right corner — issue number style.
-            Anchors the upper-right negative space. */}
+        {/* Editorial mark in the top-left corner — issue number style.
+            Anchors the upper-left negative space. */}
         <p className="login-hero-edition" aria-hidden="true">
           <span>Édition</span>
           <span>2026</span>
         </p>
 
-        {/* Spread the content across the viewport in editorial rhythm:
-              top-left  → masthead (PRIVÉ + slogan)
-              middle    → the brand promise as a pull-quote
-              bottom    → the three doors + (offscreen footer) language */}
+        {/* Vertical invitation-card composition. The crest is the seal
+            at the top; everything else cascades beneath it in editorial
+            rhythm. Each section fades in with a staggered delay so the
+            page reads as it appears, like an invitation being unfolded. */}
         <section className="login-hero">
+          {/* The house seal — crest above + handwritten manifesto fragment.
+              First thing the eye lands on. */}
+          <div className="login-hero-seal">
+            <img
+              className="login-hero-crest"
+              src="./crests/crest-3.png"
+              alt=""
+              loading="eager"
+              decoding="async"
+            />
+            <svg
+              className="login-hero-calligraphy"
+              viewBox="0 0 1200 140"
+              preserveAspectRatio="xMidYMid meet"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient id="calliGold" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#cfad61" />
+                  <stop offset="50%" stopColor="#f4dca8" />
+                  <stop offset="100%" stopColor="#cfad61" />
+                </linearGradient>
+              </defs>
+              <text
+                x="600"
+                y="90"
+                textAnchor="middle"
+                className="calli-text calli-text-fill"
+                fill="url(#calliGold)"
+              >
+                {copy.auth.heroCalligraphy}
+              </text>
+              <text
+                x="600"
+                y="90"
+                textAnchor="middle"
+                className="calli-text calli-text-stroke"
+                fill="none"
+                stroke="url(#calliGold)"
+                strokeWidth="0.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                {copy.auth.heroCalligraphy}
+              </text>
+            </svg>
+          </div>
+
+          {/* The masthead — PRIVÉ wordmark + small-caps slogan. */}
           <header className="login-hero-masthead">
             <h1 className="login-hero-wordmark" aria-label="Privé">PRIVÉ</h1>
             <p className="login-hero-slogan">Members only &middot; By design</p>
           </header>
 
+          {/* The brand promise — italic tagline + editorial manifesto. */}
           <div className="login-hero-body">
             <p className="login-hero-tagline">{copy.auth.heroTagline}</p>
             <p className="login-hero-manifesto">{copy.auth.heroManifesto}</p>
           </div>
 
+          {/* The three doors — equal weight, vertical stack. */}
           <nav className="login-hero-doors" aria-label="Access">
             <button
               type="button"

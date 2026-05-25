@@ -31,184 +31,92 @@
     linear-gradient(165deg, #060a1f 0%, #0c1030 45%, #0a0d28 100%);
 }
 
-/* ── The brand-mark column on the right side of the hero ─────
-   Composition: heraldic crest (the house seal) above, handwritten
-   manifesto opening (the calligraphy) beneath. Reads as a wax-
-   sealed personal note rather than a logged-out app screen. */
-.login-hero-mark {
-  position: absolute;
-  top: 50%;
-  right: clamp(2rem, 8vw, 8rem);
-  transform: translateY(-50%);
+/* ── The hero seal — crest + handwritten calligraphy stacked ──
+   Inline in the centered .login-hero column. The crest is the
+   house seal; the calligraphy beneath is the manifesto opening
+   hand-signed. Together they read as a wax-sealed personal note,
+   not a logged-out app screen. */
+.login-hero-seal {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: clamp(0.6rem, 1.8vh, 1.4rem);
-  pointer-events: none;
-  z-index: 1;
-  /* The whole column fades up on mount — settles into place over
-     1.4s, just slow enough to register as "appearing" not "loading". */
-  animation: prive-mark-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes prive-mark-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(calc(-50% + 14px));
-  }
-  to {
-    opacity: 1;
-    transform: translateY(-50%);
-  }
+  gap: clamp(0.5rem, 1.4vh, 1rem);
+  animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* The crest itself — sized large enough to read every detail of
-   the laurel + shield + monogram, but anchored so it doesn't
-   compete with the typography column on the left. */
+/* The crest itself — sized to be the visual anchor of the hero
+   without dwarfing the wordmark beneath it. */
 .login-hero-crest {
   display: block;
-  width: clamp(220px, 30vh, 360px);
+  width: clamp(180px, 22vh, 280px);
   height: auto;
   user-select: none;
   -webkit-user-drag: none;
   /* Subtle gold halo behind the transparent PNG so the crest
      reads as luminous rather than pasted-on. */
-  filter: drop-shadow(0 12px 32px rgba(216, 184, 109, 0.22))
-          drop-shadow(0 0 22px rgba(244, 220, 168, 0.12));
-  /* Gentle ambient breath — 0.5% scale oscillation over 9 seconds.
-     Just enough to feel alive without distracting. */
-  animation: prive-crest-breath 9s ease-in-out 1.4s infinite alternate;
+  filter: drop-shadow(0 12px 30px rgba(216, 184, 109, 0.2))
+          drop-shadow(0 0 18px rgba(244, 220, 168, 0.1));
+  /* Gentle ambient breath — 1.2% scale oscillation over 9 seconds.
+     Starts after the load fade-in completes (delay matches that
+     animation's duration). Just enough to feel alive, not animated. */
+  animation: prive-crest-breath 9s ease-in-out 2s infinite alternate;
 }
 @keyframes prive-crest-breath {
-  from {
-    transform: scale(1);
-  }
-  to {
-    transform: scale(1.012);
-  }
+  from { transform: scale(1); }
+  to   { transform: scale(1.012); }
 }
 
-/* The calligraphy beneath the crest — the manifesto opening
-   hand-written, drawing itself then settling with gold ink. */
+/* The calligraphy — Great Vibes cursive rendering the manifesto
+   opening. Inline below the crest, sized to fit comfortably in
+   the centered column. */
 .login-hero-calligraphy {
-  width: clamp(360px, 38vw, 540px);
+  width: clamp(280px, 32vw, 460px);
   height: auto;
   pointer-events: none;
-  filter: drop-shadow(0 0 14px rgba(244, 220, 168, 0.28));
-}
-
-/* ── "Calligraphy" centerpiece — the brand promise hand-written
-   The manifesto opening ("A quiet room, by invitation only") is
-   rendered in Great Vibes cursive on the empty right side of the
-   hero. Two stacked <text> elements:
-     1. Filled gold gradient (the "settled ink")
-     2. Outlined stroke (the "pen trace") with stroke-dashoffset
-        animation that reveals the strokes over ~6 seconds.
-   The fill fades in just as the outline finishes, so the eye sees
-   the letters first sketched, then filled. Holds ~4s, fades, brief
-   silence, repeats. ~14s per cycle. Reads as a personal note signed
-   by the brand: this is for you, by invitation. */
-.login-hero-calligraphy {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  /* Occupy roughly the right 60% of the viewport so the text never
-     collides with the typography column on the left. */
-  width: 60vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 1;
-  /* Soft gold haze around the text — feels like ambient ink. */
-  filter: drop-shadow(0 0 16px rgba(244, 220, 168, 0.32));
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  filter: drop-shadow(0 0 12px rgba(244, 220, 168, 0.22));
 }
 
 .login-hero-calligraphy .calli-text {
   font-family: 'Great Vibes', 'Allura', 'Dancing Script', cursive;
-  font-size: 90px;
+  font-size: 68px;
   letter-spacing: 0.01em;
 }
 
-/* Filled gold text — appears beneath the outline as the "ink" that
-   settles once the pen has finished drawing. Fades in halfway through
-   the cycle. */
-.login-hero-calligraphy .calli-text-fill {
-  opacity: 0;
-  animation: prive-calli-fill 14s ease-in-out infinite;
-  will-change: opacity;
-}
-@keyframes prive-calli-fill {
-  /* No ink visible during the drawing phase (0–50%). */
-  0%, 45% {
-    opacity: 0;
-  }
-  /* Ink settles into the letters as the pen finishes. */
-  60% {
-    opacity: 0.92;
-  }
-  /* Hold the settled ink. */
-  82% {
-    opacity: 0.92;
-  }
-  /* Fade out near the end of the cycle. */
-  95% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-/* Outlined stroke text — the "pen trace" that draws first via
-   stroke-dashoffset. Stays visible over the fill as a fine highlight
-   outline, fades with the fill at the end. */
+/* Calligraphy ONE-TIME reveal on page load (was cyclic 14s before;
+   with the crest as the centerpiece, a cyclic redraw competes for
+   attention). Now: stroke draws once over ~3 seconds starting at
+   1.6s (after the crest has settled). The gold ink fill fades in
+   right as the outline completes. Both stay visible forever after. */
 .login-hero-calligraphy .calli-text-stroke {
-  /* Generous dash length so the dash + gap cover any glyph outline.
-     Cursive at 90px → individual glyph perimeters ≤ ~600 each; total
-     across all glyphs around 2000–3000. 4000 over-covers safely. */
+  /* Generous dash length covers any glyph outline at 68px. */
   stroke-dasharray: 4000;
   stroke-dashoffset: 4000;
   opacity: 0;
-  animation: prive-calli-stroke 14s ease-in-out infinite;
+  animation: prive-calli-stroke 3s ease-out 1.6s both;
   will-change: stroke-dashoffset, opacity;
 }
 @keyframes prive-calli-stroke {
-  0% {
-    stroke-dashoffset: 4000;
-    opacity: 0;
-  }
-  /* Pen touches paper. */
-  2% {
-    opacity: 1;
-  }
-  /* Drawing phase complete at ~50% (7s). The outline is fully sketched. */
-  50% {
-    stroke-dashoffset: 0;
-    opacity: 1;
-  }
-  /* Hold the outline as the fill settles in. */
-  82% {
-    stroke-dashoffset: 0;
-    opacity: 1;
-  }
-  /* Fade outline together with the fill. */
-  95% {
-    stroke-dashoffset: 0;
-    opacity: 0;
-  }
-  100% {
-    stroke-dashoffset: 0;
-    opacity: 0;
-  }
+  0%   { stroke-dashoffset: 4000; opacity: 0; }
+  4%   { opacity: 1; }
+  100% { stroke-dashoffset: 0;    opacity: 1; }
 }
 
-/* Honour prefers-reduced-motion — render the text statically
-   (no drawing animation) so motion-sensitive users still see the
-   gold calligraphy without the cyclic motion. */
+.login-hero-calligraphy .calli-text-fill {
+  opacity: 0;
+  animation: prive-calli-fill 2.2s ease-out 3.4s both;
+  will-change: opacity;
+}
+@keyframes prive-calli-fill {
+  from { opacity: 0; }
+  to   { opacity: 0.92; }
+}
+
+/* prefers-reduced-motion — freeze a static, fully-rendered version. */
 @media (prefers-reduced-motion: reduce) {
+  .login-hero-seal,
+  .login-hero-crest {
+    animation: none;
+  }
   .login-hero-calligraphy .calli-text-fill {
     animation: none;
     opacity: 0.92;
@@ -220,24 +128,16 @@
   }
 }
 
-/* Phones don't have the right-side void the calligraphy occupies —
-   the content fills the width, so the text would either overlap with
-   the manifesto or render too small to read. Hide below 800px. */
-@media (max-width: 800px) {
+/* Narrow phones — scale crest + cursive down so the column fits. */
+@media (max-width: 540px) {
+  .login-hero-crest {
+    width: clamp(150px, 36vw, 200px);
+  }
   .login-hero-calligraphy {
-    display: none;
+    width: min(94vw, 360px);
   }
-}
-
-/* Scale the cursive down a touch on medium screens so it never wraps. */
-@media (max-width: 1280px) {
   .login-hero-calligraphy .calli-text {
-    font-size: 72px;
-  }
-}
-@media (max-width: 1000px) {
-  .login-hero-calligraphy .calli-text {
-    font-size: 56px;
+    font-size: 50px;
   }
 }
 
@@ -269,46 +169,49 @@
   letter-spacing: 0.32em;
 }
 
-/* ── Hero content — editorial spread across full viewport ──────
-   The content is anchored to the left side (max 36rem column) and
-   distributed vertically: masthead top, tagline middle, doors bottom.
-   The right side stays empty (held by the gold rule + edition mark)
-   like the margin of a magazine page. */
+/* ── Hero content — centered vertical invitation-card composition
+   The crest is the seal at the top; everything cascades beneath
+   it. The whole column is centered horizontally on the page; each
+   section fades in with a staggered delay so the page reads as it
+   appears, like an invitation card being unfolded. */
 .login-hero {
   position: relative;
   z-index: 2;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  align-items: stretch;
-  justify-items: start;
-  text-align: left;
-  max-width: min(36rem, 50vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  max-width: min(36rem, 92vw);
   width: 100%;
-  margin: 0 auto 0 max(clamp(2rem, 8vw, 7rem), env(safe-area-inset-left));
-  padding: clamp(3rem, 8vh, 5.5rem) 0 clamp(4.5rem, 10vh, 7rem);
+  margin: 0 auto;
+  padding: clamp(3rem, 8vh, 5.5rem) clamp(1rem, 4vw, 2.5rem);
   min-height: 100dvh;
   box-sizing: border-box;
-  animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  gap: clamp(1.4rem, 3vh, 2.2rem);
 }
 @keyframes prive-hero-fade-in {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Masthead: PRIVÉ wordmark + slogan. Fades in 0.5s after the seal. */
 .login-hero-masthead {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.7rem;
+  align-items: center;
+  gap: 0.5rem;
+  animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
 }
 
-/* Wordmark — larger now to carry visual presence in the spread.
-   Bumped from 2-2.8rem to 3-4.4rem; still small enough to feel
-   editorial, big enough to anchor the page. */
+/* Wordmark — refined size now that the crest carries the visual
+   anchor. Was 3-4.4rem when it WAS the centerpiece; now scaled
+   down to clamp(2.2rem, 4.4vw, 3.4rem) so it sits in dialogue
+   with the crest rather than competing. */
 .login-hero-wordmark {
   font-family: 'Bodoni Moda', 'Playfair Display', 'Cormorant Garamond', serif;
   font-weight: 900;
-  font-size: clamp(3rem, 5vw, 4.4rem);
+  font-size: clamp(2.2rem, 4.4vw, 3.4rem);
   letter-spacing: 0.2em;
   line-height: 1;
   margin: 0;
@@ -328,49 +231,50 @@
   margin: 0;
 }
 
-/* Body block — tagline + manifesto stacked, vertically centered as
-   the middle row of the grid. The two together (italic poem + prose
-   paragraph) earn the page real its width without decoration. */
+/* Body block — tagline + manifesto, centered. Fades in 0.9s. */
 .login-hero-body {
-  align-self: center;
   display: flex;
   flex-direction: column;
-  gap: 1.4rem;
-  max-width: 38ch;
+  align-items: center;
+  gap: 1.2rem;
+  max-width: 40ch;
+  animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) 0.9s both;
 }
 
 .login-hero-tagline {
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
-  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  font-size: clamp(1.3rem, 2.4vw, 1.8rem);
   color: rgba(244, 220, 168, 0.95);
   letter-spacing: 0.01em;
-  max-width: 22ch;
+  max-width: 26ch;
   margin: 0;
   line-height: 1.35;
   font-weight: 400;
+  text-align: center;
 }
 
-/* Editorial manifesto paragraph — small italic prose, slightly faded.
-   Reads like the opening line of a journal, not marketing copy.
-   This is what fills the visual space with MEANING instead of decoration. */
+/* Editorial manifesto paragraph — small italic prose, slightly
+   faded. Reads like the opening line of a journal. */
 .login-hero-manifesto {
   font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
   font-style: italic;
   font-size: clamp(0.95rem, 1.3vw, 1.05rem);
-  color: rgba(232, 242, 255, 0.6);
+  color: rgba(232, 242, 255, 0.62);
   letter-spacing: 0.005em;
   line-height: 1.65;
   margin: 0;
   max-width: 38ch;
+  text-align: center;
 }
 
-/* Three "doors" — bottom row of the grid, left-aligned. */
+/* Three "doors" — centered vertical stack at the bottom. Fades in 1.3s. */
 .login-hero-doors {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.9rem;
+  align-items: center;
+  gap: 0.8rem;
+  animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) 1.3s both;
 }
 .login-hero-door {
   position: relative;
@@ -382,27 +286,35 @@
   color: rgba(244, 220, 168, 0.85);
   background: none;
   border: none;
-  padding: 0.5rem 0;
+  padding: 0.55rem 1.1rem;
   cursor: pointer;
-  transition: color 220ms ease, transform 220ms ease;
-  text-align: left;
+  transition: color 220ms ease;
+  text-align: center;
 }
+/* Underline draws from the center outward on hover — symmetric
+   gradient so it fades to transparent on both sides. */
 .login-hero-door::after {
   content: '';
   position: absolute;
-  left: 0;
+  left: 50%;
   bottom: 0.25rem;
   width: 0;
   height: 1px;
-  background: linear-gradient(90deg, rgba(244, 220, 168, 0.95) 0%, transparent 100%);
-  transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(244, 220, 168, 0.95) 50%,
+    transparent 100%
+  );
+  transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1),
+              left 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .login-hero-door:hover {
   color: #f4dca8;
-  transform: translateX(3px);
 }
 .login-hero-door:hover::after {
-  width: 75%;
+  width: 80%;
+  left: 10%;
 }
 
 /* ── Language picker — top-left corner ─────────────────────────
