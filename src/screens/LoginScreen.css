@@ -105,11 +105,11 @@
 .login-hero-edition {
   position: absolute;
   top: clamp(1.6rem, 4vh, 2.4rem);
-  right: clamp(2.4rem, 9vw, 9rem);
+  left: clamp(2.4rem, 9vw, 9rem);
   z-index: 3;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 0.4rem;
   margin: 0;
   font-family: 'Cinzel', 'Bodoni Moda', serif;
@@ -271,7 +271,7 @@
 .login-hero-footer {
   position: absolute;
   top: clamp(1.6rem, 4vh, 2.4rem);
-  left: clamp(2.4rem, 9vw, 9rem);
+  right: clamp(2.4rem, 9vw, 9rem);
   z-index: 3;
   pointer-events: none;
 }
@@ -328,11 +328,11 @@
   .login-hero-door:hover::after { width: 70%; }
   .login-hero-edition {
     top: 1.2rem;
-    right: 1.2rem;
+    left: 1.2rem;
   }
   .login-hero-footer {
     top: 1.2rem;
-    left: 1.2rem;
+    right: 1.2rem;
   }
   /* Hide the totem on narrow viewports — it would crowd the centered
      text. The Édition mark + manifesto carry the visual interest. */
