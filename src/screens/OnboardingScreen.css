@@ -74,17 +74,26 @@
 .onboarding-step h1 {
   margin: 0;
   font-family: 'Bodoni Moda', 'Cormorant Garamond', serif;
-  font-size: 2rem;
+  /* Responsive sizing to match LoginScreen tier — was a fixed 2rem
+     that overflowed on narrow phones and felt small on wide screens. */
+  font-size: clamp(1.55rem, 5vw, 2.4rem);
   font-weight: 500;
   letter-spacing: 0.01em;
   color: #f4dca8;
   line-height: 1.15;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 .onboarding-step > p {
   margin: 0 0 0.5rem;
   color: rgba(232, 242, 255, 0.84);
   line-height: 1.5;
-  font-size: 1rem;
+  font-size: clamp(0.95rem, 1.3vw, 1.05rem);
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
 }
 
 /* ── Form fields ─────────────────────────────────────────────────── */

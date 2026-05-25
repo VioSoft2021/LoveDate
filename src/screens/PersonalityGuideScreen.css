@@ -1,0 +1,253 @@
+/* ===========================================================
+   Privé — Personality Guide luxury redesign (2026-05-25)
+   ===========================================================
+   The explainer for Big Five + Attachment that lives behind
+   "what does this mean?" links from the profile. Audit grade:
+   3/5 (text-heavy, readable but cold). This file gives it
+   editorial warmth: Bodoni gold-gradient headings, italic
+   Cormorant body prose, refined dimension cards, and a gold
+   spotlight on the user's own attachment type.
+   All selectors scoped under .personality-guide-screen.
+   =========================================================== */
+
+/* ── Intro card ─────────────────────────────────────────── */
+.personality-guide-screen .personality-guide-intro {
+  border-radius: 1rem;
+  border: 1px solid rgba(216, 184, 109, 0.18);
+  background:
+    radial-gradient(ellipse 60% 50% at 0% 0%, rgba(244, 220, 168, 0.05), transparent 65%),
+    rgba(10, 14, 39, 0.55);
+  padding: 1.3rem 1.4rem;
+  margin: 0 0 1rem;
+}
+
+.personality-guide-screen .personality-guide-intro .pill {
+  display: inline-block;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.56rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.7);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.3);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  margin: 0 0 1rem;
+}
+
+.personality-guide-screen .personality-guide-intro h2 {
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: clamp(1.5rem, 2.8vw, 2.1rem);
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  margin: 0 0 0.85rem;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.personality-guide-screen .personality-guide-intro > p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.08rem;
+  line-height: 1.6;
+  color: rgba(232, 242, 255, 0.78);
+  margin: 0 0 1rem;
+  max-width: 50rem;
+}
+
+.personality-guide-screen .personality-guide-intro button.ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: rgba(244, 220, 168, 0.85);
+  background: transparent;
+  border: 1px solid rgba(216, 184, 109, 0.3);
+  border-radius: 0.5rem;
+  padding: 0.7rem 1.2rem;
+  cursor: pointer;
+  transition: color 240ms ease, border-color 240ms ease, transform 240ms ease;
+}
+.personality-guide-screen .personality-guide-intro button.ghost:hover {
+  color: #f4dca8;
+  border-color: rgba(216, 184, 109, 0.6);
+  transform: translateX(-2px);
+}
+
+/* ── Dimensions + Types section panels ──────────────────── */
+.personality-guide-screen .personality-dimensions,
+.personality-guide-screen .personality-types {
+  border-radius: 0.95rem;
+  border: 1px solid rgba(216, 184, 109, 0.14);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 168, 0.02), rgba(216, 184, 109, 0.01)),
+    rgba(10, 14, 39, 0.5);
+  padding: 1.1rem 1.2rem;
+  margin: 0 0 0.85rem;
+}
+
+.personality-guide-screen .personality-dimensions > h2,
+.personality-guide-screen .personality-types > h2 {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: #f4dca8;
+  margin: 0 0 0.95rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(216, 184, 109, 0.18);
+}
+
+/* ── Big Five dimension grid ────────────────────────────── */
+.personality-guide-screen .personality-dimension-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.personality-guide-screen .personality-dimension-card {
+  padding: 1rem 1.1rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(216, 184, 109, 0.14);
+  background: rgba(8, 12, 35, 0.5);
+  transition: border-color 240ms ease, transform 240ms ease, box-shadow 240ms ease;
+}
+.personality-guide-screen .personality-dimension-card:hover {
+  border-color: rgba(216, 184, 109, 0.32);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(216, 184, 109, 0.08);
+}
+
+.personality-guide-screen .personality-dimension-card h3 {
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  color: rgba(244, 244, 250, 0.95);
+  margin: 0 0 0.4rem;
+  padding-bottom: 0;
+  border-bottom: none;
+  text-transform: none;
+}
+
+.personality-guide-screen .personality-dimension-card .compatibility-score {
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: 0;
+  line-height: 1;
+  margin: 0.35rem 0 0.55rem;
+  padding: 0;
+  border: none;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.personality-guide-screen .personality-dimension-card p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.96rem;
+  line-height: 1.5;
+  color: rgba(232, 242, 255, 0.72);
+  margin: 0;
+}
+
+/* ── Attachment types grid ─────────────────────────────── */
+.personality-guide-screen .personality-types-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+
+.personality-guide-screen .personality-type-card {
+  padding: 1rem 1.15rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(216, 184, 109, 0.14);
+  background: rgba(8, 12, 35, 0.5);
+  transition: border-color 240ms ease, transform 240ms ease, box-shadow 240ms ease;
+}
+.personality-guide-screen .personality-type-card:hover {
+  border-color: rgba(216, 184, 109, 0.32);
+  transform: translateY(-1px);
+}
+
+/* User's own attachment type — gold spotlight */
+.personality-guide-screen .personality-type-card.is-user-type {
+  border-color: rgba(216, 184, 109, 0.55);
+  background:
+    radial-gradient(ellipse 70% 50% at 0% 0%, rgba(244, 220, 168, 0.08), transparent 65%),
+    linear-gradient(135deg, rgba(244, 220, 168, 0.04), transparent 70%),
+    rgba(10, 14, 39, 0.62);
+  box-shadow: 0 8px 24px rgba(216, 184, 109, 0.16);
+}
+
+.personality-guide-screen .personality-type-card h3 {
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+  padding-bottom: 0;
+  border-bottom: none;
+  color: rgba(244, 244, 250, 0.95);
+  text-transform: none;
+}
+
+.personality-guide-screen .personality-type-card.is-user-type h3 {
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.personality-guide-screen .personality-type-card p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: rgba(232, 242, 255, 0.78);
+  margin: 0 0 0.4rem;
+}
+
+.personality-guide-screen .personality-type-card .soft {
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.58rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.85);
+  margin: 0.45rem 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(216, 184, 109, 0.22);
+  display: block;
+}
+
+/* ── Mobile polish ──────────────────────────────────────── */
+@media (max-width: 700px) {
+  .personality-guide-screen .personality-guide-intro {
+    padding: 1.05rem 1.05rem;
+  }
+  .personality-guide-screen .personality-dimensions,
+  .personality-guide-screen .personality-types {
+    padding: 0.95rem 0.95rem;
+  }
+  .personality-guide-screen .personality-dimension-grid,
+  .personality-guide-screen .personality-types-grid {
+    grid-template-columns: 1fr;
+  }
+}

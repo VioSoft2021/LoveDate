@@ -1,4 +1,5 @@
 import React from 'react'
+import './PersonalityGuideScreen.css'
 import { UI_TEXT } from '../constants'
 import type { AppLanguage } from '../domain'
 import type {
