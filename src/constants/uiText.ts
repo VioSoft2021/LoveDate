@@ -52,6 +52,9 @@ export const UI_TEXT = {
       // password; the visitor sees the app with synthetic profiles so
       // they can feel Privé before deciding to request access.
       heroTakeTour: 'Take a tour',
+      // Phase 3 persistent demo banner (above the TopBar when isGuest)
+      guestBannerText: 'Demo tour — your changes won\'t be saved',
+      guestBannerCta: 'Sign up →',
       heroBack: '← Back',
     },
     waitlist: {
@@ -630,6 +633,9 @@ export const UI_TEXT = {
       // email, fără parolă; vizitatorul vede aplicația cu profile
       // sintetice pentru a simți Privé înainte să-și ceară accesul.
       heroTakeTour: 'Vezi o demonstrație',
+      // Phase 3 banner persistent deasupra TopBar-ului în Guest Tour
+      guestBannerText: 'Demonstrație — modificările nu se salvează',
+      guestBannerCta: 'Creează cont →',
       heroBack: '← Înapoi',
     },
     waitlist: {

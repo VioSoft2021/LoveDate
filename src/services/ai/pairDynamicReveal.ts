@@ -1,5 +1,6 @@
 import { createSupabaseClient } from '../supabaseClient'
 import type { AttachmentStyle, BigFiveScores } from '../compatibility'
+import { DEMO_GUEST_EMAIL } from '../demo/demoProfiles'
 
 /**
  * AI Pair Dynamic Reveal (Tier B — 2026-05-26)
@@ -125,6 +126,30 @@ export const backendInvokePairDynamicReveal = async (
   input: PairDynamicRevealInput,
 ): Promise<PairDynamicReveal | null> => {
   const language: 'en' | 'ro' = input.language === 'ro' ? 'ro' : 'en'
+
+  // Guest Tour (Phase 3, 2026-05-26): when the caller is a tour
+  // visitor (selfId === DEMO_GUEST_EMAIL), short-circuit to the
+  // hand-written reveal from the demoProfiles fixture. No Claude
+  // call, no Edge Function round-trip, no server cache entry. The
+  // result is wrapped in the same PairDynamicReveal shape the real
+  // path returns so the UI is identical.
+  if (input.selfId === DEMO_GUEST_EMAIL) {
+    const { DEMO_PAIR_DYNAMIC_REVEALS } = await import('../demo/demoProfiles')
+    const otherIdNum = Number(input.otherId)
+    const canned = DEMO_PAIR_DYNAMIC_REVEALS[otherIdNum]
+    if (!canned) return null
+    return {
+      pairArchetype: canned.pairArchetype,
+      headline: canned.headline,
+      description: canned.description,
+      strengths: [...canned.strengths],
+      frictions: [...canned.frictions],
+      sharedGrowthEdge: canned.sharedGrowthEdge,
+      language,
+      generatedAt: new Date().toISOString(),
+    }
+  }
+
   const signature = pairSignature(
     input.selfId,
     input.otherId,

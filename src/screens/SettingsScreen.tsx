@@ -46,6 +46,10 @@ export type SettingsScreenProps = {
   safetyReports: SafetyReport[]
   profileById: Map<number, Profile>
   isModerationAdmin: boolean
+  /** Guest Tour mode (Phase 3, 2026-05-26). When true, destructive
+   *  account actions (delete account, etc.) are hidden — there's no
+   *  real account to act on. */
+  isGuest: boolean
   onOpenModeration: () => void
   /**
    * User-initiated account deletion. Resolves true if the server confirmed
@@ -84,6 +88,7 @@ const SettingsScreenInner: React.FC<SettingsScreenProps> = ({
   safetyReports,
   profileById,
   isModerationAdmin,
+  isGuest,
   onOpenModeration,
   onDeleteAccount,
 }) => {
@@ -306,7 +311,12 @@ const SettingsScreenInner: React.FC<SettingsScreenProps> = ({
         ) : (
           <p className="soft">{copy.settings.noReports}</p>
         )}
-        <hr className="setting-separator" />
+        {/* Danger zone hidden for Guest Tour (Phase 3, 2026-05-26).
+            There is no real account to delete — the tour profile is
+            client-side and disappears the moment the visitor exits
+            or refreshes. */}
+        {isGuest ? null : <hr className="setting-separator" />}
+        {isGuest ? null : (
         <div className="danger-zone">
           <strong>{copy.settings.dangerZone}</strong>
           <p className="soft">{copy.settings.deleteAccountWarning}</p>
@@ -377,6 +387,7 @@ const SettingsScreenInner: React.FC<SettingsScreenProps> = ({
             </div>
           )}
         </div>
+        )}
       </details>
     </section>
   )

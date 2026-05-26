@@ -7,6 +7,7 @@ import { getMyMatches, resolveMatch, type Profile } from './services/priveApi'
 import {
   DEMO_GUEST_MATCH_IDS,
   DEMO_AUTO_REPLIES,
+  DEMO_GUEST_SELF_PROFILE,
   buildDemoChatThreads,
 } from './services/demo/demoProfiles'
 import { backendInvokeDatePlanner } from './services/ai/datePlanner'
@@ -958,6 +959,15 @@ function App() {
       return
     }
     if (isGuest) {
+      // Seed selfProfile so the Profile screen looks lived-in + the
+      // onboarding-routing effect (gated on photos+name) doesn't fire.
+      // Only seed once: if the visitor has already started editing
+      // their tour profile we don't want to clobber their changes.
+      setSelfProfile((current) =>
+        current.photos.length === 0 && !current.name.trim()
+          ? DEMO_GUEST_SELF_PROFILE
+          : current,
+      )
       setHistory((current) => {
         const existing = new Set(current.matchIds)
         const merged = [...current.matchIds]
@@ -2812,9 +2822,26 @@ function App() {
     return `${veil}, ${bloom}, ${base}`
   }
   return (
-    <main className={`app-shell app-shell--${screen}`}>
+    <main className={`app-shell app-shell--${screen}${isGuest ? ' app-shell--guest' : ''}`}>
       <UpdateBanner />
       <BuildChip />
+      {/* Guest Tour persistent banner (Phase 3, 2026-05-26). Sits above
+          every screen while isGuest, gently reminds the visitor they're
+          in tour mode + offers a one-tap exit to sign up. The exit hits
+          handleSignOut which (for guests) just clears local state and
+          returns them to the landing hero. */}
+      {isGuest ? (
+        <div className="guest-banner" role="status">
+          <span className="guest-banner-text">{copy.auth.guestBannerText}</span>
+          <button
+            type="button"
+            className="guest-banner-cta"
+            onClick={handleSignOut}
+          >
+            {copy.auth.guestBannerCta}
+          </button>
+        </div>
+      ) : null}
       <div className="grain" aria-hidden="true" />
       {/* TopBar hides during full-screen takeover moments — onboarding,
           the Love Personality destination, and the retake quiz. Each of
@@ -3083,6 +3110,7 @@ function App() {
             safetyReports={safetyReports}
             profileById={profileById}
             isModerationAdmin={isModerationAdmin}
+            isGuest={isGuest}
             onOpenModeration={() => navigate('moderation')}
             onDeleteAccount={async () => {
               const ok = await backendDeleteSelfAccount()

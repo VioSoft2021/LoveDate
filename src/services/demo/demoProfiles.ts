@@ -1,5 +1,6 @@
 import type { Profile } from '../priveApi'
-import type { ChatMessage } from '../../domain'
+import type { ChatMessage, SelfProfile } from '../../domain'
+import { EMPTY_SELF_PROFILE } from '../../constants'
 
 /**
  * Demo profiles for Guest Tour mode (Phase 1 — 2026-05-26).
@@ -326,6 +327,56 @@ export const DEMO_GUEST_EMAIL = 'guest@prive-app.club'
 export const DEMO_GUEST_NAME = 'Guest'
 
 /**
+ * Synthetic SelfProfile seeded into React state when isGuest flips
+ * true. Provides:
+ *   - a non-empty name so the onboarding-routing useEffect doesn't
+ *     drop the visitor into the Onboarding wizard
+ *   - one placeholder photo so the Profile screen looks lived-in
+ *   - Tier A scores + a canned Love Personality reveal so the
+ *     LovePersonalityScreen has a cinematic moment to show during
+ *     the tour (no Claude call needed — the reveal is hand-written
+ *     here once)
+ *
+ * Values are deliberately neutral so a tour visitor's first impression
+ * isn't "this is someone else's profile" — it's "this is what mine
+ * could look like".
+ */
+export const DEMO_GUEST_SELF_PROFILE: SelfProfile = {
+  ...EMPTY_SELF_PROFILE,
+  name: 'Guest',
+  age: 32,
+  city: 'București',
+  vibe: 'Curious from the outside, looking in',
+  bio: 'You\'re touring Privé. The fields on this screen are placeholders — sign up to make them yours.',
+  interests: ['Books', 'Coffee', 'Cinema', 'Travel', 'Music'],
+  pronouns: 'they/them',
+  gender: 'Non-binary',
+  orientation: 'Open',
+  lookingFor: 'Long-term',
+  relationshipIntent: 'Long-term',
+  zodiac: 'Aquarius',
+  photos: [
+    'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1600&q=85',
+  ],
+  lovePersonality: {
+    bigFive: { openness: 84, conscientiousness: 66, extraversion: 50, agreeableness: 72, neuroticism: 38 },
+    attachment: 'secure',
+    attachmentRatings: { secure: 5, anxious: 2, avoidant: 2, disorganized: 1 },
+    completedAt: new Date().toISOString(),
+    reveal: {
+      archetypeName: 'Open Threshold',
+      headline: 'You step toward what intrigues you — and pause long enough to be sure it can hold you back.',
+      description:
+        'You meet new people with curiosity rather than caution; the question you ask isn\'t "is this safe" but "is this real". That openness is what others remember about you first.\n\nWhen something starts to matter, you slow down. You read carefully, you watch how words land, you give the other person room to be inconsistent without holding it against them. The pace is yours to set.\n\nWhat you offer a partner is a kind of generous attention — the kind that makes someone feel seen without being measured. The growth edge is naming what you need before silence does the asking.',
+      strengths: ['Curious without being naïve', 'Sets a gentle pace', 'Listens for the unsaid'],
+      growthEdges: ['Asks for what you need earlier', 'Trusts your own first read'],
+      language: 'en',
+      generatedAt: new Date().toISOString(),
+    },
+  },
+}
+
+/**
  * Pre-baked chat threads for the two pre-matched demo profiles. The
  * conversations are intentionally short (3-5 messages) — enough to
  * convey the texture of Privé's writing-first ice-break and the AI
@@ -418,6 +469,58 @@ export const buildDemoChatThreads = (): Record<number, ChatMessage[]> => {
  * so the conversation feels alive without going off-brand. Pure
  * client-side — no AI call.
  */
+/**
+ * Hand-written Pair Dynamic reveals (Tier B) for each pre-matched
+ * profile. The wrapper at services/ai/pairDynamicReveal.ts short-
+ * circuits to these when the selfId is DEMO_GUEST_EMAIL — guests
+ * never trigger a Claude call, so the tour never burns tokens no
+ * matter how many visitors tap "Reveal our dynamic".
+ *
+ * Shape mirrors the live PairDynamicReveal type exactly so the
+ * Guest path renders the same UI as a real reveal.
+ */
+export const DEMO_PAIR_DYNAMIC_REVEALS: Record<number, {
+  pairArchetype: string
+  headline: string
+  description: string
+  strengths: string[]
+  frictions: string[]
+  sharedGrowthEdge: string
+}> = {
+  90001: {
+    pairArchetype: 'Slow Inkwell',
+    headline: 'You both write toward each other rather than at each other — which is rarer than it should be.',
+    description:
+      'The texture between you is quiet and considered. Andra reads carefully and replies with the line that lands, not the line that fills space. You match her pace without trying.\n\nWhere it could rub: you both have a tendency to wait for the other to set the next move. The conversation breathes — sometimes it forgets to start. Naming "let\'s decide on a date" out loud will feel uncharacteristic; do it anyway.\n\nWhat could grow between you is a shared language for the un-said. You both already use it. The pair version of it is rarer and slower-burning, and it tends to make for the kind of love people write about decades later.',
+    strengths: [
+      'Mutual attention to language',
+      'Compatible quiet temperaments',
+      'No performance, no theatre',
+    ],
+    frictions: [
+      'Both wait for the other to initiate',
+      'Risk of long silences read as ambivalence',
+    ],
+    sharedGrowthEdge: 'Saying the next step out loud, even when it feels too direct',
+  },
+  90002: {
+    pairArchetype: 'Steady Ridge',
+    headline: 'You both pick a direction and move — and you don\'t need to be told that\'s love.',
+    description:
+      'Two conscientious, securely-attached people who treat reliability as romance. Mateo says he\'ll be at the trailhead at 5am and is at the trailhead at 5am. You read that as care; he reads your version of it as the same. Most pairs need years to build this; you start here.\n\nWhere friction could live: you both have strong views on how things should be done. With aligned outcomes the partnership feels effortless; with misaligned outcomes it can become a debate that neither of you yields. Naming small misalignments early is the work.\n\nThe shared growth edge is letting each other be wrong sometimes. Both of you are right enough of the time that the rare miss can sit unspoken for too long.',
+    strengths: [
+      'Both keep their word without fanfare',
+      'Aligned on long-term over short-term',
+      'Energy compounds in the outdoors',
+    ],
+    frictions: [
+      'Two strong opinions on the "right way"',
+      'Both reluctant to revisit small misalignments',
+    ],
+    sharedGrowthEdge: 'Letting each other be wrong without ceremony',
+  },
+}
+
 export const DEMO_AUTO_REPLIES: Record<number, readonly string[]> = {
   90001: [
     'Saturday works. 4pm?',

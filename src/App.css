@@ -21,6 +21,78 @@
   padding-bottom: max(0.5rem, var(--safe-bottom));
 }
 
+/* Guest Tour persistent banner (Phase 3, 2026-05-26).
+   Sits above the TopBar for the duration of the tour, gently
+   reminds the visitor they're in demo mode + offers a one-tap
+   exit. Visually a thin gold-tinted band so it reads as a soft
+   reminder, not an alarm. */
+.app-shell--guest .guest-banner {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  padding: 0.45rem 1rem;
+  margin: 0 auto 0.4rem;
+  width: min(100%, 78rem);
+  background: linear-gradient(
+    90deg,
+    rgba(216, 184, 109, 0.08) 0%,
+    rgba(247, 230, 188, 0.14) 50%,
+    rgba(216, 184, 109, 0.08) 100%
+  );
+  border: 1px solid rgba(216, 184, 109, 0.32);
+  border-radius: 0.6rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.86);
+}
+.app-shell--guest .guest-banner-text {
+  text-align: center;
+}
+.app-shell--guest .guest-banner-cta {
+  appearance: none;
+  background: linear-gradient(105deg, #cfad61, #e8c679);
+  border: none;
+  color: #1a1024;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(216, 184, 109, 0.32);
+  transition: transform 160ms ease, filter 160ms ease, box-shadow 160ms ease;
+}
+.app-shell--guest .guest-banner-cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow: 0 7px 16px rgba(216, 184, 109, 0.42);
+}
+.app-shell--guest .guest-banner-cta:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(216, 184, 109, 0.65);
+}
+@media (max-width: 540px) {
+  .app-shell--guest .guest-banner {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.54rem;
+    letter-spacing: 0.26em;
+    padding: 0.4rem 0.7rem;
+  }
+  .app-shell--guest .guest-banner-cta {
+    font-size: 0.55rem;
+    letter-spacing: 0.22em;
+    padding: 0.32rem 0.75rem;
+  }
+}
+
 /* Phone rules (max-width: 768px) are consolidated in src/styles/mobile.css. */
 
 /* --- Responsive enhancements for all screens --- */
