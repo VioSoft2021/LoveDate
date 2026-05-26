@@ -1,32 +1,23 @@
-// Privé — Password-recovery admin notification (2026-05-26)
+// Privé — Password-recovery request inbox (2026-05-26 v2)
 //
 // When a beta visitor taps "Forgot password?" on the Sign-In card and
-// submits their email, the client calls this Edge Function. The
-// function emails MASTER (admin@prive-app.club) — NOT the user — with
-// a "please send a recovery link to user X" notification. Master then
-// uses the Supabase Dashboard to generate a recovery link for that
-// user and delivers it personally.
+// submits their email, the client calls this Edge Function. Instead of
+// emailing anyone (no Resend, no Supabase mailer, no DNS verification),
+// the function:
+//   1. Uses the service_role key to call auth.admin.generateLink with
+//      type='recovery' for the given email. Supabase returns a URL
+//      containing a one-time recovery token but does NOT send any email.
+//   2. Inserts a row into public.recovery_requests with the user's
+//      email + the recovery link + status='pending'.
+//   3. Master opens the InviteAdmin app, sees the pending request,
+//      copies the link, and sends it to the user himself via WhatsApp /
+//      Signal / email / whatever channel works for that person.
 //
-// Why this design instead of Supabase's built-in resetPasswordForEmail:
-//   1. Resend free tier with the shared `onboarding@resend.dev` sender
-//      restricts recipients to addresses verified on the Resend
-//      account. Only admin@prive-app.club is verified, so sends to
-//      real users (gmail / yahoo / etc.) get rejected at SMTP.
-//   2. This function sends ONLY to admin@prive-app.club — the
-//      whitelisted address — which works on the free tier today
-//      without any DNS verification.
-//   3. For a beta with a handful of users, having Master personally
-//      handle every recovery request is intentionally high-touch and
-//      keeps trust + community feel high.
-//
-// When real user volume arrives (50+ active users / month), this
-// function can be swapped back for supabase.auth.resetPasswordForEmail
-// after the prive-app.club domain is verified in Resend.
-//
-// Setup required before first use:
-//   - Supabase Edge Function secret RESEND_API_KEY must be set to the
-//     same Resend API key currently configured in Auth → SMTP. Add
-//     via Supabase Dashboard → Edge Functions → Manage secrets.
+// This is the simplest possible implementation: no third-party email
+// service, no rate limits beyond Supabase, no recipient whitelist, one
+// admin inbox to check.
+
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,15 +26,12 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-const ADMIN_EMAIL = 'admin@prive-app.club'
-// Resend free tier: the shared `onboarding@resend.dev` sender is the
-// only sender that works without verifying a custom domain. Recipients
-// are restricted to addresses you've verified on the Resend account —
-// admin@prive-app.club is the only one Master has verified, which is
-// also the only address this function ever emails. So this works on
-// free tier today, with no DNS.
-const SENDER = 'Privé <onboarding@resend.dev>'
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// Redirect target after the user clicks the recovery link. Privé's
+// client picks the recovery token out of window.location.hash at boot
+// (services/initialHash.ts) and shows the "Set a new password" card.
+const REDIRECT_TO = 'https://prive-app.club/'
 
 type RequestBody = {
   email?: string
@@ -75,63 +63,47 @@ Deno.serve(async (req: Request) => {
     return json({ error: 'invalid email' }, 400)
   }
 
-  const resendApiKey = Deno.env.get('RESEND_API_KEY')
-  if (!resendApiKey) {
-    return json({ error: 'server missing RESEND_API_KEY' }, 500)
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  if (!supabaseUrl || !serviceRoleKey) {
+    return json({ error: 'server misconfigured' }, 500)
   }
 
-  const timestamp = new Date().toISOString()
-  const subject = `Password reset request: ${email}`
-  const html = `
-    <!doctype html>
-    <html>
-    <body style="font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.5; color: #1a1024;">
-      <h2 style="font-family: 'Bodoni Moda', serif; color: #b78a3e; margin: 0 0 1rem;">Password reset request</h2>
-      <p>A user has requested a password reset on Privé.</p>
-      <table cellpadding="6" cellspacing="0" style="border-collapse: collapse; margin: 1rem 0;">
-        <tr><td style="color: #555; padding-right: 12px;"><strong>User email:</strong></td><td><code>${email}</code></td></tr>
-        <tr><td style="color: #555; padding-right: 12px;"><strong>Requested at:</strong></td><td>${timestamp}</td></tr>
-      </table>
-      <p><strong>To send them a recovery link:</strong></p>
-      <ol>
-        <li>Open the Supabase Dashboard for Privé.</li>
-        <li>Authentication → Users → search <code>${email}</code>.</li>
-        <li>Click the row → <strong>⋯</strong> menu → <strong>Generate recovery link</strong>.</li>
-        <li>Copy the URL Supabase returns.</li>
-        <li>Send the URL to the user via email / WhatsApp / Signal — whichever you prefer.</li>
-      </ol>
-      <p>The user will land on the "Set a new password" card when they open the link.</p>
-      <hr style="border: none; border-top: 1px solid rgba(216,184,109,0.2); margin: 2rem 0;" />
-      <p style="font-size: 0.85rem; color: #888;">This notification was sent automatically by the <code>notify-admin-recovery</code> Edge Function on prive-app.club.</p>
-    </body>
-    </html>
-  `
+  const admin = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
 
-  try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${resendApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: SENDER,
-        to: ADMIN_EMAIL,
-        subject,
-        html,
-      }),
-    })
+  // Generate a recovery URL. Supabase returns the URL but does NOT send
+  // an email — the email-template-driven send only fires when you call
+  // auth.resetPasswordForEmail(). If the email isn't in auth.users,
+  // generateLink returns a 404 / "user not found" error. We treat that
+  // as success on the client side to prevent user enumeration, and we
+  // skip the insert (nothing useful to deliver).
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: 'recovery',
+    email,
+    options: { redirectTo: REDIRECT_TO },
+  })
 
-    if (!response.ok) {
-      const detail = await response.text()
-      console.warn('[notify-admin-recovery] Resend rejected:', detail)
-      return json({ error: 'failed to send notification' }, 502)
-    }
-
+  if (error || !data?.properties?.action_link) {
+    console.warn(
+      '[notify-admin-recovery] generateLink failed for',
+      email,
+      error?.message ?? 'no action_link',
+    )
     return json({ ok: true }, 200)
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'unknown error'
-    console.warn('[notify-admin-recovery] threw:', message)
-    return json({ error: message }, 500)
   }
+
+  const recoveryLink = data.properties.action_link
+
+  const { error: insertError } = await admin
+    .from('recovery_requests')
+    .insert({ email, recovery_link: recoveryLink })
+
+  if (insertError) {
+    console.warn('[notify-admin-recovery] insert failed:', insertError.message)
+    return json({ error: 'failed to record request' }, 500)
+  }
+
+  return json({ ok: true }, 200)
 })
