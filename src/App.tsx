@@ -147,8 +147,6 @@ import {
   readChatThreads,
   readHistory,
   readSelfProfile,
-  readOnboardedFlag,
-  persistOnboardedFlag,
   toProfileDraft,
 } from './persistence'
 import {
@@ -721,6 +719,21 @@ function App() {
   // cloud fetch resolves (success or error). Reset on sign-out.
   const [cloudProfileHydrated, setCloudProfileHydrated] = useState(false)
 
+  // One-time cleanup of the legacy global `lovedate:onboarded` flag that
+  // used to gate the onboarding wizard. Removed 2026-05-26 after it was
+  // found to leak across accounts on the same browser. Profile
+  // completeness is now the sole source of truth. The removeItem call
+  // is a no-op on fresh browsers; on browsers that still have the stale
+  // key we tidy it up so localStorage stays clean.
+  useEffect(() => {
+    try {
+      window.localStorage.removeItem('lovedate:onboarded')
+    } catch {
+      // localStorage unavailable / quota / private mode — ignore. The
+      // routing effect doesn't read this key any more anyway.
+    }
+  }, [])
+
   useEffect(() => {
     if (!isAuthenticated) {
       setCloudProfileHydrated(false)
@@ -744,12 +757,6 @@ function App() {
           const normalized = normalizeSelfProfile(cloudProfile)
           setSelfProfile(normalized)
           setProfileDraft(toProfileDraft(normalized))
-          // Phase A bonus: cloud profile with real data → existing user.
-          // Seed the onboarded flag immediately so a fresh browser never
-          // re-routes them into the wizard on the second pass.
-          if (normalized.photos.length > 0 || normalized.name.trim().length > 0) {
-            persistOnboardedFlag()
-          }
         }
         setCloudProfileHydrated(true)
       })
@@ -885,28 +892,27 @@ function App() {
     void loadProfiles()
   }, [loadProfiles])
 
-  // First-run onboarding trigger. When a user signs in with an empty
-  // profile (no photo, no name) AND hasn't seen the wizard, route them
-  // to the OnboardingScreen instead of dropping them in Discover with
-  // an invisible profile. Existing users with completed profiles are
-  // silently marked as already-onboarded so they never see the wizard.
+  // First-run onboarding trigger. The single source of truth is profile
+  // completeness — if the authed user has no photos AND no name after
+  // cloud hydration finishes, route them to OnboardingScreen. Otherwise
+  // they stay on whatever screen they navigated to.
   //
-  // Gated on cloudProfileHydrated (Phase A fix, 2026-05-24): otherwise
-  // the effect fires against the still-empty local cache on a fresh
-  // browser, navigates an existing user to /onboarding, and only AFTER
-  // the cloud loads does the second pass realize they aren't new.
+  // No "I've seen the wizard" flag — that lived in localStorage globally,
+  // was never cleared on sign-out, and silently leaked across accounts
+  // on the same browser. Profile-completeness covers every legitimate
+  // case the flag was trying to handle (pre-hydration race, post-
+  // completion, existing-user sign-in) without the cross-account leak.
+  //
+  // Gated on cloudProfileHydrated so we wait for the cloud profile to
+  // load before deciding — otherwise an existing user briefly lands on
+  // onboarding while their cloud profile is still in flight.
   useEffect(() => {
     if (!isAuthenticated) return
     if (!cloudProfileHydrated) return
-    if (readOnboardedFlag()) return
     const profileEmpty =
       selfProfile.photos.length === 0 && !selfProfile.name.trim()
     if (profileEmpty) {
       navigate('onboarding', { replace: true })
-    } else {
-      // Existing user, never seen the wizard — mark as done so this
-      // effect doesn't re-fire on every sign-in.
-      persistOnboardedFlag()
     }
   }, [
     isAuthenticated,
@@ -2997,7 +3003,6 @@ function App() {
             setSelfProfile={setSelfProfile}
             pushToast={pushToast}
             onComplete={() => {
-              persistOnboardedFlag()
               navigate('discover', { replace: true })
             }}
           />
