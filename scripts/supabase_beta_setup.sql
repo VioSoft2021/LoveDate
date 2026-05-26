@@ -475,7 +475,7 @@ begin
   if v_email is null then
     return false;
   end if;
-  return lower(v_email) in ('viomediere@gmail.com', 'viorelbox1@gmail.com');
+  return lower(v_email) in ('viomediere@gmail.com', 'viorelbox1@gmail.com', 'admin@prive-app.club');
 end;
 $$;
 

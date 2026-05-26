@@ -468,7 +468,7 @@ function App() {
   } = engagement
   const moderationAdminEmails = useMemo(() => {
     const envRaw = (import.meta.env.VITE_MODERATION_ADMIN_EMAILS as string | undefined) ?? ''
-    const fallbackAdmins = ['viomediere@gmail.com', 'viorelbox1@gmail.com']
+    const fallbackAdmins = ['viomediere@gmail.com', 'viorelbox1@gmail.com', 'admin@prive-app.club']
     return Array.from(
       new Set(
         [...envRaw.split(','), ...fallbackAdmins]
