@@ -1,3 +1,13 @@
+// IMPORTANT: this MUST be the first import. It snapshots
+// window.location.hash before any other module gets a chance to run
+// — specifically before services/backendApi.ts creates a Supabase
+// client (a module-level side effect that consumes the URL fragment
+// and clears `#access_token=...&type=recovery&...` via
+// history.replaceState). The snapshot is read in useAuth to decide
+// whether to surface the password-recovery card. See the file's
+// own comment for the full diagnosis trail (2026-05-26).
+import './services/initialHash'
+
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 // Layout tokens MUST come first — every other stylesheet references them.

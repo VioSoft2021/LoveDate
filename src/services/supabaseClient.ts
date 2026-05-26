@@ -1,5 +1,11 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
+// Re-export so existing callers can keep importing INITIAL_URL_HASH
+// from this module. The actual snapshot lives in services/initialHash
+// (imported first in main.tsx) so it runs BEFORE backendApi.ts
+// creates its own Supabase client and clears the URL fragment.
+export { INITIAL_URL_HASH } from './initialHash'
+
 const supabaseUrl =
   (import.meta.env.VITE_SUPABASE_URL as string | undefined) ??
   (import.meta.env.NEXT_PUBLIC_SUPABASE_URL as string | undefined)
@@ -9,39 +15,11 @@ const supabaseKey =
   (import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY as string | undefined)
 
 /**
- * Snapshot of `window.location.hash` taken at module-load time —
- * BEFORE any Supabase client gets created. Supabase JS auto-consumes
- * the URL fragment on client creation (when `detectSessionInUrl` is
- * true, the default), so by the time React mounts and our hooks run
- * the hash is already gone. This snapshot lets us inspect it after
- * the fact — critical for detecting `type=recovery` (password-reset
- * email click) which must drive a UI branch in LoginScreen.
- *
- * Captured 2026-05-26 after Master tested the password-reset link
- * and the app couldn't detect the recovery state (hash was empty by
- * the time useAuth's effect ran).
- */
-export const INITIAL_URL_HASH: string =
-  typeof window !== 'undefined' ? window.location.hash : ''
-
-// Temporary diagnostic (2026-05-26) — Master is hitting an issue where
-// the password-recovery link still lands on the landing hero even after
-// the singleton + snapshot fix. Logging the captured hash so we can
-// confirm whether (a) the URL really contained the recovery token, and
-// (b) our snapshot ran early enough to capture it. Remove after the
-// recovery flow is verified working end-to-end.
-if (typeof window !== 'undefined') {
-
-  console.log('[Privé/auth] INITIAL_URL_HASH at module load:', INITIAL_URL_HASH || '(empty)')
-}
-
-/**
  * Singleton Supabase client. Earlier versions of this module created
  * a NEW client on every call, which meant each consumer of the auth
  * API had its own auth state — events fired on one instance didn't
- * reach subscribers on another, breaking PASSWORD_RECOVERY detection
- * end-to-end. Caching the instance fixes this: all callers share
- * the same auth state, same event stream, same listeners.
+ * reach subscribers on another. Caching the instance gives all
+ * callers a consistent auth state + event stream.
  */
 let cachedClient: SupabaseClient | null = null
 

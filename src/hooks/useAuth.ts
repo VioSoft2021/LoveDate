@@ -106,24 +106,12 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
   // missed every recovery click — fixed by switching to the
   // module-level snapshot.
   useEffect(() => {
-    // Temporary diagnostic (2026-05-26) — see services/supabaseClient.ts
-
-    console.log(
-      '[Privé/auth] useAuth recovery-check fired. INITIAL_URL_HASH:',
-      INITIAL_URL_HASH || '(empty)',
-      '· current window.location.hash:',
-      typeof window !== 'undefined' ? window.location.hash || '(empty)' : '(no window)',
-    )
     if (INITIAL_URL_HASH.includes('type=recovery')) {
-
-      console.log('[Privé/auth] type=recovery found in snapshot → setting passwordRecoveryActive=true')
       setPasswordRecoveryActive(true)
     }
     const supabase = createSupabaseClient()
     if (!supabase) return
     const { data: subscription } = supabase.auth.onAuthStateChange((event) => {
-
-      console.log('[Privé/auth] onAuthStateChange fired:', event)
       if (event === 'PASSWORD_RECOVERY') {
         setPasswordRecoveryActive(true)
       }
