@@ -24,9 +24,9 @@ Open Privé on your phone (or in Chrome at `prive-app.club`). Take these
 
 | # | Where to capture | Save as |
 |---|---|---|
-| 5 | Discover deck — tap a profile card, expand the "Show deeper why" disclosure so you can see the AI score + reasons + friction + tips. Screenshot when it's fully visible. | `screenshots/05-match-score.png` |
-| 6 | Filter screen — open Filtre, type a real preference in the "What are you looking for?" prompt (e.g. *"Serious, into hiking, not into clubs"*). Screenshot when the live match counter shows a number. | `screenshots/06-filter-prompt.png` |
-| 7 | Onboarding wizard step 5 — the personality reveal moment. Easiest way: clear localStorage (`lovedate:onboarded`) on a test account and walk through the wizard until the gold DMFR card appears. Screenshot the result. | `screenshots/07-personality-reveal.png` |
+| 5 | Discover deck — tap a profile card, expand the "Show deeper why" disclosure so you can see the AI score + reasons + friction + tips. Screenshot when it's fully visible. **Note (2026-05-26): retake this after the multiple Discover/match-score refinements that landed since the original capture.** | `screenshots/05-match-score.png` |
+| 6 | Filter screen — open Filtre, type a real preference in the AI-first prompt (e.g. *"Serious, into hiking, from Bucharest, not into clubs"*). Screenshot when the live match counter shows a number. **Note (2026-05-26): the FilterScreen has been redesigned multiple times since May 22 (AI-First → journal-entry → hard-constraint enforcement); the old screenshot is stale and must be retaken.** | `screenshots/06-filter-prompt.png` |
+| 7 | LovePersonalityScreen (or the OnboardingScreen quiz step's reveal moment) — the Tier A Big Five + Attachment reveal. You'll see: a Claude-written archetype name like *"Curious Anchor"* (no more DMFR letter codes), a one-line headline, then the Big Five bars + the gold attachment chip. Screenshot when the full reveal is visible. **If you skip this, the video falls back to a Tier A CSS mockup (also updated 2026-05-26).** | `screenshots/07-personality-reveal.png` |
 
 **Phone screenshot tips:**
 - Use Android's built-in screenshot (Power + Volume Down).
