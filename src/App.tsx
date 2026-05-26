@@ -4,12 +4,7 @@ import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import './App.css'
 import { getMyMatches, resolveMatch, type Profile } from './services/priveApi'
-import {
-  DEMO_GUEST_MATCH_IDS,
-  DEMO_AUTO_REPLIES,
-  DEMO_GUEST_SELF_PROFILE,
-  buildDemoChatThreads,
-} from './services/demo/demoProfiles'
+import { DEMO_AUTO_REPLIES, DEMO_GENERIC_AUTO_REPLIES } from './services/demo/demoProfiles'
 import { backendInvokeDatePlanner } from './services/ai/datePlanner'
 import { backendInvokeIcebreaker } from './services/ai/icebreaker'
 import {
@@ -794,9 +789,13 @@ function App() {
   // 800ms so rapid form-typing doesn't spam the cloud, and gated on
   // cloudProfileHydrated so the initial cloud read doesn't echo itself
   // back to the cloud during mount.
+  //
+  // Guest Tour (Phase 4, 2026-05-26): skip entirely when isGuest. The
+  // tour visitor's profile is ephemeral by promise — nothing they
+  // type during the tour should land in localStorage or Supabase.
   const profileSaveDebounceRef = useRef<number | null>(null)
   useEffect(() => {
-    if (!isAuthenticated || !cloudProfileHydrated) {
+    if (!isAuthenticated || !cloudProfileHydrated || isGuest) {
       return
     }
     if (profileSaveDebounceRef.current !== null) {
@@ -818,7 +817,7 @@ function App() {
         window.clearTimeout(profileSaveDebounceRef.current)
       }
     }
-  }, [selfProfile, isAuthenticated, cloudProfileHydrated, userEmail])
+  }, [selfProfile, isAuthenticated, cloudProfileHydrated, isGuest, userEmail])
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -959,39 +958,16 @@ function App() {
       return
     }
     if (isGuest) {
-      // Seed selfProfile so the Profile screen looks lived-in + the
-      // onboarding-routing effect (gated on photos+name) doesn't fire.
-      // Only seed once: if the visitor has already started editing
-      // their tour profile we don't want to clobber their changes.
-      setSelfProfile((current) =>
-        current.photos.length === 0 && !current.name.trim()
-          ? DEMO_GUEST_SELF_PROFILE
-          : current,
-      )
-      setHistory((current) => {
-        const existing = new Set(current.matchIds)
-        const merged = [...current.matchIds]
-        for (const id of DEMO_GUEST_MATCH_IDS) {
-          if (!existing.has(id)) {
-            merged.push(id)
-          }
-        }
-        return { ...current, matchIds: merged }
-      })
-      setChatThreads((current) => {
-        const seeded = buildDemoChatThreads()
-        // Only seed threads that aren't already present so the guest's
-        // own outgoing messages (added via sendChatMessage) survive a
-        // re-mount of this effect.
-        const next: typeof current = { ...current }
-        for (const [id, messages] of Object.entries(seeded)) {
-          const numericId = Number(id)
-          if (!(numericId in next)) {
-            next[numericId] = messages
-          }
-        }
-        return next
-      })
+      // Guest Tour (Phase 4, 2026-05-26): a tour visitor experiences
+      // the app as a brand-new user would — no pre-seeded selfProfile,
+      // no pre-baked matches, no pre-baked chat threads. They walk
+      // through the OnboardingScreen wizard, fill in their own data,
+      // start with an empty Discover deck of demo profiles, and earn
+      // matches by swiping right. Skipping the cloud getMyMatches
+      // call is the only thing this branch does — everything else
+      // happens naturally through the same code paths a real new
+      // user follows. The persistent banner reminds them that
+      // nothing is saved.
       return
     }
     let cancelled = false
@@ -1744,14 +1720,28 @@ function App() {
         ])
 
         try {
-          // Guest Tour (2026-05-26, Phase 2): no backend writes for
-          // guest swipes — likes/passes/super-likes stay in the local
-          // React state of this session and disappear on refresh.
-          // resolveMatch is also skipped: random match celebrations
-          // from synthetic profiles would feel uncanny without a real
-          // chat to land in. Pre-matched Andra + Mateo cover the
-          // "what does matching look like" experience.
-          if (!isGuest) {
+          if (isGuest) {
+            // Guest Tour (Phase 4, 2026-05-26): no backend writes,
+            // BUT every right-swipe results in a match so the tour
+            // visitor can experience the celebration + the empty
+            // chat surface they need to populate to feel what the
+            // app is for. Demo profiles are pre-curated as plausible
+            // candidates — none of them "pass" on the visitor.
+            // Engagement counters (like / super-like usage) are
+            // skipped: the visitor never sees a limit during the
+            // tour and the counter wouldn't survive refresh anyway.
+            if (direction === 'right' && (intent === 'like' || intent === 'super-like')) {
+              addSwipeHistory(swipedProfile.id, direction, true)
+              setSwipeLog((current) =>
+                current.map((entry) =>
+                  entry.profileId === swipedProfile.id && !entry.wasMatch
+                    ? { ...entry, wasMatch: true }
+                    : entry,
+                ),
+              )
+              onMatchConfirmed(swipedProfile)
+            }
+          } else {
             await backendRecordSwipe(swipedProfile.id, direction)
             if (direction === 'right') {
               const wasMatch = await resolveMatch(swipedProfile.id)
@@ -1899,8 +1889,9 @@ function App() {
           ),
         }
       })
-      const replies = DEMO_AUTO_REPLIES[guestTargetId]
-      if (replies && replies.length > 0) {
+      const replies: readonly string[] =
+        DEMO_AUTO_REPLIES[guestTargetId] ?? DEMO_GENERIC_AUTO_REPLIES
+      if (replies.length > 0) {
         window.setTimeout(() => {
           setChatThreads((current) => {
             const thread = current[guestTargetId] ?? []
@@ -2343,16 +2334,22 @@ function App() {
     (nextProfile: SelfProfile, successMessage?: string) => {
       setSelfProfile(nextProfile)
       setProfileDraft(toProfileDraft(nextProfile))
-      // Local persistence handled by `backendSaveSelfProfile`; avoid writing
-      // the global fallback key which can leak another user's cache.
-      void backendSaveSelfProfile(userEmail, nextProfile as unknown as Record<string, unknown>).catch(() => {
-        pushToast('Saved locally, but cloud sync failed for profile.', 'error')
-      })
+      // Guest Tour (Phase 4, 2026-05-26): no persistence for tour
+      // visitors — the local React state above is the entire story;
+      // it evaporates on signOut / refresh. The success toast still
+      // fires so the user gets feedback that their change registered.
+      if (!isGuest) {
+        // Local persistence handled by `backendSaveSelfProfile`; avoid writing
+        // the global fallback key which can leak another user's cache.
+        void backendSaveSelfProfile(userEmail, nextProfile as unknown as Record<string, unknown>).catch(() => {
+          pushToast('Saved locally, but cloud sync failed for profile.', 'error')
+        })
+      }
       if (successMessage) {
         pushToast(successMessage, 'success')
       }
     },
-    [userEmail, pushToast, setProfileDraft, setSelfProfile],
+    [isGuest, userEmail, pushToast, setProfileDraft, setSelfProfile],
   )
 
   const suggestSocialHandle = (platform: SocialPlatform): string => {
@@ -2561,29 +2558,31 @@ function App() {
     }
 
     setSelfProfile(nextProfile)
-    void (async () => {
-      // Lazy-migrate any leftover data URLs (from saves predating B2) to
-      // Storage URLs before persisting. Failed uploads keep their original
-      // data URL so offline saves still work.
-      const migratedPhotos = await backendUploadDataUrlPhotos(nextProfile.photos)
-      const migratedProfile =
-        migratedPhotos === nextProfile.photos
-          ? nextProfile
-          : { ...nextProfile, photos: migratedPhotos }
-      if (migratedPhotos !== nextProfile.photos) {
-        setSelfProfile(migratedProfile)
-        setProfileDraft(toProfileDraft(migratedProfile))
-        // Namespaced local cache will be updated by backendSaveSelfProfile below.
-      }
-      try {
-        await backendSaveSelfProfile(
-          userEmail,
-          migratedProfile as unknown as Record<string, unknown>,
-        )
-      } catch {
-        pushToast('Saved locally, but cloud sync failed for profile.', 'error')
-      }
-    })()
+    if (!isGuest) {
+      void (async () => {
+        // Lazy-migrate any leftover data URLs (from saves predating B2) to
+        // Storage URLs before persisting. Failed uploads keep their original
+        // data URL so offline saves still work.
+        const migratedPhotos = await backendUploadDataUrlPhotos(nextProfile.photos)
+        const migratedProfile =
+          migratedPhotos === nextProfile.photos
+            ? nextProfile
+            : { ...nextProfile, photos: migratedPhotos }
+        if (migratedPhotos !== nextProfile.photos) {
+          setSelfProfile(migratedProfile)
+          setProfileDraft(toProfileDraft(migratedProfile))
+          // Namespaced local cache will be updated by backendSaveSelfProfile below.
+        }
+        try {
+          await backendSaveSelfProfile(
+            userEmail,
+            migratedProfile as unknown as Record<string, unknown>,
+          )
+        } catch {
+          pushToast('Saved locally, but cloud sync failed for profile.', 'error')
+        }
+      })()
+    }
     // Local cache persisted via `backendSaveSelfProfile` (called above).
     setProfileDraft(toProfileDraft(nextProfile))
     setProfileSaveStatus('saved')
@@ -3151,6 +3150,7 @@ function App() {
             onComplete={() => {
               navigate('discover', { replace: true })
             }}
+            isGuest={isGuest}
           />
         )}
         {screen === 'profile-detail' && (

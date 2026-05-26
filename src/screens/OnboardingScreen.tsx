@@ -40,6 +40,11 @@ export type OnboardingScreenProps = {
   /** Called when the user finishes or skips the wizard. Parent routes
    *  back to Discover and persists the onboarded flag. */
   onComplete: () => void
+  /** Guest Tour mode (Phase 4, 2026-05-26). When true, every step is
+   *  required — the global skip-to-end button is hidden and the quiz
+   *  step's skip-this-step button is hidden too. Master wants tour
+   *  visitors to experience the full onboarding flow, not bypass it. */
+  isGuest?: boolean
 }
 
 type Step =
@@ -59,6 +64,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   setSelfProfile,
   pushToast,
   onComplete,
+  isGuest = false,
 }) => {
   const copy = UI_TEXT[appLanguage].onboarding
   const t = (template: string, vars: Record<string, string | number>) =>
@@ -291,13 +297,18 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             />
           ))}
         </div>
-        <button
-          type="button"
-          className="ghost onboarding-skip"
-          onClick={onComplete}
-        >
-          {copy.skip}
-        </button>
+        {/* Skip-to-end button hidden for Guest Tour — tour visitors
+            walk every step so they experience the full new-user
+            flow. Real users still get the escape hatch. */}
+        {isGuest ? null : (
+          <button
+            type="button"
+            className="ghost onboarding-skip"
+            onClick={onComplete}
+          >
+            {copy.skip}
+          </button>
+        )}
       </header>
 
       <section className="onboarding-step">
@@ -458,7 +469,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             appLanguage={appLanguage}
             selfName={name}
             onChange={setQuizSnapshot}
-            onSkip={advance}
+            onSkip={isGuest ? undefined : advance}
           />
         )}
 

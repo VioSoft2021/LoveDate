@@ -127,27 +127,30 @@ export const backendInvokePairDynamicReveal = async (
 ): Promise<PairDynamicReveal | null> => {
   const language: 'en' | 'ro' = input.language === 'ro' ? 'ro' : 'en'
 
-  // Guest Tour (Phase 3, 2026-05-26): when the caller is a tour
-  // visitor (selfId === DEMO_GUEST_EMAIL), short-circuit to the
-  // hand-written reveal from the demoProfiles fixture. No Claude
-  // call, no Edge Function round-trip, no server cache entry. The
-  // result is wrapped in the same PairDynamicReveal shape the real
-  // path returns so the UI is identical.
+  // Guest Tour (Phase 3/4, 2026-05-26): when the caller is a tour
+  // visitor (selfId === DEMO_GUEST_EMAIL), prefer the hand-written
+  // reveal from the demoProfiles fixture for known pre-matched
+  // profiles (Andra, Mateo). For any other matched demo profile,
+  // fall through to the live Edge Function — server-side cache
+  // means only one guest ever pays the Claude tokens for a given
+  // pair; every subsequent guest hits the cache.
   if (input.selfId === DEMO_GUEST_EMAIL) {
     const { DEMO_PAIR_DYNAMIC_REVEALS } = await import('../demo/demoProfiles')
     const otherIdNum = Number(input.otherId)
     const canned = DEMO_PAIR_DYNAMIC_REVEALS[otherIdNum]
-    if (!canned) return null
-    return {
-      pairArchetype: canned.pairArchetype,
-      headline: canned.headline,
-      description: canned.description,
-      strengths: [...canned.strengths],
-      frictions: [...canned.frictions],
-      sharedGrowthEdge: canned.sharedGrowthEdge,
-      language,
-      generatedAt: new Date().toISOString(),
+    if (canned) {
+      return {
+        pairArchetype: canned.pairArchetype,
+        headline: canned.headline,
+        description: canned.description,
+        strengths: [...canned.strengths],
+        frictions: [...canned.frictions],
+        sharedGrowthEdge: canned.sharedGrowthEdge,
+        language,
+        generatedAt: new Date().toISOString(),
+      }
     }
+    // No canned reveal for this pair → fall through to the live path.
   }
 
   const signature = pairSignature(
