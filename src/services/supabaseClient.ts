@@ -24,6 +24,17 @@ const supabaseKey =
 export const INITIAL_URL_HASH: string =
   typeof window !== 'undefined' ? window.location.hash : ''
 
+// Temporary diagnostic (2026-05-26) — Master is hitting an issue where
+// the password-recovery link still lands on the landing hero even after
+// the singleton + snapshot fix. Logging the captured hash so we can
+// confirm whether (a) the URL really contained the recovery token, and
+// (b) our snapshot ran early enough to capture it. Remove after the
+// recovery flow is verified working end-to-end.
+if (typeof window !== 'undefined') {
+
+  console.log('[Privé/auth] INITIAL_URL_HASH at module load:', INITIAL_URL_HASH || '(empty)')
+}
+
 /**
  * Singleton Supabase client. Earlier versions of this module created
  * a NEW client on every call, which meant each consumer of the auth
