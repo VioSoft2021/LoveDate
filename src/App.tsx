@@ -892,6 +892,23 @@ function App() {
     void loadProfiles()
   }, [loadProfiles])
 
+  // Profile completeness — single source of truth for the onboarding
+  // routing decision. Empty = no photos AND no name; anything else is
+  // a real (or partly-real) profile and we don't auto-route.
+  const profileEmpty =
+    selfProfile.photos.length === 0 && !selfProfile.name.trim()
+
+  // The routing decision is "pending" while we're authed, the local
+  // profile cache is empty, and the cloud fetch hasn't resolved yet.
+  // During this window the destination screen is genuinely unknown —
+  // a brand-new account routes to onboarding, an existing user on a
+  // fresh browser routes to wherever they were. Showing ANY screen in
+  // this window is a guess. The render block below uses this to render
+  // a placeholder so the user never sees the wrong screen flash before
+  // routing.
+  const routeDecisionPending =
+    isAuthenticated && profileEmpty && !cloudProfileHydrated
+
   // First-run onboarding trigger. The single source of truth is profile
   // completeness — if the authed user has no photos AND no name after
   // cloud hydration finishes, route them to OnboardingScreen. Otherwise
@@ -909,16 +926,13 @@ function App() {
   useEffect(() => {
     if (!isAuthenticated) return
     if (!cloudProfileHydrated) return
-    const profileEmpty =
-      selfProfile.photos.length === 0 && !selfProfile.name.trim()
     if (profileEmpty) {
       navigate('onboarding', { replace: true })
     }
   }, [
     isAuthenticated,
     cloudProfileHydrated,
-    selfProfile.photos.length,
-    selfProfile.name,
+    profileEmpty,
     navigate,
   ])
 
@@ -2728,6 +2742,13 @@ function App() {
         />
       )}
       <section className={`screen-panel ${screen === 'discover' ? 'screen-panel--discover' : ''}`} aria-live="polite">
+        {/* While the routing decision is pending — authed, local profile
+            cache empty, cloud fetch still in flight — render nothing.
+            The TopBar with the crest still shows, so the user sees the
+            brand mark rather than a half-loaded Discover deck flashing
+            "0 in deck" for half a second before being redirected to
+            the onboarding wizard. */}
+        {routeDecisionPending ? null : (<>
         {screen === 'filters' && (
           <section className="filter-screen-wrap">
             <button
@@ -3031,6 +3052,7 @@ function App() {
             selfId={userEmail}
           />
         )}
+        </>)}
       </section>
       <MatchCelebrationModal
         match={activeMatch}
