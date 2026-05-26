@@ -177,6 +177,86 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   }
 
   // ── Hero state ─────────────────────────────────────────────────────
+  // Password recovery wins over EVERY other view. When the visitor
+  // clicks the "Reset Your Password" email link, Supabase fires the
+  // PASSWORD_RECOVERY event AND/OR we detect `type=recovery` in the
+  // URL hash — either way, this card replaces the hero / sign-in /
+  // waitlist surfaces. Without this early return the default hero
+  // view would swallow the recovery state (the bug Master hit
+  // 2026-05-26: the email link kept landing on the landing hero).
+  if (passwordRecoveryActive) {
+    return (
+      <main className="login-shell">
+        <div className="grain" aria-hidden="true" />
+        <article className="login-card">
+          <div className="login-card-brand">
+            <img
+              className="login-card-crest"
+              src="./crests/crest-3.png?v=2"
+              alt=""
+              aria-hidden="true"
+              loading="eager"
+              decoding="async"
+            />
+            <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
+          </div>
+          <h1>{copy.auth.recoveryTitle}</h1>
+          <p className="soft">{copy.auth.recoveryBody}</p>
+          <form
+            className="login-form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              void onCompletePasswordRecovery(recoveryNewPassword, recoveryConfirmPassword)
+            }}
+          >
+            <label>
+              {copy.auth.recoveryNewPassword}
+              <div className="password-field">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={recoveryNewPassword}
+                  onChange={(event) => setRecoveryNewPassword(event.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPassword}
+                >
+                  <EyeIcon open={showPassword} />
+                </button>
+              </div>
+              <small className="soft">{copy.auth.passwordHint}</small>
+            </label>
+            <label>
+              {copy.auth.recoveryConfirmPassword}
+              <div className="password-field">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={recoveryConfirmPassword}
+                  onChange={(event) => setRecoveryConfirmPassword(event.target.value)}
+                  required
+                />
+              </div>
+            </label>
+            {passwordRecoveryError ? (
+              <p className="error-text">{passwordRecoveryError}</p>
+            ) : null}
+            <div className="login-actions">
+              <button type="submit" disabled={passwordRecoveryLoading}>
+                {passwordRecoveryLoading ? copy.auth.recoverySaving : copy.auth.recoverySubmit}
+              </button>
+            </div>
+          </form>
+        </article>
+      </main>
+    )
+  }
+
   // V4 (2026-05-24) — "Editorial Silence". Stripped to what real luxury
   // houses do: vast negative space, small precise type, almost no
   // decoration, one ambient thread of light. No pills, no heart visual,
@@ -273,84 +353,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             footer + select markup is kept commented in case we need
             quick visual reference when re-enabling, but the actual
             JSX is removed so it can't render. */}
-      </main>
-    )
-  }
-
-  // ── Password recovery card ────────────────────────────────────────
-  // When the visitor arrives via a "Reset Your Password" email link,
-  // Supabase JS fires PASSWORD_RECOVERY and we render this card
-  // instead of the normal sign-in flow. The user picks a new
-  // password; we call updateUser; on success they're signed in.
-  if (passwordRecoveryActive) {
-    return (
-      <main className="login-shell">
-        <div className="grain" aria-hidden="true" />
-        <article className="login-card">
-          <div className="login-card-brand">
-            <img
-              className="login-card-crest"
-              src="./crests/crest-3.png?v=2"
-              alt=""
-              aria-hidden="true"
-              loading="eager"
-              decoding="async"
-            />
-            <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
-          </div>
-          <h1>{copy.auth.recoveryTitle}</h1>
-          <p className="soft">{copy.auth.recoveryBody}</p>
-          <form
-            className="login-form"
-            onSubmit={(event) => {
-              event.preventDefault()
-              void onCompletePasswordRecovery(recoveryNewPassword, recoveryConfirmPassword)
-            }}
-          >
-            <label>
-              {copy.auth.recoveryNewPassword}
-              <div className="password-field">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  value={recoveryNewPassword}
-                  onChange={(event) => setRecoveryNewPassword(event.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowPassword((s) => !s)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  aria-pressed={showPassword}
-                >
-                  <EyeIcon open={showPassword} />
-                </button>
-              </div>
-              <small className="soft">{copy.auth.passwordHint}</small>
-            </label>
-            <label>
-              {copy.auth.recoveryConfirmPassword}
-              <div className="password-field">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  value={recoveryConfirmPassword}
-                  onChange={(event) => setRecoveryConfirmPassword(event.target.value)}
-                  required
-                />
-              </div>
-            </label>
-            {passwordRecoveryError ? (
-              <p className="error-text">{passwordRecoveryError}</p>
-            ) : null}
-            <div className="login-actions">
-              <button type="submit" disabled={passwordRecoveryLoading}>
-                {passwordRecoveryLoading ? copy.auth.recoverySaving : copy.auth.recoverySubmit}
-              </button>
-            </div>
-          </form>
-        </article>
       </main>
     )
   }
