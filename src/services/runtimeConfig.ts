@@ -26,12 +26,15 @@ const readCsv = (value: string | undefined): string[] => {
     .filter((item) => item.length > 0)
 }
 
-const isProd = import.meta.env.PROD
-
 export const runtimeConfig = {
   auth: {
     requireInviteCode: parseBoolean(import.meta.env.VITE_REQUIRE_INVITE_CODE as string | undefined, true),
-    allowGuestLogin: parseBoolean(import.meta.env.VITE_ALLOW_GUEST_LOGIN as string | undefined, !isProd),
+    // 2026-05-26: Guest Tour mode is on by default in every build
+    // (dev + prod). The fourth gate on the landing hero — "Take a
+    // tour" — depends on this. The env var can still flip it off if
+    // we ever need to disable the tour temporarily (e.g. during a
+    // demo-data migration). Per-build override stays the same name.
+    allowGuestLogin: parseBoolean(import.meta.env.VITE_ALLOW_GUEST_LOGIN as string | undefined, true),
     allowedEmailDomains: readCsv(import.meta.env.VITE_BETA_ALLOWED_EMAIL_DOMAINS as string | undefined),
   },
   backend: {

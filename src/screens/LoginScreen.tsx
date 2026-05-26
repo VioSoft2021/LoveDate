@@ -198,8 +198,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </p>
           </div>
 
-          {/* BOTTOM row — three doors centered horizontally across the
-              full page width, separate from both columns above. */}
+          {/* BOTTOM row — four doors centered horizontally across the
+              full page width, separate from both columns above. The
+              fourth door (Take a Tour) routes into Guest Tour mode —
+              no invite code, no email, no password; the visitor sees
+              the app with synthetic profiles so they can feel Privé
+              before deciding to request access. */}
           <nav className="login-hero-doors" aria-label="Access">
             <button
               type="button"
@@ -221,6 +225,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               onClick={() => goToAuth('login')}
             >
               {copy.auth.heroSignIn}
+            </button>
+            <button
+              type="button"
+              className="login-hero-door login-hero-door--tour"
+              onClick={onGuestLogin}
+            >
+              {copy.auth.heroTakeTour}
             </button>
           </nav>
         </section>

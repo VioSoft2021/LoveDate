@@ -596,6 +596,7 @@ function App() {
   })
   const {
     isAuthenticated,
+    isGuest,
     userEmail,
     loginEmail,
     loginPassword,
@@ -889,8 +890,8 @@ function App() {
   // loadProfiles now lives in useDeck.
 
   useEffect(() => {
-    void loadProfiles()
-  }, [loadProfiles])
+    void loadProfiles({ isGuest })
+  }, [loadProfiles, isGuest])
 
   // Profile completeness — single source of truth for the onboarding
   // routing decision. Empty = no photos AND no name; anything else is
@@ -2775,6 +2776,7 @@ function App() {
           <DiscoverScreen
             appLanguage={appLanguage}
             selfProfile={selfProfile}
+            isGuest={isGuest}
             filteredProfiles={filteredProfiles}
             hiddenBreakdown={hiddenBreakdown}
             matchedProfiles={matchedProfiles}

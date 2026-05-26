@@ -337,6 +337,34 @@
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
+/* ── Guest Tour demo chip (2026-05-26) ─────────────────────
+   When a visitor is in Guest Tour mode, every profile they see
+   is synthetic. The chip is rendered inline next to the name on
+   the top card so there's never a chance the visitor mistakes a
+   fixture profile for a real registered user. Visually subtle —
+   muted gold tag with uppercase Cinzel lettering — so it reads
+   as a tasteful annotation, not a banner. */
+.discover-redesign .discover-card-demo-chip {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.6rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(216, 184, 109, 0.16);
+  border: 1px solid rgba(216, 184, 109, 0.5);
+  color: #f7e6bc;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.55rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  -webkit-text-fill-color: initial;
+  text-shadow: none;
+  background-clip: border-box;
+  -webkit-background-clip: border-box;
+}
+
 .discover-redesign .discover-presence-line {
   display: inline-flex;
   align-items: center;

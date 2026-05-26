@@ -48,6 +48,10 @@ export const UI_TEXT = {
       heroRequestAccess: 'Request access',
       heroHaveInvite: 'Redeem your invite',
       heroSignIn: 'Sign in',
+      // Guest Tour (2026-05-26) — fourth gate. No invite, no email, no
+      // password; the visitor sees the app with synthetic profiles so
+      // they can feel Privé before deciding to request access.
+      heroTakeTour: 'Take a tour',
       heroBack: '← Back',
     },
     waitlist: {
@@ -622,6 +626,10 @@ export const UI_TEXT = {
       heroRequestAccess: 'Solicită acces',
       heroHaveInvite: 'Folosește invitația',
       heroSignIn: 'Intră în cont',
+      // Guest Tour (2026-05-26) — a patra poartă. Fără invitație, fără
+      // email, fără parolă; vizitatorul vede aplicația cu profile
+      // sintetice pentru a simți Privé înainte să-și ceară accesul.
+      heroTakeTour: 'Vezi o demonstrație',
       heroBack: '← Înapoi',
     },
     waitlist: {

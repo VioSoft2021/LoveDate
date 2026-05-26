@@ -182,7 +182,15 @@ const mapProfileRow = (row: Record<string, unknown>): Profile | null => {
   }
 }
 
-export const getProfiles = async (): Promise<Profile[]> => {
+export const getProfiles = async (options?: { isGuest?: boolean }): Promise<Profile[]> => {
+  // Guest Tour (2026-05-26): when the visitor entered via the
+  // "Take a Tour" gate, every deck load returns the synthetic
+  // demoProfiles fixture instead of touching Supabase. No real
+  // user data is exposed to a non-registered visitor.
+  if (options?.isGuest) {
+    const { DEMO_PROFILES } = await import('./demo/demoProfiles')
+    return DEMO_PROFILES
+  }
   await wait(220)
   const supabase = createSupabaseClient()
   if (supabase) {

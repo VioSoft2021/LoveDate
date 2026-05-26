@@ -19,6 +19,10 @@ import type { Profile } from '../services/priveApi'
 export type DiscoverScreenProps = {
   appLanguage: AppLanguage
   selfProfile: SelfProfile
+  /** Guest Tour mode (2026-05-26). When true, the top card carries a
+   *  small "Demo" chip so the visitor can't mistake the synthetic
+   *  fixture profiles for real registered users. */
+  isGuest: boolean
   filteredProfiles: Profile[]
   matchedProfiles: Profile[]
   topProfile: Profile | null
@@ -85,6 +89,7 @@ export type DiscoverScreenProps = {
 const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
   appLanguage,
   selfProfile,
+  isGuest,
   filteredProfiles,
   matchedProfiles,
   topProfile,
@@ -488,6 +493,16 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
                     <div className="profile-head">
                       <h1 className="discover-card-name">
                         {topProfile.name}, {topProfile.age}
+                        {isGuest ? (
+                          <span
+                            className="discover-card-demo-chip"
+                            title={appLanguage === 'ro'
+                              ? 'Profil sintetic pentru demonstrație'
+                              : 'Synthetic demo profile'}
+                          >
+                            {appLanguage === 'ro' ? 'Demo' : 'Demo'}
+                          </span>
+                        ) : null}
                       </h1>
                       <p className="discover-presence-line">
                         <span className="discover-status-dot" aria-hidden="true" />

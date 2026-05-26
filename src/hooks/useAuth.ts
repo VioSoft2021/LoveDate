@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { runtimeConfig } from '../services/runtimeConfig'
 import {
-  backendGuestLogin,
   backendLogin,
   backendRegister,
   backendRepairDiscoverableProfile,
@@ -12,6 +11,7 @@ import {
   purgeAllSelfProfileCaches,
   purgeOtherSelfProfileCaches,
 } from '../services/backendApi'
+import { DEMO_GUEST_EMAIL } from '../services/demo/demoProfiles'
 import { readAuth, AUTH_STORAGE_KEY } from '../persistence'
 import { EMPTY_SELF_PROFILE, UI_TEXT } from '../constants'
 import type { AppLanguage } from '../domain'
@@ -47,6 +47,12 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
   const initial = readAuth()
 
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  // Guest Tour mode (2026-05-26). When true, the user entered via
+  // "Take a Tour" on the landing hero — no Supabase auth, no real
+  // user data, every backend read is intercepted and answered from
+  // the demoProfiles fixture. Never persisted to localStorage so a
+  // page refresh ends the tour cleanly.
+  const [isGuest, setIsGuest] = useState(false)
   const [userEmail, setUserEmail] = useState(initial.email)
   const [loginEmail, setLoginEmail] = useState(initial.email)
   const [loginPassword, setLoginPassword] = useState('')
@@ -154,36 +160,32 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
   )
 
   const guestLogin = useCallback(() => {
-    setLoggingIn(true)
+    // Guest Tour mode (2026-05-26 rework). No Supabase, no invite code,
+    // no anonymous auth user created server-side. We synchronously flip
+    // local auth state to "signed-in guest"; the rest of the app reads
+    // isGuest to swap real backend fetches for the demoProfiles fixture.
     setLoginError(null)
     setLoginNotice(null)
-
-    const inviteValidation = runtimeConfig.auth.requireInviteCode
-      ? backendValidateInviteCode(inviteCode.trim())
-      : Promise.resolve()
-
-    void inviteValidation
-      .then(() => backendGuestLogin())
-      .then((result) => {
-        purgeOtherSelfProfileCaches(result.email)
-        setIsAuthenticated(true)
-        setUserEmail(result.email)
-        setLoginEmail(result.email)
-        void backendRepairDiscoverableProfile(result.email)
-        onSignedIn?.(result.email)
-        pushToast(tAuth.guestStarted, 'info')
-      })
-      .catch((error: unknown) => {
-        const detail = error instanceof Error ? error.message : 'Guest login failed'
-        setLoginError(detail)
-        pushToast(tAuth.guestFailed, 'error')
-      })
-      .finally(() => {
-        setLoggingIn(false)
-      })
-  }, [inviteCode, pushToast, onSignedIn, tAuth])
+    setIsGuest(true)
+    setIsAuthenticated(true)
+    setUserEmail(DEMO_GUEST_EMAIL)
+    setLoginEmail(DEMO_GUEST_EMAIL)
+    onSignedIn?.(DEMO_GUEST_EMAIL)
+    pushToast(tAuth.guestStarted, 'info')
+  }, [pushToast, onSignedIn, tAuth])
 
   const signOut = useCallback(async () => {
+    // Guest Tour exit: no Supabase session to terminate, no real
+    // user data to wipe. Just flip the local state and we're back
+    // on the landing hero.
+    if (isGuest) {
+      setIsGuest(false)
+      setIsAuthenticated(false)
+      setUserEmail('')
+      setLoginPassword('')
+      onSignedOut?.()
+      return
+    }
     // Await the cloud sign-out before flipping local state so the next
     // sign-in can't race with the previous session's signOut completing.
     try {
@@ -199,7 +201,7 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
     setUserEmail('')
     setLoginPassword('')
     onSignedOut?.()
-  }, [pushToast, onSignedOut, tAuth])
+  }, [isGuest, pushToast, onSignedOut, tAuth])
 
   const exitApp = useCallback(() => {
     void signOut()
@@ -255,6 +257,7 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
   return {
     // state
     isAuthenticated,
+    isGuest,
     userEmail,
     loginEmail,
     loginPassword,

@@ -40,10 +40,10 @@ export const useDeck = () => {
   // re-render on every pixel.
   const dragStart = useRef<{ x: number; y: number } | null>(null)
 
-  const loadProfiles = useCallback(async () => {
+  const loadProfiles = useCallback(async (options?: { isGuest?: boolean }) => {
     try {
       setLoadingProfiles(true)
-      const incoming = await getProfiles()
+      const incoming = await getProfiles(options)
       setAllProfiles(incoming.map(normalizeProfilePhotos))
       setLoadError(null)
     } catch {
