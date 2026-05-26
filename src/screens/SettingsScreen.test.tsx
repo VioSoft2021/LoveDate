@@ -110,13 +110,15 @@ describe('SettingsScreen — toggle handlers', () => {
     expect(handleSettingsToggle).toHaveBeenCalledWith('pushNotifications', false)
   })
 
-  it('app language select change calls setAppLanguage', () => {
-    const setAppLanguage = vi.fn()
-    render(<SettingsScreen {...baseProps} setAppLanguage={setAppLanguage} />)
-    // The language label is the first select with EN/RO options
-    const selects = screen.getAllByRole('combobox')
-    fireEvent.change(selects[0], { target: { value: 'ro' } })
-    expect(setAppLanguage).toHaveBeenCalledWith('ro')
+  it('app-language picker is hidden — language is locked to English (2026-05-26)', () => {
+    // The picker was removed when the app was hard-locked to English
+    // until the Romanian translation pass completes. Asserting the
+    // language label is absent so a future re-introduction has to
+    // come back through this test (and we can decide whether to
+    // re-enable the picker at the same time).
+    render(<SettingsScreen {...baseProps} />)
+    expect(screen.queryByText('App language')).toBeNull()
+    expect(screen.queryByText('Limba aplicației')).toBeNull()
   })
 })
 

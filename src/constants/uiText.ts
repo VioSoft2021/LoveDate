@@ -38,7 +38,7 @@ export const UI_TEXT = {
       // Two-line tagline in the right column of the LoginScreen hero.
       // \n marks the line break; JSX splits and renders each line as a
       // separate span with its own clip-path reveal animation.
-      heroTagline: 'Where the noise of every other\ndating app falls away',
+      heroTagline: 'The best you can do for you',
       // Editorial brand paragraph — small italic prose that fills the
       // visual space with meaning rather than decoration. Reads like
       // the opening line of a journal, not marketing copy.
@@ -622,7 +622,7 @@ export const UI_TEXT = {
       heroEyebrow: 'Doar pe bază de invitație',
       // Două rânduri în coloana dreaptă a hero-ului LoginScreen.
       // \n marchează separarea pe rânduri; JSX împarte după acest caracter.
-      heroTagline: 'Unde zgomotul aplicațiilor\nde întâlniri se stinge',
+      heroTagline: 'Cel mai bun lucru pentru tine',
       // Paragraf editorial — proză italică mică care umple golul vizual cu sens.
       heroManifesto: 'O cameră liniștită, doar pe bază de invitație. Unde zgomotul aplicațiilor de întâlniri se stinge — și rămâne doar ce contează: potriviri atente, introduceri scrise cu grijă, și răbdarea de a cunoaște pe cineva real.',
       // Trei căi egale — toate la fel de respectate la intrare.
