@@ -1,4 +1,5 @@
 import type { Profile } from '../priveApi'
+import type { ChatMessage } from '../../domain'
 
 /**
  * Demo profiles for Guest Tour mode (Phase 1 — 2026-05-26).
@@ -323,3 +324,109 @@ export const DEMO_GUEST_MATCH_IDS: readonly number[] = [90001, 90002]
  */
 export const DEMO_GUEST_EMAIL = 'guest@prive-app.club'
 export const DEMO_GUEST_NAME = 'Guest'
+
+/**
+ * Pre-baked chat threads for the two pre-matched demo profiles. The
+ * conversations are intentionally short (3-5 messages) — enough to
+ * convey the texture of Privé's writing-first ice-break and the AI
+ * tools that surround it, without overwhelming a visitor who's just
+ * tasting the app.
+ *
+ * Timestamps are relative to "now at fixture load time" so the chat
+ * list always shows recent dates regardless of when the tour starts.
+ * Each thread ends on the OTHER side so the guest sees an unread
+ * indicator and a natural "your turn to write" hook.
+ */
+const HOUR_MS = 60 * 60 * 1000
+const MIN_MS = 60 * 1000
+
+export const buildDemoChatThreads = (): Record<number, ChatMessage[]> => {
+  const now = Date.now()
+  // Andra (90001) — pre-matched 2 days ago, last message 17 min ago.
+  const andra: ChatMessage[] = [
+    {
+      id: 1,
+      sender: 'them',
+      text: 'Honest first read on your profile: the piano line is the one that made me pause. Most people lead with their job.',
+      createdAt: now - 2 * 24 * HOUR_MS,
+      status: 'read',
+    },
+    {
+      id: 2,
+      sender: 'me',
+      text: 'Thanks — I almost cut it. Felt too sentimental.',
+      createdAt: now - 2 * 24 * HOUR_MS + 8 * MIN_MS,
+      status: 'read',
+    },
+    {
+      id: 3,
+      sender: 'them',
+      text: 'Don\'t. The sentimental parts are usually the true ones. What do you play when no one\'s listening?',
+      createdAt: now - 2 * 24 * HOUR_MS + 14 * MIN_MS,
+      status: 'read',
+    },
+    {
+      id: 4,
+      sender: 'me',
+      text: 'Satie\'s first Gymnopédie. Slowly. Always slower than the metronome.',
+      createdAt: now - 1 * 24 * HOUR_MS,
+      status: 'read',
+    },
+    {
+      id: 5,
+      sender: 'them',
+      text: 'That\'s the right tempo for that piece. Bookshop on Strada Edgar Quinet this Saturday? They have a back room with a piano nobody touches.',
+      createdAt: now - 17 * MIN_MS,
+      status: 'read',
+    },
+  ]
+  // Mateo (90002) — fresh match, ~5 hours ago. Just one icebreaker
+  // each so the surface shows what a "just started" conversation
+  // looks like.
+  const mateo: ChatMessage[] = [
+    {
+      id: 11,
+      sender: 'them',
+      text: 'The Făgăraș line on your profile — northern or southern ridge?',
+      createdAt: now - 5 * HOUR_MS,
+      status: 'read',
+    },
+    {
+      id: 12,
+      sender: 'me',
+      text: 'Southern. Caltun → Negoiu in two days, usually. Yours?',
+      createdAt: now - 4 * HOUR_MS - 30 * MIN_MS,
+      status: 'read',
+    },
+    {
+      id: 13,
+      sender: 'them',
+      text: 'Same. Slept at Caltun a few weeks ago, got snowed on in late May. Romania is impossible to predict.',
+      createdAt: now - 35 * MIN_MS,
+      status: 'read',
+    },
+  ]
+  return {
+    [90001]: andra,
+    [90002]: mateo,
+  }
+}
+
+/**
+ * Lightweight auto-reply lines used when a guest sends a message
+ * to one of the pre-matched profiles. Picked round-robin per thread
+ * so the conversation feels alive without going off-brand. Pure
+ * client-side — no AI call.
+ */
+export const DEMO_AUTO_REPLIES: Record<number, readonly string[]> = {
+  90001: [
+    'Saturday works. 4pm?',
+    'Send me a piece you wish more people knew.',
+    'I love that you write like you talk. Most people don\'t.',
+  ],
+  90002: [
+    'Last weekend in June, weather permitting?',
+    'Bring the Bauhaus book you mentioned. I want to see.',
+    'There\'s a small place in Cotroceni that opens at 7am. Coffee?',
+  ],
+} as const

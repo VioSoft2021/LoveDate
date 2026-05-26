@@ -4,6 +4,11 @@ import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import './App.css'
 import { getMyMatches, resolveMatch, type Profile } from './services/priveApi'
+import {
+  DEMO_GUEST_MATCH_IDS,
+  DEMO_AUTO_REPLIES,
+  buildDemoChatThreads,
+} from './services/demo/demoProfiles'
 import { backendInvokeDatePlanner } from './services/ai/datePlanner'
 import { backendInvokeIcebreaker } from './services/ai/icebreaker'
 import {
@@ -943,8 +948,40 @@ function App() {
   // allProfiles (deck filter excludes already-swiped, so matches wouldn't
   // be there otherwise) and into history.matchIds. Seed empty chat threads
   // for any match that doesn't already have one.
+  //
+  // Guest Tour (2026-05-26, Phase 2): when isGuest, skip the cloud call
+  // and seed pre-baked matches (Andra + Mateo) with pre-baked chat
+  // history instead. The Chats tab + ChatScreen surfaces are then
+  // visible end-to-end from the moment the visitor enters the tour.
   useEffect(() => {
     if (!isAuthenticated) {
+      return
+    }
+    if (isGuest) {
+      setHistory((current) => {
+        const existing = new Set(current.matchIds)
+        const merged = [...current.matchIds]
+        for (const id of DEMO_GUEST_MATCH_IDS) {
+          if (!existing.has(id)) {
+            merged.push(id)
+          }
+        }
+        return { ...current, matchIds: merged }
+      })
+      setChatThreads((current) => {
+        const seeded = buildDemoChatThreads()
+        // Only seed threads that aren't already present so the guest's
+        // own outgoing messages (added via sendChatMessage) survive a
+        // re-mount of this effect.
+        const next: typeof current = { ...current }
+        for (const [id, messages] of Object.entries(seeded)) {
+          const numericId = Number(id)
+          if (!(numericId in next)) {
+            next[numericId] = messages
+          }
+        }
+        return next
+      })
       return
     }
     let cancelled = false
@@ -986,7 +1023,7 @@ function App() {
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated, setAllProfiles, setChatThreads])
+  }, [isAuthenticated, isGuest, setAllProfiles, setChatThreads, setHistory])
 
   useEffect(() => {
     allProfilesRef.current = allProfiles
@@ -1697,30 +1734,39 @@ function App() {
         ])
 
         try {
-          await backendRecordSwipe(swipedProfile.id, direction)
-          if (direction === 'right') {
-            const wasMatch = await resolveMatch(swipedProfile.id)
-            if (wasMatch) {
-              // Upgrade history.matchIds + swipeLog entry. addSwipeHistory
-              // is idempotent on likedIds (already includes the id from the
-              // earlier call) but will add to matchIds when wasMatch=true.
-              addSwipeHistory(swipedProfile.id, direction, true)
-              setSwipeLog((current) =>
-                current.map((entry) =>
-                  entry.profileId === swipedProfile.id && !entry.wasMatch
-                    ? { ...entry, wasMatch: true }
-                    : entry,
-                ),
-              )
-              onMatchConfirmed(swipedProfile)
-            }
-            if (intent === 'like' || intent === 'super-like') {
-              recordLikeEvent()
-              if (intent === 'super-like') {
-                recordSuperLikeEvent()
-                pushToast('Super Like sent.', 'success')
+          // Guest Tour (2026-05-26, Phase 2): no backend writes for
+          // guest swipes — likes/passes/super-likes stay in the local
+          // React state of this session and disappear on refresh.
+          // resolveMatch is also skipped: random match celebrations
+          // from synthetic profiles would feel uncanny without a real
+          // chat to land in. Pre-matched Andra + Mateo cover the
+          // "what does matching look like" experience.
+          if (!isGuest) {
+            await backendRecordSwipe(swipedProfile.id, direction)
+            if (direction === 'right') {
+              const wasMatch = await resolveMatch(swipedProfile.id)
+              if (wasMatch) {
+                // Upgrade history.matchIds + swipeLog entry. addSwipeHistory
+                // is idempotent on likedIds (already includes the id from the
+                // earlier call) but will add to matchIds when wasMatch=true.
+                addSwipeHistory(swipedProfile.id, direction, true)
+                setSwipeLog((current) =>
+                  current.map((entry) =>
+                    entry.profileId === swipedProfile.id && !entry.wasMatch
+                      ? { ...entry, wasMatch: true }
+                      : entry,
+                  ),
+                )
+                onMatchConfirmed(swipedProfile)
               }
-              refreshEngagementUsage(activePlan)
+              if (intent === 'like' || intent === 'super-like') {
+                recordLikeEvent()
+                if (intent === 'super-like') {
+                  recordSuperLikeEvent()
+                  pushToast('Super Like sent.', 'success')
+                }
+                refreshEngagementUsage(activePlan)
+              }
             }
           }
         } finally {
@@ -1732,6 +1778,7 @@ function App() {
       topProfile,
       exitDirection,
       isResolvingSwipe,
+      isGuest,
       activePlan,
       resetDrag,
       addSwipeHistory,
@@ -1823,6 +1870,50 @@ function App() {
     })
     setChatDraft('')
     setChatAttachmentDraft(null)
+
+    // Guest Tour (2026-05-26, Phase 2): no cloud round-trip. Promote
+    // the just-sent message to 'sent' locally, then schedule a single
+    // auto-reply from the synthetic counterpart so the conversation
+    // feels alive without going off-brand. Reply line is picked
+    // round-robin from DEMO_AUTO_REPLIES[id] based on how many "me"
+    // messages exist in the thread so the same reply doesn't fire
+    // twice in a row.
+    if (isGuest) {
+      const guestTargetId = selectedChatProfile.id
+      setChatThreads((current) => {
+        const thread = current[guestTargetId] ?? []
+        return {
+          ...current,
+          [guestTargetId]: thread.map((msg) =>
+            msg.id === baseId ? { ...msg, status: 'sent' as const } : msg,
+          ),
+        }
+      })
+      const replies = DEMO_AUTO_REPLIES[guestTargetId]
+      if (replies && replies.length > 0) {
+        window.setTimeout(() => {
+          setChatThreads((current) => {
+            const thread = current[guestTargetId] ?? []
+            const myCount = thread.filter((m) => m.sender === 'me').length
+            const idx = Math.max(0, myCount - 1) % replies.length
+            return {
+              ...current,
+              [guestTargetId]: [
+                ...thread,
+                {
+                  id: Date.now() + Math.floor(Math.random() * 1000),
+                  sender: 'them' as const,
+                  text: replies[idx],
+                  createdAt: Date.now(),
+                  status: 'read' as const,
+                },
+              ],
+            }
+          })
+        }, 1400)
+      }
+      return
+    }
 
     const recipientAuthId = selectedChatProfile.authUserId
     if (!recipientAuthId) {
@@ -2604,15 +2695,19 @@ function App() {
     [notifications],
   )
 
+  // Moderation tab is admin-only AND hidden in Guest Tour (a visitor
+  // exploring the app has no business seeing real users' reports).
   const navItems: Array<{ key: AppScreen; label: string; badge?: number }> = [
     { key: 'discover', label: copy.nav.discover },
     { key: 'activity', label: copy.nav.activity },
     { key: 'chats', label: copy.nav.chats, badge: Object.values(unreadChats).reduce((sum, count) => sum + count, 0) },
-    {
-      key: 'moderation',
-      label: copy.nav.moderation,
-      badge: isModerationAdmin ? safetyReports.filter((report) => report.status === 'open').length : undefined,
-    },
+    ...(isModerationAdmin && !isGuest
+      ? [{
+          key: 'moderation' as AppScreen,
+          label: copy.nav.moderation,
+          badge: safetyReports.filter((report) => report.status === 'open').length,
+        }]
+      : []),
     { key: 'profile', label: copy.nav.profile },
     { key: 'settings', label: copy.nav.settings, badge: unreadNotificationCount },
   ]
