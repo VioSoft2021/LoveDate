@@ -1,7 +1,7 @@
 # Privé — Public Welcome Video (Zero-Budget Production Guide)
 
 A self-running 2:30 cinematic intro video for Privé. The HTML at
-`public-en.html` IS the video — you screen-record it, optionally add
+`public-en-v2.html` IS the video — you screen-record it, optionally add
 voiceover + music, and post.
 
 **Total cost: €0.** Everything below is free.
@@ -10,33 +10,29 @@ voiceover + music, and post.
 
 ## 📦 What's in this folder
 
-- `public-en.html` — the animated video (open in browser, plays itself)
-- `screenshots/` — drop your real Privé screenshots here (see capture list below)
+- `public-en-v2.html` — the animated video (open in browser, plays itself)
+- `voiceover-clean-v2.txt` — the exact text to paste into ElevenLabs
+- `crest-3.png` — the Privé heraldic crest used in the brand-reveal scenes
 - `README.md` — this file
-- `voiceover-script.txt` — the exact text to paste into ElevenLabs
 
 ---
 
-## 📸 Step 1 — Capture 3 screenshots from your Privé app (10 minutes)
+## 🖼 Scene content — pure CSS mockups, no screenshots needed
 
-Open Privé on your phone (or in Chrome at `prive-app.club`). Take these
-**3 screenshots** and save them with the exact names below:
+Scenes 5, 6 and 7 used to fall back to real phone screenshots when
+available. As of 2026-05-26 the video uses **CSS-rendered mockups with
+synthetic data instead** — Master's call. The reasoning: the in-app UI
+keeps evolving (Discover, FilterScreen, LovePersonalityScreen have all
+been redesigned multiple times since May), and chasing fresh
+screenshots after every iteration is busywork. The CSS mockups stay in
+the same file as the rest of the video, render the same way regardless
+of the current UI, and use representative-but-fictional values
+("Alex, 32 · București", a 87% compatibility counter, "23 matches",
+the archetype *Curious Anchor* with Big Five bars + Secure attachment).
 
-| # | Where to capture | Save as |
-|---|---|---|
-| 5 | Discover deck — tap a profile card, expand the "Show deeper why" disclosure so you can see the AI score + reasons + friction + tips. Screenshot when it's fully visible. **Note (2026-05-26): retake this after the multiple Discover/match-score refinements that landed since the original capture.** | `screenshots/05-match-score.png` |
-| 6 | Filter screen — open Filtre, type a real preference in the AI-first prompt (e.g. *"Serious, into hiking, from Bucharest, not into clubs"*). Screenshot when the live match counter shows a number. **Note (2026-05-26): the FilterScreen has been redesigned multiple times since May 22 (AI-First → journal-entry → hard-constraint enforcement); the old screenshot is stale and must be retaken.** | `screenshots/06-filter-prompt.png` |
-| 7 | LovePersonalityScreen (or the OnboardingScreen quiz step's reveal moment) — the Tier A Big Five + Attachment reveal. You'll see: a Claude-written archetype name like *"Curious Anchor"* (no more DMFR letter codes), a one-line headline, then the Big Five bars + the gold attachment chip. Screenshot when the full reveal is visible. **If you skip this, the video falls back to a Tier A CSS mockup (also updated 2026-05-26).** | `screenshots/07-personality-reveal.png` |
-
-**Phone screenshot tips:**
-- Use Android's built-in screenshot (Power + Volume Down).
-- Crop tightly to just the phone screen (no black bars on the side).
-- 9:19.5 aspect ratio is ideal (most modern Android phones).
-- File format: PNG or JPG, doesn't matter.
-
-**If you skip this step**, the video still plays — it just falls back
-to CSS mockups of the same screens. The video still looks luxurious;
-real screenshots make it look like a real product.
+If you ever want to swap the synthetic data for real numbers / real
+candidate names, the mockup HTML lives inline in `public-en-v2.html` —
+search for `mockup-fallback` to find each scene's block.
 
 ---
 
