@@ -36,7 +36,13 @@ const corsHeaders = {
 }
 
 const ADMIN_EMAIL = 'admin@prive-app.club'
-const SENDER = `Privé <${ADMIN_EMAIL}>`
+// Resend free tier: the shared `onboarding@resend.dev` sender is the
+// only sender that works without verifying a custom domain. Recipients
+// are restricted to addresses you've verified on the Resend account —
+// admin@prive-app.club is the only one Master has verified, which is
+// also the only address this function ever emails. So this works on
+// free tier today, with no DNS.
+const SENDER = 'Privé <onboarding@resend.dev>'
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 type RequestBody = {
