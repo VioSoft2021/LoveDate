@@ -98,28 +98,67 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   // ── Photo upload ─────────────────────────────────────────────────
   const fileInputRef = React.useRef<HTMLInputElement | null>(null)
   const [photoUploading, setPhotoUploading] = React.useState(false)
-  const handlePhotoFile = async (file: File) => {
-    if (!file.type.startsWith('image/')) return
+
+  // Reads one File → returns the Supabase Storage URL (preferred) or
+  // the data URL fallback (when storage upload fails). Throws on a
+  // non-image type or FileReader failure so the batch loop below can
+  // surface a single toast for the whole upload instead of one per
+  // file.
+  const uploadOnePhoto = async (file: File): Promise<string> => {
+    if (!file.type.startsWith('image/')) {
+      throw new Error('not an image')
+    }
+    const reader = new FileReader()
+    const dataUrl: string = await new Promise((resolve, reject) => {
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => reject(reader.error)
+      reader.readAsDataURL(file)
+    })
+    const uploaded = await backendUploadProfilePhoto(dataUrl)
+    return uploaded ?? dataUrl
+  }
+
+  // Multi-file upload (2026-05-26): a single OS file picker round trip
+  // can hand us N images. We upload them sequentially — parallel
+  // uploads would race the React state updater and risk only one of
+  // them landing in setPhotos — and stop early once the 9-photo cap
+  // is reached. Each photo appears in the gallery as soon as it's
+  // uploaded so the user sees progressive feedback.
+  const handlePhotoFiles = async (files: File[]) => {
+    if (files.length === 0) return
     setPhotoUploading(true)
+    let failures = 0
     try {
-      const reader = new FileReader()
-      const dataUrl: string = await new Promise((resolve, reject) => {
-        reader.onload = () => resolve(reader.result as string)
-        reader.onerror = () => reject(reader.error)
-        reader.readAsDataURL(file)
-      })
-      const uploaded = await backendUploadProfilePhoto(dataUrl)
-      const finalPhoto = uploaded ?? dataUrl
-      setPhotos((current) => [finalPhoto, ...current].slice(0, 9))
-    } catch {
-      pushToast(
-        appLanguage === 'ro'
-          ? 'Încărcarea pozei a eșuat.'
-          : 'Photo upload failed.',
-        'error',
-      )
+      for (const file of files) {
+        try {
+          const finalPhoto = await uploadOnePhoto(file)
+          let reachedCap = false
+          setPhotos((current) => {
+            if (current.length >= 9) {
+              reachedCap = true
+              return current
+            }
+            return [finalPhoto, ...current].slice(0, 9)
+          })
+          if (reachedCap) break
+        } catch {
+          failures += 1
+        }
+      }
     } finally {
       setPhotoUploading(false)
+    }
+    if (failures > 0) {
+      pushToast(
+        appLanguage === 'ro'
+          ? failures === 1
+            ? 'Încărcarea pozei a eșuat.'
+            : `${failures} poze nu au putut fi încărcate.`
+          : failures === 1
+            ? 'Photo upload failed.'
+            : `${failures} photos couldn't be uploaded.`,
+        'error',
+      )
     }
   }
 
@@ -298,10 +337,13 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              multiple
               hidden
               onChange={(event) => {
-                const file = event.target.files?.[0]
-                if (file) void handlePhotoFile(file)
+                const files = event.target.files
+                  ? Array.from(event.target.files)
+                  : []
+                if (files.length > 0) void handlePhotoFiles(files)
                 event.target.value = ''
               }}
             />
