@@ -318,6 +318,9 @@ describe('LoginScreen — forgot password link + inline form', () => {
     )
     // Open the inline form so the notice has somewhere to render.
     fireEvent.click(screen.getByRole('button', { name: /forgot password/i }))
-    expect(screen.getByText(/recovery link is on its way/i)).toBeInTheDocument()
+    // Updated copy 2026-05-26 (admin-notify flow): we don't claim a
+    // link "is on its way" because Master sends it manually. Instead
+    // the user sees "Your request has been received…"
+    expect(screen.getByText(/request has been received/i)).toBeInTheDocument()
   })
 })

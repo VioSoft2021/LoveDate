@@ -25,7 +25,7 @@ const mocks = vi.hoisted(() => ({
   onAuthStateChange: vi.fn(() => ({
     data: { subscription: { unsubscribe: vi.fn() } },
   })),
-  resetPasswordForEmail: vi.fn(async () => ({ error: null })),
+  invokeFunction: vi.fn(async () => ({ data: { ok: true }, error: null })),
 }))
 
 vi.mock('../services/initialHash', () => ({
@@ -44,7 +44,9 @@ vi.mock('../services/supabaseClient', () => ({
       updateUser: mocks.updateUser,
       getUser: mocks.getUser,
       onAuthStateChange: mocks.onAuthStateChange,
-      resetPasswordForEmail: mocks.resetPasswordForEmail,
+    },
+    functions: {
+      invoke: mocks.invokeFunction,
     },
   }),
 }))
@@ -90,8 +92,8 @@ beforeEach(() => {
   mocks.updateUser.mockResolvedValue({ error: null })
   mocks.getUser.mockClear()
   mocks.getUser.mockResolvedValue({ data: { user: { email: 'test@example.com' } } })
-  mocks.resetPasswordForEmail.mockClear()
-  mocks.resetPasswordForEmail.mockResolvedValue({ error: null })
+  mocks.invokeFunction.mockClear()
+  mocks.invokeFunction.mockResolvedValue({ data: { ok: true }, error: null })
 })
 
 describe('useAuth — password-recovery detection from URL hash', () => {
@@ -185,13 +187,15 @@ describe('useAuth — completePasswordRecovery validation', () => {
   })
 })
 
-describe('useAuth — sendForgotPasswordEmail', () => {
-  it('calls supabase.auth.resetPasswordForEmail with the trimmed email', async () => {
+describe('useAuth — sendForgotPasswordEmail (admin-notify flow, 2026-05-26)', () => {
+  it('invokes the notify-admin-recovery Edge Function with the trimmed email (NOT supabase.auth.resetPasswordForEmail)', async () => {
     const { result } = renderHook(() => useAuth(baseOptions()))
     await act(async () => {
       await result.current.sendForgotPasswordEmail('  me@example.com  ')
     })
-    expect(mocks.resetPasswordForEmail).toHaveBeenCalledWith('me@example.com')
+    expect(mocks.invokeFunction).toHaveBeenCalledWith('notify-admin-recovery', {
+      body: { email: 'me@example.com' },
+    })
   })
 
   it('sets forgotPasswordStatus to "sent" on success', async () => {
@@ -202,8 +206,8 @@ describe('useAuth — sendForgotPasswordEmail', () => {
     expect(result.current.forgotPasswordStatus).toBe('sent')
   })
 
-  it('sets forgotPasswordStatus to "error" when Supabase rejects', async () => {
-    mocks.resetPasswordForEmail.mockResolvedValueOnce({ error: { message: 'bad' } })
+  it('sets forgotPasswordStatus to "error" when the Edge Function returns an error', async () => {
+    mocks.invokeFunction.mockResolvedValueOnce({ data: null, error: { message: 'bad' } })
     const { result } = renderHook(() => useAuth(baseOptions()))
     await act(async () => {
       await result.current.sendForgotPasswordEmail('me@example.com')
@@ -211,14 +215,14 @@ describe('useAuth — sendForgotPasswordEmail', () => {
     expect(result.current.forgotPasswordStatus).toBe('error')
   })
 
-  it('rejects empty / whitespace-only emails', async () => {
+  it('rejects empty / whitespace-only emails (no Edge Function call)', async () => {
     const { result } = renderHook(() => useAuth(baseOptions()))
     let returned: boolean | undefined
     await act(async () => {
       returned = await result.current.sendForgotPasswordEmail('   ')
     })
     expect(returned).toBe(false)
-    expect(mocks.resetPasswordForEmail).not.toHaveBeenCalled()
+    expect(mocks.invokeFunction).not.toHaveBeenCalled()
     expect(result.current.forgotPasswordStatus).toBe('error')
   })
 })

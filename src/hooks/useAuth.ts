@@ -278,25 +278,34 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
     [pushToast, onSignedIn, tCopy],
   )
 
-  // Forgot password — kick off the recovery email send for an
-  // address the user types in the Sign-In card. Resolves true on
-  // a successful Supabase response (we don't reveal whether the
-  // email exists, hence the "if that email exists..." copy).
+  // Forgot password (2026-05-26 admin-notify flow). The user types
+  // their email; we don't call supabase.auth.resetPasswordForEmail
+  // directly — Resend's free-tier shared sender blocks sends to
+  // non-account emails. Instead we invoke the notify-admin-recovery
+  // Edge Function which emails Master (admin@prive-app.club, a
+  // whitelisted recipient) with a "please generate a recovery link
+  // for this user" notification. Master then sends the link
+  // personally via the Supabase Dashboard. High-touch by design for
+  // the beta; swap back to resetPasswordForEmail once the
+  // prive-app.club domain is verified in Resend and real volume
+  // arrives.
   const sendForgotPasswordEmail = useCallback(
     async (email: string): Promise<boolean> => {
-      const supabase = createSupabaseClient()
-      if (!supabase) {
-        setForgotPasswordStatus('error')
-        return false
-      }
       const trimmed = email.trim()
       if (!trimmed) {
         setForgotPasswordStatus('error')
         return false
       }
+      const supabase = createSupabaseClient()
+      if (!supabase) {
+        setForgotPasswordStatus('error')
+        return false
+      }
       setForgotPasswordSending(true)
       try {
-        const { error } = await supabase.auth.resetPasswordForEmail(trimmed)
+        const { error } = await supabase.functions.invoke('notify-admin-recovery', {
+          body: { email: trimmed },
+        })
         if (error) {
           setForgotPasswordStatus('error')
           return false
