@@ -177,11 +177,14 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
   const signOut = useCallback(async () => {
     // Guest Tour exit: no Supabase session to terminate, no real
     // user data to wipe. Just flip the local state and we're back
-    // on the landing hero.
+    // on the landing hero. loginEmail is also reset so the
+    // post-tour Sign-In card doesn't auto-fill with the synthetic
+    // guest@prive-app.club address (Master flagged this 2026-05-26).
     if (isGuest) {
       setIsGuest(false)
       setIsAuthenticated(false)
       setUserEmail('')
+      setLoginEmail('')
       setLoginPassword('')
       onSignedOut?.()
       return

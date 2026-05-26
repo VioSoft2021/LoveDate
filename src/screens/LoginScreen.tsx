@@ -368,7 +368,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     ? copy.auth.createAccount
                     : copy.auth.signIn}
                 </button>
-                {runtimeConfig.auth.allowGuestLogin && authMode === 'login' ? (
+                {/* "Continue as Guest" is redundant on the Sign-In card
+                    when the landing hero already owns the "Take a tour"
+                    gate — kept only under !heroEnabled (dev/test mode
+                    where there's no hero entry). Real visitors enter
+                    guest mode from the hero. */}
+                {runtimeConfig.auth.allowGuestLogin && authMode === 'login' && !heroEnabled ? (
                   <button type="button" className="ghost" onClick={onGuestLogin} disabled={loggingIn}>
                     {copy.auth.continueGuest}
                   </button>
