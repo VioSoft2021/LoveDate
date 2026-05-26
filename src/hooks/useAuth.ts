@@ -11,6 +11,7 @@ import {
   purgeAllSelfProfileCaches,
   purgeOtherSelfProfileCaches,
 } from '../services/backendApi'
+import { createSupabaseClient } from '../services/supabaseClient'
 import { DEMO_GUEST_EMAIL } from '../services/demo/demoProfiles'
 import { readAuth, AUTH_STORAGE_KEY } from '../persistence'
 import { EMPTY_SELF_PROFILE, UI_TEXT } from '../constants'
@@ -44,6 +45,7 @@ export type UseAuthOptions = {
 
 export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: UseAuthOptions) => {
   const tAuth = UI_TEXT[appLanguage].authToasts
+  const tCopy = UI_TEXT[appLanguage].auth
   const initial = readAuth()
 
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -53,6 +55,18 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
   // the demoProfiles fixture. Never persisted to localStorage so a
   // page refresh ends the tour cleanly.
   const [isGuest, setIsGuest] = useState(false)
+  // Password recovery (2026-05-26). When a visitor clicks the
+  // recovery link from their email, Supabase JS picks up the token
+  // from the URL hash and fires a PASSWORD_RECOVERY event. We catch
+  // it via onAuthStateChange below and surface a "set a new
+  // password" view in LoginScreen until they finish.
+  const [passwordRecoveryActive, setPasswordRecoveryActive] = useState(false)
+  const [passwordRecoveryLoading, setPasswordRecoveryLoading] = useState(false)
+  const [passwordRecoveryError, setPasswordRecoveryError] = useState<string | null>(null)
+  // Forgot-password request from the sign-in card. Fired by the
+  // user typing their email then tapping "Send recovery email".
+  const [forgotPasswordSending, setForgotPasswordSending] = useState(false)
+  const [forgotPasswordStatus, setForgotPasswordStatus] = useState<'idle' | 'sent' | 'error'>('idle')
   const [userEmail, setUserEmail] = useState(initial.email)
   const [loginEmail, setLoginEmail] = useState(initial.email)
   const [loginPassword, setLoginPassword] = useState('')
@@ -73,6 +87,33 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
       JSON.stringify({ isAuthenticated, email: userEmail }),
     )
   }, [isAuthenticated, userEmail])
+
+  // Password recovery listener (2026-05-26). When a user clicks the
+  // recovery link from their email, Supabase JS picks up the
+  // `type=recovery` token from the URL hash, sets a short-lived
+  // session, and fires a PASSWORD_RECOVERY event. We surface a
+  // dedicated view in LoginScreen until they update their password.
+  //
+  // Belt-and-braces: we also parse the URL hash ourselves on mount
+  // because the event has fired (briefly) before our listener
+  // attaches in some browsers.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const hash = window.location.hash
+    if (hash.includes('type=recovery')) {
+      setPasswordRecoveryActive(true)
+    }
+    const supabase = createSupabaseClient()
+    if (!supabase) return
+    const { data: subscription } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setPasswordRecoveryActive(true)
+      }
+    })
+    return () => {
+      subscription?.subscription.unsubscribe()
+    }
+  }, [])
 
   const submitLogin = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
@@ -174,6 +215,102 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
     pushToast(tAuth.guestStarted, 'info')
   }, [pushToast, onSignedIn, tAuth])
 
+  // Password recovery — complete (2026-05-26). Called from
+  // LoginScreen's recovery card. Uses the temporary session that
+  // Supabase JS set up when the visitor opened the recovery link to
+  // call updateUser({password}). On success the user is now fully
+  // authenticated; we flip local state to match and route to discover.
+  const completePasswordRecovery = useCallback(
+    async (newPassword: string, confirmPassword: string): Promise<boolean> => {
+      if (newPassword !== confirmPassword) {
+        setPasswordRecoveryError(tCopy.recoveryMismatch)
+        return false
+      }
+      const strengthError = getStrongPasswordError(newPassword)
+      if (strengthError) {
+        setPasswordRecoveryError(strengthError)
+        return false
+      }
+      const supabase = createSupabaseClient()
+      if (!supabase) {
+        setPasswordRecoveryError(tCopy.recoveryFailed)
+        return false
+      }
+      setPasswordRecoveryLoading(true)
+      setPasswordRecoveryError(null)
+      try {
+        const { error } = await supabase.auth.updateUser({ password: newPassword })
+        if (error) {
+          setPasswordRecoveryError(tCopy.recoveryFailed)
+          return false
+        }
+        const { data: userResult } = await supabase.auth.getUser()
+        const email = userResult.user?.email ?? ''
+        if (email) {
+          setIsAuthenticated(true)
+          setUserEmail(email)
+          setLoginEmail(email)
+        }
+        setPasswordRecoveryActive(false)
+        // Clean the recovery token out of the URL so a refresh
+        // doesn't try to re-enter the flow.
+        if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
+          window.history.replaceState(null, '', window.location.pathname + window.location.search)
+        }
+        pushToast(tCopy.recoverySuccess, 'success')
+        if (email) {
+          onSignedIn?.(email)
+        }
+        return true
+      } catch {
+        setPasswordRecoveryError(tCopy.recoveryFailed)
+        return false
+      } finally {
+        setPasswordRecoveryLoading(false)
+      }
+    },
+    [pushToast, onSignedIn, tCopy],
+  )
+
+  // Forgot password — kick off the recovery email send for an
+  // address the user types in the Sign-In card. Resolves true on
+  // a successful Supabase response (we don't reveal whether the
+  // email exists, hence the "if that email exists..." copy).
+  const sendForgotPasswordEmail = useCallback(
+    async (email: string): Promise<boolean> => {
+      const supabase = createSupabaseClient()
+      if (!supabase) {
+        setForgotPasswordStatus('error')
+        return false
+      }
+      const trimmed = email.trim()
+      if (!trimmed) {
+        setForgotPasswordStatus('error')
+        return false
+      }
+      setForgotPasswordSending(true)
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(trimmed)
+        if (error) {
+          setForgotPasswordStatus('error')
+          return false
+        }
+        setForgotPasswordStatus('sent')
+        return true
+      } catch {
+        setForgotPasswordStatus('error')
+        return false
+      } finally {
+        setForgotPasswordSending(false)
+      }
+    },
+    [],
+  )
+
+  const resetForgotPasswordState = useCallback(() => {
+    setForgotPasswordStatus('idle')
+  }, [])
+
   const signOut = useCallback(async () => {
     // Guest Tour exit: no Supabase session to terminate, no real
     // user data to wipe. Just flip the local state and we're back
@@ -270,6 +407,13 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
     authMode,
     inviteCode,
     loggingIn,
+    // password recovery state (2026-05-26)
+    passwordRecoveryActive,
+    passwordRecoveryLoading,
+    passwordRecoveryError,
+    // forgot-password (request-recovery-email) state
+    forgotPasswordSending,
+    forgotPasswordStatus,
     // direct setters (for form inputs)
     setLoginEmail,
     setLoginPassword,
@@ -285,5 +429,8 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
     exitApp,
     useDevAccount,
     resetDevAccount,
+    completePasswordRecovery,
+    sendForgotPasswordEmail,
+    resetForgotPasswordState,
   } as const
 }

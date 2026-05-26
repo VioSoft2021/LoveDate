@@ -378,6 +378,45 @@
   .login-hero-door { font-size: 0.65rem; letter-spacing: 0.36em; }
 }
 
+/* ── Forgot-password link + inline form (2026-05-26) ──────
+   Quiet italic link below the Sign-In form. Tapping opens a
+   small inline form (.login-forgot-form) where the user types
+   their email and we trigger a recovery email via Supabase +
+   Resend. The link styling matches the back-to-hero link — same
+   restraint, same role: an escape hatch, not a CTA. */
+.login-forgot-link {
+  display: block;
+  align-self: center;
+  width: fit-content;
+  background: none;
+  border: none;
+  color: rgba(244, 220, 168, 0.78);
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.35rem 0.6rem;
+  margin: 0.4rem auto 0;
+  border-radius: 0.4rem;
+  transition: color 180ms ease;
+}
+.login-forgot-link:hover {
+  color: #f4dca8;
+}
+.login-forgot-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(216, 184, 109, 0.55);
+}
+.login-forgot-form {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(216, 184, 109, 0.18);
+}
+.login-forgot-title {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.1rem, 2.6vw, 1.45rem);
+}
+
 /* ── Card brand block — crest + wordmark + slogan ──────
    Mirrors the seal-and-masthead pairing from the hero so the
    sign-in / register card feels like the same house, not a

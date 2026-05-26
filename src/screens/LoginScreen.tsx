@@ -28,6 +28,21 @@ export type LoginScreenProps = {
   onGuestLogin: () => void
   onUseDevAccount: () => void
   onResetDevAccount: () => void
+  // Password recovery (2026-05-26). When passwordRecoveryActive is
+  // true, render the "set a new password" card instead of the
+  // sign-in / register form. Triggered by Supabase's
+  // PASSWORD_RECOVERY event after the user clicks the recovery link
+  // in their email.
+  passwordRecoveryActive: boolean
+  passwordRecoveryLoading: boolean
+  passwordRecoveryError: string | null
+  onCompletePasswordRecovery: (newPassword: string, confirmPassword: string) => Promise<boolean>
+  // Forgot-password (request-recovery-email) state, surfaced via a
+  // "Forgot password?" link on the Sign-In card.
+  forgotPasswordSending: boolean
+  forgotPasswordStatus: 'idle' | 'sent' | 'error'
+  onSendForgotPasswordEmail: (email: string) => Promise<boolean>
+  onResetForgotPasswordState: () => void
 }
 
 const EyeIcon = ({ open }: { open: boolean }) => (
@@ -69,9 +84,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   onGuestLogin,
   onUseDevAccount,
   onResetDevAccount,
+  passwordRecoveryActive,
+  passwordRecoveryLoading,
+  passwordRecoveryError,
+  onCompletePasswordRecovery,
+  forgotPasswordSending,
+  forgotPasswordStatus,
+  onSendForgotPasswordEmail,
+  onResetForgotPasswordState,
 }) => {
   const copy = UI_TEXT[appLanguage]
   const [showPassword, setShowPassword] = React.useState(false)
+  // Password recovery local state — the two password fields live
+  // here because they're write-only and don't need to escape this
+  // component.
+  const [recoveryNewPassword, setRecoveryNewPassword] = React.useState('')
+  const [recoveryConfirmPassword, setRecoveryConfirmPassword] = React.useState('')
+  // Forgot-password local state — toggled by tapping the "Forgot
+  // password?" link below the Sign-In form.
+  const [forgotPasswordOpen, setForgotPasswordOpen] = React.useState(false)
+  const [forgotPasswordEmail, setForgotPasswordEmail] = React.useState('')
 
   // Waitlist (public access request) state — hidden by default, shown
   // when the user taps "Request access". Stays inline in the login card
@@ -245,6 +277,84 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     )
   }
 
+  // ── Password recovery card ────────────────────────────────────────
+  // When the visitor arrives via a "Reset Your Password" email link,
+  // Supabase JS fires PASSWORD_RECOVERY and we render this card
+  // instead of the normal sign-in flow. The user picks a new
+  // password; we call updateUser; on success they're signed in.
+  if (passwordRecoveryActive) {
+    return (
+      <main className="login-shell">
+        <div className="grain" aria-hidden="true" />
+        <article className="login-card">
+          <div className="login-card-brand">
+            <img
+              className="login-card-crest"
+              src="./crests/crest-3.png?v=2"
+              alt=""
+              aria-hidden="true"
+              loading="eager"
+              decoding="async"
+            />
+            <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
+          </div>
+          <h1>{copy.auth.recoveryTitle}</h1>
+          <p className="soft">{copy.auth.recoveryBody}</p>
+          <form
+            className="login-form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              void onCompletePasswordRecovery(recoveryNewPassword, recoveryConfirmPassword)
+            }}
+          >
+            <label>
+              {copy.auth.recoveryNewPassword}
+              <div className="password-field">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={recoveryNewPassword}
+                  onChange={(event) => setRecoveryNewPassword(event.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPassword}
+                >
+                  <EyeIcon open={showPassword} />
+                </button>
+              </div>
+              <small className="soft">{copy.auth.passwordHint}</small>
+            </label>
+            <label>
+              {copy.auth.recoveryConfirmPassword}
+              <div className="password-field">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={recoveryConfirmPassword}
+                  onChange={(event) => setRecoveryConfirmPassword(event.target.value)}
+                  required
+                />
+              </div>
+            </label>
+            {passwordRecoveryError ? (
+              <p className="error-text">{passwordRecoveryError}</p>
+            ) : null}
+            <div className="login-actions">
+              <button type="submit" disabled={passwordRecoveryLoading}>
+                {passwordRecoveryLoading ? copy.auth.recoverySaving : copy.auth.recoverySubmit}
+              </button>
+            </div>
+          </form>
+        </article>
+      </main>
+    )
+  }
+
   // ── Card state (auth + waitlist forms) ─────────────────────────────
   return (
     <main className="login-shell">
@@ -390,7 +500,71 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   </button>
                 </div>
               ) : null}
+              {/* Forgot password — only in Sign In mode. Opens a small
+                  inline form to request a recovery email. The email
+                  lands via Resend (configured 2026-05-26); the link
+                  inside fires the PASSWORD_RECOVERY event and routes
+                  to the recovery card above. */}
+              {authMode === 'login' && !forgotPasswordOpen ? (
+                <button
+                  type="button"
+                  className="login-forgot-link"
+                  onClick={() => {
+                    onResetForgotPasswordState()
+                    setForgotPasswordEmail(loginEmail)
+                    setForgotPasswordOpen(true)
+                  }}
+                >
+                  {copy.auth.forgotPasswordLink}
+                </button>
+              ) : null}
             </form>
+            {forgotPasswordOpen ? (
+              <form
+                className="login-form login-forgot-form"
+                onSubmit={async (event) => {
+                  event.preventDefault()
+                  await onSendForgotPasswordEmail(forgotPasswordEmail)
+                }}
+              >
+                <h2 className="login-forgot-title">{copy.auth.forgotPasswordTitle}</h2>
+                <p className="soft">{copy.auth.forgotPasswordBody}</p>
+                <label>
+                  {copy.auth.email}
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    value={forgotPasswordEmail}
+                    onChange={(event) => setForgotPasswordEmail(event.target.value)}
+                    required
+                  />
+                </label>
+                {forgotPasswordStatus === 'sent' ? (
+                  <p className="info-text">{copy.auth.forgotPasswordSent}</p>
+                ) : null}
+                {forgotPasswordStatus === 'error' ? (
+                  <p className="error-text">{copy.auth.forgotPasswordFailed}</p>
+                ) : null}
+                <div className="login-actions">
+                  <button type="submit" disabled={forgotPasswordSending}>
+                    {forgotPasswordSending
+                      ? copy.auth.forgotPasswordSending
+                      : copy.auth.forgotPasswordSubmit}
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => {
+                      setForgotPasswordOpen(false)
+                      onResetForgotPasswordState()
+                    }}
+                    disabled={forgotPasswordSending}
+                  >
+                    {copy.auth.forgotPasswordCancel}
+                  </button>
+                </div>
+              </form>
+            ) : null}
           </>
         )}
 

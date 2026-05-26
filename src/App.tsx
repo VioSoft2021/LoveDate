@@ -614,6 +614,11 @@ function App() {
     setInviteCode,
     setLoginError,
     setLoginNotice,
+    passwordRecoveryActive,
+    passwordRecoveryLoading,
+    passwordRecoveryError,
+    forgotPasswordSending,
+    forgotPasswordStatus,
   } = auth
   const handleLoginSubmit = auth.submitLogin
   const handleGuestLogin = auth.guestLogin
@@ -621,6 +626,9 @@ function App() {
   const handleExitApp = auth.exitApp
   const handleUseDevAccount = auth.useDevAccount
   const handleResetDevAccount = auth.resetDevAccount
+  const completePasswordRecovery = auth.completePasswordRecovery
+  const sendForgotPasswordEmail = auth.sendForgotPasswordEmail
+  const resetForgotPasswordState = auth.resetForgotPasswordState
 
   // Phase D2.3 — match scoring lives here so the heuristic functions
   // are available BEFORE filteredProfiles uses getCompatibilityScore
@@ -2782,7 +2790,7 @@ function App() {
     [selectedChatProfile, getChemistryInsights],
   )
 
-  if (screen === 'login') {
+  if (screen === 'login' || passwordRecoveryActive) {
     return (
       <LoginScreen
         appLanguage={appLanguage}
@@ -2806,6 +2814,14 @@ function App() {
         onGuestLogin={handleGuestLogin}
         onUseDevAccount={handleUseDevAccount}
         onResetDevAccount={handleResetDevAccount}
+        passwordRecoveryActive={passwordRecoveryActive}
+        passwordRecoveryLoading={passwordRecoveryLoading}
+        passwordRecoveryError={passwordRecoveryError}
+        onCompletePasswordRecovery={completePasswordRecovery}
+        forgotPasswordSending={forgotPasswordSending}
+        forgotPasswordStatus={forgotPasswordStatus}
+        onSendForgotPasswordEmail={sendForgotPasswordEmail}
+        onResetForgotPasswordState={resetForgotPasswordState}
       />
     )
   }
