@@ -515,3 +515,143 @@
     padding: 0.25rem 0.5rem;
   }
 }
+
+/* ── Pair Dynamic reveal (Tier B — 2026-05-26) ──────────────
+   The Claude-written "your dynamic together" panel that appears
+   for matched profiles. Built to feel like the LovePersonality
+   reveal screen, but compressed into a single insight card. */
+.profile-detail .profile-detail-pair-dynamic {
+  position: relative;
+  background:
+    linear-gradient(160deg, rgba(216, 184, 109, 0.07) 0%, rgba(10, 13, 35, 0) 60%),
+    rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(216, 184, 109, 0.32);
+  box-shadow: 0 18px 38px rgba(3, 8, 24, 0.36);
+}
+.profile-detail .profile-detail-pair-dynamic::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 14%;
+  right: 14%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(216, 184, 109, 0.55) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+.profile-detail .profile-detail-pair-dynamic-eyebrow {
+  margin: 0 0 0.45rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.72);
+}
+.profile-detail .profile-detail-pair-dynamic-archetype {
+  margin: 0.4rem 0 0.35rem;
+  font-family: 'Bodoni Moda', 'Cormorant Garamond', serif;
+  font-size: clamp(1.45rem, 3.6vw, 2rem);
+  font-weight: 700;
+  letter-spacing: 0.012em;
+  background: linear-gradient(100deg, #b78a3e 0%, #e7c477 42%, #fff1bf 58%, #c39544 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.profile-detail .profile-detail-pair-dynamic-headline {
+  margin: 0 0 1rem;
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: clamp(1rem, 2.2vw, 1.18rem);
+  line-height: 1.45;
+  color: rgba(247, 230, 188, 0.92);
+}
+.profile-detail .profile-detail-pair-dynamic-paragraphs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 0 0 1rem;
+}
+.profile-detail .profile-detail-pair-dynamic-paragraphs p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgba(229, 241, 255, 0.88);
+}
+.profile-detail .profile-detail-pair-dynamic-chips-block {
+  margin-top: 0.85rem;
+}
+.profile-detail .profile-detail-pair-dynamic-chips-label {
+  display: block;
+  margin-bottom: 0.38rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.62);
+}
+.profile-detail .profile-detail-pair-dynamic-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.profile-detail .profile-detail-pair-dynamic-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(216, 184, 109, 0.12);
+  border: 1px solid rgba(216, 184, 109, 0.42);
+  color: #f7e6bc;
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+}
+.profile-detail .profile-detail-pair-dynamic-chip.is-friction {
+  background: rgba(247, 178, 178, 0.08);
+  border-color: rgba(247, 178, 178, 0.32);
+  color: rgba(247, 200, 200, 0.95);
+}
+.profile-detail .profile-detail-pair-dynamic-chip.is-growth {
+  background: rgba(168, 220, 244, 0.08);
+  border-color: rgba(168, 220, 244, 0.34);
+  color: rgba(204, 230, 247, 0.95);
+}
+.profile-detail .profile-detail-pair-dynamic-status {
+  margin: 0.5rem 0;
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: rgba(229, 241, 255, 0.78);
+}
+.profile-detail .profile-detail-pair-dynamic-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.45rem;
+  padding: 0.62rem 1.1rem;
+  border-radius: 0.7rem;
+  background: linear-gradient(160deg, #f0b260 0%, #d8b86d 100%);
+  border: 1px solid rgba(216, 184, 109, 0.65);
+  color: #1a1024;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(216, 184, 109, 0.28);
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+.profile-detail .profile-detail-pair-dynamic-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(216, 184, 109, 0.38);
+  filter: brightness(1.05);
+}
+.profile-detail .profile-detail-pair-dynamic-cta:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(216, 184, 109, 0.65);
+}

@@ -3019,6 +3019,10 @@ function App() {
             onBackToDiscover={() => navigate('discover')}
             isModerationAdmin={isModerationAdmin}
             onToggleProfileActive={handleToggleProfileActive}
+            isMatched={Boolean(
+              selectedDetailProfile && history.matchIds.includes(selectedDetailProfile.id),
+            )}
+            selfId={userEmail}
           />
         )}
       </section>

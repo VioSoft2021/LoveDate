@@ -1,0 +1,203 @@
+import { createSupabaseClient } from '../supabaseClient'
+import type { AttachmentStyle, BigFiveScores } from '../compatibility'
+
+/**
+ * AI Pair Dynamic Reveal (Tier B — 2026-05-26)
+ *
+ * Calls the ai-pair-dynamic-reveal Edge Function with two users' Big Five
+ * + Attachment data and returns a cinematic pair-level reveal (pair
+ * archetype, headline, 3 paragraphs, 3 strengths, 1-2 frictions, 1
+ * shared growth edge). Returns null on failure so callers can show an
+ * honest retry CTA.
+ *
+ * Cached client-side per user-pair (sorted-ids + scores hash + language).
+ * Both users see the same reveal because the cache key sorts their ids,
+ * and the hash factors in BOTH score sets — retaking the quiz on either
+ * side busts the cache automatically. TTL 30 days.
+ */
+
+export type PairDynamicReveal = {
+  pairArchetype: string
+  headline: string
+  description: string
+  strengths: string[]
+  frictions: string[]
+  sharedGrowthEdge: string
+  language: 'en' | 'ro'
+  generatedAt: string
+}
+
+type CacheEntry = {
+  reveal: PairDynamicReveal
+  storedAt: number
+  v: number
+}
+
+const CACHE_KEY_PREFIX = 'lovedate:ai-pair-dynamic-reveal:'
+const CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 30 // 30 days
+const CACHE_VERSION = 1
+
+const stableHash = (input: string): string => {
+  let h = 5381
+  for (let i = 0; i < input.length; i += 1) {
+    h = ((h << 5) + h + input.charCodeAt(i)) | 0
+  }
+  return (h >>> 0).toString(36)
+}
+
+const roundedScores = (b: BigFiveScores): string => [
+  Math.round(b.openness),
+  Math.round(b.conscientiousness),
+  Math.round(b.extraversion),
+  Math.round(b.agreeableness),
+  Math.round(b.neuroticism),
+].join(',')
+
+const cacheKey = (
+  selfId: string,
+  otherId: string,
+  selfBigFive: BigFiveScores,
+  selfAttachment: AttachmentStyle,
+  otherBigFive: BigFiveScores,
+  otherAttachment: AttachmentStyle,
+  language: string,
+): string => {
+  // Sort the ids so A-B and B-A hit the same cache slot — same reveal
+  // for both members of the pair.
+  const [idA, idB] = [selfId, otherId].sort()
+  const aIsSelf = idA === selfId
+  const aScores = aIsSelf ? selfBigFive : otherBigFive
+  const aAttachment = aIsSelf ? selfAttachment : otherAttachment
+  const bScores = aIsSelf ? otherBigFive : selfBigFive
+  const bAttachment = aIsSelf ? otherAttachment : selfAttachment
+  const signature = [
+    language,
+    idA,
+    aAttachment,
+    roundedScores(aScores),
+    idB,
+    bAttachment,
+    roundedScores(bScores),
+  ].join('|')
+  return `${CACHE_KEY_PREFIX}${stableHash(signature)}`
+}
+
+const readCache = (key: string): PairDynamicReveal | null => {
+  try {
+    const raw = window.localStorage.getItem(key)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as CacheEntry
+    if (parsed?.v !== CACHE_VERSION) return null
+    if (!parsed?.reveal) return null
+    if (Date.now() - (parsed.storedAt ?? 0) > CACHE_TTL_MS) return null
+    return parsed.reveal
+  } catch {
+    return null
+  }
+}
+
+const writeCache = (key: string, reveal: PairDynamicReveal): void => {
+  try {
+    const entry: CacheEntry = { reveal, storedAt: Date.now(), v: CACHE_VERSION }
+    window.localStorage.setItem(key, JSON.stringify(entry))
+  } catch {
+    // localStorage quota or disabled — silently degrade.
+  }
+}
+
+export type PairDynamicRevealInput = {
+  selfId: string
+  selfBigFive: BigFiveScores
+  selfAttachment: AttachmentStyle
+  selfName?: string
+  otherId: string
+  otherBigFive: BigFiveScores
+  otherAttachment: AttachmentStyle
+  otherName?: string
+  language?: 'en' | 'ro'
+}
+
+export const backendInvokePairDynamicReveal = async (
+  input: PairDynamicRevealInput,
+): Promise<PairDynamicReveal | null> => {
+  const language: 'en' | 'ro' = input.language === 'ro' ? 'ro' : 'en'
+  const key = cacheKey(
+    input.selfId,
+    input.otherId,
+    input.selfBigFive,
+    input.selfAttachment,
+    input.otherBigFive,
+    input.otherAttachment,
+    language,
+  )
+
+  const cached = readCache(key)
+  if (cached) {
+    return cached
+  }
+
+  const supabase = createSupabaseClient()
+  if (!supabase) {
+    return null
+  }
+
+  try {
+    const { data, error } = await supabase.functions.invoke<{
+      pairArchetype?: string
+      headline?: string
+      description?: string
+      strengths?: string[]
+      frictions?: string[]
+      sharedGrowthEdge?: string
+      error?: string
+    }>('ai-pair-dynamic-reveal', {
+      body: {
+        self: {
+          bigFive: input.selfBigFive,
+          attachment: input.selfAttachment,
+          name: input.selfName,
+        },
+        other: {
+          bigFive: input.otherBigFive,
+          attachment: input.otherAttachment,
+          name: input.otherName,
+        },
+        language,
+      },
+    })
+
+    if (error) {
+      console.warn('[Privé] pair-dynamic-reveal invoke error', error)
+      return null
+    }
+
+    if (
+      !data
+      || typeof data.pairArchetype !== 'string'
+      || typeof data.headline !== 'string'
+      || typeof data.description !== 'string'
+      || typeof data.sharedGrowthEdge !== 'string'
+      || !Array.isArray(data.strengths)
+      || !Array.isArray(data.frictions)
+    ) {
+      return null
+    }
+
+    const reveal: PairDynamicReveal = {
+      pairArchetype: data.pairArchetype,
+      headline: data.headline,
+      description: data.description,
+      strengths: data.strengths.filter((s): s is string => typeof s === 'string'),
+      frictions: data.frictions.filter((s): s is string => typeof s === 'string'),
+      sharedGrowthEdge: data.sharedGrowthEdge,
+      language,
+      generatedAt: new Date().toISOString(),
+    }
+
+    writeCache(key, reveal)
+    return reveal
+  } catch (err) {
+    console.warn('[Privé] pair-dynamic-reveal threw', err)
+    return null
+  }
+}

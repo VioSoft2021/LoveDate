@@ -475,6 +475,19 @@ export const UI_TEXT = {
       thisIsYourType: 'This is your current type.',
       // Match-detail section headers
       whyYouMatchTitle: 'Why you match',
+      // Pair Dynamic (Tier B — 2026-05-26) — Claude-written reveal of
+      // what the texture between two matched users is likely to be.
+      // Only rendered when isMatched && both users have a Love Personality.
+      pairDynamicTitle: 'Your dynamic together',
+      pairDynamicEyebrow: 'Privé reads between the lines',
+      pairDynamicCta: 'Reveal our dynamic',
+      pairDynamicLoading: 'Privé is writing your dynamic…',
+      pairDynamicError: "We couldn't generate this right now. Try again in a moment.",
+      pairDynamicRetry: 'Try again',
+      pairDynamicStrengthsLabel: 'What works between you',
+      pairDynamicFrictionsLabel: 'Where you may rub',
+      pairDynamicGrowthEdgeLabel: 'What could grow if you both lean in',
+      pairDynamicMissingData: 'Both of you need to complete the Love Personality assessment to unlock your dynamic.',
       compatibilityChemistryTitle: 'Compatibility Chemistry',
       cognitiveFunctionsTitle: 'Cognitive Functions',
       zodiacProfileTitle: 'Zodiac Profile',
@@ -1031,6 +1044,19 @@ export const UI_TEXT = {
       thisIsYourType: 'Acesta este tipul tău actual.',
       // Antete secțiuni profil-detaliu
       whyYouMatchTitle: 'De ce vă potriviți',
+      // Pair Dynamic (Tier B — 2026-05-26) — dezvăluirea Claude despre
+      // textura dintre doi utilizatori potriviți. Apare doar când există
+      // potrivire reciprocă și ambii au completat Personalitatea în iubire.
+      pairDynamicTitle: 'Dinamica voastră',
+      pairDynamicEyebrow: 'Privé citește printre rânduri',
+      pairDynamicCta: 'Descoperă dinamica voastră',
+      pairDynamicLoading: 'Privé vă scrie dinamica…',
+      pairDynamicError: 'Nu am putut genera acum. Încearcă din nou peste un moment.',
+      pairDynamicRetry: 'Încearcă din nou',
+      pairDynamicStrengthsLabel: 'Ce funcționează între voi',
+      pairDynamicFrictionsLabel: 'Unde v-ați putea freca',
+      pairDynamicGrowthEdgeLabel: 'Ce ar putea crește dacă vă deschideți amândoi',
+      pairDynamicMissingData: 'Amândoi trebuie să completați evaluarea Personalitate în iubire pentru a debloca dinamica voastră.',
       compatibilityChemistryTitle: 'Chimia compatibilității',
       cognitiveFunctionsTitle: 'Funcții cognitive',
       zodiacProfileTitle: 'Profil zodiacal',

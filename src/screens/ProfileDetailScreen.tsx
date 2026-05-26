@@ -14,6 +14,10 @@ import {
   type LovePersonality,
 } from '../services/compatibility'
 import { distanceBetweenCities, formatDistance } from '../services/cityDistance'
+import {
+  backendInvokePairDynamicReveal,
+  type PairDynamicReveal,
+} from '../services/ai/pairDynamicReveal'
 import type {
   AppLanguage,
   ChemistryInsights,
@@ -56,6 +60,15 @@ export type ProfileDetailScreenProps = {
   // signed-in user is a moderation admin.
   isModerationAdmin: boolean
   onToggleProfileActive: (profile: Profile) => void
+  // Tier B (2026-05-26) — true when the signed-in user has matched with
+  // the profile they're viewing. Gates the AI Pair Dynamic reveal: that
+  // section only renders for actual matches, never for cold candidates
+  // in the Discover deck.
+  isMatched: boolean
+  // Stable identifier for the signed-in user, used to key the pair
+  // dynamic reveal's localStorage cache. Email is fine — it's already
+  // unique per account on this device.
+  selfId: string
 }
 
 export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
@@ -75,9 +88,77 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
   onBackToDiscover,
   isModerationAdmin,
   onToggleProfileActive,
+  isMatched,
+  selfId,
 }) => {
   const copy = UI_TEXT[appLanguage]
   const ro = appLanguage === 'ro'
+
+  // Tier B (2026-05-26) — Pair Dynamic reveal state. Stays local to
+  // ProfileDetail because each match is its own conversation; the
+  // localStorage cache in the wrapper handles cross-session persistence
+  // (30-day TTL, busted automatically when either side retakes the
+  // Love Personality quiz).
+  const [pairReveal, setPairReveal] = React.useState<PairDynamicReveal | null>(null)
+  const [pairLoading, setPairLoading] = React.useState(false)
+  const [pairFailed, setPairFailed] = React.useState(false)
+
+  // Reset reveal state when the user navigates from one match's profile
+  // to another — otherwise we'd briefly show Match A's reveal while
+  // viewing Match B before the cache lookup completes.
+  React.useEffect(() => {
+    setPairReveal(null)
+    setPairLoading(false)
+    setPairFailed(false)
+  }, [selectedDetailProfile?.id])
+
+  const pairDataReady = Boolean(
+    isMatched
+    && selectedDetailProfile
+    && selectedDetailBigFive
+    && selectedDetailAttachment
+    && selfLovePersonality?.bigFive
+    && selfLovePersonality?.attachment,
+  )
+
+  const requestPairReveal = React.useCallback(async () => {
+    if (
+      !selectedDetailProfile
+      || !selectedDetailBigFive
+      || !selectedDetailAttachment
+      || !selfLovePersonality?.bigFive
+      || !selfLovePersonality?.attachment
+    ) {
+      return
+    }
+    setPairLoading(true)
+    setPairFailed(false)
+    const reveal = await backendInvokePairDynamicReveal({
+      selfId,
+      selfBigFive: selfLovePersonality.bigFive,
+      selfAttachment: selfLovePersonality.attachment,
+      selfName: selfProfile.name?.trim() || undefined,
+      otherId: String(selectedDetailProfile.id),
+      otherBigFive: selectedDetailBigFive,
+      otherAttachment: selectedDetailAttachment,
+      otherName: selectedDetailProfile.name?.trim() || undefined,
+      language: appLanguage,
+    })
+    setPairLoading(false)
+    if (!reveal) {
+      setPairFailed(true)
+      return
+    }
+    setPairReveal(reveal)
+  }, [
+    selectedDetailProfile,
+    selectedDetailBigFive,
+    selectedDetailAttachment,
+    selfLovePersonality,
+    selfProfile.name,
+    selfId,
+    appLanguage,
+  ])
 
   if (!selectedDetailProfile) {
     return (
@@ -263,6 +344,95 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
                 </li>
               ))}
             </ul>
+          </section>
+        ) : null}
+        {pairDataReady ? (
+          <section className="match-insights profile-detail-pair-dynamic">
+            <p className="profile-detail-pair-dynamic-eyebrow">
+              {copy.profile.pairDynamicEyebrow}
+            </p>
+            <h3>{copy.profile.pairDynamicTitle}</h3>
+            {pairReveal ? (
+              <>
+                <p className="profile-detail-pair-dynamic-archetype">
+                  {pairReveal.pairArchetype}
+                </p>
+                <p className="profile-detail-pair-dynamic-headline">
+                  {pairReveal.headline}
+                </p>
+                <div className="profile-detail-pair-dynamic-paragraphs">
+                  {pairReveal.description.split(/\n\n+/).map((paragraph, idx) => (
+                    <p key={idx}>{paragraph}</p>
+                  ))}
+                </div>
+                {pairReveal.strengths.length > 0 && (
+                  <div className="profile-detail-pair-dynamic-chips-block">
+                    <span className="profile-detail-pair-dynamic-chips-label">
+                      {copy.profile.pairDynamicStrengthsLabel}
+                    </span>
+                    <div className="profile-detail-pair-dynamic-chips-row">
+                      {pairReveal.strengths.map((s, idx) => (
+                        <span key={idx} className="profile-detail-pair-dynamic-chip">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {pairReveal.frictions.length > 0 && (
+                  <div className="profile-detail-pair-dynamic-chips-block">
+                    <span className="profile-detail-pair-dynamic-chips-label">
+                      {copy.profile.pairDynamicFrictionsLabel}
+                    </span>
+                    <div className="profile-detail-pair-dynamic-chips-row">
+                      {pairReveal.frictions.map((s, idx) => (
+                        <span
+                          key={idx}
+                          className="profile-detail-pair-dynamic-chip is-friction"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {pairReveal.sharedGrowthEdge && (
+                  <div className="profile-detail-pair-dynamic-chips-block">
+                    <span className="profile-detail-pair-dynamic-chips-label">
+                      {copy.profile.pairDynamicGrowthEdgeLabel}
+                    </span>
+                    <div className="profile-detail-pair-dynamic-chips-row">
+                      <span className="profile-detail-pair-dynamic-chip is-growth">
+                        {pairReveal.sharedGrowthEdge}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : pairLoading ? (
+              <p className="profile-detail-pair-dynamic-status">
+                {copy.profile.pairDynamicLoading}
+              </p>
+            ) : pairFailed ? (
+              <>
+                <p className="profile-detail-pair-dynamic-status">
+                  {copy.profile.pairDynamicError}
+                </p>
+                <button
+                  type="button"
+                  className="profile-detail-pair-dynamic-cta"
+                  onClick={() => void requestPairReveal()}
+                >
+                  {copy.profile.pairDynamicRetry}
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="profile-detail-pair-dynamic-cta"
+                onClick={() => void requestPairReveal()}
+              >
+                {copy.profile.pairDynamicCta} →
+              </button>
+            )}
           </section>
         ) : null}
         {selectedDetailMatchAnalysis ? (
