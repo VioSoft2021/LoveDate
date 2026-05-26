@@ -53,7 +53,10 @@ const roundedScores = (b: BigFiveScores): string => [
   Math.round(b.neuroticism),
 ].join(',')
 
-const cacheKey = (
+// Stable per-pair signature: sorted ids + each side's scores in id-order
+// + language. Both members of a pair compute the same signature so they
+// share both the localStorage cache (L1) and the server cache (L2).
+const pairSignature = (
   selfId: string,
   otherId: string,
   selfBigFive: BigFiveScores,
@@ -62,15 +65,13 @@ const cacheKey = (
   otherAttachment: AttachmentStyle,
   language: string,
 ): string => {
-  // Sort the ids so A-B and B-A hit the same cache slot — same reveal
-  // for both members of the pair.
   const [idA, idB] = [selfId, otherId].sort()
   const aIsSelf = idA === selfId
   const aScores = aIsSelf ? selfBigFive : otherBigFive
   const aAttachment = aIsSelf ? selfAttachment : otherAttachment
   const bScores = aIsSelf ? otherBigFive : selfBigFive
   const bAttachment = aIsSelf ? otherAttachment : selfAttachment
-  const signature = [
+  return [
     language,
     idA,
     aAttachment,
@@ -79,8 +80,11 @@ const cacheKey = (
     bAttachment,
     roundedScores(bScores),
   ].join('|')
-  return `${CACHE_KEY_PREFIX}${stableHash(signature)}`
 }
+
+const sharedCacheHash = (signature: string): string => stableHash(signature)
+const localCacheKey = (signature: string): string =>
+  `${CACHE_KEY_PREFIX}${sharedCacheHash(signature)}`
 
 const readCache = (key: string): PairDynamicReveal | null => {
   try {
@@ -121,7 +125,7 @@ export const backendInvokePairDynamicReveal = async (
   input: PairDynamicRevealInput,
 ): Promise<PairDynamicReveal | null> => {
   const language: 'en' | 'ro' = input.language === 'ro' ? 'ro' : 'en'
-  const key = cacheKey(
+  const signature = pairSignature(
     input.selfId,
     input.otherId,
     input.selfBigFive,
@@ -130,8 +134,11 @@ export const backendInvokePairDynamicReveal = async (
     input.otherAttachment,
     language,
   )
+  const lsKey = localCacheKey(signature)
+  const serverKey = sharedCacheHash(signature)
 
-  const cached = readCache(key)
+  // L1: localStorage on this device. Instant, no network.
+  const cached = readCache(lsKey)
   if (cached) {
     return cached
   }
@@ -163,6 +170,11 @@ export const backendInvokePairDynamicReveal = async (
           name: input.otherName,
         },
         language,
+        // L2: server-side cache key. The Edge Function reads/writes
+        // pair_dynamic_cache so the matched partner sees the same
+        // reveal back instantly instead of paying for another Claude
+        // call. Both sides compute the same key.
+        cacheKey: serverKey,
       },
     })
 
@@ -194,7 +206,7 @@ export const backendInvokePairDynamicReveal = async (
       generatedAt: new Date().toISOString(),
     }
 
-    writeCache(key, reveal)
+    writeCache(lsKey, reveal)
     return reveal
   } catch (err) {
     console.warn('[Privé] pair-dynamic-reveal threw', err)

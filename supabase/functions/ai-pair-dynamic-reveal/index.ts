@@ -16,6 +16,7 @@
 // doesn't repeat the call.
 
 import Anthropic from 'npm:@anthropic-ai/sdk@0.40.0'
+import { createClient } from 'npm:@supabase/supabase-js@2.45.4'
 
 type BigFiveScores = {
   openness: number
@@ -37,6 +38,12 @@ type RequestBody = {
   self: PersonProfile
   other: PersonProfile
   language?: 'en' | 'ro'
+  // Stable per-pair cache key computed client-side (sorted user IDs +
+  // both users' rounded BigFive + attachment + language). When present,
+  // we look up pair_dynamic_cache before invoking Claude — and write
+  // the result back after a successful generation. Both members of the
+  // pair compute the same key, so User B benefits from User A's reveal.
+  cacheKey?: string
 }
 
 type RevealResult = {
@@ -204,10 +211,46 @@ Deno.serve(async (req: Request) => {
     })
   }
 
+  // Server-side cache (Tier B, 2026-05-26). When the client passes a
+  // cacheKey, we first try pair_dynamic_cache before paying for a fresh
+  // Claude call. Both members of a matched pair compute the same key
+  // (sorted user IDs + scores + language), so once User A reveals their
+  // dynamic, User B's view comes back in ~200ms instead of 2-3s.
+  // TTL: 30 days. Cache entries older than that are treated as stale.
+  const language: 'en' | 'ro' = body.language === 'ro' ? 'ro' : 'en'
+  const cacheKey = typeof body.cacheKey === 'string' ? body.cacheKey.trim() : ''
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  const cacheClient = cacheKey && supabaseUrl && serviceRoleKey
+    ? createClient(supabaseUrl, serviceRoleKey)
+    : null
+
+  if (cacheClient) {
+    try {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+      const { data: cached } = await cacheClient
+        .from('pair_dynamic_cache')
+        .select('reveal, created_at')
+        .eq('cache_key', cacheKey)
+        .eq('language', language)
+        .gte('created_at', thirtyDaysAgo)
+        .maybeSingle()
+      if (cached?.reveal) {
+        return new Response(JSON.stringify(cached.reveal), {
+          status: 200,
+          headers: { ...corsHeaders, 'content-type': 'application/json' },
+        })
+      }
+    } catch (err) {
+      // Cache lookup failure is non-fatal — we just fall through to
+      // Claude. Logged so we notice if the cache table is misconfigured.
+      console.warn('[pair-dynamic-reveal] cache lookup failed:', err)
+    }
+  }
+
   const client = new Anthropic({ apiKey })
 
   try {
-    const language: 'en' | 'ro' = body.language === 'ro' ? 'ro' : 'en'
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1700,
@@ -269,7 +312,26 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    return new Response(JSON.stringify({ pairArchetype, headline, description, strengths, frictions, sharedGrowthEdge }), {
+    const reveal = { pairArchetype, headline, description, strengths, frictions, sharedGrowthEdge }
+
+    // Write to server-side cache so the matched partner gets the same
+    // reveal back from cache (~200ms) instead of paying for another
+    // Claude call. Failure is non-fatal — we already have the reveal
+    // for the current caller, so we return it either way.
+    if (cacheClient && cacheKey) {
+      try {
+        await cacheClient
+          .from('pair_dynamic_cache')
+          .upsert(
+            { cache_key: cacheKey, language, reveal, created_at: new Date().toISOString() },
+            { onConflict: 'cache_key' },
+          )
+      } catch (err) {
+        console.warn('[pair-dynamic-reveal] cache write failed:', err)
+      }
+    }
+
+    return new Response(JSON.stringify(reveal), {
       status: 200,
       headers: { ...corsHeaders, 'content-type': 'application/json' },
     })

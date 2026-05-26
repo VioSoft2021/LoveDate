@@ -10,7 +10,7 @@ import type {
   DatePlan,
 } from '../domain'
 import type { Profile } from '../services/priveApi'
-import type { AttachmentStyle, BigFiveScores } from '../services/compatibility'
+import type { AttachmentStyle, BigFiveScores, LovePersonality } from '../services/compatibility'
 
 type ChatPreview = {
   profile: Profile
@@ -35,6 +35,11 @@ export type ChatScreenProps = {
   selectedChatChemistry: ChemistryInsights | null
   selectedChatBigFive: BigFiveScores | null
   selectedChatAttachment: AttachmentStyle | null
+  // Tier B (2026-05-26) — self Love Personality, used to gate the
+  // "Your dynamic →" chip in the chat header: chip only appears when
+  // BOTH sides have completed the Tier A quiz, so tapping it actually
+  // takes the user to a populated Pair Dynamic section in ProfileDetail.
+  selfLovePersonality: LovePersonality | null
   selectedChatMessages: ChatMessage[]
   selectedChatCallHistory: CallLogEntry[]
   hiddenChatMessageCount: number
@@ -73,6 +78,7 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
   selectedChatChemistry,
   selectedChatBigFive,
   selectedChatAttachment,
+  selfLovePersonality,
   selectedChatMessages,
   selectedChatCallHistory,
   hiddenChatMessageCount,
@@ -274,6 +280,38 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
                   S {Math.round(100 - selectedChatBigFive.neuroticism)}%
                 </p>
               ) : null}
+              {/* Tier B (2026-05-26) — Pair Dynamic teaser chip. Only
+                  surfaces when both sides have completed Tier A so the
+                  tap-through actually lands on a populated reveal
+                  section in ProfileDetail. */}
+              {selectedChatBigFive
+                && selectedChatAttachment
+                && selfLovePersonality?.bigFive
+                && selfLovePersonality?.attachment ? (
+                  <button
+                    type="button"
+                    className="chat-pair-dynamic-chip"
+                    onClick={() => openProfileDetail(selectedChatProfile.id, 'chats')}
+                    aria-label={copy.profile.pairDynamicTitle}
+                  >
+                    <span className="chat-pair-dynamic-chip-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="14" height="14">
+                        <path
+                          d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4zm-5 0c0-5 4-9 9-9s9 4 9 9-4 9-9 9"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.6"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                    <span className="chat-pair-dynamic-chip-label">
+                      {copy.profile.pairDynamicTitle}
+                    </span>
+                    <span className="chat-pair-dynamic-chip-chevron" aria-hidden="true">→</span>
+                  </button>
+                ) : null}
             </section>
             <section className="chat-ai-coach" aria-label={copy.chats.aiCoach}>
               <div className="chat-ai-coach-head">

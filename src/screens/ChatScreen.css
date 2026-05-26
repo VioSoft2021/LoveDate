@@ -269,6 +269,71 @@
   font-weight: 500;
 }
 
+/* ── Pair Dynamic teaser chip (Tier B — 2026-05-26) ─────
+   Tap-through to the matched profile's ProfileDetail where the
+   full reveal lives. Lives inside the chat compatibility panel
+   so it sits with the other psychometric cues. Subtle gold
+   glow + animated chevron on hover so it reads as "there is
+   something more to see here, tap me." */
+.chats-layout .chat-pair-dynamic-chip {
+  margin: 0.65rem 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.85rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    100deg,
+    rgba(216, 184, 109, 0.14) 0%,
+    rgba(247, 230, 188, 0.08) 100%
+  );
+  border: 1px solid rgba(216, 184, 109, 0.45);
+  color: #f7e6bc;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(216, 184, 109, 0.18);
+  transition:
+    background 200ms ease,
+    border-color 200ms ease,
+    transform 160ms ease,
+    box-shadow 200ms ease;
+}
+.chats-layout .chat-pair-dynamic-chip:hover {
+  background: linear-gradient(
+    100deg,
+    rgba(216, 184, 109, 0.22) 0%,
+    rgba(247, 230, 188, 0.14) 100%
+  );
+  border-color: rgba(216, 184, 109, 0.7);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(216, 184, 109, 0.28);
+}
+.chats-layout .chat-pair-dynamic-chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(216, 184, 109, 0.65);
+}
+.chats-layout .chat-pair-dynamic-chip-icon {
+  display: inline-flex;
+  color: rgba(247, 230, 188, 0.85);
+}
+.chats-layout .chat-pair-dynamic-chip-label {
+  white-space: nowrap;
+}
+.chats-layout .chat-pair-dynamic-chip-chevron {
+  display: inline-block;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.85rem;
+  letter-spacing: 0;
+  transition: transform 200ms ease;
+}
+.chats-layout .chat-pair-dynamic-chip:hover .chat-pair-dynamic-chip-chevron {
+  transform: translateX(3px);
+}
+
 /* ── AI panels (coach + planner + call history) ───────── */
 .chats-layout .chat-ai-coach,
 .chats-layout .chat-date-planner,

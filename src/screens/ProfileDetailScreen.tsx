@@ -120,6 +120,10 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
     && selfLovePersonality?.bigFive
     && selfLovePersonality?.attachment,
   )
+  // Teaser path: section still renders for any match (even when one or
+  // both sides haven't completed Tier A yet) so the surface is visible
+  // and users understand the unlock condition. We just swap content.
+  const pairSectionVisible = Boolean(isMatched && selectedDetailProfile)
 
   const requestPairReveal = React.useCallback(async () => {
     if (
@@ -346,13 +350,17 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
             </ul>
           </section>
         ) : null}
-        {pairDataReady ? (
+        {pairSectionVisible ? (
           <section className="match-insights profile-detail-pair-dynamic">
             <p className="profile-detail-pair-dynamic-eyebrow">
               {copy.profile.pairDynamicEyebrow}
             </p>
             <h3>{copy.profile.pairDynamicTitle}</h3>
-            {pairReveal ? (
+            {!pairDataReady ? (
+              <p className="profile-detail-pair-dynamic-status">
+                {copy.profile.pairDynamicMissingData}
+              </p>
+            ) : pairReveal ? (
               <>
                 <p className="profile-detail-pair-dynamic-archetype">
                   {pairReveal.pairArchetype}

@@ -61,6 +61,14 @@ declare module 'npm:@anthropic-ai/sdk@*' {
   }
 }
 
+// Supabase JS client. Only the symbols we actually use are typed —
+// the real types come from @supabase/supabase-js at runtime in Deno.
+declare module 'npm:@supabase/supabase-js@*' {
+  // deno-lint-ignore no-explicit-any
+  type SupabaseAny = any
+  export function createClient(url: string, key: string, options?: SupabaseAny): SupabaseAny
+}
+
 // Other `npm:...` specifiers the functions may use over time.
 declare module 'npm:*' {
   // deno-lint-ignore no-explicit-any

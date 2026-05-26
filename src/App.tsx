@@ -2821,6 +2821,7 @@ function App() {
             selectedChatChemistry={selectedChatChemistry ?? null}
             selectedChatBigFive={selectedChatBigFive}
             selectedChatAttachment={selectedChatAttachment}
+            selfLovePersonality={selfLovePersonality}
             selectedChatMessages={selectedChatMessages}
             selectedChatCallHistory={selectedChatCallHistory}
             hiddenChatMessageCount={hiddenChatMessageCount}
