@@ -1,0 +1,2379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Privé — Public Video · V2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;1,400&family=Cinzel:wght@500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet" />
+<style>
+  /* =========================================================
+     PRIVÉ — public welcome video (self-running CSS animation)
+     Total duration: 150s (2:30)
+     How to record: open in fullscreen (F11). Use OBS Studio or
+     Windows Win+G screen recorder to capture. Refresh = restart.
+     ========================================================= */
+
+  :root {
+    --navy-deep: #0a0e27;
+    --navy-1: #101430;
+    --navy-2: #14182d;
+    --gold-1: #cfad61;
+    --gold-2: #e8c679;
+    --gold-soft: #f4dca8;
+    --cream: #edf3ff;
+    --cream-dim: rgba(232, 242, 255, 0.78);
+    --red-soft: rgba(255, 138, 138, 0.7);
+    --gold-grad: linear-gradient(105deg, #cfad61 0%, #e8c679 50%, #f4dca8 100%);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+  }
+  body {
+    position: relative;
+    font-family: 'Bodoni Moda', Georgia, serif;
+    color: var(--cream);
+    -webkit-font-smoothing: antialiased;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(216, 184, 109, 0.12) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 100%, rgba(216, 184, 109, 0.06) 0%, transparent 50%),
+      linear-gradient(180deg, var(--navy-deep) 0%, var(--navy-1) 50%, var(--navy-deep) 100%);
+  }
+
+  /* === Audio-driven scene architecture (2026-05-22 refactor) ===
+     Visuals no longer run on CSS animation-delay timers. Instead, each
+     scene is hidden by default; JS watches voiceOver.currentTime and
+     adds .active to the scene whose time window contains the current
+     audio position. Inner animations (letters, score counter, typing
+     effect, etc.) ONLY fire when their parent scene has .active class.
+     Result: visuals slaved to Charlotte's voice. No drift, no guessing.
+
+     Calibration: SPACE key during playback captures the current audio
+     time as the next scene boundary. Press 9 times in sequence to
+     calibrate from scratch. Persisted to localStorage. */
+
+  /* All scenes invisible by default; .active triggers cross-fade in */
+  .scene {
+    opacity: 0;
+    transition: opacity 1s ease;
+    pointer-events: none;
+  }
+  .scene.active {
+    opacity: 1;
+  }
+
+  /* All animations paused until user taps Begin */
+  body:not(.playing) *,
+  body:not(.playing) *::before,
+  body:not(.playing) *::after {
+    animation-play-state: paused !important;
+  }
+
+  /* === Start overlay === */
+  .start-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background:
+      radial-gradient(ellipse at 50% 50%, rgba(216, 184, 109, 0.14) 0%, transparent 60%),
+      linear-gradient(180deg, var(--navy-deep) 0%, var(--navy-1) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    cursor: pointer;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+  }
+  body.playing .start-overlay {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .start-mark {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(3rem, 8vw, 5.5rem);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+    display: inline-block;
+    animation: startBreathe 3s ease-in-out infinite;
+    animation-play-state: running !important;
+  }
+  .start-mark::before {
+    content: '';
+    position: absolute;
+    top: -0.4rem;
+    left: 36%;
+    width: 28%;
+    height: 0.13rem;
+    background: var(--gold-grad);
+    border-radius: 2px;
+  }
+  @keyframes startBreathe {
+    0%, 100% { filter: brightness(1) drop-shadow(0 0 12px rgba(216, 184, 109, 0.2)); }
+    50% { filter: brightness(1.15) drop-shadow(0 0 24px rgba(216, 184, 109, 0.4)); }
+  }
+  /* Crest + brand-mark composition shared across the start overlay,
+     scene 2 (full brand reveal) and scene 8 (closing). The crest is
+     the heraldic seal (warm antique gold on midnight navy); same
+     image used by the login hero and the TopBar. */
+  .brand-stack {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .brand-crest {
+    display: block;
+    width: auto;
+    user-select: none;
+    -webkit-user-drag: none;
+    filter:
+      drop-shadow(0 4px 10px rgba(216, 184, 109, 0.42))
+      drop-shadow(0 0 22px rgba(244, 220, 168, 0.22));
+  }
+  .start-crest { height: clamp(5.5rem, 11vh, 9rem); }
+  .s2-crest    { height: clamp(7rem, 14vh, 11rem); }
+  .s8-crest    { height: clamp(5rem, 9vh, 7.5rem); }
+  .brand-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.65rem, 1.1vw, 0.85rem);
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--gold-soft, #f4dca8);
+    margin-bottom: 0.8rem;
+  }
+  .brand-slogan {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(0.95rem, 1.6vw, 1.25rem);
+    letter-spacing: 0.06em;
+    color: var(--cream-dim);
+    margin-top: 0.4rem;
+  }
+  .start-cta {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    color: var(--cream-dim);
+    letter-spacing: 0.06em;
+    margin-top: 2rem;
+    animation: startPulse 2.5s ease-in-out infinite;
+    animation-play-state: running !important;
+  }
+  .start-actions {
+    margin-top: 2.5rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .start-btn {
+    font-family: 'Cinzel', serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    padding: 0.85rem 1.6rem;
+    border-radius: 0.7rem;
+    background: rgba(8, 12, 30, 0.5);
+    color: var(--gold-soft);
+    border: 1px solid rgba(216, 184, 109, 0.45);
+    cursor: pointer;
+    transition: all 180ms ease;
+    font-weight: 500;
+  }
+  .start-btn:hover {
+    background: rgba(216, 184, 109, 0.15);
+    border-color: rgba(216, 184, 109, 0.85);
+    transform: translateY(-1px);
+  }
+  .start-btn.primary {
+    background: var(--gold-grad);
+    color: #1a1a2c;
+    border-color: rgba(216, 184, 109, 0.85);
+    box-shadow: 0 6px 18px rgba(216, 184, 109, 0.35);
+  }
+  .start-btn.primary:hover {
+    box-shadow: 0 8px 24px rgba(216, 184, 109, 0.55);
+    filter: brightness(1.05);
+  }
+  @keyframes startPulse {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+  @keyframes audioPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(216, 184, 109, 0.3); }
+    50% { box-shadow: 0 0 0 6px rgba(216, 184, 109, 0); }
+  }
+  .start-mini {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: rgba(216, 184, 109, 0.5);
+    position: absolute;
+    bottom: 2rem;
+  }
+
+  /* === Cinematic lower-third backdrop ===
+     A soft dark gradient at the bottom of the viewport, behind the
+     subtitle. Makes subtitles legible against any scene background
+     (especially the bright phone-frame screenshots in scenes 5/6/7).
+     Always rendered during playback — it's gentle enough to read as
+     "the frame fading into darkness," not a visible band. */
+  .subtitle-backdrop {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 42vh;
+    background: linear-gradient(
+      to top,
+      rgba(8, 12, 30, 0.96) 0%,
+      rgba(8, 12, 30, 0.92) 32%,
+      rgba(8, 12, 30, 0.78) 58%,
+      rgba(8, 12, 30, 0.45) 80%,
+      rgba(8, 12, 30, 0.15) 94%,
+      transparent 100%
+    );
+    z-index: 99;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  body.playing .subtitle-backdrop {
+    opacity: 1;
+  }
+
+  /* === Romanian subtitle band — fixed at bottom, content swaps per scene ===
+     Sits above the safe-area, below all visuals. Fades in/out so scene
+     changes feel cinematic. Text-shadow keeps it readable against any
+     scene background. */
+  .subtitle-band {
+    position: fixed;
+    left: 50%;
+    bottom: 4.5vh;
+    transform: translateX(-50%);
+    z-index: 100;
+    max-width: min(90vw, 56rem);
+    text-align: center;
+    font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1rem, 1.9vw, 1.5rem);
+    line-height: 1.45;
+    color: var(--gold-soft);
+    letter-spacing: 0.02em;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85), 0 0 24px rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    transition: opacity 0.55s ease;
+    pointer-events: none;
+    padding: 0 1rem;
+  }
+  .subtitle-band.is-visible {
+    opacity: 1;
+  }
+
+  /* === Ambient drifting particles (always on, low opacity) === */
+  .particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: radial-gradient(circle, var(--gold-soft), transparent);
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+    animation: drift 18s infinite ease-in-out;
+  }
+  .particle:nth-child(1) { top: 15%; left: 12%; animation-delay: 0s; }
+  .particle:nth-child(2) { top: 38%; left: 78%; animation-delay: 3s; }
+  .particle:nth-child(3) { top: 62%; left: 25%; animation-delay: 6s; }
+  .particle:nth-child(4) { top: 82%; left: 88%; animation-delay: 9s; }
+  .particle:nth-child(5) { top: 28%; left: 55%; animation-delay: 12s; }
+  .particle:nth-child(6) { top: 72%; left: 45%; animation-delay: 15s; }
+  @keyframes drift {
+    0%, 100% { transform: translate(0, 0) scale(0.8); opacity: 0; }
+    20%, 80% { opacity: 0.6; }
+    50% { transform: translate(20px, -30px) scale(1.4); opacity: 1; }
+  }
+
+  /* === Scene wrapper — each scene is absolute, fades in/out by its own keyframe === */
+  .scene {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    opacity: 0;
+    padding: 5vh 8vw;
+  }
+
+  /* === Scene 1 — Privé wordmark assembles === */
+  /* Outer scene visibility is class-driven (see .scene + .scene.active
+     above). Only inner letter animations live here. */
+  .wordmark {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(4rem, 12vw, 9rem);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+    display: inline-block;
+  }
+  .wordmark::before {
+    content: '';
+    position: absolute;
+    top: -0.45rem;
+    left: 36%;
+    width: 28%;
+    height: 0.16rem;
+    background: var(--gold-grad);
+    border-radius: 2px;
+    opacity: 0;
+  }
+  .s1.active .wordmark::before {
+    animation: barFade 1.5s ease 0.4s 1 forwards;
+  }
+  @keyframes barFade {
+    0%   { opacity: 0; transform: scaleX(0); }
+    100% { opacity: 1; transform: scaleX(1); }
+  }
+  .s1 .letter {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .s1.active .letter {
+    animation: letterIn 0.6s ease both;
+  }
+  .s1.active .letter:nth-child(1) { animation-delay: 0.1s; }
+  .s1.active .letter:nth-child(2) { animation-delay: 0.25s; }
+  .s1.active .letter:nth-child(3) { animation-delay: 0.4s; }
+  .s1.active .letter:nth-child(4) { animation-delay: 0.55s; }
+  .s1.active .letter:nth-child(5) { animation-delay: 0.7s; }
+  @keyframes letterIn {
+    0%   { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .s1-whisper {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(1rem, 2vw, 1.4rem);
+    color: var(--cream-dim);
+    margin-top: 2.5rem;
+    letter-spacing: 0.06em;
+    opacity: 0;
+  }
+  .s1.active .s1-whisper {
+    animation: fadeIn 1.5s ease 1.5s 1 forwards;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes fadeInOut {
+    0%, 10% { opacity: 0; }
+    25%, 75% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* === Scene 2 — Tagline reveal === */
+  .s2-mark {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(2.5rem, 7vw, 5rem);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+    display: inline-block;
+  }
+  .s2-mark::before {
+    content: '';
+    position: absolute;
+    top: -0.35rem;
+    left: 36%;
+    width: 28%;
+    height: 0.1rem;
+    background: var(--gold-grad);
+    border-radius: 2px;
+  }
+  .s2-tag {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    color: var(--gold-soft);
+    margin-top: 1.5rem;
+    letter-spacing: 0.04em;
+  }
+  .s2-sub {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.7rem, 1.3vw, 0.95rem);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold-1);
+    opacity: 0.7;
+    margin-top: 2rem;
+  }
+
+  /* === Scene 3 — Problem montage (3 lines stacked, all visible) === */
+  .s3-line {
+    font-family: 'Bodoni Moda', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(1.6rem, 3.5vw, 2.5rem);
+    color: var(--cream);
+    line-height: 1.4;
+    margin: 0.5rem 0;
+    opacity: 0;
+    transform: translateY(10px);
+    text-align: center;
+  }
+  .s3.active .s3-line {
+    animation: lineFade 0.8s ease both;
+  }
+  .s3.active .s3-line.l1 { animation-delay: 0.2s; }
+  .s3.active .s3-line.l2 { animation-delay: 1.5s; }
+  .s3.active .s3-line.l3 { animation-delay: 3.5s; }
+  @keyframes lineFade {
+    0%   { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  /* v2 upgrade — animated strikethrough that DRAWS across each line
+     left-to-right, in time with Charlotte's voice. More visceral than
+     a static CSS line-through. */
+  .s3-line .red {
+    color: var(--red-soft);
+    position: relative;
+    display: inline-block;
+  }
+  .s3-line .red::after {
+    content: '';
+    position: absolute;
+    left: -0.1em;
+    right: -0.1em;
+    top: 52%;
+    height: 2px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      var(--red-soft) 12%,
+      var(--red-soft) 88%,
+      transparent 100%);
+    transform-origin: left center;
+    transform: scaleX(0);
+    border-radius: 1px;
+    box-shadow: 0 0 6px rgba(255, 138, 138, 0.5);
+  }
+  .s3.active .s3-line.l1 .red::after { animation: strikeDraw 0.45s ease-out 0.7s forwards; }
+  .s3.active .s3-line.l2 .red::after { animation: strikeDraw 0.45s ease-out 2.0s forwards; }
+  @keyframes strikeDraw {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+  /* Third line is the punchline — no strikethrough, gold gradient, larger */
+  .s3-line.gold {
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(1.9rem, 4vw, 2.9rem);
+    margin-top: 1rem;
+  }
+  .s3-line.gold .ne {
+    -webkit-text-fill-color: var(--gold-soft);
+    background: none;
+    color: var(--gold-soft);
+    font-weight: 600;
+    margin: 0 0.15em;
+  }
+
+  /* === Scene 4 — Pivot === */
+  .s4-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.8rem, 1.4vw, 1rem);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 2rem;
+    opacity: 0.85;
+  }
+  .s4-title {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 400;
+    color: var(--gold-soft);
+    line-height: 1.3;
+    max-width: 22ch;
+  }
+  .s4-title em {
+    font-style: italic;
+    color: var(--gold-1);
+  }
+
+  /* === Real-app screenshot frame (used by scenes 5/6/7) ===
+     If a screenshot exists in ./screenshots/, it shows inside this
+     phone-shaped frame. Otherwise CSS mockup below renders instead. */
+  .phone-frame {
+    width: clamp(16rem, 22vw, 22rem);
+    aspect-ratio: 9 / 19.5;
+    border-radius: 2.2rem;
+    background: linear-gradient(140deg, #1a1a2c, #0a0e27);
+    border: 1.5px solid rgba(216, 184, 109, 0.4);
+    padding: 0.55rem;
+    box-shadow:
+      0 30px 80px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(216, 184, 109, 0.15) inset,
+      0 0 60px rgba(216, 184, 109, 0.18);
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+  /* v2 upgrade — soft gold "breathing" glow on the phone during product
+     scenes (5/6/7). Makes the device feel alive, not a static screenshot. */
+  .s5.active .phone-frame,
+  .s6.active .phone-frame,
+  .s7.active .phone-frame {
+    animation: phoneBreathe 4.5s ease-in-out 0.8s infinite;
+  }
+  @keyframes phoneBreathe {
+    0%, 100% {
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.55),
+        0 0 0 1px rgba(216, 184, 109, 0.15) inset,
+        0 0 60px rgba(216, 184, 109, 0.18);
+      border-color: rgba(216, 184, 109, 0.4);
+    }
+    50% {
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.55),
+        0 0 0 1px rgba(216, 184, 109, 0.4) inset,
+        0 0 110px rgba(216, 184, 109, 0.42);
+      border-color: rgba(232, 198, 121, 0.75);
+    }
+  }
+  .phone-frame::before {
+    /* notch */
+    content: '';
+    position: absolute;
+    top: 0.55rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 35%;
+    height: 0.7rem;
+    background: #000;
+    border-radius: 0 0 1rem 1rem;
+    z-index: 2;
+  }
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 1.65rem;
+    overflow: hidden;
+    background: var(--navy-deep);
+    position: relative;
+  }
+  .phone-screen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+  }
+  /* Subtle Ken-Burns zoom on screenshots so they feel alive */
+  .phone-screen img {
+    animation: kenBurns 30s ease-in-out infinite alternate;
+  }
+  @keyframes kenBurns {
+    0%   { transform: scale(1) translateY(0); }
+    100% { transform: scale(1.06) translateY(-2%); }
+  }
+  /* Fallback hidden by default — only shown if img fails to load (no screenshot yet) */
+  .phone-screen .mockup-fallback {
+    display: none;
+  }
+  /* Mockup card defaults — sized to fit inside the phone-frame (~22rem
+     wide max). Override font sizes per-card so nothing clips the frame. */
+  .phone-screen .mockup-fallback .score-card,
+  .phone-screen .mockup-fallback .filter-card,
+  .phone-screen .mockup-fallback .personality-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 1rem 0.85rem;
+    box-sizing: border-box;
+  }
+  .phone-screen .mockup-fallback .score-num {
+    font-size: 3.2rem !important;
+    line-height: 1;
+  }
+  .phone-screen .mockup-fallback .score-name {
+    font-size: 0.9rem;
+    padding-top: 0.6rem;
+  }
+  .phone-screen .mockup-fallback .filter-prompt {
+    font-size: 0.85rem !important;
+    line-height: 1.4;
+    white-space: normal !important;
+    min-height: 2.5em;
+  }
+  .phone-screen .mockup-fallback .filter-prompt .filter-typing {
+    white-space: normal !important;
+    overflow: visible;
+    border-right: none;
+    animation: none !important;
+    width: auto !important;
+  }
+  .phone-screen .mockup-fallback .filter-label,
+  .phone-screen .mockup-fallback .filter-result-label {
+    font-size: 0.7rem;
+  }
+  .phone-screen .mockup-fallback .filter-result-count {
+    font-size: 1.6rem !important;
+  }
+  .phone-screen .mockup-fallback .personality-code {
+    font-size: 2.4rem !important;
+    letter-spacing: 0.04em !important;
+    line-height: 1;
+  }
+  .phone-screen .mockup-fallback .personality-name {
+    font-size: 1rem !important;
+    margin-top: 0.5rem;
+  }
+  .phone-screen .mockup-fallback .personality-summary {
+    font-size: 0.78rem !important;
+    line-height: 1.4;
+    margin-top: 0.8rem;
+  }
+  .phone-screen .mockup-fallback .personality-label,
+  .phone-screen .mockup-fallback .score-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+  }
+  .phone-screen img:not([src]),
+  .phone-screen img[src=""] {
+    display: none;
+  }
+  .phone-screen:has(img:not([src])) .mockup-fallback,
+  .phone-screen:has(img[src=""]) .mockup-fallback {
+    display: flex;
+  }
+  /* If image broke entirely */
+  .phone-screen img.broken {
+    display: none;
+  }
+  .phone-screen img.broken + .mockup-fallback {
+    display: flex;
+  }
+
+  /* === Scene 5 — AI Match Score reveal === */
+  .s5-flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(1rem, 3vw, 3rem);
+    max-width: 64rem;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .s5-caption {
+    max-width: 18rem;
+    text-align: left;
+  }
+  .s5-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.7rem, 1.3vw, 0.95rem);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 1.4rem;
+  }
+  .score-card {
+    background: rgba(20, 24, 45, 0.85);
+    border: 1px solid rgba(216, 184, 109, 0.45);
+    border-radius: 1.2rem;
+    padding: 2rem 2.5rem;
+    max-width: 28rem;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  }
+  .score-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 0.5rem;
+  }
+  .score-num {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(4rem, 10vw, 7rem);
+    font-weight: 500;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+  .score-num::after {
+    content: '%';
+    font-size: 0.55em;
+    color: var(--gold-soft);
+    -webkit-text-fill-color: var(--gold-soft);
+    background: none;
+  }
+  /* Score "counts up" via 4 stacked spans that fade in sequentially.
+     CSS counters DON'T interpolate so we do it the durable way. */
+  .score-counter {
+    display: inline-block;
+    position: relative;
+    min-width: 2.2ch;
+  }
+  .score-counter span {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+  }
+  /* Score "counts up" only when scene 5 is active. 4 stacked digits
+     fade through in sequence (the last one — 87 — stays visible). */
+  .s5.active .score-counter span:nth-child(1) { animation: countStep 1s ease 0.2s both; }
+  .s5.active .score-counter span:nth-child(2) { animation: countStep 1s ease 0.7s both; }
+  .s5.active .score-counter span:nth-child(3) { animation: countStep 1s ease 1.2s both; }
+  .s5.active .score-counter span:nth-child(4) { animation: countFinal 1s ease 1.7s both; }
+  @keyframes countStep {
+    0%   { opacity: 0; }
+    40%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes countFinal {
+    0%   { opacity: 0; }
+    50%, 100% { opacity: 1; }
+  }
+  .score-name {
+    font-family: 'Bodoni Moda', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--cream);
+    margin-top: 1rem;
+    border-top: 1px solid rgba(216, 184, 109, 0.2);
+    padding-top: 1rem;
+  }
+  .score-detail {
+    margin-top: 1rem;
+    text-align: left;
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  .s5.active .score-detail {
+    animation: detailIn 1s ease 2.8s both;
+  }
+  @keyframes detailIn {
+    0%   { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .score-detail h5 {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin: 0.6rem 0 0.25rem;
+  }
+  .score-detail p {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--cream-dim);
+    line-height: 1.4;
+  }
+  .s5-vo {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 1.8vw, 1.3rem);
+    color: var(--cream-dim);
+    margin-top: 2rem;
+    max-width: 32ch;
+    text-align: center;
+    opacity: 0;
+  }
+  .s5.active .s5-vo {
+    animation: voCaption 1.2s ease 5s 1 forwards;
+  }
+  @keyframes voCaption {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* === Scene 6 — AI-First filter === */
+  .s6-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.7rem, 1.3vw, 0.95rem);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 1.4rem;
+  }
+  .filter-card {
+    background: rgba(20, 24, 45, 0.85);
+    border: 1px solid rgba(216, 184, 109, 0.45);
+    border-radius: 1.2rem;
+    padding: 2rem 2.5rem;
+    max-width: 32rem;
+    width: 90%;
+    text-align: left;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  }
+  .filter-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 0.8rem;
+  }
+  .filter-prompt {
+    font-family: 'Bodoni Moda', serif;
+    font-style: italic;
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+    color: var(--cream);
+    line-height: 1.5;
+    min-height: 3em;
+  }
+  .filter-typing {
+    border-right: 2px solid var(--gold-soft);
+    overflow: hidden;
+    white-space: nowrap;
+    width: 0;
+    display: inline-block;
+  }
+  .s6.active .filter-typing {
+    animation: typing 3s steps(40) 0.5s 1 forwards, blink 0.7s step-end infinite;
+  }
+  @keyframes typing {
+    0% { width: 0; }
+    100% { width: 100%; }
+  }
+  @keyframes blink {
+    0%, 50% { border-color: var(--gold-soft); }
+    51%, 100% { border-color: transparent; }
+  }
+  .filter-result {
+    margin-top: 2rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid rgba(216, 184, 109, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    opacity: 0;
+  }
+  .s6.active .filter-result {
+    animation: filterResult 0.8s ease 3.5s 1 forwards;
+  }
+  @keyframes filterResult {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .filter-result-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--cream-dim);
+  }
+  .filter-result-count {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 2.2rem;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .s6-vo {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 1.8vw, 1.3rem);
+    color: var(--cream-dim);
+    margin-top: 2rem;
+    max-width: 36ch;
+    text-align: center;
+    opacity: 0;
+  }
+  .s6.active .s6-vo {
+    animation: fadeIn 1.2s ease 0.8s 1 forwards;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     SCENE 7 — Love Personality reveal
+     Outer visibility now class-driven via .scene + .scene.active.
+     Only inner animations live here.
+     ───────────────────────────────────────────────────────── */
+  .s7-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.7rem, 1.3vw, 0.95rem);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .s7-eyebrow-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+    letter-spacing: 0.04em;
+    text-transform: none;
+    color: var(--cream-dim);
+  }
+  .personality-card {
+    background: linear-gradient(135deg, rgba(207, 173, 97, 0.18), rgba(232, 198, 121, 0.1));
+    border: 1px solid rgba(216, 184, 109, 0.55);
+    border-radius: 1.5rem;
+    padding: 2.5rem 3rem;
+    max-width: 28rem;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(216, 184, 109, 0.18);
+  }
+  .personality-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 1rem;
+  }
+  .personality-code {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(3.5rem, 8vw, 5.5rem);
+    font-weight: 500;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    line-height: 1;
+    letter-spacing: 0.12em;
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  .s7.active .personality-code {
+    animation: revealCode 1.6s ease 0.2s 1 forwards;
+  }
+  @keyframes revealCode {
+    0%   { opacity: 0; transform: scale(0.8); }
+    60%  { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  .personality-name {
+    font-family: 'Bodoni Moda', serif;
+    font-style: italic;
+    font-size: clamp(1.2rem, 2.3vw, 1.7rem);
+    color: var(--gold-soft);
+    margin-top: 1rem;
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  .s7.active .personality-name {
+    animation: revealName 1.2s ease 1.8s 1 forwards;
+  }
+  @keyframes revealName {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .personality-summary {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--cream-dim);
+    margin-top: 1.2rem;
+    line-height: 1.5;
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  .s7.active .personality-summary {
+    animation: revealName 1.2s ease 3.2s 1 forwards;
+  }
+  .s7-vo {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 1.8vw, 1.3rem);
+    color: var(--cream-dim);
+    margin-top: 2.5rem;
+    max-width: 32ch;
+    text-align: center;
+    opacity: 0;
+  }
+  .s7.active .s7-vo {
+    animation: fadeIn 1.2s ease 0.8s 1 forwards;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     SCENE 8 — Invite-only positioning
+     Outer visibility now class-driven. Glint animates on .active.
+     ───────────────────────────────────────────────────────── */
+  .s8-mark {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(3rem, 9vw, 6.5rem);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+    display: inline-block;
+  }
+  .s8.active .s8-mark {
+    animation: glint 4s ease 0.2s 1 forwards;
+  }
+  .s8-mark::before {
+    content: '';
+    position: absolute;
+    top: -0.4rem;
+    left: 36%;
+    width: 28%;
+    height: 0.13rem;
+    background: var(--gold-grad);
+    border-radius: 2px;
+  }
+  @keyframes glint {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.4); }
+  }
+  .s8-line {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+    color: var(--gold-soft);
+    margin-top: 2rem;
+    max-width: 28ch;
+    line-height: 1.4;
+  }
+  .s8-mini {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold-1);
+    margin-top: 1.5rem;
+    opacity: 0.8;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     SCENE 9 — The Stroke of a Heart
+     A single gold-gradient cursive stroke draws itself in one
+     continuous gesture over 5 seconds, like a signature. When
+     closed, the heart holds with a soft breathing glow. The URL
+     and CTA fade up beneath, *after* the gesture completes.
+     Restraint is luxury — one mark, one meaning.
+     ───────────────────────────────────────────────────────── */
+  .s9-heart {
+    width: clamp(8rem, 18vw, 13rem);
+    height: clamp(8rem, 18vw, 13rem);
+    margin-bottom: 1.6rem;
+  }
+  .s9-heart svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .s9-heart-path {
+    /* Path length ≈ 620; dasharray > length guarantees full conceal. */
+    stroke-dasharray: 700;
+    stroke-dashoffset: 700;
+    filter: drop-shadow(0 0 10px rgba(244, 220, 168, 0.5));
+  }
+  .s9.active .s9-heart-path {
+    animation:
+      drawHeart 5s cubic-bezier(0.55, 0.05, 0.45, 0.95) 0.5s 1 forwards,
+      heartBreathe 3.6s ease-in-out 6s infinite;
+  }
+  @keyframes drawHeart {
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes heartBreathe {
+    0%, 100% { filter: drop-shadow(0 0 8px rgba(244, 220, 168, 0.45)); }
+    50%      { filter: drop-shadow(0 0 26px rgba(244, 220, 168, 0.95)); }
+  }
+  /* URL + CTA delayed entrance so they land AFTER the heart closes,
+     timed roughly to Charlotte's "coming soon" and "be among the first". */
+  .s9-url, .s9-cta { opacity: 0; }
+  .s9.active .s9-url {
+    animation: s9Reveal 1.3s ease 6.2s 1 forwards;
+  }
+  .s9.active .s9-cta {
+    animation: s9Reveal 1.3s ease 7.6s 1 forwards;
+  }
+  @keyframes s9Reveal {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .s9-url {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: 0.05em;
+  }
+  .s9-cta {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 2vw, 1.4rem);
+    color: var(--cream-dim);
+    margin-top: 1.2rem;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Start overlay — held until user taps. Required to satisfy browser
+       autoplay gates AND lets music + animation start in perfect sync.
+       Crest + wordmark + slogan match the login hero brand block. -->
+  <div class="start-overlay" id="startOverlay">
+    <div class="brand-stack">
+      <p class="brand-eyebrow">By invitation</p>
+      <img class="brand-crest start-crest" src="crest-3.png" alt="" aria-hidden="true" />
+      <div class="start-mark">PRIVÉ</div>
+      <p class="brand-slogan">Members only · By design</p>
+    </div>
+    <div class="start-actions">
+      <button class="start-btn" id="btnWatch" type="button">Watch</button>
+      <button class="start-btn primary" id="btnRecord" type="button">Record &amp; Download</button>
+    </div>
+  </div>
+
+  <!-- Optional MP3 fallback. Drop a music.mp3 file in this folder and it
+       takes priority over the synthesized track. -->
+  <audio id="bgMusic" preload="auto" loop>
+    <source src="music.mp3" type="audio/mpeg" />
+  </audio>
+
+  <!-- Voiceover narration. When voiceover.mp3 exists, plays on top of
+       the music at full volume; music ducks to 35% so the voice cuts
+       through. When the file is missing, the visuals + music play alone. -->
+  <audio id="voiceOver" preload="auto">
+    <source src="voiceover.mp3" type="audio/mpeg" />
+  </audio>
+
+  <!-- Cinematic lower-third backdrop (sits behind the subtitle) -->
+  <div class="subtitle-backdrop" aria-hidden="true"></div>
+
+  <!-- Romanian subtitle band — populated per scene by the controller -->
+  <div class="subtitle-band" id="subtitleBand"></div>
+
+  <!-- Ambient particles -->
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+
+  <!-- Scene 1: Wordmark assembles (0-8s) -->
+  <div class="scene s1">
+    <div class="wordmark">
+      <span class="letter">P</span><span class="letter">R</span><span class="letter">I</span><span class="letter">V</span><span class="letter">É</span>
+    </div>
+    <p class="s1-whisper">There is something you've been missing... for a long time.</p>
+  </div>
+
+  <!-- Scene 2: Full brand reveal — heraldic crest above the wordmark,
+       slogan + locked tagline below. This is the scene that sets the
+       brand language for the rest of the film. -->
+  <div class="scene s2">
+    <div class="brand-stack">
+      <p class="brand-eyebrow">By invitation</p>
+      <img class="brand-crest s2-crest" src="crest-3.png" alt="" aria-hidden="true" />
+      <div class="s2-mark">PRIVÉ</div>
+      <p class="brand-slogan">Members only · By design</p>
+    </div>
+    <div class="s2-tag">Where the noise of every other dating app falls away</div>
+  </div>
+
+  <!-- Scene 3: Problem montage — v2 voice attacks the ALGORITHM, not the
+       user. Three lines: years of swiping → reasons to keep swiping →
+       the verdict (no strikethrough on the last; it's the truth, in gold). -->
+  <div class="scene s3">
+    <div class="s3-line l1"><span class="red">Years of swiping.</span></div>
+    <div class="s3-line l2"><span class="red">Reasons to keep swiping.</span></div>
+    <div class="s3-line l3 gold">Engagement <span class="ne">&ne;</span> Love.</div>
+  </div>
+
+  <!-- Scene 4: Pivot — no eyebrow; cinematic pivot lands harder without one -->
+  <div class="scene s4">
+    <h2 class="s4-title">What if the matching algorithm wasn't a stranger,<br/><em>but a confidant?</em></h2>
+  </div>
+
+  <!-- Scene 5: AI Match Score (45-75s) -->
+  <div class="scene s5">
+    <p class="s5-eyebrow">AI Match Score · powered by Claude</p>
+    <div class="s5-flex">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <img src="screenshots/05-match-score.png" alt="Privé Discover with AI match score expanded" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="mockup-fallback" style="position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;background:var(--navy-deep);">
+            <div class="score-card" style="max-width:100%;padding:1.5rem 1.5rem;">
+              <div class="score-label">Compatibility</div>
+              <div class="score-num" style="font-size:4.5rem;"><span class="score-counter"><span>0</span><span>34</span><span>62</span><span>87</span></span></div>
+              <div class="score-name">Alex, 32 · București</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="s5-caption">
+        <p class="s5-vo" style="margin-top:0;text-align:left;">It reads both profiles. It thinks. It gives you a <em>real percent</em> — with real reasons and explanations, and exactly what to say first.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene 6: AI-First Filter (75-100s) -->
+  <div class="scene s6">
+    <p class="s6-eyebrow">AI-First Filter</p>
+    <div class="s5-flex">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <img src="screenshots/06-filter-prompt.png" alt="Privé filter screen with AI prompt typed" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="mockup-fallback" style="position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;background:var(--navy-deep);">
+            <div class="filter-card" style="max-width:100%;padding:1.2rem 1.2rem;">
+              <div class="filter-label">What are you looking for?</div>
+              <div class="filter-prompt" style="font-size:1rem;"><span class="filter-typing">Serious. Into hiking. Not into clubs.</span></div>
+              <div class="filter-result">
+                <div class="filter-result-label">matches</div>
+                <div class="filter-result-count" style="font-size:1.8rem;">23</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="s5-caption">
+        <p class="s6-vo" style="margin-top:0;text-align:left;">Forget filters. Forget checkboxes. You tell Privé what you're looking for — and <em>Privé understands</em>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene 7: Love Personality reveal (100-125s) -->
+  <div class="scene s7">
+    <p class="s7-eyebrow">Your Love Personality<span class="s7-eyebrow-sub">— the way you love</span></p>
+    <div class="s5-flex">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <img src="screenshots/07-personality-reveal.png" alt="Onboarding wizard step 5 — love personality reveal" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="mockup-fallback" style="position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:2.4rem 1.1rem 1.5rem;background:var(--navy-deep);">
+            <!-- top: app brand + progress dots (8 done) -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:0.65rem;width:100%;">
+              <div style="font-family:'Bodoni Moda',serif;font-size:0.85rem;letter-spacing:0.22em;color:var(--gold-soft);">PRIVÉ</div>
+              <div style="display:flex;gap:0.28rem;">
+                <span style="width:0.3rem;height:0.3rem;background:var(--gold-soft);border-radius:50%;box-shadow:0 0 4px rgba(244,220,168,0.5);"></span>
+                <span style="width:0.3rem;height:0.3rem;background:var(--gold-soft);border-radius:50%;box-shadow:0 0 4px rgba(244,220,168,0.5);"></span>
+                <span style="width:0.3rem;height:0.3rem;background:var(--gold-soft);border-radius:50%;box-shadow:0 0 4px rgba(244,220,168,0.5);"></span>
+                <span style="width:0.3rem;height:0.3rem;background:var(--gold-soft);border-radius:50%;box-shadow:0 0 4px rgba(244,220,168,0.5);"></span>
+                <span style="width:0.3rem;height:0.3rem;background:var(--gold-soft);border-radius:50%;box-shadow:0 0 4px rgba(244,220,168,0.5);"></span>
+                <span style="width:0.3rem;height:0.3rem;background:var(--gold-soft);border-radius:50%;box-shadow:0 0 4px rgba(244,220,168,0.5);"></span>
+                <span style="width:0.3rem;height:0.3rem;background:var(--gold-soft);border-radius:50%;box-shadow:0 0 4px rgba(244,220,168,0.5);"></span>
+                <span style="width:0.3rem;height:0.3rem;background:var(--gold-soft);border-radius:50%;box-shadow:0 0 4px rgba(244,220,168,0.5);"></span>
+              </div>
+            </div>
+            <!-- middle: the reveal -->
+            <div style="display:flex;flex-direction:column;align-items:center;text-align:center;">
+              <div style="font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold-soft);margin-bottom:0.7rem;opacity:0.85;">Your Love Personality</div>
+              <div style="font-family:'Bodoni Moda',serif;font-size:3.6rem;font-weight:500;background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:0.08em;line-height:1;">DMFR</div>
+              <div style="font-family:'Bodoni Moda',serif;font-style:italic;font-size:1.05rem;color:var(--gold-soft);margin-top:0.4rem;">Architect Heart</div>
+              <p style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:0.82rem;color:rgba(232,242,255,0.78);margin-top:0.95rem;line-height:1.5;max-width:13rem;">You love with intention. Trust, built layer by layer.</p>
+            </div>
+            <!-- bottom: continue CTA -->
+            <div style="font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;color:#1a1a2c;background:linear-gradient(105deg,#cfad61,#e8c679);border-radius:0.55rem;padding:0.65rem 1.7rem;font-weight:600;box-shadow:0 4px 14px rgba(216,184,109,0.35);">Continue →</div>
+          </div>
+        </div>
+      </div>
+      <div class="s5-caption">
+        <p class="s7-vo" style="margin-top:0;text-align:left;">Privé learns <em>how</em> you are — the way you love. The same one that decides who fits with you.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene 8: Members-only positioning. Crest above the wordmark
+       again so the audience leaves with the brand seal in mind. The
+       mini line below the wordmark matches the locked slogan
+       ("Members only · By design") rather than the older "Invite-only
+       · by design" copy that pre-dated the brand polish. -->
+  <div class="scene s8">
+    <div class="brand-stack">
+      <img class="brand-crest s8-crest" src="crest-3.png" alt="" aria-hidden="true" />
+      <div class="s8-mark">PRIVÉ</div>
+    </div>
+    <p class="s8-line">We're not building the biggest dating app.<br/><em>We're building the one you'll be proud to say you joined.</em></p>
+    <div class="s8-mini">Members only · By design</div>
+  </div>
+
+  <!-- Scene 9: URL CTA (145-150s) -->
+  <div class="scene s9">
+    <div class="s9-heart">
+      <svg viewBox="-130 -130 260 260" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="s9GoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#cfad61"/>
+            <stop offset="50%" stop-color="#e8c679"/>
+            <stop offset="100%" stop-color="#f4dca8"/>
+          </linearGradient>
+        </defs>
+        <path class="s9-heart-path"
+              d="M 0 -15 C -30 -55 -85 -65 -100 -15 C -110 30 -50 65 0 100 C 50 65 110 30 100 -15 C 85 -65 30 -55 0 -15 Z"
+              fill="none"
+              stroke="url(#s9GoldGrad)"
+              stroke-width="3.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="s9-url">prive-app.club</div>
+    <div class="s9-cta">— Be among the first... Request your access —</div>
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────────────────────────
+    // PRIVÉ — Web Audio API ambient piano composition
+    //
+    // Synthesized luxury ambient score, ~150 seconds long, tuned to
+    // the emotional arc of each video scene. D-minor pad foundation +
+    // sparse piano-like melody with quick attack / slow decay envelope.
+    // FM-style harmonics for warmth. No samples, no copyright concern.
+    //
+    // If music.mp3 exists in the folder, that takes precedence.
+    // ─────────────────────────────────────────────────────────────
+
+    const overlay = document.getElementById('startOverlay')
+    const bgMusic = document.getElementById('bgMusic')
+    const voiceOver = document.getElementById('voiceOver')
+
+    async function startEverything() {
+      console.log('[Privé video] Begin')
+
+      // Create the AudioContext IMMEDIATELY while we're still inside
+      // the user gesture (click). Browsers require this for resume()
+      // to succeed.
+      const AC = window.AudioContext || window.webkitAudioContext
+      let ctx = null
+      if (AC) {
+        ctx = new AC()
+        try { await ctx.resume() } catch (e) { console.warn('[Privé] ctx.resume failed', e) }
+        console.log('[Privé] AudioContext state:', ctx.state)
+      }
+
+      // Begin all CSS animations from t=0
+      document.body.classList.add('playing')
+
+      // === Detect available audio assets ===
+      const hasVo = voiceOver.readyState >= 2 && !voiceOver.error
+      const hasMp3Music = bgMusic.readyState >= 2 && !bgMusic.error
+      console.log('[Privé] Voiceover MP3:', hasVo ? 'YES' : 'no')
+      console.log('[Privé] Music MP3:', hasMp3Music ? 'YES' : 'no (will use synth)')
+
+      // Volume strategy:
+      //   - Voice always at full volume (1.0) when present
+      //   - Music sits at 65% under voice — clearly present as a bed,
+      //     still leaving headroom for Charlotte to dominate
+      //   - 80% when there's no voice at all (preview-only mode)
+      const musicVol = hasVo ? 0.65 : 0.8
+      const synthVolMult = hasVo ? 0.28 : 1.0
+
+      // === Background music ===
+      // Synth was wrong for the brand ("sci-fi", "spaceship", "different
+      // movie" per Master's notes). Only real recorded music plays here.
+      // Drop a music.mp3 file in this folder and it'll auto-play.
+      // Otherwise — silence + voice. Cleaner than the wrong music.
+      if (hasMp3Music) {
+        bgMusic.volume = musicVol
+        // Voice now plays at 1.0x (slowdown is baked into the MP3 itself).
+        // Music plays at natural tempo too — it fades when voiceOver.ended
+        // fires, so it always finishes with Charlotte regardless of duration.
+        bgMusic.playbackRate = 1.0
+        bgMusic.preservesPitch = true
+        try {
+          await bgMusic.play()
+          console.log('[Privé] MP3 music playing at vol', musicVol)
+          if (ctx && !hasVo) { try { ctx.close() } catch {} }
+        } catch (e) {
+          console.warn('[Privé] MP3 music play failed (no music will play)', e)
+        }
+      } else {
+        console.log('[Privé] No music.mp3 found — playing voice only. ' +
+                    'See README.md for how to add real music later.')
+        if (ctx) { try { ctx.close() } catch {} }
+      }
+      // synthesizeAmbient() is intentionally NOT called anymore.
+      // Synth bed was overwhelming the voice and breaking the brand tone.
+
+      // === Voiceover ===
+      if (hasVo) {
+        voiceOver.volume = 1.0
+
+        // Voice plays at 1.0x (natural file speed). The new voice MP3 is
+        // already recorded at 0.9x speed in ElevenLabs — the slowdown is
+        // baked into the file itself. Playing at anything other than 1.0
+        // would compound the slowdown and make Charlotte sound underwater.
+        // Visuals + subtitles are slaved to voiceOver.currentTime so they
+        // automatically follow the file's actual duration.
+        voiceOver.playbackRate = 1.0
+        voiceOver.preservesPitch = true
+
+        try {
+          await voiceOver.play()
+          console.log('[Privé] Voiceover playing')
+        } catch (e) {
+          console.warn('[Privé] Voiceover play failed', e)
+        }
+      }
+
+      // === Music fade tied to Charlotte's voice, not wallclock ===
+      // Slowing the voice (via the speed slider) used to leave the music
+      // ringing for ages after she finished. Now music fades when her
+      // audio actually ends — independent of playback rate.
+      function fadeOutMusic() {
+        if (!hasMp3Music || bgMusic.paused) return
+        const startVol = bgMusic.volume
+        const steps = 30
+        let step = 0
+        const fadeInterval = setInterval(() => {
+          step++
+          bgMusic.volume = Math.max(0, startVol * (1 - step / steps))
+          if (step >= steps) {
+            clearInterval(fadeInterval)
+            bgMusic.pause()
+            bgMusic.currentTime = 0
+          }
+        }, 100)
+      }
+      if (hasVo) {
+        // Start the music fade ~2.5 audio-seconds before Charlotte finishes
+        // so silence lands cleanly on "Request your access".
+        let fadeStarted = false
+        voiceOver.addEventListener('timeupdate', () => {
+          if (fadeStarted) return
+          const dur = voiceOver.duration
+          if (!isFinite(dur) || dur <= 0) return
+          if (dur - voiceOver.currentTime <= 2.5) {
+            fadeStarted = true
+            fadeOutMusic()
+          }
+        })
+        voiceOver.addEventListener('ended', () => {
+          if (!fadeStarted) fadeOutMusic()
+        })
+      } else if (hasMp3Music) {
+        // No voice loaded — fall back to a wallclock-based stop at 100s
+        // so the music doesn't loop forever during silent preview.
+        setTimeout(fadeOutMusic, 97 * 1000)
+      }
+
+      // Visual indicator
+      const labelParts = []
+      if (hasVo) labelParts.push('♪ voice')
+      if (hasMp3Music) labelParts.push('music')
+      showAudioIndicator(labelParts.join(' + ') || '— silent —')
+
+      // === Audio-driven scene controller ===
+      // Visuals are slaved to voiceOver.currentTime. No CSS timers.
+      // The auto-calibrator analyzes Charlotte's MP3 silences and sets
+      // scene boundaries automatically. Master never tunes anything.
+      if (hasVo) {
+        setupSceneController()
+        // Run calibration in background; visible playback starts
+        // immediately with the fallback defaults. As soon as the
+        // analyzer finishes (typically <1s offline / ~6s realtime),
+        // boundaries snap to the correct values. The HUD's [auto]
+        // tag indicates analyser-derived timings are now in use.
+        runAutoCalibrationIfNeeded()
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // Scene controller + auto-calibration
+    //
+    // BOUNDARIES is an array of 9 numbers — the start time (in seconds)
+    // of each scene in voiceOver.currentTime. The controller watches the
+    // audio's timeupdate event and adds .active to whichever scene the
+    // current time falls into. Scene 9 stays active until the audio ends.
+    //
+    // Auto-calibration runs on first load:
+    //   1. Try fetch + decode → offline silence analysis (instant, but
+    //      blocked on file:// in Chrome).
+    //   2. Fall back to realtime probe — a second hidden audio element
+    //      plays the file at 16x speed through an AnalyserNode, scanning
+    //      for silence regions in ~6s of wallclock.
+    //   3. The 8 longest silence regions become scene transitions. Their
+    //      END timestamps (when speech resumes) are boundaries 1–8.
+    //   4. Result saved to localStorage so subsequent loads skip the work.
+    //
+    // The visible playback starts IMMEDIATELY with fallback defaults so
+    // there's no waiting splash; once the analyzer finishes, boundaries
+    // snap to Charlotte's actual phrase timings. The HUD reflects this.
+    // ──────────────────────────────────────────────────────────────
+
+    // Romanian subtitles — full translation of every line Charlotte says.
+    // Long lines wrap; italic Cormorant in gold via .subtitle-band styling.
+    // v2 subtitles — aligned with the polished take-2 voice (2026-05-23).
+    // Scene 1 now: "ceva ce ți-a lipsit de mult timp"
+    // Scene 2 now: "Răspunsul este... Privé... viitorul..."
+    // Scene 4 now: "algoritmul de potrivire" (matching algorithm)
+    // Scene 7 now: "învață cum ești" (learns HOW you are — privacy-safe)
+    const SUBTITLES_RO = [
+      'Există ceva... ce ți-a lipsit... de mult timp.',
+      'Răspunsul este... Privé... viitorul felului în care vei cunoaște pe cineva.',
+      'Dai swipe de ani de zile. Algoritmul nu îți caută potriviri. Îți caută motive să continui să dai swipe. Atenția ta... nu este iubire.',
+      'Și dacă algoritmul de potrivire... nu ar fi un străin... ci un confident?',
+      'Privé folosește Claude, cel mai avansat model de raționament de la Anthropic. Citește ambele profile. Gândește. Îți dă un procent real. Cu motive și explicații reale. Și exact ce să spui prima dată.',
+      'Uită de filtre. Uită de căsuțe de bifat. Îi spui aplicației Privé ce cauți... în cuvintele tale. Și Privé... înțelege.',
+      'În câteva minute... Privé învață cum ești. Modul tău de a iubi. Personalitatea ta în iubire. Aceeași care decide cine ți se potrivește.',
+      'Privé este pe bază de invitație. Prin design. Nu construim cea mai mare aplicație de dating. Construim... ceva din care vei fi mândru să spui că faci parte.',
+      'Doi oameni. Un algoritm care îi înțelege pe amândoi. Privé... în curând... Fii printre primii care solicită accesul.',
+    ]
+
+    // MEASURED boundaries — derived from Charlotte's actual recording of
+    // the polished v2 script via ffmpeg silencedetect (2026-05-23, take 2).
+    // File duration: 95.19s. Each boundary verified by matching detected
+    // silence_end timestamps to the script's sentence/ellipsis structure.
+    //
+    // To regenerate after re-recording:
+    //   node_modules/ffmpeg-static/ffmpeg.exe -hide_banner -i voiceover.mp3 \
+    //     -af "silencedetect=noise=-25dB:d=0.3" -f null -
+    //
+    //   1. 0.00s   "There is something..."
+    //   2. 5.02s   "The answer is... Privé..."
+    //   3. 11.30s  "You've been swiping for years..."
+    //   4. 24.04s  "What if the matching algorithm..."
+    //   5. 29.61s  "Privé uses Claude..."
+    //   6. 45.78s  "Forget filters..."
+    //   7. 54.96s  "In a few minutes..."
+    //   8. 64.68s  "Privé is invite-only..."
+    //   9. 77.70s  "Two people. One algorithm..."  (cinematic close to 95.19s)
+    const DEFAULT_BOUNDARIES = [0, 5.02, 11.30, 24.04, 29.61, 45.78, 54.96, 64.68, 77.70]
+    // Bump key — measured against NEW recording. Reject any cached
+    // boundaries from the previous (shorter) take.
+    const BOUNDARIES_KEY = 'prive.video.boundaries.v4polished'
+
+    function loadBoundaries() {
+      try {
+        const raw = localStorage.getItem(BOUNDARIES_KEY)
+        if (!raw) return null
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed) && parsed.length === 9 &&
+            parsed.every(n => typeof n === 'number' && isFinite(n))) {
+          return parsed
+        }
+      } catch {}
+      return null
+    }
+
+    function saveBoundaries(b) {
+      try { localStorage.setItem(BOUNDARIES_KEY, JSON.stringify(b)) } catch {}
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // Auto-calibration
+    //
+    // Goal: produce a valid 9-element boundary array by inspecting
+    // Charlotte's voiceover.mp3 itself — no human input.
+    //
+    // analyzeBuffer() runs on a decoded AudioBuffer. Computes RMS over
+    // 30ms windows, finds windows below 25% of the 80th-percentile RMS
+    // (these are silences), groups consecutive silent windows into
+    // regions, filters to >200ms regions away from the file edges, then
+    // takes the 8 LONGEST regions as the scene transitions. The END of
+    // each region (when speech resumes) is the next scene's start.
+    //
+    // analyzeRmsSeries() is the realtime-probe equivalent — same logic
+    // on a sparse RMS sample list collected via AnalyserNode at 16x speed.
+    //
+    // validateBoundaries() rejects results that violate monotonicity,
+    // minimum-scene-length, or cover-the-whole-audio constraints. If
+    // the auto path produces garbage, we keep using DEFAULT_BOUNDARIES.
+    // ──────────────────────────────────────────────────────────────
+
+    function analyzeBuffer(audioBuf) {
+      const data = audioBuf.getChannelData(0)
+      const sr = audioBuf.sampleRate
+      const dur = audioBuf.duration
+      const WIN_S = 0.03
+      const winSize = Math.floor(sr * WIN_S)
+      const nWin = Math.floor(data.length / winSize)
+      const rms = new Float32Array(nWin)
+      for (let i = 0; i < nWin; i++) {
+        let s = 0
+        const off = i * winSize
+        for (let j = 0; j < winSize; j++) {
+          const v = data[off + j]
+          s += v * v
+        }
+        rms[i] = Math.sqrt(s / winSize)
+      }
+      const sorted = Array.from(rms).sort((a, b) => a - b)
+      const p80 = sorted[Math.floor(sorted.length * 0.8)] || 0.01
+      const threshold = p80 * 0.25
+      const regions = []
+      let start = -1
+      for (let i = 0; i < nWin; i++) {
+        if (rms[i] < threshold) {
+          if (start < 0) start = i
+        } else if (start >= 0) {
+          regions.push({ start: start * WIN_S, end: i * WIN_S, dur: (i - start) * WIN_S })
+          start = -1
+        }
+      }
+      const filtered = regions.filter(r =>
+        r.dur > 0.2 && r.start > 1.0 && r.end < dur - 0.5)
+      const top8 = filtered.sort((a, b) => b.dur - a.dur).slice(0, 8)
+      const transitions = top8.map(r => r.end).sort((a, b) => a - b)
+      return [0, ...transitions]
+    }
+
+    function analyzeRmsSeries(samples, dur) {
+      if (!samples.length) return null
+      const values = samples.map(s => s.rms).sort((a, b) => a - b)
+      const p80 = values[Math.floor(values.length * 0.8)] || 0.01
+      const threshold = p80 * 0.3
+      const regions = []
+      let start = -1
+      for (let i = 0; i < samples.length; i++) {
+        const s = samples[i]
+        if (s.rms < threshold) {
+          if (start < 0) start = s.t
+        } else if (start >= 0) {
+          regions.push({ start, end: s.t, dur: s.t - start })
+          start = -1
+        }
+      }
+      const filtered = regions.filter(r =>
+        r.dur > 0.2 && r.start > 1.0 && r.end < dur - 0.5)
+      const top8 = filtered.sort((a, b) => b.dur - a.dur).slice(0, 8)
+      const transitions = top8.map(r => r.end).sort((a, b) => a - b)
+      return [0, ...transitions]
+    }
+
+    function validateBoundaries(b, dur) {
+      if (!Array.isArray(b) || b.length !== 9) return false
+      if (b[0] !== 0) return false
+      for (let i = 1; i < 9; i++) {
+        if (!isFinite(b[i])) return false
+        if (b[i] <= b[i - 1]) return false
+        if (b[i] - b[i - 1] < 1.2) return false // min 1.2s per scene
+      }
+      if (b[8] > dur - 0.8) return false // scene 9 must have >=0.8s
+      if (b[8] < dur - 15) return false  // scene 9 shouldn't be too long either
+      return true
+    }
+
+    async function autoCalibrateFast() {
+      // Offline path: fetch the bytes + decodeAudioData
+      const src = voiceOver.querySelector('source').src
+      const r = await fetch(src)
+      if (!r.ok) throw new Error('fetch not ok')
+      const buf = await r.arrayBuffer()
+      const tempCtx = new (window.AudioContext || window.webkitAudioContext)()
+      try {
+        const audioBuf = await tempCtx.decodeAudioData(buf)
+        const result = analyzeBuffer(audioBuf)
+        return { boundaries: result, duration: audioBuf.duration }
+      } finally {
+        try { tempCtx.close() } catch {}
+      }
+    }
+
+    async function autoCalibrateProbe() {
+      // Realtime path: a second hidden audio element plays at 16x muted,
+      // analysed via AnalyserNode → RMS series → silence detection.
+      const AC = window.AudioContext || window.webkitAudioContext
+      const ctx = new AC()
+      try { await ctx.resume() } catch {}
+
+      const src = voiceOver.querySelector('source').src
+      const probe = new Audio()
+      probe.src = src
+      probe.preload = 'auto'
+
+      await new Promise((resolve, reject) => {
+        if (probe.readyState >= 2) resolve()
+        else {
+          probe.addEventListener('canplay', resolve, { once: true })
+          probe.addEventListener('error', () => reject(new Error('probe load failed')), { once: true })
+          setTimeout(() => reject(new Error('probe load timeout')), 8000)
+        }
+      })
+
+      const source = ctx.createMediaElementSource(probe)
+      const analyser = ctx.createAnalyser()
+      analyser.fftSize = 2048
+      const kill = ctx.createGain()
+      kill.gain.value = 0 // silent — analyser still receives the signal
+      source.connect(analyser)
+      analyser.connect(kill)
+      kill.connect(ctx.destination)
+
+      const td = new Uint8Array(analyser.fftSize)
+      const samples = []
+      let rafId
+
+      function tick() {
+        analyser.getByteTimeDomainData(td)
+        let sum = 0
+        for (let i = 0; i < td.length; i++) {
+          const d = td[i] - 128
+          sum += d * d
+        }
+        samples.push({ t: probe.currentTime, rms: Math.sqrt(sum / td.length) / 128 })
+        if (!probe.ended) rafId = requestAnimationFrame(tick)
+      }
+
+      probe.playbackRate = 16
+      probe.preservesPitch = true
+      rafId = requestAnimationFrame(tick)
+      await probe.play()
+
+      await new Promise((resolve) => {
+        probe.addEventListener('ended', resolve, { once: true })
+        // Safety timeout — 97s / 16x ≈ 6s wallclock + slack
+        setTimeout(resolve, 20000)
+      })
+      cancelAnimationFrame(rafId)
+      try { source.disconnect() } catch {}
+      try { ctx.close() } catch {}
+
+      const dur = probe.duration
+      const result = analyzeRmsSeries(samples, dur)
+      return { boundaries: result, duration: dur }
+    }
+
+    async function runAutoCalibrationIfNeeded() {
+      // Skip if we already have a saved set from a previous run.
+      if (loadBoundaries()) {
+        console.log('[Privé] Using saved boundaries — skipping auto-calibration')
+        if (window.__priveVideo) window.__priveVideo.markCalSource('saved')
+        return
+      }
+      try {
+        let res = null
+        try {
+          console.log('[Privé] Auto-calibration: trying fast path (fetch + decode)')
+          res = await autoCalibrateFast()
+        } catch (eFast) {
+          console.log('[Privé] Fast path failed (' + eFast.message + ') — using realtime probe')
+          res = await autoCalibrateProbe()
+        }
+        if (!res || !validateBoundaries(res.boundaries, res.duration)) {
+          console.warn('[Privé] Auto-calibration produced invalid boundaries — keeping defaults', res)
+          return
+        }
+        console.log('[Privé] Auto-calibration succeeded:', res.boundaries)
+        // Push into the live array AND persist
+        if (window.__priveVideo) {
+          res.boundaries.forEach((t, i) => window.__priveVideo.setBoundary(i, t))
+          window.__priveVideo.persist()
+          window.__priveVideo.markCalSource('auto')
+        }
+      } catch (e) {
+        console.warn('[Privé] Auto-calibration failed entirely — defaults will be used', e)
+      }
+    }
+
+    function setupSceneController() {
+      const saved = loadBoundaries()
+      // Boundaries are MUTABLE in place. The auto-calibrator overwrites
+      // these once analysis finishes; the controller picks up new values
+      // on the next timeupdate (no event wiring needed — array is shared).
+      const boundaries = saved ? saved.slice() : DEFAULT_BOUNDARIES.slice()
+      let calSource = saved ? 'saved' : 'default'
+      const sceneEls = Array.from(document.querySelectorAll('.scene'))
+      const subtitleEl = document.getElementById('subtitleBand')
+
+      // Debug HUD — only rendered when ?debug=1 is in the URL. Hidden
+      // for normal playback (and recordings) so it never pollutes the screen.
+      const showHud = new URLSearchParams(location.search).get('debug') === '1'
+      const hud = document.createElement('div')
+      if (showHud) {
+        hud.id = 'sceneHud'
+        hud.style.cssText = [
+          'position:fixed', 'top:1rem', 'left:1rem', 'z-index:9998',
+          'font-family:ui-monospace,Menlo,monospace', 'font-size:0.78rem',
+          'color:rgba(244,220,168,0.9)',
+          'background:rgba(20,24,45,0.85)',
+          'padding:0.55rem 0.85rem', 'border-radius:0.5rem',
+          'border:1px solid rgba(216,184,109,0.4)',
+          'pointer-events:none',
+          'min-width:8rem', 'line-height:1.5',
+          'white-space:pre',
+          'transition:opacity 0.4s ease',
+        ].join(';')
+        document.body.appendChild(hud)
+      }
+
+      function activeSceneIndex(t) {
+        let idx = 0
+        for (let i = 0; i < boundaries.length; i++) {
+          if (t >= boundaries[i]) idx = i
+        }
+        return idx
+      }
+
+      function applyActive(idx) {
+        sceneEls.forEach((el, i) => {
+          if (i === idx) el.classList.add('active')
+          else el.classList.remove('active')
+        })
+        if (subtitleEl) {
+          const txt = SUBTITLES_RO[idx] || ''
+          subtitleEl.textContent = txt
+          subtitleEl.classList.toggle('is-visible', !!txt)
+        }
+      }
+
+      function fmt(t) {
+        const mm = Math.floor(t / 60)
+        const ss = (t % 60).toFixed(2).padStart(5, '0')
+        return `${mm}:${ss}`
+      }
+
+      function updateHud(t, idx) {
+        if (!showHud) return
+        hud.textContent = `VO  ${fmt(t)}\nscene  ${idx + 1}/9 [${calSource}]`
+      }
+
+      let lastIdx = -1
+      voiceOver.addEventListener('timeupdate', () => {
+        const t = voiceOver.currentTime
+        const idx = activeSceneIndex(t)
+        if (idx !== lastIdx) {
+          applyActive(idx)
+          lastIdx = idx
+        }
+        updateHud(t, idx)
+      })
+
+      // Initial paint so scene 1 shows the moment audio loads
+      applyActive(0)
+      updateHud(voiceOver.currentTime || 0, 0)
+
+      // Rescale defaults to whatever the audio's ACTUAL duration is.
+      // Master's voiceover.mp3 was 76s, not the 97s the defaults assumed
+      // — without this, scenes 8 and 9 never fire because their boundaries
+      // sit past the end of the audio. Only rescale when we're using
+      // defaults; saved/auto boundaries stay as-is.
+      function rescaleDefaultsIfNeeded() {
+        if (calSource !== 'default') return
+        const dur = voiceOver.duration
+        if (!isFinite(dur) || dur <= 0) return
+        // Defaults are MEASURED for a 95.19s file; scene 9 is a long
+        // cinematic close (~17.5s). Only rescale if the actual file is
+        // noticeably different (e.g., a future re-record at different speed).
+        const refDur = DEFAULT_BOUNDARIES[8] + 17.5
+        if (Math.abs(dur - refDur) < 4) return // measured boundaries fit, no rescale
+        // Leave 0.5s of scene 9 minimum so the CTA reliably shows
+        const usable = Math.max(dur - 0.5, 5)
+        const scale = usable / refDur
+        for (let i = 1; i < 9; i++) {
+          boundaries[i] = +(DEFAULT_BOUNDARIES[i] * scale).toFixed(2)
+        }
+        calSource = `auto-scale ${scale.toFixed(2)}x`
+        console.log('[Privé] Rescaled defaults to actual duration ' + dur.toFixed(2) +
+                    's (scale ' + scale.toFixed(3) + '):', boundaries.slice())
+        // If audio is already past where we now think scene 8 starts,
+        // jump the active scene forward so the deck isn't stuck behind.
+        const idx = activeSceneIndex(voiceOver.currentTime)
+        if (idx !== lastIdx) { applyActive(idx); lastIdx = idx }
+      }
+      if (voiceOver.readyState >= 1) rescaleDefaultsIfNeeded()
+      else voiceOver.addEventListener('loadedmetadata', rescaleDefaultsIfNeeded, { once: true })
+
+      // When Charlotte finishes, force scene 9 to be the active scene so
+      // the URL/CTA always lands on screen — even if the boundaries were
+      // off for any reason.
+      voiceOver.addEventListener('ended', () => {
+        applyActive(8)
+        lastIdx = 8
+      })
+
+      // H key — hide the HUD before screen recording. Press again to show.
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key !== 'h' && ev.key !== 'H') return
+        const isHidden = hud.style.opacity === '0'
+        hud.style.opacity = isHidden ? '1' : '0'
+      })
+
+      // Expose hooks for the auto-calibrator + console debugging.
+      window.__priveVideo = {
+        getBoundaries: () => boundaries.slice(),
+        setBoundary: (i, t) => {
+          if (i < 0 || i >= boundaries.length) return
+          boundaries[i] = t
+          const cur = voiceOver.currentTime
+          const idx = activeSceneIndex(cur)
+          if (idx !== lastIdx) { applyActive(idx); lastIdx = idx }
+        },
+        persist: () => saveBoundaries(boundaries),
+        markCalSource: (s) => { calSource = s },
+        resetBoundaries: () => {
+          localStorage.removeItem(BOUNDARIES_KEY)
+          for (let i = 0; i < DEFAULT_BOUNDARIES.length; i++) {
+            boundaries[i] = DEFAULT_BOUNDARIES[i]
+          }
+          calSource = 'default'
+          const idx = activeSceneIndex(voiceOver.currentTime)
+          applyActive(idx); lastIdx = idx
+        },
+      }
+    }
+
+    // Visible bottom-right pulse to confirm audio is running (regardless
+    // of whether the user's speakers are unmuted). Disappears after 6s.
+    function showAudioIndicator(label) {
+      const el = document.createElement('div')
+      el.textContent = label
+      el.style.cssText = [
+        'position:fixed', 'bottom:1.2rem', 'right:1.2rem', 'z-index:9998',
+        'font-family:Cinzel,serif', 'font-size:0.65rem',
+        'letter-spacing:0.3em', 'text-transform:uppercase',
+        'color:rgba(244,220,168,0.7)',
+        'background:rgba(20,24,45,0.65)',
+        'padding:0.4rem 0.7rem', 'border-radius:0.5rem',
+        'border:1px solid rgba(216,184,109,0.25)',
+        'pointer-events:none',
+        'animation:audioPulse 1.6s ease-in-out infinite',
+        'opacity:1', 'transition:opacity 1s ease',
+      ].join(';')
+      document.body.appendChild(el)
+      setTimeout(() => { el.style.opacity = '0' }, 6000)
+      setTimeout(() => { el.remove() }, 7500)
+    }
+
+    function synthesizeAmbient(ctx, volMult = 1) {
+
+      // Warmer note set — F-major flavor with D-aeolian undertones.
+      // Acoustic-leaning intervals: 4ths, 5ths, 3rds. Less sci-fi-feeling
+      // chord stacks than the previous D-minor-only set.
+      const N = {
+        F2: 87.31, A2: 110.00, C3: 130.81, D3: 146.83, F3: 174.61, G3: 196.00,
+        A3: 220.00, Bb3: 233.08, C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23,
+        G4: 392.00, A4: 440.00, Bb4: 466.16, C5: 523.25, D5: 587.33, E5: 659.25,
+        F5: 698.46, G5: 783.99, A5: 880.00,
+      }
+
+      // === Master chain ===
+      // volMult ducks the entire synth bed when voiceover is also playing
+      // so the narration cuts through cleanly (typically 0.55 when ducked).
+      const master = ctx.createGain()
+      master.gain.setValueAtTime(0.34 * volMult, ctx.currentTime)
+      // High-shelf rolloff above 3.5kHz removes the "glassy" sci-fi sparkle
+      const warmth = ctx.createBiquadFilter()
+      warmth.type = 'highshelf'
+      warmth.frequency.value = 3500
+      warmth.gain.value = -7
+      const compressor = ctx.createDynamicsCompressor()
+      compressor.threshold.value = -16
+      compressor.knee.value = 14
+      compressor.ratio.value = 3
+      compressor.attack.value = 0.08
+      compressor.release.value = 0.4
+      master.connect(warmth).connect(compressor).connect(ctx.destination)
+
+      // Subtle hall reverb — softer than the previous mix (was too "wet"
+      // and washed out, which contributed to the sci-fi vibe)
+      const reverb = ctx.createGain()
+      reverb.gain.value = 0.22
+      const d1 = ctx.createDelay(0.5); d1.delayTime.value = 0.17
+      const d2 = ctx.createDelay(0.5); d2.delayTime.value = 0.31
+      const fb = ctx.createGain(); fb.gain.value = 0.30
+      reverb.connect(d1).connect(d2).connect(fb).connect(reverb)
+      d2.connect(master)
+
+      // === STRING / CELLO PAD ===
+      // Sawtooth fundamentals heavily filtered = bowed-string texture.
+      // No LFO wobble (was sounding like a spaceship engine). Slow attack.
+      function createPad(freq, start, end, vol = 0.13) {
+        const t0 = ctx.currentTime + start
+        const t1 = ctx.currentTime + end
+        const osc1 = ctx.createOscillator()
+        const osc2 = ctx.createOscillator()
+        const osc3 = ctx.createOscillator()
+        osc1.type = 'sawtooth'
+        osc2.type = 'sawtooth'
+        osc3.type = 'sine'
+        osc1.frequency.value = freq
+        osc2.frequency.value = freq * 1.004 // very gentle detune (chorus)
+        osc3.frequency.value = freq * 0.5   // sub-octave for body
+        const g = ctx.createGain()
+        g.gain.setValueAtTime(0, t0)
+        g.gain.linearRampToValueAtTime(vol, t0 + 6)
+        g.gain.setValueAtTime(vol, t1 - 5)
+        g.gain.linearRampToValueAtTime(0, t1)
+        const filt = ctx.createBiquadFilter()
+        filt.type = 'lowpass'
+        filt.frequency.value = 480
+        filt.Q.value = 0.7
+        osc1.connect(g); osc2.connect(g); osc3.connect(g)
+        g.connect(filt).connect(master)
+        g.connect(reverb)
+        osc1.start(t0); osc2.start(t0); osc3.start(t0)
+        osc1.stop(t1 + 0.1); osc2.stop(t1 + 0.1); osc3.stop(t1 + 0.1)
+      }
+
+      // === ACOUSTIC PIANO NOTE ===
+      // Anatomy of a real piano hit, simulated step by step:
+      //   1. 30ms filtered noise burst (hammer/finger "thunk")
+      //   2. Fundamental + 4 INHARMONIC partials (real piano strings
+      //      are slightly inharmonic — that's what makes them sound real,
+      //      not synthetic). Ratios approximated.
+      //   3. Higher partials decay faster than the fundamental.
+      //   4. Low-pass filter sweeps DOWN over decay (high end fades first).
+      function piano(freq, time, duration = 4, vol = 0.32) {
+        const t0 = ctx.currentTime + time
+
+        // Hammer transient (woody attack)
+        const noiseBuffer = ctx.createBuffer(1, 2048, ctx.sampleRate)
+        const noiseData = noiseBuffer.getChannelData(0)
+        for (let i = 0; i < noiseData.length; i++) {
+          noiseData[i] = (Math.random() * 2 - 1) * (1 - i / noiseData.length)
+        }
+        const noise = ctx.createBufferSource()
+        noise.buffer = noiseBuffer
+        const noiseFilt = ctx.createBiquadFilter()
+        noiseFilt.type = 'bandpass'
+        noiseFilt.frequency.value = freq * 2
+        noiseFilt.Q.value = 1.5
+        const noiseGain = ctx.createGain()
+        noiseGain.gain.setValueAtTime(vol * 0.16, t0)
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.06)
+        noise.connect(noiseFilt).connect(noiseGain).connect(master)
+        noise.start(t0)
+        noise.stop(t0 + 0.08)
+
+        // Tonal body — inharmonic partials with per-partial decay
+        const partials = [
+          { ratio: 1.000, amp: 1.00, type: 'sine'     },
+          { ratio: 2.001, amp: 0.55, type: 'sine'     },
+          { ratio: 3.003, amp: 0.30, type: 'triangle' },
+          { ratio: 4.006, amp: 0.16, type: 'sine'     },
+        ]
+        const filt = ctx.createBiquadFilter()
+        filt.type = 'lowpass'
+        filt.frequency.setValueAtTime(3200, t0)
+        filt.frequency.exponentialRampToValueAtTime(500, t0 + duration)
+        filt.Q.value = 0.7
+
+        const bodyOut = ctx.createGain()
+        bodyOut.gain.value = vol
+        bodyOut.connect(filt).connect(master)
+        bodyOut.connect(reverb)
+
+        partials.forEach(({ ratio, amp, type }, idx) => {
+          const osc = ctx.createOscillator()
+          osc.type = type
+          osc.frequency.value = freq * ratio
+          const env = ctx.createGain()
+          const decayMult = 1 - idx * 0.18  // higher partials fade faster
+          env.gain.setValueAtTime(0, t0)
+          env.gain.linearRampToValueAtTime(amp, t0 + 0.012)  // 12ms attack
+          env.gain.exponentialRampToValueAtTime(0.0001, t0 + duration * decayMult)
+          osc.connect(env).connect(bodyOut)
+          osc.start(t0)
+          osc.stop(t0 + duration + 0.1)
+        })
+      }
+
+      // === BELL — now a no-op ===
+      // The previous high-frequency sine bells (D6, A5) were the loudest
+      // contributor to the sci-fi vibe. Removed per Master's note 2026-05-22.
+      // Function kept as a no-op so composition lines below don't crash.
+      // eslint-disable-next-line no-unused-vars
+      function bell() {}
+
+      // ============================================================
+      // === COMPOSITION — timing in seconds, tracks the 9 scenes ===
+      // ============================================================
+
+      // --- Foundation: cello + viola layer, sustained warmth all video long ---
+      // Wider voicing — root + 5th + 10th — sounds like an actual string
+      // ensemble holding a chord, not a single drone.
+      createPad(N.F2, 0,   150, 0.16)  // low F (cello)
+      createPad(N.C3, 6,   150, 0.10)  // 5th above
+      createPad(N.A3, 44,  140, 0.08)  // 3rd joins at scene 5 — adds major-ish warmth
+
+      // --- Scene 1: wordmark (0-8s) — single warm piano notes ---
+      // One slow, simple phrase. No companion shimmer.
+      piano(N.F4, 1.2, 5, 0.32)
+      piano(N.C5, 5.5, 4, 0.28)
+
+      // --- Scene 2: tagline (8-15s) — simple resolution to F ---
+      piano(N.A4, 9, 4, 0.30)
+      piano(N.F5, 12.5, 4, 0.28)
+
+      // --- Scene 3: problem montage (15-35s) — VERY sparse, minor ---
+      // Long silences between notes — should feel like loneliness.
+      piano(N.A3, 17, 5, 0.24)
+      piano(N.F3, 24, 5, 0.22)
+      piano(N.D3, 31, 7, 0.26)
+
+      // --- Scene 4: pivot (35-45s) — hopeful turn, rising ---
+      piano(N.G4, 37, 4, 0.28)
+      piano(N.C5, 41, 5, 0.30)
+
+      // --- Scene 5: match score reveal (45-75s) — fuller chord, warmer ---
+      // F-major-ish triad voicing (F-A-C) instead of stark D-minor.
+      piano(N.F4, 46.8, 8, 0.32)
+      piano(N.A4, 47.1, 8, 0.30)
+      piano(N.C5, 47.4, 8, 0.30)
+      piano(N.F5, 56, 8, 0.32)
+      piano(N.C5, 64, 6, 0.26)
+      piano(N.A4, 70, 6, 0.24)
+
+      // --- Scene 6: filter (75-100s) — flowing arpeggio, no bells ---
+      piano(N.F3, 76.5, 5, 0.26)
+      piano(N.A3, 80, 4.5, 0.28)
+      piano(N.C4, 83.5, 4.5, 0.30)
+      piano(N.F4, 87, 5, 0.32)
+      piano(N.A4, 90.5, 6, 0.30)
+      piano(N.C5, 94, 5, 0.28)
+
+      // --- Scene 7: personality reveal (100-125s) — EMOTIONAL PEAK ---
+      // The arc: build F-A-C with low pad swell, peak at F5, gentle resolve.
+      // NO bell shimmers — they were the loudest sci-fi element.
+      piano(N.F4, 101, 5, 0.34)
+      piano(N.C5, 103.5, 5, 0.34)
+      piano(N.F5, 106, 7, 0.42)        // emotional peak
+      piano(N.A4, 110, 6, 0.30)
+      piano(N.E5, 113, 7, 0.34)        // brief E (Lydian colour)
+      piano(N.C5, 117, 7, 0.28)
+      piano(N.A4, 121, 5, 0.24)
+
+      // --- Scene 8: brand zoom (125-145s) — settle, quiet ---
+      piano(N.F4, 126.5, 8, 0.28)
+      piano(N.C4, 132, 9, 0.24)
+      piano(N.A3, 138, 7, 0.22)
+
+      // --- Scene 9: CTA (145-150s) — final resolution on F ---
+      piano(N.F5, 145.5, 5, 0.34)
+      piano(N.F4, 146.2, 5, 0.26)
+
+      // Stop the context when done so it doesn't keep buffering silence
+      setTimeout(() => {
+        try { ctx.close() } catch {}
+      }, 152000)
+    }
+
+    // === Start overlay buttons ===
+    document.getElementById('btnWatch').addEventListener('click', () => {
+      startEverything()
+    }, { once: true })
+
+    document.getElementById('btnRecord').addEventListener('click', () => {
+      recordAndDownload()
+    }, { once: true })
+
+    // Keyboard convenience — Space/Enter = Watch (the safe default)
+    document.addEventListener('keydown', (e) => {
+      if (!document.body.classList.contains('playing') &&
+          (e.key === ' ' || e.key === 'Enter')) {
+        startEverything()
+      }
+    }, { once: true })
+
+    // ──────────────────────────────────────────────────────────────
+    // RECORD & DOWNLOAD
+    //
+    // Captures the page as a self-contained video file using only browser
+    // APIs — no external tool, no Game Bar audio routing, no permissions
+    // beyond "share this tab."
+    //
+    // How it works:
+    //   1. getDisplayMedia() asks for the screen — user picks the tab,
+    //      clicks Share. (Audio checkbox NOT needed — we capture audio
+    //      separately via Web Audio so we get a clean mix.)
+    //   2. Web Audio routes voiceOver + bgMusic into BOTH the speakers
+    //      AND a MediaStreamDestination, so the user hears the audio
+    //      AND the recorder gets a clean copy.
+    //   3. Video + audio tracks combine into one MediaStream → MediaRecorder.
+    //   4. startEverything() runs as usual; the recorder captures the
+    //      whole play-through.
+    //   5. When the voice ends + music finishes fading, the recorder
+    //      stops and the blob auto-downloads as prive-welcome.mp4 (or
+    //      .webm if the browser doesn't support MP4 encoding).
+    // ──────────────────────────────────────────────────────────────
+
+    async function recordAndDownload() {
+      // Brief instruction up-front so the user knows what to do in the picker.
+      showToast('Pick the Privé tab · CHECK "Share tab audio" · Share')
+
+      // 1. Request screen + tab audio in a single picker. The user must
+      //    pick the tab AND tick the "Share tab audio" checkbox — Chrome
+      //    enforces this; no API can pre-check it.
+      let screenStream
+      try {
+        screenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: { frameRate: { ideal: 60, max: 60 } },
+          audio: true,
+          preferCurrentTab: true,
+          selfBrowserSurface: 'include',
+          systemAudio: 'include',
+        })
+      } catch (e) {
+        console.warn('[Privé] Screen capture cancelled or unavailable', e)
+        showToast('Recording cancelled.')
+        document.getElementById('btnRecord').addEventListener('click',
+          () => recordAndDownload(), { once: true })
+        return
+      }
+
+      const videoTrack = screenStream.getVideoTracks()[0]
+      const audioTracks = screenStream.getAudioTracks()
+      console.log('[Privé] capture got tracks: video=' + (videoTrack ? 'yes' : 'no') +
+                  ' audio=' + audioTracks.length)
+      if (!audioTracks.length) {
+        showToast('No tab audio — re-do and CHECK "Share tab audio"')
+      }
+
+      // 2. Pick best container the browser supports
+      const candidates = [
+        'video/mp4;codecs=avc1,mp4a.40.2',
+        'video/mp4',
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp8,opus',
+        'video/webm',
+      ]
+      let mimeType = ''
+      for (const m of candidates) {
+        if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(m)) {
+          mimeType = m
+          break
+        }
+      }
+      console.log('[Privé] MediaRecorder mime:', mimeType || '(default)')
+
+      // 3. MediaRecorder over the full screenStream as-is — no remixing.
+      const recorder = new MediaRecorder(screenStream, {
+        mimeType,
+        videoBitsPerSecond: 8_000_000,
+        audioBitsPerSecond: 192_000,
+      })
+      const chunks = []
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunks.push(e.data)
+        console.log('[Privé] chunk', e.data ? e.data.size : 0)
+      }
+      recorder.onerror = (ev) => {
+        console.error('[Privé] MediaRecorder error', ev)
+        showToast('Recorder error — see console')
+      }
+      recorder.onstop = () => {
+        console.log('[Privé] recorder.onstop · chunks=' + chunks.length)
+        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm'
+        const blob = new Blob(chunks, { type: mimeType || 'video/webm' })
+        console.log('[Privé] blob size=' + blob.size + ' bytes')
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `prive-welcome.${ext}`
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        setTimeout(() => URL.revokeObjectURL(url), 60_000)
+        try { screenStream.getTracks().forEach(t => t.stop()) } catch {}
+        showToast(`Saved to Downloads · prive-welcome.${ext}`)
+        hideRecordingIndicator()
+      }
+
+      showRecordingIndicator()
+
+      // Hide the start overlay BEFORE the recorder starts capturing,
+      // so the recording's first frames are clean scene content rather
+      // than the Watch/Record buttons fading out. The overlay's CSS has
+      // a 0.8s opacity transition; we wait 950ms to be safe.
+      document.body.classList.add('playing')
+      await new Promise((resolve) => setTimeout(resolve, 950))
+
+      recorder.start(1000) // 1s chunks
+      console.log('[Privé] recorder started · state=' + recorder.state)
+
+      // 4. Begin visible playback
+      try {
+        await startEverything()
+      } catch (e) {
+        console.error('[Privé] startEverything failed mid-record', e)
+        showToast('Playback failed — recording stopped')
+        if (recorder.state === 'recording') recorder.stop()
+        return
+      }
+
+      // 5. Stop a few seconds after Charlotte finishes
+      let stopped = false
+      function stopOnce(why) {
+        if (stopped) return
+        stopped = true
+        console.log('[Privé] stop · reason=' + why)
+        if (recorder.state === 'recording') recorder.stop()
+      }
+      voiceOver.addEventListener('ended', () => {
+        setTimeout(() => stopOnce('voiceOver.ended + 4.5s'), 4500)
+      }, { once: true })
+      // Safety: stop after 3 minutes regardless
+      setTimeout(() => stopOnce('safety timeout 3min'), 180_000)
+    }
+
+    // === Recording-mode indicator ===
+    // The indicator lives in the BROWSER TAB TITLE, not on the page.
+    // The tab title isn't captured by getDisplayMedia (only the page's
+    // content area is), so it won't appear in the recording — but Master
+    // still sees a clear "● RECORDING" in his browser tab while it runs.
+    let _origTitle = ''
+    let _titleBlink = null
+    function showRecordingIndicator() {
+      _origTitle = document.title
+      let on = true
+      _titleBlink = setInterval(() => {
+        document.title = (on ? '● ' : '○ ') + 'RECORDING — Privé'
+        on = !on
+      }, 700)
+    }
+    function hideRecordingIndicator() {
+      if (_titleBlink) { clearInterval(_titleBlink); _titleBlink = null }
+      if (_origTitle) document.title = _origTitle
+    }
+    function showToast(msg) {
+      const el = document.createElement('div')
+      el.textContent = msg
+      el.style.cssText = [
+        'position:fixed', 'left:50%', 'top:1.2rem', 'transform:translateX(-50%)',
+        'z-index:99999',
+        'font-family:Cinzel,serif', 'font-size:0.72rem',
+        'letter-spacing:0.28em', 'text-transform:uppercase',
+        'color:var(--gold-soft)',
+        'background:rgba(20,24,45,0.92)',
+        'padding:0.55rem 1.2rem', 'border-radius:0.5rem',
+        'border:1px solid rgba(216,184,109,0.5)',
+        'pointer-events:none', 'opacity:1',
+        'transition:opacity 0.6s ease',
+      ].join(';')
+      document.body.appendChild(el)
+      setTimeout(() => { el.style.opacity = '0' }, 3500)
+      setTimeout(() => el.remove(), 4500)
+    }
+  </script>
+
+</body>
+</html>

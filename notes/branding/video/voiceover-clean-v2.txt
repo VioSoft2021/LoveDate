@@ -1,0 +1,55 @@
+PRIVÉ — PUBLIC VIDEO VOICEOVER V2 (CLEAN, PASTE-READY)
+Designed for ElevenLabs · Charlotte · Stability 60 · Style 25 · Speaker Boost ON
+
+⚠️ PASTE ONLY THE TEXT BELOW THE LINE — NO BRACKETS, NO STAGE NOTES.
+ElevenLabs reads everything including parentheses.
+
+═══════════════════════════════════════════════════════════════
+
+There is something... you've been missing... for a long time.
+
+The answer is... Privé... where the noise of every other dating app falls away.
+
+You've been swiping for years. The algorithm hasn't been finding you matches. It's been finding you reasons... to keep swiping. Engagement... is not the same as love.
+
+What if the matching algorithm... wasn't a stranger... but a confidant?
+
+Privé uses Claude, the most advanced reasoning model from Anthropic. It reads both profiles. It thinks. It gives you a real percent. With real reasons and explanations. And exactly what to say first.
+
+Forget filters. Forget checkboxes. You tell Privé what you're looking for... in your own words. And Privé... understands.
+
+In a few minutes... Privé learns how you are. The way you love. Your Love Personality. The same one that decides who fits with you.
+
+Privé is members only. By design. We're not building the biggest dating app. We're building... the one you'll be proud to say you joined.
+
+Two people. One algorithm that understands them both. Privé... coming soon. Be among the first to request your access.
+
+═══════════════════════════════════════════════════════════════
+
+WHAT CHANGED FROM V1 (so you know why):
+
+Scene 3 (the swipe critique): replaced the generic "Tinder. Bumble. Hinge." list with a sharper, brand-distinct indictment — attacks the ALGORITHM, not the user. "Engagement is not the same as love" is the new headline of this scene.
+
+Scene 5 (Claude reveal): rewritten with three short verbs — "It reads. It thinks. It gives." — so the rhythm matches the new animated score-counter on screen.
+
+Scene 6 (AI filter): "Forget filters. Forget checkboxes." is stronger than "You don't toggle dropdowns." Added "And Privé... understands." as the payoff.
+
+Scene 8 (invite-only): added "By design." after "invite-only" — reinforces it as a deliberate luxury position, not a limitation.
+
+Scene 9 (CTA): added one new line before the URL — "Two people. One algorithm that understands them both." — paces perfectly with the two-souls-connecting tableau and gives Charlotte the emotional payoff beat.
+
+Scene 9 (CTA — revision 2026-05-23): pre-launch positioning. The closer is now "coming soon. Be among the first to request your access." instead of naming the URL directly. Sharper exclusivity for an invite-only product that isn't open yet.
+
+CHARACTER COUNT: ~840 (slightly longer than v1's ~793 to support new lines)
+EXPECTED DURATION: ~78–82 seconds at Charlotte's natural pace
+
+═══════════════════════════════════════════════════════════════
+
+SETTINGS IN ELEVENLABS:
+- Voice: Charlotte (Warm, Clear, Modern) — British
+- Stability: 60
+- Style: 25
+- Speaker Boost: ON
+
+SAVE AS: voiceover-v2.mp3 (keep v1 as backup)
+OR replace voiceover.mp3 in this folder to test in public-en-v2.html
