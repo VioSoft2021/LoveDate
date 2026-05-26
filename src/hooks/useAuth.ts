@@ -11,7 +11,7 @@ import {
   purgeAllSelfProfileCaches,
   purgeOtherSelfProfileCaches,
 } from '../services/backendApi'
-import { createSupabaseClient } from '../services/supabaseClient'
+import { createSupabaseClient, INITIAL_URL_HASH } from '../services/supabaseClient'
 import { DEMO_GUEST_EMAIL } from '../services/demo/demoProfiles'
 import { readAuth, AUTH_STORAGE_KEY } from '../persistence'
 import { EMPTY_SELF_PROFILE, UI_TEXT } from '../constants'
@@ -88,19 +88,25 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
     )
   }, [isAuthenticated, userEmail])
 
-  // Password recovery listener (2026-05-26). When a user clicks the
-  // recovery link from their email, Supabase JS picks up the
-  // `type=recovery` token from the URL hash, sets a short-lived
-  // session, and fires a PASSWORD_RECOVERY event. We surface a
-  // dedicated view in LoginScreen until they update their password.
+  // Password recovery detection (2026-05-26). Two redundant paths:
   //
-  // Belt-and-braces: we also parse the URL hash ourselves on mount
-  // because the event has fired (briefly) before our listener
-  // attaches in some browsers.
+  // 1. INITIAL_URL_HASH — snapshot of window.location.hash taken at
+  //    module load (BEFORE any Supabase client consumes it). When
+  //    the user clicks a "Reset Your Password" email link, the hash
+  //    contains `type=recovery` for a few ms before Supabase JS
+  //    clears it via history.replaceState. The snapshot survives.
+  //
+  // 2. onAuthStateChange listener — catches future PASSWORD_RECOVERY
+  //    events if the URL is consumed AFTER our listener attaches
+  //    (rare, but possible in some browsers).
+  //
+  // Path 1 is the primary one because by the time React mounts +
+  // useEffect fires, the URL is usually already cleaned. The earlier
+  // version of this effect read window.location.hash directly and
+  // missed every recovery click — fixed by switching to the
+  // module-level snapshot.
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    const hash = window.location.hash
-    if (hash.includes('type=recovery')) {
+    if (INITIAL_URL_HASH.includes('type=recovery')) {
       setPasswordRecoveryActive(true)
     }
     const supabase = createSupabaseClient()
