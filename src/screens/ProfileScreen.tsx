@@ -143,13 +143,18 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
   const [locDetectError, setLocDetectError] = React.useState<string | null>(null)
   const [locDetectSuccess, setLocDetectSuccess] = React.useState<string | null>(null)
 
-  // Selfie-pose verification (anti-fake, 2026-05-27). The badge itself
-  // comes from selfProfile.verificationBadge once approved; this local
-  // state covers the in-between 'pending' state + the capture modal.
+  // Selfie-pose verification (anti-fake, 2026-05-27). The badge can come
+  // from two places: the cached selfProfile.verificationBadge, OR the
+  // live verification status we fetch on mount. The latter matters
+  // because the admin approves in a DIFFERENT screen (Moderation
+  // Center), so the in-memory selfProfile stays stale until a full
+  // re-sync — without checking verifyStatus, an approved user would see
+  // no badge + a stale "Verify you're real" button until they restart.
   const [showVerify, setShowVerify] = React.useState(false)
   const [verifyStatus, setVerifyStatus] = React.useState<VerificationStatus>('none')
   const isVerified =
-    selfProfile.verificationBadge != null && selfProfile.verificationBadge !== 'none'
+    (selfProfile.verificationBadge != null && selfProfile.verificationBadge !== 'none') ||
+    verifyStatus === 'approved'
   React.useEffect(() => {
     let cancelled = false
     void (async () => {
@@ -319,8 +324,7 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
               <div className="profile-summary-overlay">
                 <h3>
                   {selfProfile.name}, {selfProfile.age}
-                  {selfProfile.verificationBadge &&
-                    selfProfile.verificationBadge !== 'none' && (
+                  {isVerified && (
                       <span
                         className="profile-verified-badge"
                         title={
