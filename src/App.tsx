@@ -3084,17 +3084,6 @@ function App() {
             onOpenLovePersonality={() => navigate('love-personality')}
             onOpenLovePersonalityQuiz={() => navigate('love-personality-quiz')}
             onOpenSettings={() => navigate('settings')}
-            onAwardPhotoVerified={() => {
-              // Photo Coach has signalled the avg-score threshold is met.
-              // Never downgrade an existing id-verified badge (a future paid
-              // ID verification flow will set 'id-verified' which outranks
-              // the auto-awarded 'photo-verified').
-              setSelfProfile((current) => {
-                if (current.verificationBadge === 'id-verified') return current
-                if (current.verificationBadge === 'photo-verified') return current
-                return { ...current, verificationBadge: 'photo-verified' }
-              })
-            }}
           />
         )}
 

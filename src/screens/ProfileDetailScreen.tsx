@@ -197,7 +197,7 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
           {selectedDetailProfile.verified && (
             <span
               className="profile-detail-verified-badge"
-              title={ro ? 'Profil verificat de Privé AI' : 'Verified by Privé AI'}
+              title={ro ? 'Persoană reală — selfie verificat manual' : 'Real person — selfie verified by hand'}
               aria-label={ro ? 'Profil verificat' : 'Verified profile'}
             >
               <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true">

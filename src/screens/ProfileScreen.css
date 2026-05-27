@@ -48,6 +48,41 @@
   flex: 0 0 auto;
 }
 
+/* ── Selfie verification CTA (anti-fake, 2026-05-27) ───────── */
+.profile-screen .profile-verify-cta {
+  width: 100%;
+  margin-top: 0.75rem;
+  min-height: 2.7rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(216, 184, 109, 0.6);
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.64rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #1a1024;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  box-shadow: 0 3px 12px rgba(216, 184, 109, 0.28);
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.profile-screen .profile-verify-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(216, 184, 109, 0.4);
+}
+.profile-screen .profile-verify-pending {
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.6rem;
+  border: 1px dashed rgba(216, 184, 109, 0.4);
+  background: rgba(207, 173, 97, 0.07);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  text-align: center;
+  color: rgba(244, 220, 168, 0.85);
+}
+
 /* ── Editor masthead ─────────────────────────────────────── */
 .profile-screen .profile-editor > h2 {
   font-family: 'Bodoni Moda', 'Playfair Display', 'Cormorant Garamond', serif;

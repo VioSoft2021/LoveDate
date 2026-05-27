@@ -3,6 +3,7 @@ import { UI_TEXT, translateRelationshipIntent, translateSafetyCategory } from '.
 import type { AppLanguage, ModerationFilter } from '../domain'
 import type { ModerationStatus, SafetyReport } from '../services/moderation'
 import { backendListClientErrors, type ClientErrorRow } from '../services/backendApi'
+import { VerificationQueue } from '../components/VerificationQueue'
 
 export type ModerationScreenProps = {
   appLanguage: AppLanguage
@@ -268,6 +269,8 @@ export const ModerationScreen: React.FC<ModerationScreenProps> = ({
           <p className="soft">{ro ? 'Selectează o raportare din coadă.' : 'Select a report from the queue.'}</p>
         )}
       </article>
+
+      <VerificationQueue appLanguage={appLanguage} />
 
       <article className="profile-settings crash-inbox">
         <div className="crash-inbox-head">

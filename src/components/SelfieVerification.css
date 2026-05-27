@@ -1,0 +1,142 @@
+/* Selfie-pose verification capture overlay (2026-05-27).
+   Full-screen modal over the app, Privé navy + gold. */
+
+.selfie-verify-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
+  background: rgba(5, 8, 24, 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.selfie-verify-card {
+  width: min(100%, 30rem);
+  max-height: 100%;
+  overflow-y: auto;
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(216, 184, 109, 0.28);
+  background: linear-gradient(180deg, rgba(20, 25, 55, 0.96), rgba(10, 14, 39, 0.96));
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.6);
+}
+
+.selfie-verify-title {
+  margin: 0;
+  font-family: 'Bodoni Moda', 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.15;
+  color: #f4e9cb;
+}
+
+.selfie-verify-body {
+  margin: 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: rgba(244, 233, 203, 0.82);
+}
+
+.selfie-verify-center {
+  text-align: center;
+}
+
+.selfie-verify-error {
+  color: #f5b4bf;
+}
+
+.selfie-verify-pose {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.7rem;
+  border-left: 2px solid rgba(216, 184, 109, 0.55);
+  background: rgba(207, 173, 97, 0.08);
+}
+
+.selfie-verify-pose--compact {
+  padding: 0.6rem 0.85rem;
+}
+
+.selfie-verify-pose strong {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: #f4dca8;
+}
+
+.selfie-verify-pose-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.7);
+}
+
+.selfie-verify-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 0.9rem;
+  overflow: hidden;
+  background: #050818;
+  border: 1px solid rgba(216, 184, 109, 0.22);
+}
+
+.selfie-verify-video,
+.selfie-verify-shot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Mirror the live preview so it feels like a mirror; the captured
+     frame is un-mirrored back to natural in the canvas step. */
+  transform: scaleX(-1);
+}
+
+.selfie-verify-actions {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.selfie-verify-primary,
+.selfie-verify-ghost {
+  min-height: 3rem;
+  border-radius: 0.7rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, color 180ms ease;
+}
+
+.selfie-verify-primary {
+  border: 1px solid #b9974a;
+  font-weight: 600;
+  color: #1a1024;
+  background: linear-gradient(180deg, #fceeb0 0%, #ead27a 22%, #d8b86d 48%, #b9974a 72%, #8b6b2c 100%);
+  box-shadow: 0 4px 14px rgba(216, 184, 109, 0.3);
+}
+
+.selfie-verify-primary:hover {
+  transform: translateY(-1px);
+}
+
+.selfie-verify-ghost {
+  border: 1px solid rgba(216, 184, 109, 0.28);
+  color: rgba(244, 233, 203, 0.82);
+  background: rgba(5, 8, 24, 0.4);
+}
+
+.selfie-verify-ghost:hover {
+  color: #f4dca8;
+}

@@ -337,6 +337,23 @@
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
+/* Verified check on the discover card — compact, gold disc, no label
+   so the card stays clean. Means "real person, selfie verified by
+   hand" (anti-fake, 2026-05-27). */
+.discover-redesign .discover-card-verified {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+  border-radius: 999px;
+  color: #1a1024;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+  box-shadow: 0 2px 8px rgba(216, 184, 109, 0.45);
+}
+
 /* ── Guest Tour demo chip (2026-05-26) ─────────────────────
    When a visitor is in Guest Tour mode, every profile they see
    is synthetic. The chip is rendered inline next to the name on

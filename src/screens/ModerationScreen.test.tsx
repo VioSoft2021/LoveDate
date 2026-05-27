@@ -4,9 +4,14 @@ import { ModerationScreen } from './ModerationScreen'
 import type { ClientErrorRow } from '../services/backendApi'
 import type { SafetyReport } from '../services/moderation'
 
-// Mock the backend module so the test never hits Supabase.
+// Mock the backend module so the test never hits Supabase. Includes
+// the selfie-verification functions the embedded VerificationQueue
+// calls on mount (return empty so its panel renders an idle state).
 vi.mock('../services/backendApi', () => ({
   backendListClientErrors: vi.fn(),
+  backendListVerifications: vi.fn().mockResolvedValue([]),
+  backendGetSelfieSignedUrl: vi.fn().mockResolvedValue(null),
+  backendReviewVerification: vi.fn().mockResolvedValue(true),
 }))
 
 import { backendListClientErrors } from '../services/backendApi'
@@ -162,7 +167,10 @@ describe('ModerationScreen — Crash Inbox (admin)', () => {
     await waitFor(() => {
       expect(mockBackendListClientErrors).toHaveBeenCalledTimes(1)
     })
-    fireEvent.click(screen.getByRole('button', { name: /refresh/i }))
+    // Two "Refresh" buttons now exist (VerificationQueue + crash inbox).
+    // The crash inbox renders last, so target the final one.
+    const refreshButtons = screen.getAllByRole('button', { name: /refresh/i })
+    fireEvent.click(refreshButtons[refreshButtons.length - 1])
     await waitFor(() => {
       expect(mockBackendListClientErrors).toHaveBeenCalledTimes(2)
     })

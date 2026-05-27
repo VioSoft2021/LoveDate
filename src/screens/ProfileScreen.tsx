@@ -33,6 +33,8 @@ import {
   type AiProfileWriterResult,
 } from '../services/ai/profileWriter'
 import { detectMyLocation, isLocationError } from '../services/geolocation'
+import { backendGetMyVerificationStatus, type VerificationStatus } from '../services/backendApi'
+import { SelfieVerification } from '../components/SelfieVerification'
 import { ROMANIAN_CITIES } from '../data/romanianCities'
 import type {
   AppLanguage,
@@ -81,10 +83,6 @@ export type ProfileScreenProps = {
   onOpenLovePersonality: () => void
   onOpenLovePersonalityQuiz: () => void
   onOpenSettings: () => void
-  /** Fired when the AI Photo Coach result clears the verification
-   *  threshold (avg score ≥7 across ≥3 rated photos). Parent sets
-   *  selfProfile.verificationBadge to 'photo-verified'. */
-  onAwardPhotoVerified?: () => void
 }
 
 const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
@@ -123,7 +121,6 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
   onOpenLovePersonality,
   onOpenLovePersonalityQuiz,
   onOpenSettings,
-  onAwardPhotoVerified,
 }) => {
   const copy = UI_TEXT[appLanguage]
 
@@ -145,6 +142,24 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
   const [locDetectLoading, setLocDetectLoading] = React.useState(false)
   const [locDetectError, setLocDetectError] = React.useState<string | null>(null)
   const [locDetectSuccess, setLocDetectSuccess] = React.useState<string | null>(null)
+
+  // Selfie-pose verification (anti-fake, 2026-05-27). The badge itself
+  // comes from selfProfile.verificationBadge once approved; this local
+  // state covers the in-between 'pending' state + the capture modal.
+  const [showVerify, setShowVerify] = React.useState(false)
+  const [verifyStatus, setVerifyStatus] = React.useState<VerificationStatus>('none')
+  const isVerified =
+    selfProfile.verificationBadge != null && selfProfile.verificationBadge !== 'none'
+  React.useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      const status = await backendGetMyVerificationStatus()
+      if (!cancelled) setVerifyStatus(status)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const runLocationDetect = React.useCallback(async () => {
     setLocDetectError(null)
@@ -253,19 +268,12 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
         setPhotoCoachError(copy.profile.photoCoachError)
         setPhotoCoachResult(null)
       } else {
+        // Photo Coach now scores aesthetics ONLY. It no longer awards the
+        // "Verified" badge — that badge means "a real human passed a live
+        // selfie-pose check" (see SelfieVerification), not "nice photos".
+        // An AI-generated face would score high here, so coupling the two
+        // would stamp fakes as trustworthy.
         setPhotoCoachResult(result)
-        // Auto-award the photo-verified badge when the Coach's average
-        // score crosses the threshold. Requires at least 3 rated photos
-        // so a single well-shot selfie can't game the badge. The actual
-        // state machine (never downgrade from id-verified) lives in the
-        // parent — we just signal "threshold passed".
-        const rated = result.perPhoto.filter((p) => typeof p.score === 'number')
-        if (rated.length >= 3) {
-          const avg = rated.reduce((sum, p) => sum + p.score, 0) / rated.length
-          if (avg >= 7 && onAwardPhotoVerified) {
-            onAwardPhotoVerified()
-          }
-        }
       }
     } catch {
       setPhotoCoachError(copy.profile.photoCoachError)
@@ -281,7 +289,6 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
     appLanguage,
     copy.profile.photoCoachNoPhotos,
     copy.profile.photoCoachError,
-    onAwardPhotoVerified,
   ])
 
   return (
@@ -318,8 +325,8 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                         className="profile-verified-badge"
                         title={
                           appLanguage === 'ro'
-                            ? 'Profil verificat de Privé AI'
-                            : 'Verified by Privé AI'
+                            ? 'Persoană reală — selfie verificat manual'
+                            : 'Real person — selfie verified by hand'
                         }
                         aria-label={
                           appLanguage === 'ro'
@@ -346,6 +353,21 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
                 </p>
               </div>
             </div>
+          )}
+
+          {/* Selfie-pose verification CTA (anti-fake). Hidden once the
+              user is verified; shows a pending pill while under review;
+              otherwise a prominent "Verify you're real" button. */}
+          {isVerified ? null : verifyStatus === 'pending' ? (
+            <p className="profile-verify-pending">{copy.verification.ctaPending}</p>
+          ) : (
+            <button
+              type="button"
+              className="profile-verify-cta"
+              onClick={() => setShowVerify(true)}
+            >
+              {copy.verification.ctaVerify}
+            </button>
           )}
         </article>
 
@@ -1489,6 +1511,14 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
           </div>
         </form>
       </article>
+
+      {showVerify ? (
+        <SelfieVerification
+          appLanguage={appLanguage}
+          onClose={() => setShowVerify(false)}
+          onSubmitted={() => setVerifyStatus('pending')}
+        />
+      ) : null}
     </section>
   )
 }

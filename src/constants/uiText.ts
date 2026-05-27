@@ -141,6 +141,36 @@ export const UI_TEXT = {
       nextStepsLine2: 'Approved? You\'ll get an email with your invite code — usually within 48 hours.',
       nextStepsLine3: 'Use that code on your next visit to create your account.',
     },
+    // Selfie-pose verification (anti-fake, 2026-05-27)
+    verification: {
+      ctaVerify: 'Verify you’re real',
+      ctaPending: 'Verification pending',
+      badgeVerified: 'Verified',
+      introTitle: 'Prove you’re real',
+      introBody:
+        'On Privé, everyone is a real person. Take one live selfie doing a simple gesture — we check it by hand. No AI face can fake this.',
+      poseLabel: 'Your gesture',
+      start: 'Open camera',
+      capture: 'Take the photo',
+      retake: 'Retake',
+      use: 'Use this photo',
+      submitting: 'Sending…',
+      submittedTitle: 'Sent for review',
+      submittedBody: 'We’ll check your selfie by hand — usually within a day. Your gold badge appears once you’re verified.',
+      cameraDenied: 'We need camera access to verify you. Enable it in your settings and try again.',
+      cameraFailed: 'Could not open the camera. Please try again.',
+      uploadFailed: 'Could not send your selfie. Please try again.',
+      cancel: 'Cancel',
+      close: 'Close',
+      poses: [
+        'Hold up three fingers next to your face',
+        'Give a thumbs-up beside your cheek',
+        'Place your open palm flat against your cheek',
+        'Make a peace sign (two fingers) near your chin',
+        'Touch your right ear with your right hand',
+        'Rest one hand on top of your head',
+      ],
+    },
     onboarding: {
       // Wizard chrome
       stepOf: 'Step {n} of {total}',
@@ -761,6 +791,36 @@ export const UI_TEXT = {
       nextStepsLine2: 'Aprobată? Vei primi un email cu codul tău de invitație — de obicei în 48 de ore.',
       nextStepsLine3: 'Folosește acel cod la următoarea vizită pentru a-ți crea contul.',
       adminDeclineFailed: 'Respingerea a eșuat. Mai încearcă.',
+    },
+    // Verificare prin selfie cu gest (anti-fake, 2026-05-27)
+    verification: {
+      ctaVerify: 'Confirmă că ești real',
+      ctaPending: 'Verificare în curs',
+      badgeVerified: 'Verificat',
+      introTitle: 'Dovedește că ești real',
+      introBody:
+        'Pe Privé, toți sunt persoane reale. Fă un singur selfie live cu un gest simplu — îl verificăm manual. Niciun chip generat de AI nu poate trișa asta.',
+      poseLabel: 'Gestul tău',
+      start: 'Deschide camera',
+      capture: 'Fă poza',
+      retake: 'Refă poza',
+      use: 'Folosește poza',
+      submitting: 'Se trimite…',
+      submittedTitle: 'Trimis spre verificare',
+      submittedBody: 'Îți verificăm selfie-ul manual — de obicei într-o zi. Insigna ta aurie apare după ce ești verificat.',
+      cameraDenied: 'Avem nevoie de acces la cameră ca să te verificăm. Activează-l din setări și încearcă din nou.',
+      cameraFailed: 'Nu am putut deschide camera. Te rugăm încearcă din nou.',
+      uploadFailed: 'Nu am putut trimite selfie-ul. Te rugăm încearcă din nou.',
+      cancel: 'Anulează',
+      close: 'Închide',
+      poses: [
+        'Ridică trei degete lângă față',
+        'Arată semnul „like" (degetul mare) lângă obraz',
+        'Pune palma deschisă pe obraz',
+        'Fă semnul victoriei (două degete) lângă bărbie',
+        'Atinge-ți urechea dreaptă cu mâna dreaptă',
+        'Pune o mână pe creștetul capului',
+      ],
     },
     onboarding: {
       // Cadru asistent

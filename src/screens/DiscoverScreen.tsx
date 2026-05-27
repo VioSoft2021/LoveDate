@@ -477,6 +477,26 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
                       <div className="profile-head">
                         <h1 className="discover-card-name">
                           {topProfile.name}, {topProfile.age}
+                          {topProfile.verified ? (
+                            <span
+                              className="discover-card-verified"
+                              title={appLanguage === 'ro'
+                                ? 'Persoană reală — verificat'
+                                : 'Real person — verified'}
+                              aria-label={appLanguage === 'ro' ? 'Verificat' : 'Verified'}
+                            >
+                              <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+                                <path
+                                  d="M3.5 8.2l3 3 6-6.4"
+                                  stroke="currentColor"
+                                  strokeWidth="2.4"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  fill="none"
+                                />
+                              </svg>
+                            </span>
+                          ) : null}
                         </h1>
                         <p className="discover-presence-line">
                           <span className="discover-status-dot" aria-hidden="true" />

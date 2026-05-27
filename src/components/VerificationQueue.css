@@ -1,0 +1,147 @@
+/* Admin verification review queue (anti-fake, 2026-05-27).
+   Lives inside the Moderation Center; inherits .profile-settings card. */
+
+.verification-queue-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.verification-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.verification-row {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.9rem;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(216, 184, 109, 0.22);
+  background: rgba(5, 8, 24, 0.35);
+}
+
+.verification-row-meta {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.verification-row-meta strong {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 1.05rem;
+  color: #f4e9cb;
+}
+
+.verification-pose {
+  display: grid;
+  gap: 0.15rem;
+  margin-top: 0.3rem;
+  padding: 0.5rem 0.65rem;
+  border-left: 2px solid rgba(216, 184, 109, 0.5);
+  background: rgba(207, 173, 97, 0.07);
+  border-radius: 0 0.45rem 0.45rem 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: #f4dca8;
+}
+
+.verification-pose-label {
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 0.55rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.65);
+}
+
+.verification-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.verification-figure {
+  margin: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.verification-figure figcaption {
+  font-family: 'Cinzel', serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(244, 220, 168, 0.65);
+}
+
+.verification-selfie-img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(216, 184, 109, 0.3);
+}
+
+.verification-profile-photos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.verification-profile-photos img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 0.45rem;
+  border: 1px solid rgba(216, 184, 109, 0.2);
+}
+
+.verification-img-missing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 3 / 4;
+  border-radius: 0.6rem;
+  border: 1px dashed rgba(216, 184, 109, 0.3);
+  color: rgba(244, 233, 203, 0.5);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.verification-actions {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 0.5rem;
+}
+
+.verification-approve,
+.verification-reject {
+  min-height: 2.7rem;
+  border-radius: 0.6rem;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.verification-approve {
+  border: 1px solid #b9974a;
+  color: #1a1024;
+  background: linear-gradient(135deg, #cfad61 0%, #f4dca8 50%, #cfad61 100%);
+}
+
+.verification-reject {
+  border: 1px solid rgba(245, 180, 191, 0.4);
+  color: #f5b4bf;
+  background: rgba(140, 30, 55, 0.18);
+}
