@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SelfProfile } from '../domain/profile'
 import { isAllowedEmailDomain, runtimeConfig } from './runtimeConfig'
 
 export type SettingsPayload = {
@@ -368,12 +369,18 @@ export const backendFetchSelfProfile = async (
  * Save profile to local cache immediately, then sync to Supabase in the
  * background. Throws only when the cloud sync explicitly fails — the local
  * write always succeeds first so the UI stays responsive.
+ *
+ * Accepts a typed `SelfProfile`. The internal cast to
+ * `Record<string, unknown>` (for the JSONB column + the legacy
+ * `backendEnsureDiscoverableProfile` defensive parser) lives here so call
+ * sites stay clean and type-checked.
  */
 export const backendSaveSelfProfile = async (
   email: string,
-  profile: Record<string, unknown>,
+  profile: SelfProfile,
 ): Promise<void> => {
-  persistLocal(profileKeyForEmail(email), profile)
+  const payload = profile as unknown as Record<string, unknown>
+  persistLocal(profileKeyForEmail(email), payload)
 
   if (!supabase) {
     return
@@ -387,7 +394,7 @@ export const backendSaveSelfProfile = async (
   const { error } = await supabase.from('user_profiles').upsert(
     {
       user_id: userId,
-      profile_data: profile,
+      profile_data: payload,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'user_id' },
@@ -397,12 +404,12 @@ export const backendSaveSelfProfile = async (
     throw new Error(`Cloud profile sync failed: ${error.message}`)
   }
 
-  await backendEnsureDiscoverableProfile(userId, profile)
+  await backendEnsureDiscoverableProfile(userId, payload)
 }
 
 // Dev helpers: synchronous local-only operations to aid testing in DEV.
-export const backendSetLocalSelfProfile = (email: string, profile: Record<string, unknown>): void => {
-  persistLocal(profileKeyForEmail(email), profile)
+export const backendSetLocalSelfProfile = (email: string, profile: SelfProfile): void => {
+  persistLocal(profileKeyForEmail(email), profile as unknown as Record<string, unknown>)
 }
 
 export const backendResetLocalSelfProfile = (email: string): void => {

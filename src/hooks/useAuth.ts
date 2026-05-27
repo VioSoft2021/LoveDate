@@ -376,10 +376,7 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
     setLoggingIn(true)
     try {
       backendResetLocalSelfProfile(DEV_TEST_EMAIL)
-      await backendSaveSelfProfile(
-        DEV_TEST_EMAIL,
-        EMPTY_SELF_PROFILE as unknown as Record<string, unknown>,
-      )
+      await backendSaveSelfProfile(DEV_TEST_EMAIL, EMPTY_SELF_PROFILE)
       setIsAuthenticated(true)
       setUserEmail(DEV_TEST_EMAIL)
       setLoginEmail(DEV_TEST_EMAIL)
@@ -397,10 +394,7 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
     setLoggingIn(true)
     try {
       backendResetLocalSelfProfile(DEV_TEST_EMAIL)
-      await backendSaveSelfProfile(
-        DEV_TEST_EMAIL,
-        EMPTY_SELF_PROFILE as unknown as Record<string, unknown>,
-      )
+      await backendSaveSelfProfile(DEV_TEST_EMAIL, EMPTY_SELF_PROFILE)
       pushToast('Dev account reset locally.', 'success')
     } catch {
       pushToast('Dev reset failed.', 'error')

@@ -818,10 +818,7 @@ function App() {
       window.clearTimeout(profileSaveDebounceRef.current)
     }
     profileSaveDebounceRef.current = window.setTimeout(() => {
-      void backendSaveSelfProfile(
-        userEmail,
-        selfProfile as unknown as Record<string, unknown>,
-      ).catch(() => {
+      void backendSaveSelfProfile(userEmail, selfProfile).catch(() => {
         // Cloud sync failed — local cache still has the change; the next
         // successful save will reconcile. Don't toast here because this
         // effect fires on every selfProfile change and a toast storm
@@ -2357,7 +2354,7 @@ function App() {
       if (!isGuest) {
         // Local persistence handled by `backendSaveSelfProfile`; avoid writing
         // the global fallback key which can leak another user's cache.
-        void backendSaveSelfProfile(userEmail, nextProfile as unknown as Record<string, unknown>).catch(() => {
+        void backendSaveSelfProfile(userEmail, nextProfile).catch(() => {
           pushToast('Saved locally, but cloud sync failed for profile.', 'error')
         })
       }
@@ -2590,10 +2587,7 @@ function App() {
           // Namespaced local cache will be updated by backendSaveSelfProfile below.
         }
         try {
-          await backendSaveSelfProfile(
-            userEmail,
-            migratedProfile as unknown as Record<string, unknown>,
-          )
+          await backendSaveSelfProfile(userEmail, migratedProfile)
         } catch {
           pushToast('Saved locally, but cloud sync failed for profile.', 'error')
         }
