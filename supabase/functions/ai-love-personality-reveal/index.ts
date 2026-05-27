@@ -185,7 +185,12 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  const client = new Anthropic({ apiKey })
+  // maxRetries=4 → SDK does exponential backoff with jitter on 429 +
+  // network errors. Default is 2; bumping to 4 absorbs short bursts
+  // during dev testing without bubbling errors up to the user. The
+  // npm: type shim doesn't expose maxRetries publicly, so cast through
+  // the constructor-args tuple — runtime accepts it.
+  const client = new Anthropic({ apiKey, maxRetries: 4 } as ConstructorParameters<typeof Anthropic>[0])
 
   try {
     const language: 'en' | 'ro' = body.language === 'ro' ? 'ro' : 'en'

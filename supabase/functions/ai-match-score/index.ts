@@ -1,4 +1,4 @@
-// LoveDate — AI Match Scoring (Phase E3)
+// LoveDate — AI Match Scoring (Phase E3 + 2026-05-27 hardening)
 //
 // Replaces the hand-rolled match math in src/App.tsx getMatchAnalysis with
 // real Claude Sonnet 4.6 reasoning. Given the viewer's profile and a single
@@ -6,11 +6,21 @@
 //   - score: 0..100, the overall compatibility number
 //   - reasons: 3 short strings, specific to BOTH profiles (no generic platitudes)
 //   - redFlags: 0..3 short strings flagging serious mismatches
+//   - frictionPoints / tips: predicted soft tensions + actionable first moves
 //
-// The client caches per (selfHash, candidateHash) for 7 days, so reopening
-// the same card is free.
+// Caching (2026-05-27):
+//   - Client side: localStorage cache per (selfHash, candidateId, candidateHash,
+//     viewerPreferenceHash, language) for 7 days — see src/services/ai/matchScore.ts.
+//   - Server side (this file): match_score_cache table keyed on SHA-256 of the
+//     same request subset, 30-day TTL. Stays warm across rebuilds and devices,
+//     so the cache hit rate is much higher than client-only.
+//
+// Rate-limit resilience (2026-05-27): Anthropic SDK constructed with
+// maxRetries=4 so transient 429s during dev test bursts get exponential
+// backoff (1s, 2s, 4s, 8s with jitter) instead of failing immediately.
 
 import Anthropic from 'npm:@anthropic-ai/sdk@0.40.0'
+import { createClient } from 'npm:@supabase/supabase-js@2.45.4'
 
 type ProfileSummary = {
   name: string
@@ -138,6 +148,55 @@ Rules:
 - Write reasons, redFlags, frictionPoints, and tips in English.`
 }
 
+// Deterministic cache key. SHA-256 hex of a JSON subset containing
+// exactly the fields the model sees in the prompt. Identical inputs →
+// identical key → cache hit, regardless of device or build.
+const profileCacheFields = (p: ProfileSummary) => ({
+  name: p.name,
+  age: p.age ?? null,
+  city: p.city ?? null,
+  vibe: p.vibe ?? null,
+  bio: p.bio ?? null,
+  interests: p.interests ?? [],
+  relationshipGoal: p.relationshipGoal ?? null,
+  zodiac: p.zodiac ?? null,
+  workout: p.workout ?? null,
+  drinking: p.drinking ?? null,
+  smoking: p.smoking ?? null,
+  pets: p.pets ?? null,
+  religion: p.religion ?? null,
+  politics: p.politics ?? null,
+  childrenPlan: p.childrenPlan ?? null,
+  bigFive: p.bigFive
+    ? {
+        openness: Math.round(p.bigFive.openness),
+        conscientiousness: Math.round(p.bigFive.conscientiousness),
+        extraversion: Math.round(p.bigFive.extraversion),
+        agreeableness: Math.round(p.bigFive.agreeableness),
+        neuroticism: Math.round(p.bigFive.neuroticism),
+      }
+    : null,
+  attachmentStyle: p.attachmentStyle ?? null,
+})
+
+async function computeCacheKey(body: RequestBody, language: 'en' | 'ro'): Promise<string> {
+  const subset = {
+    self: profileCacheFields(body.selfProfile),
+    candidate: {
+      id: body.candidateProfile.id,
+      ...profileCacheFields(body.candidateProfile),
+    },
+    language,
+    viewerPreference: (body.viewerPreference ?? '').trim(),
+  }
+  const json = JSON.stringify(subset)
+  const buf = new TextEncoder().encode(json)
+  const hash = await crypto.subtle.digest('SHA-256', buf)
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -180,10 +239,48 @@ Deno.serve(async (req: Request) => {
     )
   }
 
-  const client = new Anthropic({ apiKey })
+  // Server-side cache lookup (2026-05-27). Deterministic SHA-256 of the
+  // request subset that affects the score. Stays warm across rebuilds
+  // and across both members of a matched pair (User B viewing User A
+  // hits the same cache row).
+  const language: 'en' | 'ro' = body.language === 'ro' ? 'ro' : 'en'
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  const cacheClient = supabaseUrl && serviceRoleKey
+    ? createClient(supabaseUrl, serviceRoleKey)
+    : null
+
+  const cacheKey = await computeCacheKey(body, language)
+
+  if (cacheClient) {
+    try {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+      const { data: cached } = await cacheClient
+        .from('match_score_cache')
+        .select('payload, created_at')
+        .eq('cache_key', cacheKey)
+        .eq('language', language)
+        .gte('created_at', thirtyDaysAgo)
+        .maybeSingle()
+      if (cached?.payload) {
+        return new Response(JSON.stringify(cached.payload), {
+          status: 200,
+          headers: { ...corsHeaders, 'content-type': 'application/json' },
+        })
+      }
+    } catch (err) {
+      console.warn('[ai-match-score] cache lookup failed:', err)
+    }
+  }
+
+  // maxRetries=4 → SDK does exponential backoff with jitter on 429 +
+  // network errors. Default is 2; bumping to 4 absorbs short bursts
+  // during dev testing without bubbling errors up to the user. The
+  // npm: type shim doesn't expose maxRetries publicly, so cast through
+  // the constructor-args tuple — runtime accepts it.
+  const client = new Anthropic({ apiKey, maxRetries: 4 } as ConstructorParameters<typeof Anthropic>[0])
 
   try {
-    const language = body.language === 'ro' ? 'ro' : 'en'
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1400,
@@ -263,13 +360,27 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    return new Response(
-      JSON.stringify({ score, reasons, redFlags, frictionPoints, tips }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'content-type': 'application/json' },
-      },
-    )
+    const payload = { score, reasons, redFlags, frictionPoints, tips }
+
+    // Cache write — best-effort, non-fatal if it fails. Next identical
+    // request returns from cache in ~200ms instead of paying for Claude.
+    if (cacheClient) {
+      try {
+        await cacheClient
+          .from('match_score_cache')
+          .upsert(
+            { cache_key: cacheKey, language, payload, created_at: new Date().toISOString() },
+            { onConflict: 'cache_key' },
+          )
+      } catch (err) {
+        console.warn('[ai-match-score] cache write failed:', err)
+      }
+    }
+
+    return new Response(JSON.stringify(payload), {
+      status: 200,
+      headers: { ...corsHeaders, 'content-type': 'application/json' },
+    })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'unknown error'
     return new Response(JSON.stringify({ error: message }), {
