@@ -112,6 +112,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [showWaitlist, setShowWaitlist] = React.useState(false)
   const [waitlistEmail, setWaitlistEmail] = React.useState('')
   const [waitlistNote, setWaitlistNote] = React.useState('')
+  // v2 mini-questionnaire fields (2026-05-27).
+  const [waitlistFirstName, setWaitlistFirstName] = React.useState('')
+  const [waitlistAge, setWaitlistAge] = React.useState('')
+  const [waitlistGender, setWaitlistGender] = React.useState<'' | 'Man' | 'Woman' | 'Other'>('')
+  const [waitlistCity, setWaitlistCity] = React.useState('')
+  const [waitlistLookingFor, setWaitlistLookingFor] = React.useState<
+    '' | 'Long-term' | 'Open' | 'Not sure'
+  >('')
   const [waitlistStatus, setWaitlistStatus] = React.useState<
     'idle' | 'submitting' | 'success' | 'error'
   >('idle')
@@ -140,13 +148,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     setLoginNotice(null)
     setViewMode('card')
   }
+  const resetWaitlistFields = () => {
+    setWaitlistEmail('')
+    setWaitlistNote('')
+    setWaitlistFirstName('')
+    setWaitlistAge('')
+    setWaitlistGender('')
+    setWaitlistCity('')
+    setWaitlistLookingFor('')
+    setWaitlistStatus('idle')
+    setWaitlistError(null)
+  }
+
   const backToHero = () => {
     if (!heroEnabled) return
     setShowWaitlist(false)
-    setWaitlistEmail('')
-    setWaitlistNote('')
-    setWaitlistStatus('idle')
-    setWaitlistError(null)
+    resetWaitlistFields()
     setLoginError(null)
     setLoginNotice(null)
     setViewMode('hero')
@@ -162,10 +179,32 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       setWaitlistStatus('error')
       return
     }
+    const ageNum = Number(waitlistAge.trim())
+    if (
+      !waitlistFirstName.trim() ||
+      !Number.isFinite(ageNum) ||
+      ageNum < 18 ||
+      !waitlistGender ||
+      !waitlistCity.trim() ||
+      !waitlistLookingFor ||
+      !waitlistNote.trim()
+    ) {
+      setWaitlistError(w.invalidFields)
+      setWaitlistStatus('error')
+      return
+    }
     setWaitlistError(null)
     setWaitlistStatus('submitting')
     try {
-      await backendSubmitWaitlist(email, waitlistNote.trim() || undefined)
+      await backendSubmitWaitlist({
+        email,
+        firstName: waitlistFirstName.trim(),
+        age: Math.floor(ageNum),
+        gender: waitlistGender,
+        city: waitlistCity.trim(),
+        lookingFor: waitlistLookingFor,
+        why: waitlistNote.trim(),
+      })
       setWaitlistStatus('success')
     } catch (error) {
       const message = error instanceof Error ? error.message : ''
@@ -616,10 +655,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       backToHero()
                     } else {
                       setShowWaitlist(false)
-                      setWaitlistEmail('')
-                      setWaitlistNote('')
-                      setWaitlistStatus('idle')
-                      setWaitlistError(null)
+                      resetWaitlistFields()
                     }
                   }}
                 >
@@ -631,6 +667,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 <h2>{copy.waitlist.title}</h2>
                 <p className="soft">{copy.waitlist.subtitle}</p>
                 <label>
+                  {copy.waitlist.firstNameLabel}
+                  <input
+                    type="text"
+                    autoComplete="given-name"
+                    value={waitlistFirstName}
+                    onChange={(event) => setWaitlistFirstName(event.target.value)}
+                    maxLength={60}
+                    required
+                  />
+                </label>
+                <label>
                   {copy.waitlist.emailLabel}
                   <input
                     type="email"
@@ -640,13 +687,70 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     required
                   />
                 </label>
+                <div className="login-waitlist-row">
+                  <label>
+                    {copy.waitlist.ageLabel}
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={18}
+                      max={120}
+                      value={waitlistAge}
+                      onChange={(event) => setWaitlistAge(event.target.value.replace(/\D/g, ''))}
+                      required
+                    />
+                  </label>
+                  <label>
+                    {copy.waitlist.cityLabel}
+                    <input
+                      type="text"
+                      autoComplete="address-level2"
+                      value={waitlistCity}
+                      onChange={(event) => setWaitlistCity(event.target.value)}
+                      maxLength={80}
+                      required
+                    />
+                  </label>
+                </div>
                 <label>
-                  {copy.waitlist.noteLabel}
+                  {copy.waitlist.genderLabel}
+                  <select
+                    value={waitlistGender}
+                    onChange={(event) =>
+                      setWaitlistGender(event.target.value as typeof waitlistGender)
+                    }
+                    required
+                  >
+                    <option value="" disabled></option>
+                    <option value="Man">{copy.waitlist.genderMan}</option>
+                    <option value="Woman">{copy.waitlist.genderWoman}</option>
+                    <option value="Other">{copy.waitlist.genderOther}</option>
+                  </select>
+                </label>
+                <label>
+                  {copy.waitlist.lookingForLabel}
+                  <select
+                    value={waitlistLookingFor}
+                    onChange={(event) =>
+                      setWaitlistLookingFor(event.target.value as typeof waitlistLookingFor)
+                    }
+                    required
+                  >
+                    <option value="" disabled></option>
+                    <option value="Long-term">{copy.waitlist.lookingForLongTerm}</option>
+                    <option value="Open">{copy.waitlist.lookingForOpen}</option>
+                    <option value="Not sure">{copy.waitlist.lookingForUnsure}</option>
+                  </select>
+                </label>
+                <label>
+                  {copy.waitlist.whyLabel}
                   <textarea
-                    rows={2}
+                    rows={3}
                     value={waitlistNote}
                     onChange={(event) => setWaitlistNote(event.target.value)}
-                    maxLength={400}
+                    placeholder={copy.waitlist.whyPlaceholder}
+                    maxLength={600}
+                    required
                   />
                 </label>
                 {waitlistError ? <p className="error-text">{waitlistError}</p> : null}

@@ -86,3 +86,23 @@ export const readRouteFromWindow = (): { screen: AppScreen; profileId: number | 
 
   return parseRoute(window.location.pathname)
 }
+
+// Waitlist v2 magic-link reply page (2026-05-27). This is a public,
+// pre-auth, token-bearing route that doesn't belong in the AppScreen
+// enum — Master sends an applicant a link like
+// prive-app.club/#/waitlist-reply/<token>. Returns the token if the
+// current URL is that route (hash OR path form), else null. App.tsx
+// renders WaitlistReplyScreen as its very first early return when this
+// is non-null, bypassing the auth gate entirely.
+export const readWaitlistReplyToken = (): string | null => {
+  if (typeof window === 'undefined') return null
+  const fromHash = window.location.hash.replace(/^#/, '')
+  const candidates = [fromHash, window.location.pathname]
+  for (const raw of candidates) {
+    const match = raw.match(/\/waitlist-reply\/([A-Za-z0-9]+)/)
+    if (match && match[1]) {
+      return match[1]
+    }
+  }
+  return null
+}

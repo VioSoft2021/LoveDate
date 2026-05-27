@@ -535,6 +535,9 @@
 }
 
 .login-form input,
+.login-waitlist-form input,
+.login-waitlist-form select,
+.login-waitlist-form textarea,
 .login-language-row select,
 .filters input,
 .filters select,

@@ -522,3 +522,55 @@
   padding-bottom: 0.45rem;
   border-bottom: 1px solid rgba(216, 184, 109, 0.18);
 }
+
+/* ── Waitlist v2 mini-questionnaire (2026-05-27) ───────────────
+   The form grew from 2 fields to 7. Each label stacks its caption
+   above the control; the age + city pair sits side-by-side to keep
+   the form short. Field visuals come from the shared input rule in
+   App.css (.login-waitlist-form input/select/textarea). */
+.login-waitlist-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  color: rgba(244, 233, 203, 0.82);
+}
+
+.login-waitlist-form input,
+.login-waitlist-form select,
+.login-waitlist-form textarea {
+  width: 100%;
+}
+
+.login-waitlist-form textarea {
+  resize: vertical;
+  min-height: 3.4rem;
+}
+
+/* Age + City side-by-side. Collapses to stacked on very narrow phones. */
+.login-waitlist-row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.5fr) minmax(0, 1fr);
+  gap: 0.7rem;
+}
+@media (max-width: 360px) {
+  .login-waitlist-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* The follow-up question on the magic-link reply page — set in
+   Master's words, presented as a quiet italic quote above the
+   answer box. */
+.login-reply-question {
+  margin: 0.2rem 0 0.4rem;
+  padding: 0.7rem 0.9rem;
+  border-left: 2px solid rgba(216, 184, 109, 0.5);
+  background: rgba(207, 173, 97, 0.06);
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  color: rgba(244, 220, 168, 0.95);
+}

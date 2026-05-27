@@ -42,6 +42,7 @@ import { ActivityScreen } from './screens/ActivityScreen'
 import { ChatScreen } from './screens/ChatScreen'
 import { DiscoverScreen } from './screens/DiscoverScreen'
 import { LoginScreen } from './screens/LoginScreen'
+import { WaitlistReplyScreen } from './screens/WaitlistReplyScreen'
 import { ModerationScreen } from './screens/ModerationScreen'
 import { OnboardingScreen } from './screens/OnboardingScreen'
 import { PersonalityGuideScreen } from './screens/PersonalityGuideScreen'
@@ -194,6 +195,7 @@ import {
   parseRoute,
   readFileAsDataUrl,
   readRouteFromWindow,
+  readWaitlistReplyToken,
   shouldUseHashRouting,
   renderEditedPhoto,
   sanitizeRoomPart,
@@ -298,6 +300,12 @@ function App() {
   const [screen, setScreen] = useState<AppScreen>('login')
   const [selectedProfileId, setSelectedProfileId] = useState<number | null>(initialRoute.profileId)
   const [previousScreen, setPreviousScreen] = useState<AppScreen>('discover')
+  // Waitlist v2 magic-link reply page (2026-05-27). Captured once at
+  // mount from the URL. When non-null, the app renders the public
+  // reply screen and nothing else — it's a pre-auth, token-only route.
+  const [waitlistReplyToken, setWaitlistReplyToken] = useState<string | null>(
+    () => readWaitlistReplyToken(),
+  )
 
   // Auth state + handlers live in useAuth — wired in below, after pushToast
   // and navigate are defined (so onSignedIn/onSignedOut can use them).
@@ -2793,6 +2801,26 @@ function App() {
     () => (selectedChatProfile ? getChemistryInsights(selectedChatProfile) : null),
     [selectedChatProfile, getChemistryInsights],
   )
+
+  // Waitlist v2 magic-link reply page — wins over EVERYTHING, including
+  // the auth gate and password recovery. It's a public token-only route
+  // the applicant reaches from the link Master sends them.
+  if (waitlistReplyToken) {
+    return (
+      <WaitlistReplyScreen
+        token={waitlistReplyToken}
+        appLanguage={appLanguage}
+        setAppLanguage={setAppLanguage}
+        onExit={() => {
+          setWaitlistReplyToken(null)
+          // Clear the token from the URL so a refresh doesn't re-open it.
+          if (typeof window !== 'undefined') {
+            window.location.hash = '#/login'
+          }
+        }}
+      />
+    )
+  }
 
   if (screen === 'login' || passwordRecoveryActive) {
     return (
