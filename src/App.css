@@ -4859,6 +4859,24 @@ details.profile-settings.settings-card[open] > summary {
   display: block;
 }
 
+/* Desktop (2-column profile, ≥1025px): the left column makes the hero
+   roughly square, so a portrait headshot gets its top+bottom cropped
+   no matter the object-position — the chin gets cut. Give the hero a
+   true portrait aspect ratio (matches a headshot) so the whole face
+   shows. Mobile keeps its dvh-clamp sizing (tuned during the
+   friend-test; untouched here). 2026-05-27. */
+@media (min-width: 1025px) {
+  .profile-summary-hero {
+    aspect-ratio: 4 / 5;
+    min-height: 0;
+    max-height: none;
+  }
+  .profile-summary-hero img {
+    min-height: 0;
+    object-position: center 30%;
+  }
+}
+
 .profile-summary-overlay {
   position: absolute;
   inset: auto 0 0;
