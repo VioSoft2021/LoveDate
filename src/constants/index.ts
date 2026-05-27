@@ -1,3 +1,4 @@
+export * from './colors'
 export * from './labelTranslations'
 export * from './profile'
 export * from './uiText'

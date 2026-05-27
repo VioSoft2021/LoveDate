@@ -157,6 +157,8 @@ import {
   DRINKING_OPTIONS,
   EMPTY_SELF_PROFILE,
   GENDER_OPTIONS,
+  PRIVE_NAVY_2,
+  PRIVE_NAVY_3,
   LOOKING_FOR_OPTIONS,
   ORIENTATION_OPTIONS,
   PETS_OPTIONS,
@@ -521,7 +523,7 @@ function App() {
     if (Capacitor.isNativePlatform()) {
       StatusBar.setOverlaysWebView({ overlay: false })
         .then(() => StatusBar.setStyle({ style: Style.Dark }))
-        .then(() => StatusBar.setBackgroundColor({ color: '#141937' }))
+        .then(() => StatusBar.setBackgroundColor({ color: PRIVE_NAVY_2 }))
         .catch(() => {})
     }
   }, [])
@@ -2835,7 +2837,7 @@ function App() {
     const bloom = tone === 'back'
       ? 'radial-gradient(circle at 84% 14%, rgba(0, 229, 255, 0.12), transparent 52%)'
       : 'radial-gradient(circle at 84% 14%, rgba(167, 139, 250, 0.24), transparent 52%)'
-    const base = 'linear-gradient(135deg, #141937, #252d5c)'
+    const base = `linear-gradient(135deg, ${PRIVE_NAVY_2}, ${PRIVE_NAVY_3})`
     return `${veil}, ${bloom}, ${base}`
   }
   return (
