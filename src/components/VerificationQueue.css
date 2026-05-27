@@ -8,6 +8,20 @@
   gap: 0.75rem;
 }
 
+/* The Bodoni heading is wide; let it take the room + wrap if needed,
+   and keep the Refresh button on one line (it was breaking into
+   "Refres / h" when the heading squeezed it). */
+.verification-queue-head h2 {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.verification-queue-head button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .verification-list {
   list-style: none;
   margin: 0.75rem 0 0;

@@ -7,14 +7,19 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        // AGP 9.2.1 (root) + Capacitor's bundled AGP 8.13.0 (in
-        // node_modules/@capacitor/...) is currently building cleanly,
-        // but the version skew is fragile. If a future Capacitor sync
-        // or APK assemble breaks with a missing-API or duplicate-class
-        // error, downgrade this back to 8.13.0 and pin the Gradle
-        // wrapper to 8.13-all.zip to match Capacitor 8's tested combo.
-        classpath 'com.android.tools.build:gradle:9.2.1'
+        // Aligned to Capacitor 8's tested toolchain (2026-05-27): AGP
+        // 8.13.0 + Gradle 8.13. Was briefly on AGP 9.2.1, but AGP 9
+        // ships built-in Kotlin and REJECTS the explicit
+        // `apply plugin: 'kotlin-android'` that @capacitor/camera@8's
+        // build.gradle uses ("plugin no longer required since AGP 9.0"),
+        // which made the camera plugin un-buildable. AGP 8.13.0 is the
+        // version camera@8's own buildscript pins, so everything aligns.
+        classpath 'com.android.tools.build:gradle:8.13.0'
         classpath 'com.google.gms:google-services:4.4.4'
+        // Kotlin Gradle plugin — required by Kotlin-based Capacitor
+        // plugins (@capacitor/camera@8 does `apply plugin: 'kotlin-android'`).
+        // Needed because AGP 8.x does not bundle Kotlin support.
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.20"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -22,6 +27,10 @@ buildscript {
 }
 
 apply from: "variables.gradle"
+
+// Feed the Kotlin version to plugin modules that read
+// rootProject.ext.kotlin_version (e.g. @capacitor/camera).
+ext.kotlin_version = '2.2.20'
 
 allprojects {
     repositories {
