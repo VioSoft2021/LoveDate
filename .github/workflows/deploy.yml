@@ -48,6 +48,10 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
+          # Comma-separated list of admin emails that can see the
+          # moderation panel. If unset, no one sees the panel — the
+          # real privilege gate is the server-side is_admin() SQL.
+          VITE_MODERATION_ADMIN_EMAILS: ${{ secrets.VITE_MODERATION_ADMIN_EMAILS }}
           VITE_HASH_ROUTING: 'true'
 
       - name: SPA fallback (copy index.html to 404.html)

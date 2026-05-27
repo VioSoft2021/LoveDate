@@ -466,15 +466,23 @@ function App() {
     rewindsLeft, setRewindsLeft,
   } = engagement
   const moderationAdminEmails = useMemo(() => {
+    // Sourced exclusively from VITE_MODERATION_ADMIN_EMAILS. The
+    // hardcoded fallback that used to live here leaked operator
+    // emails into the production JS bundle (2026-05-27 audit) — any
+    // user with DevTools could grep them. Now: if the env var is
+    // missing, the moderation panel renders no admins. The real
+    // gate is server-side `is_admin()` SQL function anyway.
     const envRaw = (import.meta.env.VITE_MODERATION_ADMIN_EMAILS as string | undefined) ?? ''
-    const fallbackAdmins = ['viomediere@gmail.com', 'viorelbox1@gmail.com', 'admin@prive-app.club']
-    return Array.from(
-      new Set(
-        [...envRaw.split(','), ...fallbackAdmins]
-          .map((item) => item.trim().toLowerCase())
-          .filter((item) => item.length > 0),
-      ),
-    )
+    const parsed = envRaw
+      .split(',')
+      .map((item) => item.trim().toLowerCase())
+      .filter((item) => item.length > 0)
+    if (parsed.length === 0 && import.meta.env.DEV) {
+      console.warn(
+        '[Privé] VITE_MODERATION_ADMIN_EMAILS is empty. Moderation UI will hide for everyone.',
+      )
+    }
+    return Array.from(new Set(parsed))
   }, [])
   // isModerationAdmin moved below useAuth() — userEmail is now sourced
   // from there and isn't in scope until after the destructure.
