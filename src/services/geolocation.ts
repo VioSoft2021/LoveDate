@@ -141,11 +141,17 @@ const reverseViaPhoton = async (
   lng: number,
 ): Promise<DetectedLocation | null> => {
   // Photon's reverse endpoint returns GeoJSON-style features.
-  // lang=ro biases toward Romanian-language names when available.
+  // IMPORTANT: Photon only supports lang ∈ {default, de, en, fr} — it
+  // returns HTTP 400 ("Language is not supported") for anything else,
+  // including 'ro'. That 400 silently broke the ENTIRE fallback (every
+  // Photon call failed), so whenever Nominatim was rate-limited or
+  // CORS-blocked in the WebView, location detect failed with "could not
+  // resolve a city." Use 'default', which returns names in the local
+  // language anyway (București stays București). Verified 2026-05-27.
   const params = new URLSearchParams({
     lat: lat.toFixed(6),
     lon: lng.toFixed(6),
-    lang: 'ro',
+    lang: 'default',
     limit: '1',
   })
   const res = await fetch(`https://photon.komoot.io/reverse?${params}`, {
