@@ -831,3 +831,53 @@
     height: 60px;
   }
 }
+
+/* Photos section is now a compact preview that opens the dedicated
+   PhotoStudioScreen (2026-05-28). Read-only strip + a prominent button. */
+.profile-screen .profile-photos-hint {
+  margin: 0 0 0.7rem;
+}
+.profile-screen .profile-photos-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+.profile-screen .profile-photos-strip img {
+  width: 4.4rem;
+  height: 5.5rem;
+  object-fit: cover;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(216, 184, 109, 0.18);
+}
+.profile-screen .profile-photos-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.4rem;
+  height: 5.5rem;
+  border-radius: 0.6rem;
+  border: 1px dashed rgba(216, 184, 109, 0.3);
+  color: rgba(244, 220, 168, 0.75);
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+}
+.profile-screen .profile-manage-photos-btn {
+  width: 100%;
+  min-height: 3rem;
+  border-radius: 0.8rem;
+  border: 1px solid var(--prive-gold-deep, #b9974a);
+  background: var(--prive-gold-grad, linear-gradient(180deg, #ead27a, #b9974a));
+  color: #1a1024;
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.profile-screen .profile-manage-photos-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(216, 184, 109, 0.3);
+}

@@ -1,0 +1,165 @@
+/* PhotoStudioScreen — dedicated full-screen photo manager (2026-05-28).
+   Full viewport: sticky header, scrollable body, and (in the editor
+   state) a sticky bottom action bar so Use/Cancel are always in thumb
+   reach. Reuses the global .studio-preview-frame / .draft-photo-grid /
+   .photo-coach-* / .studio-sliders styles from ProfileScreen.css. */
+
+.photo-studio-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  color: var(--theme-text, #f5ede0);
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(216, 184, 109, 0.08) 0%, transparent 60%),
+    linear-gradient(180deg, #060a1f 0%, #0c1030 55%, #0a0d28 100%);
+}
+
+/* ── Header ─────────────────────────────────────────────────────── */
+.photo-studio-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: calc(env(safe-area-inset-top, 0px) + 0.85rem) clamp(0.85rem, 4vw, 1.4rem) 0.85rem;
+  border-bottom: 1px solid rgba(216, 184, 109, 0.22);
+  background: linear-gradient(180deg, rgba(6, 10, 31, 0.92) 0%, rgba(6, 10, 31, 0.55) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.photo-studio-back {
+  justify-self: start;
+  background: none;
+  border: none;
+  color: rgba(244, 220, 168, 0.85);
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.4rem;
+  white-space: nowrap;
+  transition: color 180ms ease;
+}
+.photo-studio-back:hover {
+  color: #f4dca8;
+}
+
+.photo-studio-logo {
+  justify-self: center;
+}
+
+.photo-studio-title {
+  display: none; /* the crest carries the brand; title is for screen readers + wide screens */
+}
+
+@media (min-width: 720px) {
+  .photo-studio-title {
+    display: block;
+    justify-self: end;
+    margin: 0;
+    font-family: 'Bodoni Moda', serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.02em;
+    color: rgba(244, 233, 203, 0.9);
+  }
+}
+
+/* ── Body (scroll container) ────────────────────────────────────── */
+.photo-studio-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 1rem clamp(0.85rem, 4vw, 1.4rem) calc(env(safe-area-inset-bottom, 0px) + 1.2rem);
+  width: min(100%, 40rem);
+  margin: 0 auto;
+}
+
+/* ── Manager state ──────────────────────────────────────────────── */
+.photo-manager {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.photo-manager-add {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.photo-manager-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.4rem;
+  border: 1.5px dashed rgba(216, 184, 109, 0.45);
+  border-radius: 0.9rem;
+  background: rgba(216, 184, 109, 0.06);
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease;
+}
+.photo-manager-upload:hover {
+  background: rgba(216, 184, 109, 0.1);
+  border-color: rgba(216, 184, 109, 0.7);
+}
+.photo-manager-upload input[type='file'] {
+  display: none;
+}
+.photo-manager-upload-cta {
+  font-family: 'Cinzel', 'Bodoni Moda', serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #f4dca8;
+}
+
+.photo-manager-empty {
+  text-align: center;
+  padding: 1.5rem 0.5rem;
+}
+
+/* ── Editor state ───────────────────────────────────────────────── */
+.photo-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Preview gets the room it needs but stays a sensible portrait size. */
+.photo-editor .studio-preview-frame {
+  max-width: min(100%, 26rem);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.photo-editor-controls {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.studio-hint {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.photo-adjust-toggle {
+  margin-top: 0.2rem;
+}
+
+/* Sticky action bar — always reachable, no scrolling to find Use/Cancel. */
+.photo-editor-actionbar {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.7rem 0 calc(env(safe-area-inset-bottom, 0px) + 0.3rem);
+  margin-top: 0.4rem;
+  background: linear-gradient(180deg, rgba(6, 10, 31, 0) 0%, rgba(6, 10, 31, 0.92) 28%);
+}
+.photo-editor-actionbar .primary {
+  justify-self: stretch;
+}

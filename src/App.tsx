@@ -48,6 +48,7 @@ import { OnboardingScreen } from './screens/OnboardingScreen'
 import { PersonalityGuideScreen } from './screens/PersonalityGuideScreen'
 import { LovePersonalityScreen } from './screens/LovePersonalityScreen'
 import { LovePersonalityQuizScreen } from './screens/LovePersonalityQuizScreen'
+import { PhotoStudioScreen } from './screens/PhotoStudioScreen'
 import { ProfileDetailScreen } from './screens/ProfileDetailScreen'
 import { ProfileScreen } from './screens/ProfileScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
@@ -3059,6 +3060,19 @@ function App() {
             profileSaveErrors={profileSaveErrors}
             selfLovePersonality={selfLovePersonality}
             socialConnectedCount={socialConnectedCount}
+            onOpenPhotoStudio={() => navigate('photo-studio')}
+            onOpenPersonalityGuide={() => navigate('personality-guide')}
+            onOpenLovePersonality={() => navigate('love-personality')}
+            onOpenLovePersonalityQuiz={() => navigate('love-personality-quiz')}
+            onOpenSettings={() => navigate('settings')}
+          />
+        )}
+
+        {screen === 'photo-studio' && (
+          <PhotoStudioScreen
+            appLanguage={appLanguage}
+            selfProfile={selfProfile}
+            profileDraft={profileDraft}
             photoUrlInput={photoUrlInput}
             setPhotoUrlInput={setPhotoUrlInput}
             addPhotoFromUrl={addPhotoFromUrl}
@@ -3080,10 +3094,7 @@ function App() {
             handleStudioPointerDown={handleStudioPointerDown}
             handleStudioPointerMove={handleStudioPointerMove}
             handleStudioPointerUp={handleStudioPointerUp}
-            onOpenPersonalityGuide={() => navigate('personality-guide')}
-            onOpenLovePersonality={() => navigate('love-personality')}
-            onOpenLovePersonalityQuiz={() => navigate('love-personality-quiz')}
-            onOpenSettings={() => navigate('settings')}
+            onBack={() => navigate('profile')}
           />
         )}
 

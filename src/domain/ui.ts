@@ -7,6 +7,7 @@ export type AppScreen =
   | 'activity'
   | 'chats'
   | 'profile'
+  | 'photo-studio'
   | 'love-personality'
   | 'love-personality-quiz'
   | 'personality-guide'

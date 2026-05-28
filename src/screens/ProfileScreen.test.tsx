@@ -76,37 +76,7 @@ const buildProps = (overrides: Partial<ProfileScreenProps> = {}): ProfileScreenP
     profileSaveErrors: [],
     selfLovePersonality: null,
     socialConnectedCount: 0,
-    photoUrlInput: '',
-    setPhotoUrlInput: vi.fn(),
-    addPhotoFromUrl: vi.fn(),
-    handlePhotoUpload: vi.fn(),
-    setPrimaryDraftPhoto: vi.fn(),
-    removeDraftPhoto: vi.fn(),
-    photoStudioSource: null,
-    photoStudioAnalysis: null,
-    photoStudioControls: {
-      cropOriginX: 0,
-      cropOriginY: 0,
-      cropOriginScale: 1,
-      cropX: 0,
-      cropY: 0,
-      cropScale: 1,
-      brightness: 1,
-      contrast: 1,
-      saturation: 1,
-    },
-    setPhotoStudioControls: vi.fn(),
-    photoStudioBusy: false,
-    isDraggingCrop: false,
-    isRedrawCropMode: false,
-    setIsRedrawCropMode: vi.fn(),
-    applyPhotoStudio: vi.fn(),
-    resetPhotoStudioControls: vi.fn(),
-    closePhotoStudio: vi.fn(),
-    studioFrameRef: React.createRef<HTMLDivElement>(),
-    handleStudioPointerDown: vi.fn(),
-    handleStudioPointerMove: vi.fn(),
-    handleStudioPointerUp: vi.fn(),
+    onOpenPhotoStudio: vi.fn(),
     onOpenPersonalityGuide: vi.fn(),
     onOpenLovePersonality: vi.fn(),
     onOpenLovePersonalityQuiz: vi.fn(),
@@ -253,26 +223,16 @@ describe('ProfileScreen — navigation buttons', () => {
   })
 })
 
-describe('ProfileScreen — photo URL row', () => {
-  it('typing in photo URL input calls setPhotoUrlInput', () => {
-    const setPhotoUrlInput = vi.fn()
-    render(<ProfileScreen {...buildProps({ setPhotoUrlInput })} />)
-    // url-typed input — there's only one input[type="url"] on this screen
-    const urlInput = document.querySelector('input[type="url"]') as HTMLInputElement
-    expect(urlInput).not.toBeNull()
-    fireEvent.change(urlInput, { target: { value: 'https://example.com/me.jpg' } })
-    expect(setPhotoUrlInput).toHaveBeenCalledWith('https://example.com/me.jpg')
-  })
-
-  it('Add URL button calls addPhotoFromUrl', () => {
-    const addPhotoFromUrl = vi.fn()
-    render(<ProfileScreen {...buildProps({ addPhotoFromUrl, photoUrlInput: 'https://example.com/me.jpg' })} />)
-    fireEvent.click(screen.getByRole('button', { name: /Add URL/i }))
-    expect(addPhotoFromUrl).toHaveBeenCalled()
+describe('ProfileScreen — manage photos', () => {
+  it('clicking Manage photos opens the photo studio', () => {
+    const onOpenPhotoStudio = vi.fn()
+    render(<ProfileScreen {...buildProps({ onOpenPhotoStudio })} />)
+    fireEvent.click(screen.getByRole('button', { name: /manage photos/i }))
+    expect(onOpenPhotoStudio).toHaveBeenCalled()
   })
 })
 
-describe('ProfileScreen — AI Profile Writer + Photo Coach', () => {
+describe('ProfileScreen — AI Profile Writer', () => {
   it('clicking AI Profile Writer button invokes backendInvokeProfileWriter', async () => {
     render(<ProfileScreen {...buildProps()} />)
     // The bio writer CTA text is "Get bio coaching from AI" (or similar)
@@ -284,27 +244,6 @@ describe('ProfileScreen — AI Profile Writer + Photo Coach', () => {
     await waitFor(() => {
       expect(mockProfileWriter).toHaveBeenCalled()
     })
-  })
-
-  it('clicking AI Photo Coach button invokes backendInvokePhotoCoach', async () => {
-    render(<ProfileScreen {...buildProps()} />)
-    const photoBtn = screen
-      .getAllByRole('button')
-      .find((b) => /photo/i.test(b.textContent || '') && /coach|feedback|review/i.test(b.textContent || ''))
-    expect(photoBtn).toBeDefined()
-    fireEvent.click(photoBtn!)
-    await waitFor(() => {
-      expect(mockPhotoCoach).toHaveBeenCalled()
-    })
-  })
-
-  it('AI Photo Coach button is disabled when the draft has zero photos', () => {
-    const selfProfile = buildSelfProfile({ photos: [] })
-    render(<ProfileScreen {...buildProps({ selfProfile })} />)
-    const photoBtn = screen
-      .getAllByRole('button')
-      .find((b) => /photo/i.test(b.textContent || '') && /coach|feedback|review/i.test(b.textContent || ''))
-    expect(photoBtn).toBeDisabled()
   })
 })
 

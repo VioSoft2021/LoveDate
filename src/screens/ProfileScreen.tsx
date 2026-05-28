@@ -23,11 +23,6 @@ import {
 } from '../constants'
 import type { LikertAnswer, LovePersonality } from '../services/compatibility'
 import { toProfileDraft } from '../persistence'
-import { formatUiText } from '../utils'
-import {
-  backendInvokePhotoCoach,
-  type AiPhotoCoachResult,
-} from '../services/ai/photoCoach'
 import {
   backendInvokeProfileWriter,
   type AiProfileWriterResult,
@@ -36,12 +31,7 @@ import { detectMyLocation, isLocationError } from '../services/geolocation'
 import { backendGetMyVerificationStatus, type VerificationStatus } from '../services/backendApi'
 import { SelfieVerification } from '../components/SelfieVerification'
 import { ROMANIAN_CITIES } from '../data/romanianCities'
-import type {
-  AppLanguage,
-  PhotoStudioAnalysis,
-  PhotoStudioControls,
-  SelfProfile,
-} from '../domain'
+import type { AppLanguage, SelfProfile } from '../domain'
 
 export type ProfileScreenProps = {
   appLanguage: AppLanguage
@@ -57,28 +47,9 @@ export type ProfileScreenProps = {
   profileSaveErrors: string[]
   selfLovePersonality: LovePersonality | null
   socialConnectedCount: number
-  // photo studio
-  photoUrlInput: string
-  setPhotoUrlInput: (value: string) => void
-  addPhotoFromUrl: () => void
-  handlePhotoUpload: (event: React.ChangeEvent<HTMLInputElement>) => void
-  setPrimaryDraftPhoto: (index: number) => void
-  removeDraftPhoto: (photo: string) => void
-  photoStudioSource: string | null
-  photoStudioAnalysis: PhotoStudioAnalysis | null
-  photoStudioControls: PhotoStudioControls
-  setPhotoStudioControls: React.Dispatch<React.SetStateAction<PhotoStudioControls>>
-  photoStudioBusy: boolean
-  isDraggingCrop: boolean
-  isRedrawCropMode: boolean
-  setIsRedrawCropMode: React.Dispatch<React.SetStateAction<boolean>>
-  applyPhotoStudio: () => void
-  resetPhotoStudioControls: () => void
-  closePhotoStudio: () => void
-  studioFrameRef: React.RefObject<HTMLDivElement | null>
-  handleStudioPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void
-  handleStudioPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void
-  handleStudioPointerUp: (event: React.PointerEvent<HTMLDivElement>) => void
+  // Photo management now lives in a dedicated full-screen PhotoStudioScreen
+  // (2026-05-28). ProfileScreen just opens it + shows a read-only strip.
+  onOpenPhotoStudio: () => void
   onOpenPersonalityGuide: () => void
   onOpenLovePersonality: () => void
   onOpenLovePersonalityQuiz: () => void
@@ -96,27 +67,7 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
   profileSaveErrors,
   selfLovePersonality,
   socialConnectedCount,
-  photoUrlInput,
-  setPhotoUrlInput,
-  addPhotoFromUrl,
-  handlePhotoUpload,
-  setPrimaryDraftPhoto,
-  removeDraftPhoto,
-  photoStudioSource,
-  photoStudioAnalysis,
-  photoStudioControls,
-  setPhotoStudioControls,
-  photoStudioBusy,
-  isDraggingCrop,
-  isRedrawCropMode,
-  setIsRedrawCropMode,
-  applyPhotoStudio,
-  resetPhotoStudioControls,
-  closePhotoStudio,
-  studioFrameRef,
-  handleStudioPointerDown,
-  handleStudioPointerMove,
-  handleStudioPointerUp,
+  onOpenPhotoStudio,
   onOpenPersonalityGuide,
   onOpenLovePersonality,
   onOpenLovePersonalityQuiz,
@@ -124,13 +75,7 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
 }) => {
   const copy = UI_TEXT[appLanguage]
 
-  // AI Photo Coach — local to this screen since no other surface needs it.
-  const [photoCoachResult, setPhotoCoachResult] =
-    React.useState<AiPhotoCoachResult | null>(null)
-  const [photoCoachLoading, setPhotoCoachLoading] = React.useState(false)
-  const [photoCoachError, setPhotoCoachError] = React.useState<string | null>(null)
-
-  // AI Profile Writer — same pattern, scoped to the bio field.
+  // AI Profile Writer — scoped to the bio field.
   const [bioWriterResult, setBioWriterResult] =
     React.useState<AiProfileWriterResult | null>(null)
   const [bioWriterLoading, setBioWriterLoading] = React.useState(false)
@@ -250,50 +195,6 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
     profileDraft.relationshipIntent,
     appLanguage,
     copy.profile.bioWriterError,
-  ])
-
-  const runPhotoCoach = React.useCallback(async () => {
-    if (!profileDraft.photos.length) {
-      setPhotoCoachError(copy.profile.photoCoachNoPhotos)
-      return
-    }
-    setPhotoCoachError(null)
-    setPhotoCoachLoading(true)
-    try {
-      const result = await backendInvokePhotoCoach({
-        photos: profileDraft.photos,
-        selfProfile: {
-          name: selfProfile.name,
-          age: selfProfile.age,
-          vibe: selfProfile.vibe,
-        },
-        language: appLanguage,
-      })
-      if (!result) {
-        setPhotoCoachError(copy.profile.photoCoachError)
-        setPhotoCoachResult(null)
-      } else {
-        // Photo Coach now scores aesthetics ONLY. It no longer awards the
-        // "Verified" badge — that badge means "a real human passed a live
-        // selfie-pose check" (see SelfieVerification), not "nice photos".
-        // An AI-generated face would score high here, so coupling the two
-        // would stamp fakes as trustworthy.
-        setPhotoCoachResult(result)
-      }
-    } catch {
-      setPhotoCoachError(copy.profile.photoCoachError)
-      setPhotoCoachResult(null)
-    } finally {
-      setPhotoCoachLoading(false)
-    }
-  }, [
-    profileDraft.photos,
-    selfProfile.name,
-    selfProfile.age,
-    selfProfile.vibe,
-    appLanguage,
-    copy.profile.photoCoachNoPhotos,
-    copy.profile.photoCoachError,
   ])
 
   return (
@@ -1003,491 +904,28 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
 
           <details className="profile-editor-section">
             <summary>{copy.profile.photos}</summary>
-            <div className="photo-input-row">
-              <input
-                type="url"
-                placeholder={copy.profile.pastePhotoUrl}
-                value={photoUrlInput}
-                onChange={(event) => setPhotoUrlInput(event.target.value)}
-              />
-              <button type="button" className="ghost" onClick={addPhotoFromUrl}>
-                {copy.profile.addUrl}
-              </button>
-            </div>
-            <label className="upload-field">
-              {copy.profile.uploadPhoto}
-              <input type="file" accept="image/*" onChange={handlePhotoUpload} />
-            </label>
-
-            <div className="photo-coach-block">
-              <div className="photo-coach-actions">
-                <button
-                  type="button"
-                  className="ghost photo-coach-cta"
-                  onClick={() => void runPhotoCoach()}
-                  disabled={photoCoachLoading || profileDraft.photos.length === 0}
-                >
-                  {photoCoachLoading
-                    ? copy.profile.photoCoachLoading
-                    : copy.profile.photoCoachCta}
-                </button>
-                {photoCoachError ? (
-                  <button
-                    type="button"
-                    className="mini-btn"
-                    onClick={() => void runPhotoCoach()}
-                  >
-                    {copy.profile.photoCoachRetry}
-                  </button>
-                ) : null}
-              </div>
-              {photoCoachError ? (
-                <p className="photo-coach-error soft">{photoCoachError}</p>
-              ) : null}
-              {photoCoachResult ? (
-                <div className="photo-coach-result">
-                  <p className="photo-coach-overall">
-                    <strong>{copy.profile.photoCoachOverall}:</strong>{' '}
-                    {photoCoachResult.overall}
-                  </p>
-                  <p className="photo-coach-primary soft">
-                    <strong>{copy.profile.photoCoachPrimaryPick}:</strong>{' '}
-                    {formatUiText(copy.profile.photoCoachPhotoLabel, {
-                      index: photoCoachResult.primaryPick + 1,
-                    })}
-                  </p>
-                  <ul className="photo-coach-photo-list">
-                    {photoCoachResult.perPhoto.map((entry) => {
-                      const photoSrc = profileDraft.photos[entry.index]
-                      return (
-                        <li
-                          key={`coach-${entry.index}`}
-                          className={`photo-coach-photo-card ${
-                            entry.index === photoCoachResult.primaryPick
-                              ? 'is-primary-pick'
-                              : ''
-                          }`}
-                        >
-                          <div className="photo-coach-photo-thumb">
-                            {photoSrc ? (
-                              <img
-                                src={photoSrc}
-                                alt={formatUiText(copy.profile.photoCoachPhotoLabel, {
-                                  index: entry.index + 1,
-                                })}
-                                loading="lazy"
-                                decoding="async"
-                              />
-                            ) : null}
-                          </div>
-                          <div className="photo-coach-photo-body">
-                            <p className="photo-coach-photo-head">
-                              <strong>
-                                {formatUiText(copy.profile.photoCoachPhotoLabel, {
-                                  index: entry.index + 1,
-                                })}
-                              </strong>{' '}
-                              <span className="photo-coach-score">
-                                {copy.profile.photoCoachScore}: {entry.score}/10
-                              </span>
-                            </p>
-                            {entry.strengths.length ? (
-                              <div className="photo-coach-bullets">
-                                <em>{copy.profile.photoCoachStrengths}:</em>
-                                <ul>
-                                  {entry.strengths.map((s, i) => (
-                                    <li key={`s-${entry.index}-${i}`}>{s}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ) : null}
-                            {entry.improvements.length ? (
-                              <div className="photo-coach-bullets">
-                                <em>{copy.profile.photoCoachImprovements}:</em>
-                                <ul>
-                                  {entry.improvements.map((s, i) => (
-                                    <li key={`i-${entry.index}-${i}`}>{s}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ) : null}
-                          </div>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="draft-photo-grid">
-              {profileDraft.photos.map((photo, index) => (
-                <div key={`${photo}-${index}`} className="draft-photo-item">
+            <p className="soft profile-photos-hint">{copy.profile.managePhotosHint}</p>
+            {profileDraft.photos.length > 0 ? (
+              <div className="profile-photos-strip">
+                {profileDraft.photos.slice(0, 6).map((photo, index) => (
                   <img
+                    key={`${photo}-${index}`}
                     src={photo}
-                    alt={`Draft profile ${index + 1}`}
+                    alt={`Profile ${index + 1}`}
                     loading="lazy"
                     decoding="async"
                   />
-                  <div className="draft-photo-actions">
-                    {index === 0 ? (
-                      <span className="draft-photo-primary-badge">
-                        {copy.profile.primaryPhoto}
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        className="mini-btn ghost"
-                        onClick={() => setPrimaryDraftPhoto(index)}
-                      >
-                        {copy.profile.setAsPrimary}
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      className="mini-btn"
-                      onClick={() => removeDraftPhoto(photo)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {photoStudioSource && (
-              <aside className="photo-studio-inline" aria-label="Photo studio">
-                <h4>Photo Studio</h4>
-                <div
-                  ref={studioFrameRef}
-                  className={
-                    photoStudioControls.cropAspect === 'free'
-                      ? `studio-preview-frame free-crop-active ${isDraggingCrop ? 'dragging' : ''}`
-                      : 'studio-preview-frame'
-                  }
-                  onPointerDown={handleStudioPointerDown}
-                  onPointerMove={handleStudioPointerMove}
-                  onPointerUp={handleStudioPointerUp}
-                  onPointerCancel={handleStudioPointerUp}
-                  style={{
-                    aspectRatio:
-                      photoStudioControls.cropAspect === 'square'
-                        ? '1 / 1'
-                        : photoStudioControls.cropAspect === 'classic'
-                          ? '3 / 4'
-                          : photoStudioControls.cropAspect === 'portrait'
-                            ? '4 / 5'
-                            : photoStudioAnalysis
-                              ? `${photoStudioAnalysis.width} / ${photoStudioAnalysis.height}`
-                              : '4 / 5',
-                  }}
-                >
-                  <img
-                    src={photoStudioSource}
-                    alt="Photo studio preview"
-                    decoding="async"
-                    style={{
-                      transform:
-                        photoStudioControls.cropAspect === 'free'
-                          ? 'none'
-                          : `translate(${photoStudioControls.offsetX}px, ${photoStudioControls.offsetY}px) scale(${photoStudioControls.zoom}) rotate(${photoStudioControls.rotate}deg)`,
-                      objectFit: photoStudioControls.cropAspect === 'free' ? 'fill' : 'cover',
-                      filter: `brightness(${photoStudioControls.brightness}%) contrast(${photoStudioControls.contrast}%) saturate(${photoStudioControls.saturate}%)`,
-                    }}
-                  />
-                  {photoStudioControls.cropAspect === 'free' && (
-                    <>
-                      <div
-                        className="crop-mask"
-                        style={{
-                          left: `${photoStudioControls.freeCropX}%`,
-                          top: `${photoStudioControls.freeCropY}%`,
-                          width: `${photoStudioControls.freeCropWidth}%`,
-                          height: `${photoStudioControls.freeCropHeight}%`,
-                        }}
-                      />
-                      <div
-                        className="crop-visual"
-                        data-crop-box="true"
-                        style={{
-                          left: `${photoStudioControls.freeCropX}%`,
-                          top: `${photoStudioControls.freeCropY}%`,
-                          width: `${photoStudioControls.freeCropWidth}%`,
-                          height: `${photoStudioControls.freeCropHeight}%`,
-                        }}
-                      >
-                        <span className="crop-handle nw" data-crop-handle="nw" />
-                        <span className="crop-handle ne" data-crop-handle="ne" />
-                        <span className="crop-handle sw" data-crop-handle="sw" />
-                        <span className="crop-handle se" data-crop-handle="se" />
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {photoStudioAnalysis && (
-                  <div className="studio-analysis">
-                    <p>
-                      Resolution: {photoStudioAnalysis.width} x {photoStudioAnalysis.height}
-                    </p>
-                    <p>Aspect: {photoStudioAnalysis.aspectRatio}</p>
-                    <p>Size: {photoStudioAnalysis.sizeKb} KB</p>
-                    <p>Brightness: {photoStudioAnalysis.averageBrightness}%</p>
-                    {photoStudioControls.cropAspect === 'free' && (
-                      <>
-                        <p>
-                          Tip: drag inside box to move, drag corners to resize, use Redraw
-                          Selection to create a new box.
-                        </p>
-                        <p>
-                          Crop start: {photoStudioControls.freeCropX}% /{' '}
-                          {photoStudioControls.freeCropY}%
-                        </p>
-                        <p>
-                          Crop size: {photoStudioControls.freeCropWidth}% x{' '}
-                          {photoStudioControls.freeCropHeight}%
-                        </p>
-                        <p>Redraw mode: {isRedrawCropMode ? 'ON' : 'OFF'}</p>
-                      </>
-                    )}
-                  </div>
-                )}
-
-                <div className="studio-sliders">
-                  <label>
-                    Crop
-                    <select
-                      value={photoStudioControls.cropAspect}
-                      onChange={(event) =>
-                        setPhotoStudioControls((current) => ({
-                          ...current,
-                          cropAspect: event.target.value as PhotoStudioControls['cropAspect'],
-                        }))
-                      }
-                    >
-                      <option value="free">Free Crop</option>
-                      <option value="portrait">Portrait 4:5</option>
-                      <option value="classic">Classic 3:4</option>
-                      <option value="square">Square 1:1</option>
-                    </select>
-                  </label>
-                  {photoStudioControls.cropAspect === 'free' && (
-                    <>
-                      <label>
-                        Crop X
-                        <input
-                          type="range"
-                          min={0}
-                          max={95}
-                          step={1}
-                          value={photoStudioControls.freeCropX}
-                          onChange={(event) =>
-                            setPhotoStudioControls((current) => {
-                              const nextX = Number(event.target.value)
-                              const maxWidth = 100 - nextX
-                              return {
-                                ...current,
-                                freeCropX: nextX,
-                                freeCropWidth: Math.min(current.freeCropWidth, maxWidth),
-                              }
-                            })
-                          }
-                        />
-                      </label>
-                      <label>
-                        Crop Y
-                        <input
-                          type="range"
-                          min={0}
-                          max={95}
-                          step={1}
-                          value={photoStudioControls.freeCropY}
-                          onChange={(event) =>
-                            setPhotoStudioControls((current) => {
-                              const nextY = Number(event.target.value)
-                              const maxHeight = 100 - nextY
-                              return {
-                                ...current,
-                                freeCropY: nextY,
-                                freeCropHeight: Math.min(current.freeCropHeight, maxHeight),
-                              }
-                            })
-                          }
-                        />
-                      </label>
-                      <label>
-                        Crop Width
-                        <input
-                          type="range"
-                          min={5}
-                          max={100 - photoStudioControls.freeCropX}
-                          step={1}
-                          value={photoStudioControls.freeCropWidth}
-                          onChange={(event) =>
-                            setPhotoStudioControls((current) => ({
-                              ...current,
-                              freeCropWidth: Number(event.target.value),
-                            }))
-                          }
-                        />
-                      </label>
-                      <label>
-                        Crop Height
-                        <input
-                          type="range"
-                          min={5}
-                          max={100 - photoStudioControls.freeCropY}
-                          step={1}
-                          value={photoStudioControls.freeCropHeight}
-                          onChange={(event) =>
-                            setPhotoStudioControls((current) => ({
-                              ...current,
-                              freeCropHeight: Number(event.target.value),
-                            }))
-                          }
-                        />
-                      </label>
-                    </>
-                  )}
-                  <label>
-                    Zoom
-                    <input
-                      type="range"
-                      min={1}
-                      max={2.5}
-                      step={0.05}
-                      value={photoStudioControls.zoom}
-                      disabled={photoStudioControls.cropAspect === 'free'}
-                      onChange={(event) =>
-                        setPhotoStudioControls((current) => ({
-                          ...current,
-                          zoom: Number(event.target.value),
-                        }))
-                      }
-                    />
-                  </label>
-                  <label>
-                    Rotate
-                    <input
-                      type="range"
-                      min={-20}
-                      max={20}
-                      step={1}
-                      value={photoStudioControls.rotate}
-                      disabled={photoStudioControls.cropAspect === 'free'}
-                      onChange={(event) =>
-                        setPhotoStudioControls((current) => ({
-                          ...current,
-                          rotate: Number(event.target.value),
-                        }))
-                      }
-                    />
-                  </label>
-                  <label>
-                    Brightness
-                    <input
-                      type="range"
-                      min={70}
-                      max={140}
-                      step={1}
-                      value={photoStudioControls.brightness}
-                      onChange={(event) =>
-                        setPhotoStudioControls((current) => ({
-                          ...current,
-                          brightness: Number(event.target.value),
-                        }))
-                      }
-                    />
-                  </label>
-                  <label>
-                    Contrast
-                    <input
-                      type="range"
-                      min={70}
-                      max={150}
-                      step={1}
-                      value={photoStudioControls.contrast}
-                      onChange={(event) =>
-                        setPhotoStudioControls((current) => ({
-                          ...current,
-                          contrast: Number(event.target.value),
-                        }))
-                      }
-                    />
-                  </label>
-                  <label>
-                    Saturation
-                    <input
-                      type="range"
-                      min={70}
-                      max={150}
-                      step={1}
-                      value={photoStudioControls.saturate}
-                      onChange={(event) =>
-                        setPhotoStudioControls((current) => ({
-                          ...current,
-                          saturate: Number(event.target.value),
-                        }))
-                      }
-                    />
-                  </label>
-                  <label>
-                    Horizontal Position
-                    <input
-                      type="range"
-                      min={-220}
-                      max={220}
-                      step={1}
-                      value={photoStudioControls.offsetX}
-                      disabled={photoStudioControls.cropAspect === 'free'}
-                      onChange={(event) =>
-                        setPhotoStudioControls((current) => ({
-                          ...current,
-                          offsetX: Number(event.target.value),
-                        }))
-                      }
-                    />
-                  </label>
-                  <label>
-                    Vertical Position
-                    <input
-                      type="range"
-                      min={-220}
-                      max={220}
-                      step={1}
-                      value={photoStudioControls.offsetY}
-                      disabled={photoStudioControls.cropAspect === 'free'}
-                      onChange={(event) =>
-                        setPhotoStudioControls((current) => ({
-                          ...current,
-                          offsetY: Number(event.target.value),
-                        }))
-                      }
-                    />
-                  </label>
-                </div>
-
-                <div className="profile-editor-actions">
-                  {photoStudioControls.cropAspect === 'free' && (
-                    <button
-                      type="button"
-                      className="ghost"
-                      onClick={() => setIsRedrawCropMode((current) => !current)}
-                    >
-                      {isRedrawCropMode ? 'Cancel Redraw' : 'Redraw Selection'}
-                    </button>
-                  )}
-                  <button type="button" onClick={applyPhotoStudio} disabled={photoStudioBusy}>
-                    {photoStudioBusy ? 'Processing...' : 'Add Edited Photo'}
-                  </button>
-                  <button type="button" className="ghost" onClick={resetPhotoStudioControls}>
-                    Reset Edits
-                  </button>
-                  <button type="button" className="ghost" onClick={closePhotoStudio}>
-                    Cancel
-                  </button>
-                </div>
-              </aside>
+                ))}
+                {profileDraft.photos.length > 6 ? (
+                  <span className="profile-photos-more">+{profileDraft.photos.length - 6}</span>
+                ) : null}
+              </div>
+            ) : (
+              <p className="soft">{copy.profile.noPhotosYet}</p>
             )}
+            <button type="button" className="profile-manage-photos-btn" onClick={onOpenPhotoStudio}>
+              {copy.profile.managePhotos}
+            </button>
           </details>
 
           {profileSaveErrors.length > 0 ? (
