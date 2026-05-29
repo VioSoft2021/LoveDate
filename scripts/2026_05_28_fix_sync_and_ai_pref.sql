@@ -1,57 +1,24 @@
--- 2026-05-24 Tier A — replace DMFR personality with Big Five + Attachment
+-- 2026-05-28 — Fix two runtime schema mismatches surfaced by client logs:
 --
--- The old 8-question A/B quiz (DMFR letter codes) is replaced by the
--- validated BFI-10 + Bartholomew RQ instrument (14 Likert items). Raw
--- answers live in profile_private (owner-only RLS). The server-side
--- sync_discoverable_profile RPC derives the public Big Five vector +
--- primary attachment style and writes them to public.profiles so they
--- can power matching without leaking raw answers.
+--   1. "Preference hydration failed: column user_preferences.ai_preference_prompt
+--      does not exist" — the column is defined in supabase_beta_setup.sql but was
+--      never applied to prod. Add it (idempotent).
 --
--- Idempotent. Applies after the 2026-05-19 privatization migration.
--- Old personality_code / personality_answers columns are kept around for
--- one cleanup-window to avoid breaking beta users mid-flight; a follow-up
--- migration in ~30 days drops them once everyone has retaken.
+--   2. "Discoverable profile sync skipped: column auth_user_id of relation
+--      profile_private does not exist" — sync_discoverable_profile (Tier A,
+--      2026-05-24) inserted into public.profile_private using auth_user_id, but
+--      that table is keyed by user_id (auth_user_id lives on public.profiles).
+--      CREATE OR REPLACE FUNCTION doesn't validate column refs, so it only failed
+--      at call time. Re-create the function with the profile_private block fixed.
+--
+-- Safe to run multiple times.
 
-set search_path = public;
+-- ── Fix 1: missing AI preference prompt column ──────────────────────────
+alter table public.user_preferences
+  add column if not exists ai_preference_prompt text not null default '';
 
--- ── Private storage: raw Likert answers + completion timestamp ──────
-alter table public.profile_private
-  add column if not exists big_five_answers integer[] default null,
-  add column if not exists attachment_ratings integer[] default null,
-  add column if not exists personality_completed_at timestamptz default null;
-
-comment on column public.profile_private.big_five_answers is
-  'BFI-10 raw Likert answers (10 integers, each 1..5). NEVER readable to other users (RLS owner-only).';
-comment on column public.profile_private.attachment_ratings is
-  'Bartholomew RQ raw Likert ratings (4 integers each 1..5 in order: secure, anxious, avoidant, disorganized). NEVER readable to other users.';
-comment on column public.profile_private.personality_completed_at is
-  'ISO timestamp of most-recent assessment completion. Drives the 6-month retake nudge.';
-
--- ── Public derived fields: Big Five vector + primary attachment style ──
--- These are computed server-side from the owner's private answers when
--- sync_discoverable_profile runs, so they can never go out of sync with
--- the raw data and a hostile client can't inject scores directly.
-alter table public.profiles
-  add column if not exists big_five jsonb default null,
-  add column if not exists attachment_style text default null
-    check (
-      attachment_style is null
-      or attachment_style in ('secure', 'anxious', 'avoidant', 'disorganized')
-    );
-
-comment on column public.profiles.big_five is
-  'Public Big Five scores derived server-side from BFI-10 answers. Shape: {openness,conscientiousness,extraversion,agreeableness,neuroticism}, each 0..100. NULL until the user takes the new Tier A assessment.';
-comment on column public.profiles.attachment_style is
-  'Primary attachment style derived server-side from the four RQ ratings. NULL until the user takes the new Tier A assessment.';
-
--- ── sync_discoverable_profile: accept the new payload, store privately,
---     derive publicly ─────────────────────────────────────────────────
--- The Tier A payload extends the existing one with two arrays:
---   p_payload->'bigFiveAnswers'      → 10 integers (1..5)
---   p_payload->'attachmentRatings'   → 4 integers (1..5) in fixed style order
--- Everything else in the function body is unchanged from the 2026-05-21
--- shipped version; only the new branches are appended.
-
+-- ── Fix 2: re-create sync_discoverable_profile with profile_private keyed
+--     by user_id (only the profile_private block changed vs. 2026-05-24) ──
 create or replace function public.sync_discoverable_profile(p_payload jsonb)
 returns void
 language plpgsql
@@ -171,9 +138,8 @@ begin
     end if;
   end if;
 
-  -- Store raw answers privately. NOTE: profile_private is keyed by user_id
-  -- (references auth.users.id), NOT auth_user_id — that column lives on
-  -- public.profiles. v_uid (auth.uid()) is the value for both.
+  -- Store raw answers privately. profile_private is keyed by user_id
+  -- (references auth.users.id); auth_user_id lives on public.profiles.
   insert into public.profile_private (
     user_id, big_five_answers, attachment_ratings, personality_completed_at
   )
