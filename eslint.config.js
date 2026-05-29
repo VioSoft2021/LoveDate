@@ -8,8 +8,6 @@ export default tseslint.config([
   {
     ignores: [
       'dist',
-      'utils/supabase/**',
-      'page.tsx',
       'releases/**',
       'desktop-dist/**',
       'desktop-dist-fresh/**',
