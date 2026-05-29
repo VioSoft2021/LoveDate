@@ -69,6 +69,8 @@ const buildProfile = (overrides: Partial<Profile> = {}): Profile => ({
 
 const baseProps: ProfileDetailScreenProps = {
   appLanguage: 'en',
+  isMatched: false,
+  selfId: 'auth-self',
   selectedDetailProfile: buildProfile(),
   selfProfile: buildSelfProfile(),
   selfLovePersonality: null,

@@ -23,7 +23,6 @@ const buildProfile = (overrides: Partial<Profile> = {}): Profile => ({
   verified: true,
   relationshipGoal: 'Long-term',
   zodiac: 'Leo',
-  personalityAnswers: ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A'],
   ...overrides,
 })
 

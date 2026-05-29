@@ -47,6 +47,7 @@ const buildProfile = (overrides: Partial<Profile> = {}): Profile => ({
 
 const baseProps: ChatScreenProps = {
   appLanguage: 'en',
+  selfLovePersonality: null,
   chatSearch: '',
   setChatSearch: vi.fn(),
   filteredChatPreviews: [],
@@ -303,7 +304,7 @@ describe('ChatScreen — attachment preview', () => {
         chatAttachmentDraft={{
           kind: 'image',
           name: 'sunset.jpg',
-          dataUrl: 'data:image/jpeg;base64,xxx',
+          url: 'data:image/jpeg;base64,xxx',
         }}
         setChatAttachmentDraft={setChatAttachmentDraft}
       />,

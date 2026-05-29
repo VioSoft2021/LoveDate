@@ -7,6 +7,7 @@ import type {
   LovePersonality,
   LovePersonalityReveal,
 } from '../services/compatibility'
+import type { SelfProfile } from '../domain'
 
 // The Claude reveal Edge Function is mocked so the screen never reaches
 // Supabase. Default mock = success path; individual tests override for
@@ -34,6 +35,8 @@ const buildReveal = (overrides: Partial<LovePersonalityReveal> = {}): LovePerson
     'You meet new ideas with curiosity but stay grounded.\n\nIn love, you offer warmth and reliability.\n\nGrowth comes from naming what you need.',
   strengths: ['Steady', 'Open', 'Warm'],
   growthEdges: ['Ask directly', 'Voice needs'],
+  language: 'en',
+  generatedAt: '2026-05-24T00:00:00.000Z',
   ...overrides,
 })
 
@@ -41,6 +44,7 @@ const buildLP = (overrides: Partial<LovePersonality> = {}): LovePersonality => (
   bigFive: baseBigFive,
   attachment: 'secure' satisfies AttachmentStyle,
   attachmentRatings: { secure: 5, anxious: 3, avoidant: 2, disorganized: 1 },
+  completedAt: '2026-05-24T00:00:00.000Z',
   reveal: buildReveal(),
   ...overrides,
 })
@@ -48,9 +52,9 @@ const buildLP = (overrides: Partial<LovePersonality> = {}): LovePersonality => (
 type RenderOpts = {
   selfLovePersonality?: LovePersonality | null
   selfName?: string
-  setSelfProfile?: ReturnType<typeof vi.fn>
-  onRetake?: ReturnType<typeof vi.fn>
-  onBackToProfile?: ReturnType<typeof vi.fn>
+  setSelfProfile?: React.Dispatch<React.SetStateAction<SelfProfile>>
+  onRetake?: () => void
+  onBackToProfile?: () => void
 }
 
 const renderScreen = (opts: RenderOpts = {}) =>
@@ -140,7 +144,7 @@ describe('LovePersonalityScreen — auto-retry when reveal is missing', () => {
   it('auto-fires the Claude reveal call when bigFive + attachment present but reveal is null', async () => {
     mockReveal.mockResolvedValue(buildReveal())
     renderScreen({
-      selfLovePersonality: buildLP({ reveal: null }),
+      selfLovePersonality: buildLP({ reveal: undefined }),
     })
     await waitFor(() => {
       expect(mockReveal).toHaveBeenCalledOnce()
@@ -149,24 +153,26 @@ describe('LovePersonalityScreen — auto-retry when reveal is missing', () => {
 
   it('shows the pending message while the reveal is being generated', async () => {
     // Keep the promise unresolved so the loading state persists.
-    let resolveReveal: ((value: LovePersonalityReveal | null) => void) | null = null
+    const resolveRef: { current: ((value: LovePersonalityReveal | null) => void) | null } = {
+      current: null,
+    }
     mockReveal.mockImplementation(
       () =>
         new Promise<LovePersonalityReveal | null>((resolve) => {
-          resolveReveal = resolve
+          resolveRef.current = resolve
         }),
     )
-    renderScreen({ selfLovePersonality: buildLP({ reveal: null }) })
+    renderScreen({ selfLovePersonality: buildLP({ reveal: undefined }) })
     expect(
       await screen.findByText(/privé is writing your reveal/i),
     ).toBeInTheDocument()
     // Clean up — fulfill the pending promise so any unmount doesn't warn.
-    resolveReveal?.(null)
+    resolveRef.current?.(null)
   })
 
   it('shows the honest failure UI + Try again button when the reveal call returns null', async () => {
     mockReveal.mockResolvedValue(null)
-    renderScreen({ selfLovePersonality: buildLP({ reveal: null }) })
+    renderScreen({ selfLovePersonality: buildLP({ reveal: undefined }) })
     expect(
       await screen.findByText(/couldn't generate your reveal/i),
     ).toBeInTheDocument()
@@ -175,7 +181,7 @@ describe('LovePersonalityScreen — auto-retry when reveal is missing', () => {
 
   it('clicking Try again re-fires the reveal call', async () => {
     mockReveal.mockResolvedValue(null)
-    renderScreen({ selfLovePersonality: buildLP({ reveal: null }) })
+    renderScreen({ selfLovePersonality: buildLP({ reveal: undefined }) })
     await screen.findByRole('button', { name: /try again/i })
     // Reset so we can assert the manual retry call distinctly
     mockReveal.mockClear()
@@ -190,7 +196,7 @@ describe('LovePersonalityScreen — auto-retry when reveal is missing', () => {
     const setSelfProfile = vi.fn()
     mockReveal.mockResolvedValue(buildReveal({ archetypeName: 'Steady Lighthouse' }))
     renderScreen({
-      selfLovePersonality: buildLP({ reveal: null }),
+      selfLovePersonality: buildLP({ reveal: undefined }),
       setSelfProfile,
     })
     await waitFor(() => {

@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { DiscoverScreen, type DiscoverScreenProps } from './DiscoverScreen'
 import type { SelfProfile } from '../domain'
 import type { Profile } from '../services/priveApi'
+import type { LikertAnswer } from '../services/compatibility'
 
 const buildSelfProfile = (): SelfProfile => ({
   name: 'Alex',
@@ -46,7 +47,7 @@ const buildSelfProfile = (): SelfProfile => ({
   socialPromotionOptIn: false,
   travelMode: false,
   photos: [],
-  personalityAnswers: ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A'],
+  personalityAnswers: [3, 3, 3, 3, 3, 3, 3, 3] as LikertAnswer[],
 })
 
 const buildProfile = (overrides: Partial<Profile> = {}): Profile => ({
@@ -65,12 +66,12 @@ const buildProfile = (overrides: Partial<Profile> = {}): Profile => ({
   verified: true,
   relationshipGoal: 'Long-term',
   zodiac: 'Aries',
-  personalityAnswers: ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A'],
   ...overrides,
 })
 
 const baseProps: DiscoverScreenProps = {
   appLanguage: 'en',
+  isGuest: false,
   selfProfile: buildSelfProfile(),
   filteredProfiles: [buildProfile()],
   matchedProfiles: [],

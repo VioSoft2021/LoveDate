@@ -19,7 +19,6 @@ const baseMatch: Profile = {
   verified: true,
   relationshipGoal: 'Long-term',
   zodiac: 'Leo',
-  personalityAnswers: ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A'],
 }
 
 describe('MatchCelebrationModal', () => {

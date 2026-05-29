@@ -82,9 +82,9 @@ const emptySelfProfile = (overrides: Partial<SelfProfile> = {}): SelfProfile => 
 
 type RenderOpts = {
   initial?: Partial<SelfProfile>
-  pushToast?: ReturnType<typeof vi.fn>
-  onComplete?: ReturnType<typeof vi.fn>
-  setSelfProfile?: ReturnType<typeof vi.fn>
+  pushToast?: (message: string, tone: 'info' | 'success' | 'error') => void
+  onComplete?: () => void
+  setSelfProfile?: React.Dispatch<React.SetStateAction<SelfProfile>>
 }
 
 const renderWizard = (opts: RenderOpts = {}) => {

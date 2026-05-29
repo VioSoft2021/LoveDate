@@ -98,6 +98,7 @@ describe('TopBar — handlers', () => {
         currentScreen="discover"
         onNavigate={vi.fn()}
         exitToLoginLabel="Exit"
+        exitAppLabel="Exit App"
         onSignOut={onSignOut}
         showExitAppButton={false}
         onExitApp={vi.fn()}

@@ -20,12 +20,19 @@ import { renderHook, act, waitFor } from '@testing-library/react'
 // vi.mock factories need to read.
 const mocks = vi.hoisted(() => ({
   initialHash: '',
-  updateUser: vi.fn(async () => ({ error: null })),
+  updateUser: vi.fn(
+    async (): Promise<{ error: { message: string } | null }> => ({ error: null }),
+  ),
   getUser: vi.fn(async () => ({ data: { user: { email: 'test@example.com' } } })),
   onAuthStateChange: vi.fn(() => ({
     data: { subscription: { unsubscribe: vi.fn() } },
   })),
-  invokeFunction: vi.fn(async () => ({ data: { ok: true }, error: null })),
+  invokeFunction: vi.fn(
+    async (): Promise<{ data: { ok: boolean } | null; error: { message: string } | null }> => ({
+      data: { ok: true },
+      error: null,
+    }),
+  ),
 }))
 
 vi.mock('../services/initialHash', () => ({

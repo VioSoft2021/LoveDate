@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { SettingsScreen, type SettingsScreenProps } from './SettingsScreen'
 import type { SelfProfile } from '../domain'
+import type { LikertAnswer } from '../services/compatibility'
 
 const emptySelfProfile: SelfProfile = {
   name: 'Alex',
@@ -45,11 +46,12 @@ const emptySelfProfile: SelfProfile = {
   socialPromotionOptIn: false,
   travelMode: false,
   photos: [],
-  personalityAnswers: ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A'],
+  personalityAnswers: [3, 3, 3, 3, 3, 3, 3, 3] as LikertAnswer[],
 }
 
 const baseProps: SettingsScreenProps = {
   appLanguage: 'en',
+  isGuest: false,
   setAppLanguage: vi.fn(),
   settings: { pushNotifications: true, emailNotifications: false },
   settingsSaveStatus: 'idle',

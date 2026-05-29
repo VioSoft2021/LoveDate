@@ -19,7 +19,6 @@ const sampleProfile: Profile = {
   verified: true,
   relationshipGoal: 'Long-term',
   zodiac: 'Leo',
-  personalityAnswers: [],
 }
 
 describe('useUiModals — initial state', () => {

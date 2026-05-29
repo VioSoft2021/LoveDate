@@ -98,7 +98,7 @@ const completedSnapshot = (
     },
     attachment: 'secure',
     attachmentRatings: { secure: 5, anxious: 3, avoidant: 2, disorganized: 1 },
-    reveal: null,
+    completedAt: '2026-05-24T00:00:00.000Z',
   } as LovePersonality,
   reveal: null,
   position: 'result',
@@ -107,9 +107,9 @@ const completedSnapshot = (
 
 type RenderOpts = {
   selfProfile?: SelfProfile
-  setSelfProfile?: ReturnType<typeof vi.fn>
-  onSaved?: ReturnType<typeof vi.fn>
-  onCancel?: ReturnType<typeof vi.fn>
+  setSelfProfile?: React.Dispatch<React.SetStateAction<SelfProfile>>
+  onSaved?: () => void
+  onCancel?: () => void
 }
 
 const renderScreen = (opts: RenderOpts = {}) =>
