@@ -34,6 +34,16 @@ const SignOutIcon = () => (
   </svg>
 )
 
+// Quit-app glyph: the universal power symbol (open ring + top stroke). Pure
+// SVG (not the ⏻ character) so it renders on every device/font instead of a
+// "missing glyph" box. Inherits stroke + the danger tint from TopBar.css.
+const PowerIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+    <path d="M12 2v10" />
+  </svg>
+)
+
 // Privé header: logo + nav tabs + icon-only sign-out + (native-only)
 // quit button. Rendered above every screen in the app shell. Extracted
 // from App.tsx; pure presentation — the parent computes navItems and
@@ -97,7 +107,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             aria-label={exitAppLabel}
             title={exitAppLabel}
           >
-            ⏻
+            <PowerIcon />
           </button>
         ) : null}
       </div>

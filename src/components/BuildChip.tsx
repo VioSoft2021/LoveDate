@@ -1,10 +1,11 @@
 import React from 'react'
 
-// Tiny version pill in the bottom-right so the user (and I) can verify
-// which build is actually rendering in their browser AND what the browser
-// thinks the CSS viewport width is. If width > 768px on a phone, the
-// "Desktop site" toggle is on in Chrome and every mobile media query is
-// being skipped — diagnostic that explains a lot of "fix didn't work".
+// Tiny DEV-ONLY version pill (gated by import.meta.env.DEV at the mount
+// site) pinned to the bottom-right, so it never covers the header / sign-out.
+// Lets me verify which build is rendering AND what the browser thinks the CSS
+// viewport width is. If width > 768px on a phone, the "Desktop site" toggle is
+// on in Chrome and every mobile media query is being skipped — diagnostic that
+// explains a lot of "fix didn't work".
 export const BuildChip: React.FC = () => {
   const [copied, setCopied] = React.useState(false)
   const [viewport, setViewport] = React.useState({
@@ -52,7 +53,7 @@ export const BuildChip: React.FC = () => {
       style={{
         position: 'fixed',
         right: '0.4rem',
-        top: 'calc(env(safe-area-inset-top, 0px) + 0.35rem)',
+        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 4rem)',
         zIndex: 9999,
         padding: '0.2rem 0.45rem',
         fontSize: '0.62rem',

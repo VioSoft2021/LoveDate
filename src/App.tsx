@@ -2872,7 +2872,9 @@ function App() {
   return (
     <main className={`app-shell app-shell--${screen}${isGuest ? ' app-shell--guest' : ''}`}>
       <UpdateBanner />
-      <BuildChip />
+      {/* Dev-only build/viewport pill. Hidden in the real (built) app so it
+          never clutters the header or covers the sign-out control. */}
+      {import.meta.env.DEV && <BuildChip />}
       {/* Guest Tour persistent banner (Phase 3, 2026-05-26). Sits above
           every screen while isGuest, gently reminds the visitor they're
           in tour mode + offers a one-tap exit to sign up. The exit hits
@@ -2905,10 +2907,7 @@ function App() {
           exitToLoginLabel={copy.common.exitToLogin}
           exitAppLabel={copy.a11y.exitApp}
           onSignOut={handleSignOut}
-          showExitAppButton={
-            Capacitor.isNativePlatform() ||
-            (typeof navigator !== 'undefined' && navigator.userAgent.includes('Electron'))
-          }
+          showExitAppButton={true}
           onExitApp={handleExitApp}
         />
       )}
