@@ -148,18 +148,71 @@
   margin-top: 0.2rem;
 }
 
-/* Sticky action bar — always reachable, no scrolling to find Use/Cancel. */
+/* Sticky action bar — always reachable, no scrolling to find Use/Cancel.
+   Gradient fade (transparent at the top → solid navy where the buttons sit)
+   so it reads as a footer without hard-occluding the photo or the bottom
+   crop handles peeking just above it. */
 .photo-editor-actionbar {
   position: sticky;
   bottom: 0;
   display: grid;
-  grid-template-columns: auto auto 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.5rem;
   align-items: center;
-  padding: 0.7rem 0 calc(env(safe-area-inset-bottom, 0px) + 0.3rem);
+  padding: 1.3rem 0.6rem calc(env(safe-area-inset-bottom, 0px) + 0.6rem);
   margin-top: 0.4rem;
-  background: linear-gradient(180deg, rgba(6, 10, 31, 0) 0%, rgba(6, 10, 31, 0.92) 28%);
+  background: linear-gradient(180deg, rgba(10, 13, 40, 0) 0%, rgba(10, 13, 40, 0.97) 55%);
 }
-.photo-editor-actionbar .primary {
-  justify-self: stretch;
+/* Equal thirds + min-width:0 so the buttons shrink to fit a narrow phone
+   instead of overflowing off-screen. Trimmed side padding keeps the labels
+   on one line. */
+.photo-editor-actionbar button {
+  min-width: 0;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  white-space: nowrap;
+}
+
+/* ── Pinned-photo edit layout (2026-05-29) ─────────────────────────────
+   The scrolling pain: the photo is tall, so reaching a slider scrolls the
+   photo off-screen and you adjust blind. Fix: in edit mode the photo stays
+   pinned and always visible; ONLY the controls scroll, with the action bar
+   as a real footer. The preview keeps its aspect-ratio (capped by HEIGHT,
+   not squished) so the percentage-based crop overlay stays pixel-accurate.
+   Scoped to .is-editing so the photo grid still scrolls normally. */
+.photo-studio-body.is-editing {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+.photo-studio-body.is-editing .photo-editor {
+  flex: 1;
+  min-height: 0;
+  align-items: center;   /* don't stretch the preview to full width */
+  gap: 0.75rem;
+}
+.photo-studio-body.is-editing .studio-preview-frame {
+  flex: 0 0 auto;
+  width: auto;           /* size from aspect-ratio + max-height, ratio preserved */
+  max-width: min(100%, 26rem);
+  max-height: 46vh;      /* always visible; shrinks proportionally */
+}
+.photo-studio-body.is-editing .photo-editor-controls {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  align-self: stretch;
+  overflow-y: auto;      /* the ONLY scrolling region */
+  -webkit-overflow-scrolling: touch;
+}
+.photo-studio-body.is-editing .photo-editor-actionbar {
+  position: static;      /* a real footer below the controls, not over the photo */
+  flex: 0 0 auto;
+  width: 100%;
+  align-self: stretch;
+  margin-top: 0;
+  padding: 0.8rem 0.6rem calc(env(safe-area-inset-bottom, 0px) + 0.6rem);
+  background: #0a0d28;
+  border-top: 1px solid rgba(216, 184, 109, 0.18);
 }

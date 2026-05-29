@@ -42,7 +42,7 @@ export const PhotoStudioScreen: React.FC<PhotoStudioScreenProps> = (props) => {
         </h1>
       </header>
 
-      <section className="photo-studio-body">
+      <section className={`photo-studio-body${editing ? ' is-editing' : ''}`}>
         <PhotoManager {...props} />
       </section>
     </main>
