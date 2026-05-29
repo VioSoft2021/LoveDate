@@ -148,7 +148,7 @@ describe('<PhotoManager /> — manager state', () => {
 describe('<PhotoManager /> — editor state', () => {
   it('renders the sticky Use this photo button when a source is set', () => {
     render(<PhotoManager {...buildProps({ photoStudioSource: 'data:image/png;base64,xxx' })} />)
-    expect(screen.getByRole('button', { name: /use this photo/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /use photo/i })).toBeTruthy()
     expect(screen.getByRole('button', { name: /^cancel$/i })).toBeTruthy()
   })
 })
