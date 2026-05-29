@@ -713,7 +713,7 @@ export const UI_TEXT = {
       password: 'Parolă',
       confirmPassword: 'Confirmă parola',
       passwordHint: 'Minim 10 caractere — literă mare, literă mică, cifră și simbol.',
-      // Password recovery — RO placeholders (app currently EN-locked)
+      // Password recovery — full Romanian translations
       recoveryTitle: 'Alege o parolă nouă',
       recoveryBody: 'Linkul tău de recuperare este valid. Alege o parolă nouă și ești înapoi.',
       recoveryNewPassword: 'Parolă nouă',

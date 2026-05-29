@@ -12,7 +12,7 @@ import {
   purgeOtherSelfProfileCaches,
 } from '../services/backendApi'
 import { createSupabaseClient, INITIAL_URL_HASH } from '../services/supabaseClient'
-import { DEMO_GUEST_EMAIL } from '../services/demo/demoProfiles'
+import { DEMO_GUEST_EMAIL } from '../services/demo/demoConstants'
 import { readAuth, AUTH_STORAGE_KEY } from '../persistence'
 import { EMPTY_SELF_PROFILE, UI_TEXT } from '../constants'
 import type { AppLanguage } from '../domain'

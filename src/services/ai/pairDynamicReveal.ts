@@ -1,6 +1,6 @@
 import { createSupabaseClient } from '../supabaseClient'
 import type { AttachmentStyle, BigFiveScores } from '../compatibility'
-import { DEMO_GUEST_EMAIL } from '../demo/demoProfiles'
+import { DEMO_GUEST_EMAIL } from '../demo/demoConstants'
 
 /**
  * AI Pair Dynamic Reveal (Tier B — 2026-05-26)

@@ -1,6 +1,6 @@
 const { contextBridge } = require('electron')
 
-contextBridge.exposeInMainWorld('lovedateDesktop', {
+contextBridge.exposeInMainWorld('priveDesktop', {
   platform: process.platform,
   versions: {
     chrome: process.versions.chrome,

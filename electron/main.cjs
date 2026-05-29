@@ -31,7 +31,7 @@ function createWindow() {
     const safeHtml = `
       <html>
         <body style="background:#0A0E27;color:#f4e6c1;font-family:Segoe UI,sans-serif;padding:24px">
-          <h2>LoveDate could not load</h2>
+          <h2>Privé could not load</h2>
           <p><strong>Error:</strong> ${errorCode} - ${errorDescription}</p>
           <p><strong>URL:</strong> ${validatedURL ?? 'unknown'}</p>
           <p>Rebuild the app and retry: <code>npm run dist:desktop:all</code></p>

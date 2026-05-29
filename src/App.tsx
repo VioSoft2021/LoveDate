@@ -4,7 +4,7 @@ import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import './App.css'
 import { getMyMatches, resolveMatch, type Profile } from './services/priveApi'
-import { DEMO_AUTO_REPLIES, DEMO_GENERIC_AUTO_REPLIES } from './services/demo/demoProfiles'
+import { DEMO_AUTO_REPLIES, DEMO_GENERIC_AUTO_REPLIES } from './services/demo/demoConstants'
 import { backendInvokeDatePlanner } from './services/ai/datePlanner'
 import { backendInvokeIcebreaker } from './services/ai/icebreaker'
 import {
