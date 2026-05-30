@@ -385,6 +385,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               {copy.auth.heroTakeTour}
             </button>
           </nav>
+
+          {/* Sitch-style framing (2026-05-30) — concrete number that
+              anchors the abstract "quiet room" tagline. Sits as a quiet
+              supporting line below the doors. */}
+          <p className="login-hero-promise">{copy.auth.heroPromise}</p>
         </section>
 
         {/* Language picker hidden 2026-05-26 — app is hard-locked to

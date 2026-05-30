@@ -70,6 +70,11 @@ export const UI_TEXT = {
       // password; the visitor sees the app with synthetic profiles so
       // they can feel Privé before deciding to request access.
       heroTakeTour: 'Take a tour',
+      // Sitch-style framing (2026-05-30) — concrete, falsifiable number
+      // that quantifies the "quiet room" promise from the tagline. Rendered
+      // as a quiet italic supporting line below the four doors. Anchors
+      // the abstract anti-swipe positioning to a number a visitor can hold.
+      heroPromise: '3–5 curated matches a week — not 80–100 a day.',
       // Phase 3 persistent demo banner (above the TopBar when isGuest)
       guestBannerText: 'Demo tour — your changes won\'t be saved',
       guestBannerCta: 'Sign up →',
@@ -756,6 +761,8 @@ export const UI_TEXT = {
       // email, fără parolă; vizitatorul vede aplicația cu profile
       // sintetice pentru a simți Privé înainte să-și ceară accesul.
       heroTakeTour: 'Vezi o demonstrație',
+      // Sitch-style framing (2026-05-30) — versiunea în română.
+      heroPromise: '3–5 potriviri alese cu grijă pe săptămână — nu 80–100 pe zi.',
       // Phase 3 banner persistent deasupra TopBar-ului în Guest Tour
       guestBannerText: 'Demonstrație — modificările nu se salvează',
       guestBannerCta: 'Creează cont →',

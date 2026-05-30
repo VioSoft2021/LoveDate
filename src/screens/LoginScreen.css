@@ -255,20 +255,43 @@
   left: 10%;
 }
 
+/* ── Sitch-style promise (2026-05-30) — quiet supporting line below
+   the doors. Anchors the abstract "quiet room" tagline to a concrete
+   number ("3-5 a week vs 80-100 a day"). Fades in slightly after the
+   doors finish revealing so the sequencing reads: brand → tagline →
+   access doors → the why. */
+.login-hero-promise {
+  font-family: 'Cormorant Garamond', 'Bodoni Moda', serif;
+  font-style: italic;
+  font-size: clamp(0.9rem, 1.6vw, 1.1rem);
+  color: rgba(232, 213, 178, 0.7);
+  margin: clamp(1.5rem, 3vh, 2.5rem) auto 0;
+  text-align: center;
+  max-width: 38ch;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  animation: prive-hero-fade-in 1400ms cubic-bezier(0.22, 1, 0.36, 1) 1.8s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-hero-promise {
+    animation: none;
+  }
+}
+
 /* ── Desktop magazine-spread (≥900px) ─────────────────────────
-   Grid: left + right columns at the top, doors as a bottom row
-   that spans both columns and centers horizontally. Columns are
-   anchored to viewport edges with padding from each side. */
+   Grid: left + right columns at the top, doors as a middle row,
+   promise as a third row — all spanning both columns and centered. */
 @media (min-width: 900px) {
   .login-hero {
     max-width: none;
     width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr auto;
+    grid-template-rows: 1fr auto auto;
     grid-template-areas:
       "left right"
-      "doors doors";
+      "doors doors"
+      "promise promise";
     align-items: center;
     text-align: left;
     padding: clamp(2rem, 5vh, 4rem) clamp(2rem, 8vw, 7rem);
@@ -284,13 +307,17 @@
     justify-self: end;
     max-width: 30rem;
   }
-  /* Doors centered horizontally at the bottom, spanning both columns. */
+  /* Doors centered horizontally below the columns, spanning both. */
   .login-hero-doors {
     grid-area: doors;
     flex-direction: row;
     justify-content: center;
     gap: clamp(1.5rem, 4vw, 3rem);
     padding-top: clamp(1.5rem, 3vh, 2.5rem);
+  }
+  .login-hero-promise {
+    grid-area: promise;
+    justify-self: center;
   }
 }
 
