@@ -1,5 +1,23 @@
 {
     "recommendations": [
         "figma.figma-vscode-extension"
+    ],
+    // Privé is a TypeScript app; all Java/Gradle/Android work happens in
+    // Android Studio, never in VS Code. The Red Hat Java + Gradle-for-Java
+    // extensions re-parse android/ and node_modules/@capacitor/*/android
+    // with their own bundled Gradle and spam the Problems panel with bogus
+    // "Minimum supported Gradle version" / "Cannot find class file" errors
+    // (the real toolchain is pinned to Gradle 8.13 + AGP 8.13.0 — see
+    // android/build.gradle). Marking them unwanted here documents the intent
+    // and stops re-recommendation. To silence the noise, also disable them
+    // for this workspace: Extensions view → each one → "Disable (Workspace)".
+    "unwantedRecommendations": [
+        "vscjava.vscode-java-pack",
+        "redhat.java",
+        "vscjava.vscode-gradle",
+        "vscjava.vscode-maven",
+        "vscjava.vscode-java-dependency",
+        "vscjava.vscode-java-debug",
+        "vscjava.vscode-java-test"
     ]
 }

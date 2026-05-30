@@ -1,4 +1,9 @@
 {
+    // Bumps the whole VSCode UI (editor + terminal + Claude Code panel)
+    // by ~20%. Master asked for bigger text 2026-05-21. Tweak the number
+    // up or down as needed; each integer step is one zoom level.
+    "window.zoomLevel": 1,
+
     "nextflow.telemetry.enabled": false,
     "cSpell.language": "en,ro",
     "cSpell.words": [
