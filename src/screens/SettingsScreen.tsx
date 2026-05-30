@@ -158,8 +158,18 @@ const SettingsScreenInner: React.FC<SettingsScreenProps> = ({
             preferences: formatStatusLabel(preferenceSaveStatus),
           })}
         </p>
-        {/* App-language picker hidden 2026-05-26 — hard-locked to
-            English until the Romanian translation pass lands. */}
+        {/* App-language picker — restored 2026-05-30 after the Romanian
+            copy pass landed (was hidden 2026-05-26 during the hard-lock). */}
+        <label className="setting-row setting-row--select">
+          {copy.settings.appLanguage}
+          <select
+            value={appLanguage}
+            onChange={(event) => setAppLanguage(event.target.value as AppLanguage)}
+          >
+            <option value="en">{copy.auth.english}</option>
+            <option value="ro">{copy.auth.romanian}</option>
+          </select>
+        </label>
       </details>
 
       <details className="profile-settings settings-card settings-card--social">

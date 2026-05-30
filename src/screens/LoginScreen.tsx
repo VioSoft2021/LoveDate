@@ -392,11 +392,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <p className="login-hero-promise">{copy.auth.heroPromise}</p>
         </section>
 
-        {/* Language picker hidden 2026-05-26 — app is hard-locked to
-            English until the Romanian translation pass lands. The
-            footer + select markup is kept commented in case we need
-            quick visual reference when re-enabling, but the actual
-            JSX is removed so it can't render. */}
+        {/* Language picker — restored 2026-05-30 after the Romanian copy
+            pass landed (was hidden 2026-05-26 during the English hard-lock).
+            Label deleted per Master's instruction (2026-05-25), just the
+            <select> remains, in the top-right corner. */}
+        <footer className="login-hero-footer">
+          <select
+            className="login-hero-language-select"
+            value={appLanguage}
+            onChange={(event) => setAppLanguage(event.target.value as AppLanguage)}
+            aria-label={copy.auth.language}
+          >
+            <option value="en">{copy.auth.english}</option>
+            <option value="ro">{copy.auth.romanian}</option>
+          </select>
+        </footer>
       </main>
     )
   }
@@ -427,8 +437,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           />
           <Logo variant="hero" size="lg" showSlogan className="login-hero-logo" />
         </div>
-        {/* Language picker hidden 2026-05-26 — app is hard-locked to
-            English until the Romanian translation pass lands. */}
+        {/* Language picker — restored 2026-05-30 after the Romanian copy
+            pass landed (was hidden 2026-05-26 during the English hard-lock). */}
+        <div className="login-language-row">
+          <label>
+            {copy.auth.language}
+            <select
+              value={appLanguage}
+              onChange={(event) => setAppLanguage(event.target.value as AppLanguage)}
+            >
+              <option value="en">{copy.auth.english}</option>
+              <option value="ro">{copy.auth.romanian}</option>
+            </select>
+          </label>
+        </div>
         {!showWaitlist && (
           <>
             <h1>{authMode === 'register' ? copy.auth.createTitle : copy.auth.signInTitle}</h1>
