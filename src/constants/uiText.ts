@@ -755,12 +755,12 @@ export const UI_TEXT = {
       romanian: 'Română',
       // Phase A — ecranul de start (oglindă a CTA-ului din filmul de prezentare)
       // Rebalansat 2026-05-24 — vezi nota EN de mai sus.
-      heroEyebrow: 'Doar pe bază de invitație',
+      heroEyebrow: 'Doar cu invitație',
       // Două rânduri în coloana dreaptă a hero-ului LoginScreen.
       // \n marchează separarea pe rânduri; JSX împarte după acest caracter.
-      heroTagline: 'Cel mai bun lucru pentru tine',
+      heroTagline: 'Cel mai bun lucru pe care îl poți face pentru tine',
       // Paragraf editorial — proză italică mică care umple golul vizual cu sens.
-      heroManifesto: 'O cameră liniștită, doar pe bază de invitație. Unde zgomotul aplicațiilor de întâlniri se stinge — și rămâne doar ce contează: potriviri atente, introduceri scrise cu grijă, și răbdarea de a cunoaște pe cineva real.',
+      heroManifesto: 'O cameră liniștită, doar cu invitație. Unde zgomotul aplicațiilor de întâlniri se stinge — și rămâne doar ce contează: potriviri gândite, prezentări scrise cu grijă și răbdarea de a cunoaște pe cineva real.',
       // Trei căi egale — toate la fel de respectate la intrare.
       heroRequestAccess: 'Solicită acces',
       heroHaveInvite: 'Folosește invitația',
@@ -768,7 +768,7 @@ export const UI_TEXT = {
       // Guest Tour (2026-05-26) — a patra poartă. Fără invitație, fără
       // email, fără parolă; vizitatorul vede aplicația cu profile
       // sintetice pentru a simți Privé înainte să-și ceară accesul.
-      heroTakeTour: 'Vezi o demonstrație',
+      heroTakeTour: 'Aruncă o privire',
       // Sitch-style framing (2026-05-30) — versiunea în română.
       heroPromise: '3–5 potriviri alese cu grijă pe săptămână — nu 80–100 pe zi.',
       // Phase 3 banner persistent deasupra TopBar-ului în Guest Tour
@@ -795,15 +795,15 @@ export const UI_TEXT = {
       lookingForUnsure: 'Încă nu știu',
       whyLabel: 'De ce Privé? O frază două.',
       whyPlaceholder: 'Ce te-a făcut să cauți ceva diferit…',
-      invalidFields: 'Te rugăm completează fiecare câmp — vârsta trebuie să fie cel puțin 18 ani.',
+      invalidFields: 'Te rugăm să completezi fiecare câmp — vârsta trebuie să fie cel puțin 18 ani.',
       submit: 'Solicită acces',
       submitting: 'Se trimite…',
       successTitle: 'Ești pe listă.',
       successBody: 'Analizăm fiecare cerere personal. Dacă Privé ți se potrivește, te vom contacta.',
       requestAccessLink: 'Solicită acces',
-      invalidEmail: 'Te rugăm introdu o adresă de email validă.',
+      invalidEmail: 'Te rugăm să introduci o adresă de email validă.',
       rateLimited: 'Ai cerut deja acces recent. Verifică inbox-ul sau încearcă mâine.',
-      submitFailed: 'Nu am putut trimite cererea. Te rugăm încearcă din nou.',
+      submitFailed: 'Nu am putut trimite cererea. Te rugăm să încerci din nou.',
       // Pagina de răspuns (follow-up needs-info)
       replyTitle: 'Încă un lucru',
       replyGreeting: 'Bună, {name} —',
@@ -814,8 +814,8 @@ export const UI_TEXT = {
       replySuccessTitle: 'Mulțumim.',
       replySuccessBody: 'Am primit răspunsul tău și revenim curând.',
       replyInvalid: 'Acest link nu mai este valid. Poate a fost deja folosit.',
-      replyFailed: 'Nu am putut trimite răspunsul. Te rugăm încearcă din nou.',
-      replyEmpty: 'Te rugăm scrie un răspuns scurt mai întâi.',
+      replyFailed: 'Nu am putut trimite răspunsul. Te rugăm să încerci din nou.',
+      replyEmpty: 'Te rugăm să scrii un răspuns scurt mai întâi.',
       // Secțiune admin
       adminTitle: 'Listă de așteptare',
       adminPending: 'În așteptare',
@@ -854,8 +854,8 @@ export const UI_TEXT = {
       submittedTitle: 'Trimis spre verificare',
       submittedBody: 'Îți verificăm selfie-ul manual — de obicei într-o zi. Insigna ta aurie apare după ce ești verificat.',
       cameraDenied: 'Avem nevoie de acces la cameră ca să te verificăm. Activează-l din setări și încearcă din nou.',
-      cameraFailed: 'Nu am putut deschide camera. Te rugăm încearcă din nou.',
-      uploadFailed: 'Nu am putut trimite selfie-ul. Te rugăm încearcă din nou.',
+      cameraFailed: 'Nu am putut deschide camera. Te rugăm să încerci din nou.',
+      uploadFailed: 'Nu am putut trimite selfie-ul. Te rugăm să încerci din nou.',
       cancel: 'Anulează',
       close: 'Închide',
       poses: [
@@ -901,7 +901,7 @@ export const UI_TEXT = {
       // atașament, iar Claude scrie ulterior dezvăluirea per utilizator.
       quizTitle: 'Descoperă-ți personalitatea în iubire',
       quizSubtitle: 'Felul în care iubești',
-      quizBody: 'Paisprezece afirmații scurte, bazate pe psihologia reală a relațiilor. Personalitatea ta în iubire permite AI-ului să te potrivească cu oameni care chiar se potrivesc.',
+      quizBody: 'Paisprezece afirmații scurte, bazate pe psihologia reală a relațiilor. Personalitatea ta în iubire lasă AI-ul să te conecteze cu oameni care chiar ți se potrivesc.',
       quizQuestionOf: 'Întrebarea {n} din {total}',
       quizBigFiveStem: 'Mă văd ca pe cineva care…',
       quizAttachmentStem: 'Cât de bine te descrie asta în relațiile apropiate?',
@@ -928,7 +928,7 @@ export const UI_TEXT = {
       quizRevealPending: 'O dezvăluire cinematografică — scrisă doar pentru tine — va sosi după ce profilul tău devine activ.',
       quizRevealLoading: 'Privé îți scrie dezvăluirea…',
       quizStrengthsLabel: 'Puncte forte',
-      quizGrowthEdgesLabel: 'Margini de explorat',
+      quizGrowthEdgesLabel: 'Direcții de creștere',
       quizProgress: '{n} din {total} răspunsuri',
       // Testul poate fi sărit — răspunsurile goale nu stochează lovePersonality;
       // ecranul de profil te invită să-l reiei mai târziu.
@@ -944,15 +944,15 @@ export const UI_TEXT = {
       readyBody: 'Profilul tău este activ. Privé caută potriviri pentru tine acum.',
       readyEnter: 'Intră în Privé',
       // Erori validare
-      errorNeedPhoto: 'Te rugăm adaugă cel puțin o poză.',
-      errorNeedName: 'Te rugăm spune-ne numele tău.',
+      errorNeedPhoto: 'Te rugăm să adaugi cel puțin o poză.',
+      errorNeedName: 'Te rugăm să ne spui numele tău.',
       errorNeedAge: 'Vârsta trebuie să fie între 18 și 99.',
-      errorNeedGender: 'Te rugăm alege un gen.',
-      errorNeedCity: 'Te rugăm adaugă orașul tău.',
+      errorNeedGender: 'Te rugăm să alegi un gen.',
+      errorNeedCity: 'Te rugăm să adaugi orașul tău.',
     },
     callToasts: {
       inviteCopied: 'Link-ul de invitație la apel a fost copiat.',
-      copyFailed: 'Copierea a eșuat. Te rugăm copiază linkul manual din chat.',
+      copyFailed: 'Copierea a eșuat. Te rugăm să copiezi linkul manual din chat.',
     },
     updateBanner: {
       message: 'O versiune nouă este pregătită.',
@@ -1014,7 +1014,7 @@ export const UI_TEXT = {
       aiEyebrowState: 'Te ascultă',
       aiPromptLabel: 'Spune-ne pe cine cauți',
       aiPromptPlaceholder: 'ex. cineva serios, pasionat de drumeții, nu de cluburi…',
-      aiPromptHint: 'Privé AI ponderează potrivirile pe baza acestui text — nu este un filtru strict.',
+      aiPromptHint: 'Privé AI ține cont de asta când îți caută potriviri — nu e un filtru strict.',
       hardConstraints: 'Restricții',
       ageRange: 'Vârstă',
       matchCount: 'potriviri',
@@ -1191,14 +1191,14 @@ export const UI_TEXT = {
       datePlanGoldenTitle: 'Întâlnire scurtă la apus',
       datePlanGoldenPlace: '{anchor} + plimbare pitorească',
       datePlanGoldenDuration: '60-90 min',
-      datePlanGoldenPitch: 'O primă întâlnire {tone}: o oprire scurtă pentru {anchor} și apoi o plimbare scurtă în {city}.',
+      datePlanGoldenPitch: 'O primă întâlnire {tone}: o oprire rapidă pentru {anchor} și apoi o plimbare lejeră în {city}.',
       datePlanGoldenMessage: 'Am o idee: o primă întâlnire {tone} săptămâna asta — {anchor} și o plimbare scurtă la apus în {city}. 60-90 minute, lejer. Ce zi îți convine?',
       datePlanCultureTitle: 'Cultură și conversație',
       datePlanCulturePlace: 'galerie sau muzeu + {anchorTwo}',
       datePlanCultureDuration: '2-3 ore',
       datePlanCulturePitch: 'O întâlnire mai profundă, cu momente de conversație și gust comun pentru {anchorTwo}.',
       datePlanCultureMessage: 'Ai chef de o întâlnire culturală? Putem trece pe la o galerie sau un muzeu și apoi {anchorTwo}. Cred că s-ar potrivi vibe-ului nostru.',
-      datePlanSignatureTitle: 'Plan de seară',
+      datePlanSignatureTitle: 'O seară memorabilă',
       datePlanSignaturePlace: 'experiență {anchor} + cină',
       datePlanSignatureDuration: '3-4 ore',
       datePlanSignaturePitch: 'O întâlnire mai elaborată, gândită în jurul chimiei și energiei voastre comune.',
@@ -1220,7 +1220,7 @@ export const UI_TEXT = {
       attachmentStyleLabel: 'Stil de atașament',
       lovePersonalityAwaitingReveal: 'Personalitatea ta în iubire se pregătește…',
       lovePersonalityNotTaken: 'Privé AI folosește asta ca să găsească oameni care chiar ți se potrivesc.',
-      lovePersonalityRetakeHint: 'Evaluarea ta este înregistrată. Reia oricând sau deschide ghidul cu cadrul psihologic.',
+      lovePersonalityRetakeHint: 'Rezultatul tău e salvat. Reia evaluarea oricând sau deschide ghidul care explică modelul.',
       lovePersonalityOpenCta: 'Deschide-ți personalitatea în iubire →',
       lovePersonalityOpenAria: 'Deschide-ți personalitatea în iubire',
       lovePersonalityTakeCta: 'Începe evaluarea →',
@@ -1251,7 +1251,7 @@ export const UI_TEXT = {
       personalityGuide: 'Ghid Personalitate în iubire',
       personalityGuideSubtitle: 'Înțelege-ți personalitatea în iubire',
       personalityCodeExample:
-        'Exemplu: DMFR înseamnă Decisiv, Mindful, Feeling, Rezervat. Fiecare literă descrie felul în care iubești și creezi conexiuni.',
+        'Exemplu: un cod precum DMFR rezumă în patru litere felul în care iubești și creezi conexiuni — fiecare literă, o trăsătură.',
       backToProfile: 'Înapoi la profil',
       letterMeanings: 'Semnificația literelor',
       opposite: 'Opus',
@@ -1269,14 +1269,14 @@ export const UI_TEXT = {
       pairDynamicError: 'Nu am putut genera acum. Încearcă din nou peste un moment.',
       pairDynamicRetry: 'Încearcă din nou',
       pairDynamicStrengthsLabel: 'Ce funcționează între voi',
-      pairDynamicFrictionsLabel: 'Unde v-ați putea freca',
+      pairDynamicFrictionsLabel: 'Unde ar putea apărea fricțiuni',
       pairDynamicGrowthEdgeLabel: 'Ce ar putea crește dacă vă deschideți amândoi',
       pairDynamicMissingData: 'Amândoi trebuie să completați evaluarea Personalitate în iubire pentru a debloca dinamica voastră.',
       compatibilityChemistryTitle: 'Chimia compatibilității',
       cognitiveFunctionsTitle: 'Funcții cognitive',
       zodiacProfileTitle: 'Profil zodiacal',
       zodiacReadingFooter:
-        'Lectură completă: acest semn tinde să se simtă cel mai împlinit atunci când ritmul relației, limbajul emoțional și comportamentul de zi cu zi se aliniază cu aceste trăsături, nu doar atracția.',
+        'Interpretare completă: acest semn tinde să se simtă cel mai împlinit atunci când ritmul relației, limbajul emoțional și comportamentul de zi cu zi se aliniază cu aceste trăsături — nu doar atracția.',
       compatibilityScore: 'Scor de compatibilitate',
       personalityFit: 'Potrivire de personalitate',
       pair: 'Pereche',
