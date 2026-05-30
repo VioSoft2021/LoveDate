@@ -1,4 +1,4 @@
-// LoveDate — AI Date Planner (Phase E4 — first-class date planning)
+// Privé — AI Date Planner (Phase E4 — first-class date planning)
 //
 // Replaces the hand-rolled template plan generator in App.tsx
 // (generateAiDatePlans). Given both profiles, produces 3 distinct,
@@ -74,7 +74,7 @@ const buildUserPrompt = (body: RequestBody): string => {
 }
 
 const buildSystemPrompt = (language: 'en' | 'ro'): string => {
-  const baseRules = `You are a thoughtful date planner inside a dating app called LoveDate. You suggest specific, well-considered first-date plans for the Sender to propose to the Recipient.
+  const baseRules = `You are a thoughtful date planner inside a dating app called Privé. You suggest specific, well-considered first-date plans for the Sender to propose to the Recipient.
 
 Output rules:
 - Exactly 3 plan objects in order: casual ("$"), mid ("$$"), signature ("$$$").
