@@ -39,6 +39,7 @@ import { useToasts } from './hooks/useToasts'
 import { useEngagement } from './hooks/useEngagement'
 import { useAppSettings } from './hooks/useAppSettings'
 import { useRouter } from './hooks/useRouter'
+import { useStableMatch } from './hooks/useStableMatch'
 import { ActivityScreen } from './screens/ActivityScreen'
 import { ChatScreen } from './screens/ChatScreen'
 import { DiscoverScreen } from './screens/DiscoverScreen'
@@ -1264,6 +1265,11 @@ function App() {
       return !r || r.matches !== false
     })
   }, [clientFilteredProfiles, semanticByProfileId])
+
+  // 2026-05-30 — second matching lens (Gale-Shapley) runs over the same
+  // pool the user actually sees. The verdict is surfaced on the top
+  // profile card next to the existing AI compatibility score.
+  const stableMatchVerdict = useStableMatch(selfProfile, filteredProfiles)
 
   // D3 — hydrate filter preferences from the cloud on auth.
   // backendSavePreferences has always written to user_preferences; this
@@ -2912,6 +2918,7 @@ function App() {
             pushNotification={pushNotification}
             aiFilterStatus={aiFilterStatus}
             aiFilterPrompt={trimmedAiPrompt}
+            stableMatchVerdict={stableMatchVerdict}
           />
         )}
         {screen === 'activity' && (

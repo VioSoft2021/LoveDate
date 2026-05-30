@@ -385,6 +385,14 @@ export const UI_TEXT = {
       deeperWhyHide: 'Hide deeper why',
       frictionPoints: 'Possible friction',
       tips: 'Tips to navigate',
+      // Two-lens matching surfaces (2026-05-30) — AI compatibility above
+      // answers "how compatible are you?"; Gale-Shapley answers "given the
+      // full pool, would this pair stay together or would one defect?"
+      stableMatchLabel: 'Stable match (Gale-Shapley)',
+      stableMatchSelfBadge: 'This is your stable match in the current pool ★',
+      stableMatchOther: 'Your stable match in the current pool: ',
+      stableMatchPending: 'Pending — needs more profiles with the personality assessment.',
+      stableMatchExplainer: 'A second lens: Gale-Shapley (1962, Nobel 2012) checks the whole pool to find the pair you\'d both keep over anyone else. Differs from personality compatibility — that asks "how well do you fit?", this asks "is this stable?"',
     },
     settings: {
       controlCenter: 'Control Center',
@@ -1068,6 +1076,12 @@ export const UI_TEXT = {
       deeperWhyHide: 'Ascunde detaliile',
       frictionPoints: 'Posibile fricțiuni',
       tips: 'Sfaturi pentru navigare',
+      // Două lentile pentru aceeași potrivire (2026-05-30) — versiunea RO.
+      stableMatchLabel: 'Potrivire stabilă (Gale-Shapley)',
+      stableMatchSelfBadge: 'Acesta este partenerul tău stabil în grupul actual ★',
+      stableMatchOther: 'Partenerul tău stabil în grupul actual: ',
+      stableMatchPending: 'În așteptare — sunt necesare mai multe profile cu evaluarea de personalitate.',
+      stableMatchExplainer: 'A doua lentilă: Gale-Shapley (1962, Nobel 2012) verifică întregul grup pentru a găsi perechea pe care amândoi ați alege-o în locul oricui altcuiva. Diferă de compatibilitatea de personalitate — aceea întreabă „cât de bine vă potriviți?", aceasta întreabă „este stabilă?"',
     },
     settings: {
       controlCenter: 'Centru de control',

@@ -15,6 +15,7 @@ import type {
   SwipeIntent,
 } from '../domain'
 import type { Profile } from '../services/priveApi'
+import type { StableMatchVerdict } from '../hooks/useStableMatch'
 
 export type DiscoverScreenProps = {
   appLanguage: AppLanguage
@@ -84,6 +85,10 @@ export type DiscoverScreenProps = {
   // existing tests + any other caller don't need to pass them.
   aiFilterStatus?: 'inactive' | 'fetching' | 'active' | 'error'
   aiFilterPrompt?: string
+  // 2026-05-30 — second matching lens (Gale-Shapley). Optional so existing
+  // test fixtures keep working; when present, renders alongside the AI
+  // compatibility score on the top profile.
+  stableMatchVerdict?: StableMatchVerdict
 }
 
 const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
@@ -96,6 +101,7 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
   upcoming,
   topProfileMatchAnalysis,
   topProfileChemistry,
+  stableMatchVerdict,
   likeUsage,
   superLikeUsage,
   boostsLeft,
@@ -565,6 +571,22 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
                   {copy.discover.cognitiveOverlap}: {topProfileChemistry.cognitiveOverlapScore}%{' '}
                   {'•'} {copy.discover.zodiac}:{' '}
                   {topProfileChemistry.zodiacAligned ? copy.discover.aligned : copy.discover.neutral}
+                </p>
+              ) : null}
+              {/* Second matching lens — Gale-Shapley stable matching across
+                  the full pool. Different question than personality
+                  compatibility above; we surface both side by side. */}
+              {stableMatchVerdict ? (
+                <p
+                  className="compatibility-score stable-match-line"
+                  title={copy.discover.stableMatchExplainer}
+                >
+                  {copy.discover.stableMatchLabel}:{' '}
+                  {stableMatchVerdict.match
+                    ? stableMatchVerdict.isStableMatch(topProfile.id)
+                      ? <strong>{copy.discover.stableMatchSelfBadge}</strong>
+                      : <em>{copy.discover.stableMatchOther}{stableMatchVerdict.match.name}</em>
+                    : <em>{copy.discover.stableMatchPending}</em>}
                 </p>
               ) : null}
               {topProfileMatchAnalysis?.reasons?.length ? (
