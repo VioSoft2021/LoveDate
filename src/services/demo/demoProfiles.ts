@@ -1,3 +1,4 @@
+import type { LovePersonality } from '../compatibility'
 import type { Profile } from '../priveApi'
 
 /**
@@ -26,6 +27,28 @@ import type { Profile } from '../priveApi'
 
 const unsplash = (id: string): string =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1600&q=85`
+
+/**
+ * Guest Tour self-profile seed (2026-05-30). The Gale-Shapley stable-match
+ * lens on the Discover card computes its verdict from the *viewer's own*
+ * Big Five + attachment against the pool. A brand-new guest has neither
+ * (the onboarding quiz is skippable), so the line would read "Pending"
+ * forever and this marquee feature would stay invisible during the tour.
+ *
+ * We seed a complete, secure Love Personality + a binary gender at guest
+ * login (see App.tsx). Only these two fields are seeded — name + photos
+ * stay empty so the onboarding wizard still triggers as for any new user,
+ * and a guest who actually completes the quiz overwrites this with their
+ * real result.
+ */
+export const DEMO_GUEST_GENDER = 'Woman'
+
+export const DEMO_GUEST_LOVE_PERSONALITY: LovePersonality = {
+  bigFive: { openness: 80, conscientiousness: 70, extraversion: 52, agreeableness: 76, neuroticism: 30 },
+  attachment: 'secure',
+  attachmentRatings: { secure: 5, anxious: 2, avoidant: 2, disorganized: 1 },
+  completedAt: '2026-05-30T00:00:00.000Z',
+}
 
 export const DEMO_PROFILES: Profile[] = [
   {

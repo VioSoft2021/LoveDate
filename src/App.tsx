@@ -5,6 +5,7 @@ import { StatusBar, Style } from '@capacitor/status-bar'
 import './App.css'
 import { getMyMatches, resolveMatch, type Profile } from './services/priveApi'
 import { DEMO_AUTO_REPLIES, DEMO_GENERIC_AUTO_REPLIES } from './services/demo/demoConstants'
+import { DEMO_GUEST_GENDER, DEMO_GUEST_LOVE_PERSONALITY } from './services/demo/demoProfiles'
 import { backendInvokeDatePlanner } from './services/ai/datePlanner'
 import { backendInvokeIcebreaker } from './services/ai/icebreaker'
 import {
@@ -890,6 +891,29 @@ function App() {
     profileEmpty,
     navigate,
   ])
+
+  // Guest Tour (2026-05-30): seed the self profile's Love Personality +
+  // gender so the Gale-Shapley stable-match lens on the Discover card
+  // shows a real verdict instead of "Pending". A real guest has no
+  // personality data (the onboarding quiz is skippable), which would
+  // otherwise leave this marquee feature invisible during the entire tour.
+  // Only the two fields G-S needs are seeded — name + photos stay empty so
+  // the onboarding wizard still triggers (profileEmpty is unaffected), and
+  // a guest who completes the quiz overwrites lovePersonality with their
+  // real result. Gender is only filled when it isn't already a binary value
+  // (so a guest's own onboarding choice is never clobbered).
+  useEffect(() => {
+    if (!isGuest) return
+    if (selfProfile.lovePersonality) return
+    setSelfProfile((prev) => ({
+      ...prev,
+      gender:
+        prev.gender === 'Man' || prev.gender === 'Woman'
+          ? prev.gender
+          : DEMO_GUEST_GENDER,
+      lovePersonality: DEMO_GUEST_LOVE_PERSONALITY,
+    }))
+  }, [isGuest, selfProfile.lovePersonality, setSelfProfile])
 
   // Cloud-backed match list. Run on every authed mount so matches survive
   // reinstall — the local history state starts empty after a wipe, but the
