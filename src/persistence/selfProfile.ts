@@ -5,6 +5,7 @@ import {
   SOCIAL_PLATFORM_META,
 } from '../constants'
 import { PERSONALITY_QUESTION_COUNT, type LikertAnswer } from '../services/compatibility'
+import { STABILITY_QUESTION_COUNT } from '../services/stability'
 import { backendReadSelfProfile } from '../services/backendApi'
 
 /**
@@ -22,6 +23,22 @@ const sanitizeLikertAnswers = (raw: unknown): LikertAnswer[] | undefined => {
       cleaned.push(v)
     } else {
       return undefined // any invalid value → treat as not-yet-taken
+    }
+  }
+  return cleaned
+}
+
+/** Stability Assessment — sanitize the 12 Likert answers (1-5 integers). */
+const sanitizeStabilityAnswers = (raw: unknown): LikertAnswer[] | undefined => {
+  if (!Array.isArray(raw) || raw.length !== STABILITY_QUESTION_COUNT) {
+    return undefined
+  }
+  const cleaned: LikertAnswer[] = []
+  for (const v of raw) {
+    if (v === 1 || v === 2 || v === 3 || v === 4 || v === 5) {
+      cleaned.push(v)
+    } else {
+      return undefined
     }
   }
   return cleaned
@@ -116,6 +133,8 @@ export const normalizeSelfProfile = (raw: unknown): SelfProfile => {
       photos: safePhotos.length > 0 ? safePhotos : EMPTY_SELF_PROFILE.photos,
       personalityAnswers: sanitizeLikertAnswers(parsed.personalityAnswers),
       lovePersonality: parsed.lovePersonality,
+      stabilityAnswers: sanitizeStabilityAnswers(parsed.stabilityAnswers),
+      stabilityProfile: parsed.stabilityProfile,
     }
   } catch {
     return EMPTY_SELF_PROFILE

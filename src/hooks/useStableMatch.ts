@@ -31,6 +31,10 @@ import type {
 } from '../services/compatibility'
 import { compatibilityFromBigFiveAttachment } from '../services/compatibility'
 import {
+  stabilityFromProfiles,
+  type StabilityProfile,
+} from '../services/stability'
+import {
   findStablePartner,
   gaeShapleyStableMatch,
 } from '../services/stableMatch'
@@ -42,6 +46,8 @@ type Participant = {
   gender: Profile['gender']
   bigFive: BigFiveScores
   attachment: AttachmentStyle
+  /** Optional — present only when the participant took the Stability Assessment. */
+  stability: StabilityProfile | null
   profile: Profile | null // null only for self
 }
 
@@ -95,6 +101,7 @@ export function useStableMatch(
       gender: selfGender as Profile['gender'],
       bigFive: selfBigFive,
       attachment: selfAttachment,
+      stability: selfProfile.stabilityProfile ?? null,
       profile: null,
     }
 
@@ -108,6 +115,7 @@ export function useStableMatch(
         gender: p.gender,
         bigFive: p.bigFive as BigFiveScores,
         attachment: p.attachmentStyle as AttachmentStyle,
+        stability: p.stabilityProfile ?? null,
         profile: p,
       }))
 
@@ -123,13 +131,23 @@ export function useStableMatch(
     const result = gaeShapleyStableMatch<Participant>({
       proposers,
       receivers,
-      scoreOf: (a, b) =>
-        compatibilityFromBigFiveAttachment(
+      // Preference score. When BOTH sides took the optional Stability
+      // Assessment, blend 60% personality compatibility + 40% stability
+      // durability so the stable match becomes stability-aware. Otherwise
+      // fall back to personality-only (no regression for users who skip it).
+      scoreOf: (a, b) => {
+        const personality = compatibilityFromBigFiveAttachment(
           a.bigFive,
           a.attachment,
           b.bigFive,
           b.attachment,
-        ),
+        )
+        if (a.stability && b.stability) {
+          const stab = stabilityFromProfiles(a.stability, b.stability).score
+          return Math.round(personality * 0.6 + stab * 0.4)
+        }
+        return personality
+      },
       identify: (p) => p.id,
     })
 

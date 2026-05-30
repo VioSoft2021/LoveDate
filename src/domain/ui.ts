@@ -10,6 +10,7 @@ export type AppScreen =
   | 'photo-studio'
   | 'love-personality'
   | 'love-personality-quiz'
+  | 'stability-quiz'
   | 'personality-guide'
   | 'settings'
   | 'moderation'

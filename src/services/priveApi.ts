@@ -1,5 +1,11 @@
 import { createSupabaseClient } from './supabaseClient'
 import type { AttachmentStyle, BigFiveScores } from './compatibility'
+import type {
+  StabilityProfile,
+  ChildrenStance,
+  FinanceStance,
+  PaceStance,
+} from './stability'
 
 export type Profile = {
   id: number
@@ -25,6 +31,12 @@ export type Profile = {
   // neutral 50 and the UI prompts them to take it.
   bigFive?: BigFiveScores
   attachmentStyle?: AttachmentStyle
+  // Stability Assessment (2026-05-30) — public derived profile from the
+  // OWNER's private stability answers (raw answers never leave
+  // profile_private). Optional: undefined means the user hasn't taken the
+  // optional second assessment, in which case the stability lens stays
+  // "pending" and matching falls back to personality-only.
+  stabilityProfile?: StabilityProfile
 }
 
 const toHighResPhoto = (url: string): string => {
@@ -161,6 +173,11 @@ const mapProfileRow = (row: Record<string, unknown>): Profile | null => {
       ? attachmentStyleRaw
       : undefined
 
+  // Stability Assessment — read the public derived profile from the
+  // stability_profile jsonb column. Defensively validated; undefined when
+  // absent or malformed.
+  const stabilityProfile = parseStabilityProfile(row.stability_profile, isFiniteNum)
+
   return {
     id,
     authUserId: row.auth_user_id ? String(row.auth_user_id) : null,
@@ -179,6 +196,49 @@ const mapProfileRow = (row: Record<string, unknown>): Profile | null => {
     zodiac: String(row.zodiac ?? 'Libra'),
     bigFive,
     attachmentStyle,
+    stabilityProfile,
+  }
+}
+
+/**
+ * Validate the public stability_profile jsonb into a StabilityProfile.
+ * Returns undefined for absent or malformed data so callers fall back to
+ * the personality-only path.
+ */
+const parseStabilityProfile = (
+  raw: unknown,
+  isFiniteNum: (v: unknown) => v is number,
+): StabilityProfile | undefined => {
+  if (!raw || typeof raw !== 'object') return undefined
+  const o = raw as Record<string, unknown>
+  if (
+    !isFiniteNum(o.conflictRepair) ||
+    !isFiniteNum(o.commitment) ||
+    !isFiniteNum(o.communication)
+  ) {
+    return undefined
+  }
+  const values = o.values && typeof o.values === 'object'
+    ? (o.values as Record<string, unknown>)
+    : null
+  if (!values) return undefined
+  const children = values.children
+  const finances = values.finances
+  const pace = values.pace
+  const okChildren = children === 'yes' || children === 'unsure' || children === 'no'
+  const okFinances = finances === 'saver' || finances === 'balanced' || finances === 'spender'
+  const okPace = pace === 'fast' || pace === 'balanced' || pace === 'slow'
+  if (!okChildren || !okFinances || !okPace) return undefined
+  return {
+    conflictRepair: o.conflictRepair,
+    commitment: o.commitment,
+    communication: o.communication,
+    values: {
+      children: children as ChildrenStance,
+      finances: finances as FinanceStance,
+      pace: pace as PaceStance,
+    },
+    completedAt: typeof o.completedAt === 'string' ? o.completedAt : '',
   }
 }
 

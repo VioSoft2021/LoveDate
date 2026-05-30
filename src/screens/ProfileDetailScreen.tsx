@@ -18,6 +18,8 @@ import {
   backendInvokePairDynamicReveal,
   type PairDynamicReveal,
 } from '../services/ai/pairDynamicReveal'
+import { backendInvokeStabilityReveal } from '../services/ai/stabilityReveal'
+import { stabilityFromProfiles, type StabilityReveal } from '../services/stability'
 import type {
   AppLanguage,
   ChemistryInsights,
@@ -163,6 +165,48 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
     selfId,
     appLanguage,
   ])
+
+  // Stability reveal state (2026-05-30) — per-match durability reading from
+  // the optional Stability Assessment. Mirrors the pair-dynamic flow; resets
+  // when navigating between matches.
+  const [stabReveal, setStabReveal] = React.useState<StabilityReveal | null>(null)
+  const [stabLoading, setStabLoading] = React.useState(false)
+  const [stabFailed, setStabFailed] = React.useState(false)
+  React.useEffect(() => {
+    setStabReveal(null)
+    setStabLoading(false)
+    setStabFailed(false)
+  }, [selectedDetailProfile?.id])
+
+  const selfStability = selfProfile.stabilityProfile ?? null
+  const otherStability = selectedDetailProfile?.stabilityProfile ?? null
+  const stabDataReady = Boolean(isMatched && selfStability && otherStability)
+  const stabVerdict =
+    selfStability && otherStability
+      ? stabilityFromProfiles(selfStability, otherStability)
+      : null
+
+  const requestStabReveal = React.useCallback(async () => {
+    if (!selectedDetailProfile || !selfStability || !otherStability) return
+    setStabLoading(true)
+    setStabFailed(false)
+    const reveal = await backendInvokeStabilityReveal({
+      selfId,
+      selfStability,
+      selfName: selfProfile.name?.trim() || undefined,
+      otherId: String(selectedDetailProfile.id),
+      otherStability,
+      otherName: selectedDetailProfile.name?.trim() || undefined,
+      band: stabilityFromProfiles(selfStability, otherStability).band,
+      language: appLanguage,
+    })
+    setStabLoading(false)
+    if (!reveal) {
+      setStabFailed(true)
+      return
+    }
+    setStabReveal(reveal)
+  }, [selectedDetailProfile, selfStability, otherStability, selfProfile.name, selfId, appLanguage])
 
   if (!selectedDetailProfile) {
     return (
@@ -440,6 +484,119 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
               >
                 {copy.profile.pairDynamicCta} →
               </button>
+            )}
+          </section>
+        ) : null}
+        {pairSectionVisible ? (
+          <section className="match-insights profile-detail-pair-dynamic">
+            <p className="profile-detail-pair-dynamic-eyebrow">
+              {copy.profile.stabilityRevealEyebrow}
+            </p>
+            <h3>{copy.profile.stabilityRevealTitle}</h3>
+            {!stabDataReady || !stabVerdict ? (
+              <p className="profile-detail-pair-dynamic-status">
+                {copy.profile.stabilityRevealMissingData}
+              </p>
+            ) : (
+              <>
+                {/* Always-on band + reason — stands on its own even before
+                    (or without) the AI reveal. */}
+                <p className="profile-detail-pair-dynamic-headline">
+                  {copy.discover.stabilityLensLabel}:{' '}
+                  <strong>{copy.discover.stabilityBands[stabVerdict.band]}</strong>
+                  {stabVerdict.drivers.length > 0 && (
+                    <>
+                      {' — '}
+                      {stabVerdict.drivers
+                        .slice(0, 2)
+                        .map((d) =>
+                          d.polarity === 'positive'
+                            ? copy.discover.stabilityDriverPositive[d.key]
+                            : copy.discover.stabilityDriverRisk[d.key],
+                        )
+                        .join(', ')}
+                    </>
+                  )}
+                </p>
+                {stabReveal ? (
+                  <>
+                    <p className="profile-detail-pair-dynamic-archetype">
+                      {stabReveal.archetype}
+                    </p>
+                    <p className="profile-detail-pair-dynamic-headline">
+                      {stabReveal.headline}
+                    </p>
+                    <div className="profile-detail-pair-dynamic-paragraphs">
+                      {stabReveal.description.split(/\n\n+/).map((paragraph, idx) => (
+                        <p key={idx}>{paragraph}</p>
+                      ))}
+                    </div>
+                    {stabReveal.strengths.length > 0 && (
+                      <div className="profile-detail-pair-dynamic-chips-block">
+                        <span className="profile-detail-pair-dynamic-chips-label">
+                          {copy.profile.stabilityStrengthsLabel}
+                        </span>
+                        <div className="profile-detail-pair-dynamic-chips-row">
+                          {stabReveal.strengths.map((s, idx) => (
+                            <span key={idx} className="profile-detail-pair-dynamic-chip">{s}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {stabReveal.watchPoints.length > 0 && (
+                      <div className="profile-detail-pair-dynamic-chips-block">
+                        <span className="profile-detail-pair-dynamic-chips-label">
+                          {copy.profile.stabilityWatchPointsLabel}
+                        </span>
+                        <div className="profile-detail-pair-dynamic-chips-row">
+                          {stabReveal.watchPoints.map((s, idx) => (
+                            <span key={idx} className="profile-detail-pair-dynamic-chip is-friction">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {stabReveal.sharedWork && (
+                      <div className="profile-detail-pair-dynamic-chips-block">
+                        <span className="profile-detail-pair-dynamic-chips-label">
+                          {copy.profile.stabilitySharedWorkLabel}
+                        </span>
+                        <div className="profile-detail-pair-dynamic-chips-row">
+                          <span className="profile-detail-pair-dynamic-chip is-growth">
+                            {stabReveal.sharedWork}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : stabLoading ? (
+                  <p className="profile-detail-pair-dynamic-status">
+                    {copy.profile.stabilityRevealLoading}
+                  </p>
+                ) : stabFailed ? (
+                  <>
+                    <p className="profile-detail-pair-dynamic-status">
+                      {copy.profile.stabilityRevealError}
+                    </p>
+                    <button
+                      type="button"
+                      className="profile-detail-pair-dynamic-cta"
+                      onClick={() => void requestStabReveal()}
+                    >
+                      {copy.profile.stabilityRevealRetry}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="profile-detail-pair-dynamic-cta"
+                    onClick={() => void requestStabReveal()}
+                  >
+                    {copy.profile.stabilityRevealCta} →
+                  </button>
+                )}
+              </>
             )}
           </section>
         ) : null}

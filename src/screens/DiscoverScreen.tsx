@@ -3,6 +3,7 @@ import './DiscoverScreen.css'
 import { UI_TEXT, ZODIAC_EMOJI, initialFilters, translateInterest } from '../constants'
 import { buildHighResImageUrl } from '../utils'
 import { compatibilityFromBigFiveAttachment } from '../services/compatibility'
+import { stabilityFromProfiles, type StabilityProfile } from '../services/stability'
 import { distanceBetweenCities, formatDistance } from '../services/cityDistance'
 import type {
   AppLanguage,
@@ -89,6 +90,9 @@ export type DiscoverScreenProps = {
   // test fixtures keep working; when present, renders alongside the AI
   // compatibility score on the top profile.
   stableMatchVerdict?: StableMatchVerdict
+  // Self's stability profile (optional). When present alongside the top
+  // profile's, the card shows a durability band + reason below the G-S line.
+  selfStabilityProfile?: StabilityProfile
 }
 
 const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
@@ -102,6 +106,7 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
   topProfileMatchAnalysis,
   topProfileChemistry,
   stableMatchVerdict,
+  selfStabilityProfile,
   likeUsage,
   superLikeUsage,
   boostsLeft,
@@ -587,6 +592,43 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
                       ? <strong>{copy.discover.stableMatchSelfBadge}</strong>
                       : <em>{copy.discover.stableMatchOther}{stableMatchVerdict.match.name}</em>
                     : <em>{copy.discover.stableMatchPending}</em>}
+                </p>
+              ) : null}
+              {/* Stability lens — durability band + reason from the optional
+                  Stability Assessment. Shown only when self has taken it;
+                  reads as a real verdict when the top profile has too, else a
+                  quiet nudge to take it. */}
+              {selfStabilityProfile ? (
+                <p
+                  className="compatibility-score stability-line"
+                  title={copy.discover.stabilityExplainer}
+                >
+                  {copy.discover.stabilityLensLabel}:{' '}
+                  {topProfile.stabilityProfile ? (
+                    <>
+                      <strong>
+                        {copy.discover.stabilityBands[
+                          stabilityFromProfiles(selfStabilityProfile, topProfile.stabilityProfile).band
+                        ]}
+                      </strong>
+                      {(() => {
+                        const verdict = stabilityFromProfiles(
+                          selfStabilityProfile,
+                          topProfile.stabilityProfile,
+                        )
+                        const phrases = verdict.drivers
+                          .map((d) =>
+                            d.polarity === 'positive'
+                              ? copy.discover.stabilityDriverPositive[d.key]
+                              : copy.discover.stabilityDriverRisk[d.key],
+                          )
+                          .slice(0, 2)
+                        return phrases.length ? <> — {phrases.join(', ')}</> : null
+                      })()}
+                    </>
+                  ) : (
+                    <em>{copy.discover.stabilityPendingShort}</em>
+                  )}
                 </p>
               ) : null}
               {topProfileMatchAnalysis?.reasons?.length ? (

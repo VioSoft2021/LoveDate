@@ -53,6 +53,7 @@ export type ProfileScreenProps = {
   onOpenPersonalityGuide: () => void
   onOpenLovePersonality: () => void
   onOpenLovePersonalityQuiz: () => void
+  onOpenStabilityQuiz: () => void
   onOpenSettings: () => void
 }
 
@@ -71,6 +72,7 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
   onOpenPersonalityGuide,
   onOpenLovePersonality,
   onOpenLovePersonalityQuiz,
+  onOpenStabilityQuiz,
   onOpenSettings,
 }) => {
   const copy = UI_TEXT[appLanguage]
@@ -335,6 +337,41 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
               </span>
               <span className="love-personality-preview-cta">
                 {copy.profile.lovePersonalityTakeCta ?? 'Take the assessment →'}
+              </span>
+            </button>
+          )}
+          {/* Stability Assessment card — optional second test. Reuses the
+              Love Personality card styling for a consistent pair. */}
+          {selfProfile.stabilityProfile ? (
+            <button
+              type="button"
+              className="love-personality-preview-card"
+              onClick={onOpenStabilityQuiz}
+            >
+              <span className="love-personality-preview-eyebrow">
+                {copy.profile.stabilityCardTitle}
+              </span>
+              <span className="love-personality-preview-headline">
+                {copy.profile.stabilityCardTakenHeadline}
+              </span>
+              <span className="love-personality-preview-cta">
+                {copy.profile.stabilityCardRetakeCta}
+              </span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="love-personality-preview-card is-empty"
+              onClick={onOpenStabilityQuiz}
+            >
+              <span className="love-personality-preview-eyebrow">
+                {copy.profile.stabilityCardTitle}
+              </span>
+              <span className="love-personality-preview-headline">
+                {copy.profile.stabilityCardNotTaken}
+              </span>
+              <span className="love-personality-preview-cta">
+                {copy.profile.stabilityCardTakeCta}
               </span>
             </button>
           )}

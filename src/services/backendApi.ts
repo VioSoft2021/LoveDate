@@ -848,6 +848,14 @@ export const backendEnsureDiscoverableProfile = async (
           (v): v is number => typeof v === 'number' && v >= 1 && v <= 5,
         )
       : undefined,
+    // Stability Assessment (2026-05-30) — optional second test, 12 raw Likert
+    // answers. sync_discoverable_profile derives the public stability_profile
+    // server-side; raw answers stay in profile_private.
+    stabilityAnswers: Array.isArray(profile.stabilityAnswers)
+      ? (profile.stabilityAnswers as unknown[]).slice(0, 12).filter(
+          (v): v is number => typeof v === 'number' && v >= 1 && v <= 5,
+        )
+      : undefined,
   }
 
   const { error } = await supabase.rpc('sync_discoverable_profile', {

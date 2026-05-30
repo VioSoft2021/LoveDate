@@ -1,5 +1,6 @@
 import type { LovePersonality } from '../compatibility'
 import type { Profile } from '../priveApi'
+import type { StabilityProfile } from '../stability'
 
 /**
  * Demo profiles for Guest Tour mode (Phase 1 — 2026-05-26).
@@ -50,7 +51,54 @@ export const DEMO_GUEST_LOVE_PERSONALITY: LovePersonality = {
   completedAt: '2026-05-30T00:00:00.000Z',
 }
 
-export const DEMO_PROFILES: Profile[] = [
+// Guest Tour stability seed — high, aligned (wants kids, saver, balanced
+// pace). Paired against the demo pool below it produces a spread of
+// readings (Strong with the aligned men, a fragile children-mismatch with
+// Radu) so the Stability lens demos honestly in the tour.
+export const DEMO_GUEST_STABILITY: StabilityProfile = {
+  conflictRepair: 88,
+  commitment: 90,
+  communication: 84,
+  values: { children: 'yes', finances: 'saver', pace: 'balanced' },
+  completedAt: '2026-05-30T00:00:00.000Z',
+}
+
+// Stability archetypes assigned to the demo pool by id (below).
+const STAB_STRONG: StabilityProfile = {
+  conflictRepair: 90, commitment: 90, communication: 88,
+  values: { children: 'yes', finances: 'saver', pace: 'balanced' },
+  completedAt: '2026-05-30T00:00:00.000Z',
+}
+const STAB_SOLID: StabilityProfile = {
+  conflictRepair: 74, commitment: 72, communication: 70,
+  values: { children: 'unsure', finances: 'balanced', pace: 'balanced' },
+  completedAt: '2026-05-30T00:00:00.000Z',
+}
+const STAB_ANXIOUS: StabilityProfile = {
+  conflictRepair: 58, commitment: 82, communication: 60,
+  values: { children: 'yes', finances: 'saver', pace: 'slow' },
+  completedAt: '2026-05-30T00:00:00.000Z',
+}
+const STAB_AVOIDANT_RISK: StabilityProfile = {
+  conflictRepair: 52, commitment: 46, communication: 50,
+  values: { children: 'no', finances: 'spender', pace: 'fast' },
+  completedAt: '2026-05-30T00:00:00.000Z',
+}
+
+const DEMO_STABILITY_BY_ID: Record<number, StabilityProfile> = {
+  90001: STAB_SOLID,         // Andra
+  90002: STAB_STRONG,        // Mateo  → Strong with the guest
+  90003: STAB_ANXIOUS,       // Iulia
+  90004: STAB_AVOIDANT_RISK, // Radu   → children mismatch → fragile with the guest
+  90005: STAB_STRONG,        // Elena
+  90006: STAB_SOLID,         // Cristian
+  90007: STAB_AVOIDANT_RISK, // Diana
+  90008: STAB_STRONG,        // Vlad
+  90009: STAB_STRONG,        // Carmen
+  90010: STAB_SOLID,         // Tudor
+}
+
+const DEMO_PROFILES_BASE: Profile[] = [
   {
     id: 90001,
     authUserId: null,
@@ -328,6 +376,13 @@ export const DEMO_PROFILES: Profile[] = [
     attachmentStyle: 'secure',
   },
 ]
+
+// Attach a stability profile to every demo profile (by id, with a solid
+// default) so the Stability lens + per-match reveal have data in the tour.
+export const DEMO_PROFILES: Profile[] = DEMO_PROFILES_BASE.map((p) => ({
+  ...p,
+  stabilityProfile: DEMO_STABILITY_BY_ID[p.id] ?? STAB_SOLID,
+}))
 
 /**
  * Hand-written Pair Dynamic reveals (Tier B) for the demo profiles

@@ -5,7 +5,11 @@ import { StatusBar, Style } from '@capacitor/status-bar'
 import './App.css'
 import { getMyMatches, resolveMatch, type Profile } from './services/priveApi'
 import { DEMO_AUTO_REPLIES, DEMO_GENERIC_AUTO_REPLIES } from './services/demo/demoConstants'
-import { DEMO_GUEST_GENDER, DEMO_GUEST_LOVE_PERSONALITY } from './services/demo/demoProfiles'
+import {
+  DEMO_GUEST_GENDER,
+  DEMO_GUEST_LOVE_PERSONALITY,
+  DEMO_GUEST_STABILITY,
+} from './services/demo/demoProfiles'
 import { backendInvokeDatePlanner } from './services/ai/datePlanner'
 import { backendInvokeIcebreaker } from './services/ai/icebreaker'
 import {
@@ -51,6 +55,7 @@ import { OnboardingScreen } from './screens/OnboardingScreen'
 import { PersonalityGuideScreen } from './screens/PersonalityGuideScreen'
 import { LovePersonalityScreen } from './screens/LovePersonalityScreen'
 import { LovePersonalityQuizScreen } from './screens/LovePersonalityQuizScreen'
+import { StabilityQuizScreen } from './screens/StabilityQuizScreen'
 import { PhotoStudioScreen } from './screens/PhotoStudioScreen'
 import { ProfileDetailScreen } from './screens/ProfileDetailScreen'
 import { ProfileScreen } from './screens/ProfileScreen'
@@ -912,6 +917,9 @@ function App() {
           ? prev.gender
           : DEMO_GUEST_GENDER,
       lovePersonality: DEMO_GUEST_LOVE_PERSONALITY,
+      // Seed the optional Stability Assessment too, so the stability lens +
+      // per-match reading also demo in the tour (not just Gale-Shapley).
+      stabilityProfile: prev.stabilityProfile ?? DEMO_GUEST_STABILITY,
     }))
   }, [isGuest, selfProfile.lovePersonality, setSelfProfile])
 
@@ -2529,6 +2537,10 @@ function App() {
       photos: photos.length > 0 ? photos : EMPTY_SELF_PROFILE.photos,
       personalityAnswers,
       lovePersonality: selfProfile.lovePersonality,
+      // Stability Assessment isn't edited via the profile form — carry it
+      // through untouched so saving the profile never wipes it.
+      stabilityAnswers: selfProfile.stabilityAnswers,
+      stabilityProfile: selfProfile.stabilityProfile,
     }
 
     setSelfProfile(nextProfile)
@@ -2849,7 +2861,8 @@ function App() {
           doesn't compete with the cinematic moment. */}
       {screen !== 'onboarding'
         && screen !== 'love-personality'
-        && screen !== 'love-personality-quiz' && (
+        && screen !== 'love-personality-quiz'
+        && screen !== 'stability-quiz' && (
         <TopBar
           navItems={navItems}
           currentScreen={screen}
@@ -2943,6 +2956,7 @@ function App() {
             aiFilterStatus={aiFilterStatus}
             aiFilterPrompt={trimmedAiPrompt}
             stableMatchVerdict={stableMatchVerdict}
+            selfStabilityProfile={selfProfile.stabilityProfile}
           />
         )}
         {screen === 'activity' && (
@@ -3014,6 +3028,7 @@ function App() {
             onOpenPersonalityGuide={() => navigate('personality-guide')}
             onOpenLovePersonality={() => navigate('love-personality')}
             onOpenLovePersonalityQuiz={() => navigate('love-personality-quiz')}
+            onOpenStabilityQuiz={() => navigate('stability-quiz')}
             onOpenSettings={() => navigate('settings')}
           />
         )}
@@ -3074,6 +3089,16 @@ function App() {
             setSelfProfile={setSelfProfile}
             onSaved={() => navigate('love-personality')}
             onCancel={() => navigate('love-personality')}
+          />
+        )}
+
+        {screen === 'stability-quiz' && (
+          <StabilityQuizScreen
+            appLanguage={appLanguage}
+            selfProfile={selfProfile}
+            setSelfProfile={setSelfProfile}
+            onSaved={() => navigate('profile')}
+            onCancel={() => navigate('profile')}
           />
         )}
 

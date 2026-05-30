@@ -1,4 +1,5 @@
 import type { LovePersonality, LikertAnswer } from '../services/compatibility'
+import type { StabilityProfile } from '../services/stability'
 import type { SocialConnections } from './social'
 
 export type SelfProfile = {
@@ -51,4 +52,10 @@ export type SelfProfile = {
   // the new assessment yet."
   personalityAnswers?: LikertAnswer[]
   lovePersonality?: LovePersonality
+  // Stability Assessment (2026-05-30) — optional second test. Raw 12-item
+  // Likert answers + the derived StabilityProfile. Both round-trip in the
+  // profile_data JSONB blob (see normalizeSelfProfile); the discoverable
+  // projection that exposes it for matching is added in M3.
+  stabilityAnswers?: LikertAnswer[]
+  stabilityProfile?: StabilityProfile
 }
