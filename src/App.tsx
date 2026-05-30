@@ -38,6 +38,7 @@ import { useReports } from './hooks/useReports'
 import { useToasts } from './hooks/useToasts'
 import { useEngagement } from './hooks/useEngagement'
 import { useAppSettings } from './hooks/useAppSettings'
+import { useRouter } from './hooks/useRouter'
 import { ActivityScreen } from './screens/ActivityScreen'
 import { ChatScreen } from './screens/ChatScreen'
 import { DiscoverScreen } from './screens/DiscoverScreen'
@@ -181,9 +182,9 @@ import {
 } from './constants'
 import {
   analyzePhoto,
+  bootCleanup,
   buildCallRoom,
   buildHighResImageUrl,
-  buildPath,
   formatShortTime,
   formatUiText,
   getCallDurationLabel,
@@ -195,9 +196,7 @@ import {
   normalizeProfilePhotos,
   parseRoute,
   readFileAsDataUrl,
-  readRouteFromWindow,
   readWaitlistReplyToken,
-  shouldUseHashRouting,
   renderEditedPhoto,
   sanitizeRoomPart,
   toDataUrl,
@@ -245,43 +244,10 @@ const CHAT_RENDER_WINDOW = 120
 // analyzePhoto, renderEditedPhoto now live in src/utils/image.ts.
 
 function App() {
-  // Boot-time orphan cleanup: remove the legacy global self-profile key
-  // (`lovedate:self-profile`) from devices that used pre-fix builds. The
-  // current code never reads it, but leaving it sitting in localStorage is
-  // a passive data-at-rest leak on shared devices.
-  if (typeof window !== 'undefined') {
-    try {
-      window.localStorage.removeItem('lovedate:self-profile')
-    } catch {
-      // best-effort
-    }
-  }
+  // Phase D extraction (2026-05-30) — legacy orphan removal + one-time
+  // unauthenticated demo-data sweep now live in utils/bootCleanup.
+  bootCleanup()
 
-  // Clear any leftover demo/test data on first launch if not authenticated.
-  // This ensures new installs start completely empty.
-  if (typeof window !== 'undefined') {
-    const CLEAN_FLAG = 'lovedate:clean-v1'
-    if (!window.localStorage.getItem(CLEAN_FLAG)) {
-      const auth = window.localStorage.getItem(AUTH_STORAGE_KEY)
-      let isRealAuth = false
-      try {
-        const parsed = JSON.parse(auth ?? '{}') as { isAuthenticated?: boolean }
-        isRealAuth = parsed.isAuthenticated === true
-      } catch { /* ignore */ }
-      if (!isRealAuth) {
-        ;[
-          HISTORY_STORAGE_KEY,
-          CHAT_THREADS_STORAGE_KEY,
-          CALL_HISTORY_STORAGE_KEY,
-          'lovedate:blocked-profiles',
-          'lovedate:moderation-queue',
-        ].forEach((key) => window.localStorage.removeItem(key))
-      }
-      window.localStorage.setItem(CLEAN_FLAG, '1')
-    }
-  }
-
-  const initialRoute = readRouteFromWindow()
   const initialAuth = readAuth()
   const initialSelfProfile = readSelfProfile(initialAuth.email)
 
@@ -297,10 +263,18 @@ function App() {
   } = useToasts()
 
   // Always require fresh login on cold start. We keep the saved email so the
-  // login form is pre-filled, but never auto-resume a session.
-  const [screen, setScreen] = useState<AppScreen>('login')
-  const [selectedProfileId, setSelectedProfileId] = useState<number | null>(initialRoute.profileId)
-  const [previousScreen, setPreviousScreen] = useState<AppScreen>('discover')
+  // login form is pre-filled, but never auto-resume a session. Routing state
+  // + navigate live in useRouter (D extraction 2026-05-30).
+  const {
+    screen,
+    setScreen,
+    previousScreen,
+    setPreviousScreen,
+    selectedProfileId,
+    setSelectedProfileId,
+    screenRef,
+    navigate,
+  } = useRouter()
   // Waitlist v2 magic-link reply page (2026-05-27). Captured once at
   // mount from the URL. When non-null, the app renders the public
   // reply screen and nothing else — it's a pre-auth, token-only route.
@@ -507,7 +481,6 @@ function App() {
   const preserveScrollOnExpandRef = useRef<{ top: number; height: number } | null>(null)
   const shouldStickToBottomRef = useRef(true)
   const allProfilesRef = useRef<Profile[]>([])
-  const screenRef = useRef<AppScreen>('login')
   const activeChatIdRef = useRef<number | null>(null)
   // Phase D2.1 — all photo-studio refs, crop interaction state, and the
   // ~390 lines of pointer/crop/upload/apply handlers moved into
@@ -571,34 +544,6 @@ function App() {
   const isProfileVerified = useMemo(() => selfProfile.photos.length >= 3 && profileCompletion >= 80, [selfProfile.photos.length, profileCompletion])
 
   // openLightbox / closeLightbox / zoomLightbox now in useUiModals (D2.5).
-
-  const navigate = useCallback(
-    (nextScreen: AppScreen, options?: { profileId?: number | null; replace?: boolean }) => {
-      const profileId = options?.profileId ?? null
-      setScreen(nextScreen)
-      if (nextScreen === 'profile-detail') {
-        setSelectedProfileId(profileId)
-      } else {
-        setSelectedProfileId(null)
-      }
-
-      const nextPath = buildPath(nextScreen, nextScreen === 'profile-detail' ? profileId : null)
-      const navMethod = options?.replace ? window.history.replaceState : window.history.pushState
-
-      if (shouldUseHashRouting()) {
-        const nextHash = `#${nextPath}`
-        if (window.location.hash !== nextHash) {
-          navMethod.call(window.history, null, '', nextHash)
-        }
-        return
-      }
-
-      if (window.location.pathname !== nextPath) {
-        navMethod.call(window.history, null, '', nextPath)
-      }
-    },
-    [],
-  )
 
   // Phase D1.1 — auth state + handlers extracted to useAuth.
   // onSignedIn navigates to the home screen; onSignedOut clears the
@@ -670,27 +615,6 @@ function App() {
     () => moderationAdminEmails.includes(userEmail.trim().toLowerCase()),
     [moderationAdminEmails, userEmail],
   )
-
-  useEffect(() => {
-    const onPopState = () => {
-      const route = readRouteFromWindow()
-      setScreen(route.screen)
-      setSelectedProfileId(route.profileId)
-    }
-
-    const onHashChange = () => {
-      const route = readRouteFromWindow()
-      setScreen(route.screen)
-      setSelectedProfileId(route.profileId)
-    }
-
-    window.addEventListener('popstate', onPopState)
-    window.addEventListener('hashchange', onHashChange)
-    return () => {
-      window.removeEventListener('popstate', onPopState)
-      window.removeEventListener('hashchange', onHashChange)
-    }
-  }, [])
 
   useEffect(() => {
     if (!isAuthenticated && screen !== 'login') {
@@ -1038,10 +962,6 @@ function App() {
   useEffect(() => {
     allProfilesRef.current = allProfiles
   }, [allProfiles])
-
-  useEffect(() => {
-    screenRef.current = screen
-  }, [screen])
 
   useEffect(() => {
     activeChatIdRef.current = activeChatId
