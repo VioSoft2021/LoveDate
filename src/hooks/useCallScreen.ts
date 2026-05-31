@@ -330,5 +330,6 @@ export const useCallScreen = ({
     openCallRoom,
     copyCallInvite,
     rejoinCallFromHistory,
+    setCallState, // exposed for the dev-only ?preview=call-active harness seed
   } as const
 }

@@ -1,0 +1,261 @@
+/*  ───────────────────────────────────────────────────────────
+   Moved from App.css (CSS split, 2026-05-31). Render-neutral:
+   scripts/css-regression.mjs --check reports zero computed-style
+   diffs across all screens at desktop + mobile.
+   ───────────────────────────────────────────────────────────  */
+
+.call-embed-frame {
+  width: 100%;
+  min-height: min(68vh, 42rem);
+  border-radius: 1rem;
+  overflow: auto;
+  border: 1px solid rgba(201, 169, 97, 0.26);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(201, 169, 97, 0.08), transparent 34%),
+    linear-gradient(160deg, rgba(13, 19, 46, 0.96), rgba(8, 13, 36, 0.92));
+  box-shadow: inset 0 1px 0 rgba(255, 239, 196, 0.08);
+}
+
+.call-brand-shell {
+  min-height: inherit;
+  display: grid;
+  place-items: center;
+  gap: 1.2rem;
+  padding: 2rem 1.4rem;
+  text-align: center;
+}
+
+.call-orb {
+  width: 6.5rem;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 241, 205, 0.92), rgba(235, 192, 98, 0.92) 32%, rgba(121, 92, 219, 0.88) 66%, rgba(23, 31, 76, 0.98));
+  box-shadow:
+    0 0 0 1px rgba(255, 229, 164, 0.18),
+    0 0 32px rgba(201, 169, 97, 0.28),
+    0 0 64px rgba(111, 142, 255, 0.16);
+}
+
+.call-shell-copy {
+  width: min(100%, 34rem);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.call-shell-copy h3 {
+  margin: 0;
+  font-size: clamp(1.4rem, 2vw, 2rem);
+  color: #f1d089;
+}
+
+.call-shell-copy p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: rgba(236, 244, 255, 0.9);
+}
+
+.call-shell-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: center;
+}
+
+.call-shell-status span {
+  border-radius: 999px;
+  padding: 0.45rem 0.78rem;
+  border: 1px solid rgba(201, 169, 97, 0.3);
+  background: rgba(28, 37, 81, 0.84);
+  color: #edf4ff;
+  font-size: 0.9rem;
+}
+
+.call-room-link {
+  margin: 0.35rem 0 0.15rem;
+  font-size: 0.84rem;
+  color: rgba(222, 235, 255, 0.92);
+  word-break: break-word;
+}
+
+.call-stage-topline,
+.call-stage-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.call-stage-topline {
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(201, 169, 97, 0.22);
+  background: rgba(9, 14, 34, 0.78);
+}
+
+.call-stage-topline div:first-child {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.call-stage-topline span {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(242, 209, 138, 0.86);
+}
+
+.call-stage-topline strong {
+  color: #fff4d2;
+  font-size: 1.02rem;
+}
+
+.call-stage-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  color: rgba(237, 245, 255, 0.9);
+}
+
+.call-stage-status span {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: #f2d18a;
+}
+
+.call-stage-body {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(13rem, 0.26fr);
+  gap: 0.8rem;
+}
+
+.call-jitsi-host,
+.call-jitsi-host iframe {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  border: 0;
+}
+
+.call-stage-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.8rem;
+  padding: 1.4rem;
+  text-align: center;
+  background:
+    linear-gradient(145deg, rgba(10, 15, 38, 0.98), rgba(6, 10, 28, 0.98)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 8px);
+}
+
+.call-stage-loading p {
+  margin: 0;
+  color: rgba(237, 245, 255, 0.92);
+}
+
+.call-stage-setup-note {
+  max-width: min(100%, 34rem);
+  line-height: 1.55;
+  color: rgba(237, 245, 255, 0.78) !important;
+}
+
+.call-stage-pulse {
+  width: 5.5rem;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  border: 1px solid rgba(242, 209, 138, 0.48);
+  background: radial-gradient(circle at 36% 30%, #fff5cf, #d7b66a 34%, #42517f 72%);
+  box-shadow: 0 0 34px rgba(242, 209, 138, 0.22);
+  animation: callPulse 1.8s ease-in-out infinite;
+}
+
+.call-stage-side {
+  min-height: 0;
+  display: grid;
+  gap: 0.8rem;
+  align-content: start;
+}
+
+.call-self-tile,
+.call-date-tools {
+  border-radius: 0.95rem;
+  border: 1px solid rgba(112, 130, 216, 0.26);
+  background: rgba(13, 19, 46, 0.82);
+  padding: 0.9rem;
+}
+
+.call-self-tile {
+  min-height: 9rem;
+  display: grid;
+  align-content: end;
+  gap: 0.25rem;
+  background:
+    linear-gradient(160deg, rgba(37, 45, 92, 0.72), rgba(14, 20, 49, 0.88)),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 10px);
+}
+
+.call-self-tile strong {
+  color: #fff4d2;
+}
+
+.call-self-tile p {
+  margin: 0;
+  color: rgba(222, 235, 255, 0.78);
+  font-size: 0.82rem;
+}
+
+.call-date-tools {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.call-stage-controls {
+  justify-content: center;
+  padding: 0.55rem;
+  border-radius: 0.95rem;
+  background: linear-gradient(180deg, rgba(8, 13, 36, 0.75), rgba(8, 13, 36, 0.96));
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  margin-top: 0.2rem;
+}
+
+.call-stage-controls button {
+  min-width: 8.4rem;
+  padding: 0.7rem 0.95rem;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 1024px) {
+
+  .call-stage-body {
+    grid-template-columns: 1fr;
+  }
+
+  .call-stage-side {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+
+  .call-stage-side {
+    grid-template-columns: 1fr;
+  }
+
+  .call-stage-controls button {
+    flex: 1 1 8rem;
+    min-width: 0;
+  }
+}
+/* CallModal.css — call/video-overlay styles (.call-*), split out of App.css.
+   Imported by CallModal.tsx (statically → always loaded, after App.css). The
+   shared modal shell (.match-modal/.match-card) stays in App.css. */

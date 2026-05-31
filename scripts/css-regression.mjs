@@ -33,7 +33,7 @@ const MODE = process.argv.includes('--check') ? 'check' : 'baseline'
 // the over-defined ones; the rest guard against collateral damage from shared rules.
 const SCREENS = [
   'discover', 'profile', 'settings', 'moderation',
-  'activity', 'chats', 'chat-active', 'love-personality', 'stability-quiz',
+  'activity', 'chats', 'chat-active', 'call-active', 'love-personality', 'stability-quiz',
   'personality-guide', 'profile-detail',
 ]
 const VIEWPORTS = [

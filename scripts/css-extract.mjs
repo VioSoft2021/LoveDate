@@ -36,6 +36,7 @@ const SCREENS = {
   profile: { file: 'ProfileScreen.css', re: /^profile(?!-detail)/ },
   'photo-studio': { file: 'PhotoStudioScreen.css', re: /^photo-studio/ },
   chat: { file: 'ChatScreen.css', re: /^(chat|msg|message|conversation|thread)/ },
+  call: { file: '../components/CallModal.css', re: /^call/ },
 }
 
 const screen = process.argv[2]

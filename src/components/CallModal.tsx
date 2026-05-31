@@ -1,4 +1,5 @@
 import React from 'react'
+import './CallModal.css'
 import type { AppLanguage, CallState } from '../domain'
 import type { JitsiProviderConfig } from '../services/jitsiEmbedConfig'
 import { formatShortTime } from '../utils/format'

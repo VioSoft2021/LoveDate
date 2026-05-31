@@ -981,9 +981,29 @@ function App() {
       setChatThreads((prev) => ({ ...prev, [DEMO_PREVIEW_CHAT_ID]: DEMO_PREVIEW_MESSAGES }))
       setActiveChatId(DEMO_PREVIEW_CHAT_ID)
     }
-    navigate((PREVIEW_SCREEN === 'chat-active' ? 'chats' : PREVIEW_SCREEN) as AppScreen, { replace: true })
+    const previewTarget = PREVIEW_SCREEN === 'chat-active' || PREVIEW_SCREEN === 'call-active' ? 'chats' : PREVIEW_SCREEN
+    navigate(previewTarget as AppScreen, { replace: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Dev-only: seed an active video call for ?preview=call-active so the harness
+  // renders the call overlay (.call-*). Keyed on isAuthenticated (not mount) so
+  // it lands AFTER guestLogin — otherwise useCallScreen's reset-on-signed-out
+  // effect, which runs later in the tree, clobbers the seed back to idle.
+  // roomUrl is set so EmbeddedCallStage mounts its chrome; the Jitsi script is
+  // cross-origin → blocked by the harness, and fails gracefully.
+  useEffect(() => {
+    // Positive import.meta.env.DEV guard so `false && …` dead-code-eliminates
+    // the whole block in prod (a `!==` early-return would leave the body in).
+    if (import.meta.env.DEV && PREVIEW_SCREEN === 'call-active' && isAuthenticated) {
+      setCallState({
+        active: true, type: 'video', status: 'connecting', startedAt: 1717203000000,
+        targetProfileId: DEMO_PREVIEW_CHAT_ID, muted: false, cameraOff: false,
+        roomId: 'demo-room', roomUrl: 'https://meet.example.com/demo-room',
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated])
 
   // Cloud-backed match list. Run on every authed mount so matches survive
   // reinstall — the local history state starts empty after a wipe, but the
@@ -1529,6 +1549,7 @@ function App() {
     openCallRoom,
     copyCallInvite,
     rejoinCallFromHistory,
+    setCallState,
   } = useCallScreen({
     isAuthenticated,
     selectedChatProfile,
