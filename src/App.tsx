@@ -250,6 +250,35 @@ const CHAT_RENDER_WINDOW = 120
 
 // analyzePhoto, renderEditedPhoto now live in src/utils/image.ts.
 
+// ── Dev-only screen preview (2026-05-31) ──────────────────────────────
+// Lets the CSS-regression harness render any screen with seeded demo state,
+// bypassing auth + onboarding, so cascade changes can be verified per-screen.
+// Gated on import.meta.env.DEV → statically false in production builds, so
+// this whole block tree-shakes out and never ships. Dev usage:
+//   /?preview=discover     /?preview=settings&lang=ro     /?preview=moderation
+const PREVIEW_SCREEN: string | null =
+  import.meta.env.DEV && typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('preview')
+    : null
+const PREVIEW_LANG: string | null =
+  import.meta.env.DEV && typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('lang')
+    : null
+// A complete self-profile so the preview lands directly on the target screen
+// (a filled profile ⇒ profileEmpty is false ⇒ no onboarding redirect).
+const DEMO_PREVIEW_SELF: SelfProfile = {
+  ...EMPTY_SELF_PROFILE,
+  name: 'Tester',
+  age: 45,
+  city: 'București',
+  gender: 'Woman',
+  bio: 'Preview profile for layout verification.',
+  interests: ['Coffee', 'Music', 'Travel'],
+  photos: ['https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=1600&q=85'],
+  lovePersonality: DEMO_GUEST_LOVE_PERSONALITY,
+  stabilityProfile: DEMO_GUEST_STABILITY,
+}
+
 function App() {
   // Phase D extraction (2026-05-30) — legacy orphan removal + one-time
   // unauthenticated demo-data sweep now live in utils/bootCleanup.
@@ -618,7 +647,7 @@ function App() {
   })
 
   const isModerationAdmin = useMemo(
-    () => moderationAdminEmails.includes(userEmail.trim().toLowerCase()),
+    () => Boolean(PREVIEW_SCREEN) || moderationAdminEmails.includes(userEmail.trim().toLowerCase()),
     [moderationAdminEmails, userEmail],
   )
 
@@ -884,6 +913,7 @@ function App() {
   // load before deciding — otherwise an existing user briefly lands on
   // onboarding while their cloud profile is still in flight.
   useEffect(() => {
+    if (PREVIEW_SCREEN) return // dev-only screen preview bypasses onboarding
     if (!isAuthenticated) return
     if (!cloudProfileHydrated) return
     if (profileEmpty) {
@@ -921,6 +951,18 @@ function App() {
       stabilityProfile: prev.stabilityProfile ?? DEMO_GUEST_STABILITY,
     }))
   }, [isGuest, selfProfile.lovePersonality, setSelfProfile])
+
+  // Dev-only: boot straight into a seeded screen for the CSS-regression
+  // harness (see PREVIEW_SCREEN above). Runs once on mount; tree-shaken out
+  // of production so it never affects real users.
+  useEffect(() => {
+    if (!PREVIEW_SCREEN) return
+    if (PREVIEW_LANG === 'ro' || PREVIEW_LANG === 'en') setAppLanguage(PREVIEW_LANG)
+    handleGuestLogin()
+    setSelfProfile(DEMO_PREVIEW_SELF)
+    navigate(PREVIEW_SCREEN as AppScreen, { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Cloud-backed match list. Run on every authed mount so matches survive
   // reinstall — the local history state starts empty after a wipe, but the
