@@ -24,6 +24,20 @@ export const useDiscoveryFilter = ({
   blockedProfileIds,
   getCompatibilityScore,
 }: UseDiscoveryFilterInput) => {
+  // Filter dropdown options — distinct values present in the current deck.
+  const cityOptions = useMemo(
+    () => Array.from(new Set(allProfiles.map((profile) => profile.city))).sort(),
+    [allProfiles],
+  )
+  const genderOptions = useMemo(
+    () => Array.from(new Set(allProfiles.map((profile) => profile.gender))),
+    [allProfiles],
+  )
+  const relationshipGoalOptions = useMemo(
+    () => Array.from(new Set(allProfiles.map((profile) => profile.relationshipGoal))),
+    [allProfiles],
+  )
+
   const swipedIds = useMemo(() => {
     return new Set([...history.likedIds, ...history.passedIds])
   }, [history.likedIds, history.passedIds])
@@ -110,5 +124,5 @@ export const useDiscoveryFilter = ({
     return { clientFilteredProfiles: sorted, hiddenBreakdown: hidden }
   }, [genderFilteredProfiles, filters, swipedIds, blockedProfileIds, getCompatibilityScore])
 
-  return { clientFilteredProfiles, hiddenBreakdown }
+  return { cityOptions, genderOptions, relationshipGoalOptions, clientFilteredProfiles, hiddenBreakdown }
 }

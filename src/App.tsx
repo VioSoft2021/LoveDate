@@ -1183,25 +1183,16 @@ function App() {
     return map
   }, [allProfiles])
 
-  const cityOptions = useMemo(
-    () => Array.from(new Set(allProfiles.map((profile) => profile.city))).sort(),
-    [allProfiles],
-  )
-
-  const genderOptions = useMemo(
-    () => Array.from(new Set(allProfiles.map((profile) => profile.gender))),
-    [allProfiles],
-  )
-
-  const relationshipGoalOptions = useMemo(
-    () => Array.from(new Set(allProfiles.map((profile) => profile.relationshipGoal))),
-    [allProfiles],
-  )
-
   // Client-side deck filter (gender → age/city/interest/goal/distance/verified/
   // swiped/zodiac → sort), extracted to useDiscoveryFilter. The AI semantic
   // filter below narrows clientFilteredProfiles further into filteredProfiles.
-  const { clientFilteredProfiles, hiddenBreakdown } = useDiscoveryFilter({
+  const {
+    cityOptions,
+    genderOptions,
+    relationshipGoalOptions,
+    clientFilteredProfiles,
+    hiddenBreakdown,
+  } = useDiscoveryFilter({
     allProfiles,
     filters,
     history,
