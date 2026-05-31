@@ -33,6 +33,7 @@ import { useAuth } from './hooks/useAuth'
 import { useDeck } from './hooks/useDeck'
 import { useChatState } from './hooks/useChatState'
 import { useChatViews } from './hooks/useChatViews'
+import { useDiscoveryFilter } from './hooks/useDiscoveryFilter'
 import { useChatAiActions } from './hooks/useChatAiActions'
 import { useMatchScoring } from './hooks/useMatchScoring'
 import { useCallScreen } from './hooks/useCallScreen'
@@ -1193,98 +1194,16 @@ function App() {
     [allProfiles],
   )
 
-  const swipedIds = useMemo(() => {
-    return new Set([...history.likedIds, ...history.passedIds])
-  }, [history.likedIds, history.passedIds])
-
-  const genderFilteredProfiles = useMemo(() => {
-    if (filters.gender === 'any') {
-      return allProfiles
-    }
-
-    return allProfiles.filter((profile) => toGenderKey(profile.gender) === filters.gender)
-  }, [allProfiles, filters.gender])
-
-  // D4: single-pass filter that also records WHY each profile was hidden.
-  // hiddenBreakdown surfaces the invisible — so the next time a friend is
-  // missing from the deck, the user sees the reason inline (1 tap) instead
-  // of us guessing across 4 commits. Plan: yes-start-with-a-soft-candle.md D4.
-  // Rename-on-destructure: the useMemo computes the CLIENT-filtered list
-  // (age/city/swiped/blocked/etc.). The AI semantic filter runs as a
-  // separate async pass downstream, narrowing this further when the
-  // viewer's free-text prompt is set. The final `filteredProfiles`
-  // variable consumed everywhere else in this file = AI-filtered.
-  const { filteredProfiles: clientFilteredProfiles, hiddenBreakdown } = useMemo(() => {
-    const interestFilter = filters.interest.trim().toLowerCase()
-    const selectedGoal = filters.relationshipGoal.toLowerCase()
-
-    const kept: Profile[] = []
-    const hidden: HiddenEntry[] = []
-
-    for (const profile of genderFilteredProfiles) {
-      const reasons: HiddenReason[] = []
-      if (blockedProfileIds.includes(profile.id)) {
-        reasons.push('blocked')
-      }
-      if (!(profile.age >= filters.minAge && profile.age <= filters.maxAge)) {
-        reasons.push('age')
-      }
-      if (!(filters.city.length === 0 || profile.city === filters.city)) {
-        reasons.push('city')
-      }
-      if (
-        !(
-          interestFilter.length === 0 ||
-          profile.interests.some((interest) => interest.toLowerCase().includes(interestFilter))
-        )
-      ) {
-        reasons.push('interest')
-      }
-      if (!(selectedGoal === 'any' || profile.relationshipGoal.toLowerCase() === selectedGoal)) {
-        reasons.push('goal')
-      }
-      if (!(profile.distanceKm <= filters.maxDistanceKm)) {
-        reasons.push('distance')
-      }
-      if (filters.verifiedOnly && !profile.verified) {
-        reasons.push('verified-only')
-      }
-      if (swipedIds.has(profile.id)) {
-        reasons.push('already-swiped')
-      }
-      if (filters.zodiacCompatibility && filters.zodiacCompatibility !== 'any') {
-        const compat = ZODIAC_COMPATIBILITY[filters.zodiacCompatibility] || []
-        if (!compat.includes(profile.zodiac)) {
-          reasons.push('zodiac')
-        }
-      }
-      if (reasons.length === 0) {
-        kept.push(profile)
-      } else {
-        hidden.push({ profile, reasons })
-      }
-    }
-
-    let sorted = kept
-
-    if (filters.sortBy === 'recommended') {
-      sorted = kept.slice().sort((a, b) => getCompatibilityScore(b) - getCompatibilityScore(a))
-    }
-
-    if (filters.sortBy === 'nearest') {
-      sorted = kept.slice().sort((a, b) => a.distanceKm - b.distanceKm)
-    }
-
-    if (filters.sortBy === 'youngest') {
-      sorted = kept.slice().sort((a, b) => a.age - b.age)
-    }
-
-    if (filters.sortBy === 'oldest') {
-      sorted = kept.slice().sort((a, b) => b.age - a.age)
-    }
-
-    return { filteredProfiles: sorted, hiddenBreakdown: hidden }
-  }, [genderFilteredProfiles, filters, swipedIds, blockedProfileIds, getCompatibilityScore])
+  // Client-side deck filter (gender → age/city/interest/goal/distance/verified/
+  // swiped/zodiac → sort), extracted to useDiscoveryFilter. The AI semantic
+  // filter below narrows clientFilteredProfiles further into filteredProfiles.
+  const { clientFilteredProfiles, hiddenBreakdown } = useDiscoveryFilter({
+    allProfiles,
+    filters,
+    history,
+    blockedProfileIds,
+    getCompatibilityScore,
+  })
 
   // ───────────────────────────────────────────────────────────────
   // Phase B (E4) — AI-First Semantic Filter
