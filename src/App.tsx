@@ -16,7 +16,6 @@ import {
   backendInvokeSemanticFilter,
   type SemanticFilterResult,
 } from './services/ai/semanticFilter'
-import { backendInvokeSafetyTriage } from './services/ai/safetyTriage'
 import { enablePushNotifications, disablePushNotifications } from './services/push'
 import { FilterScreen } from './components/FilterScreen'
 import { Logo } from './components/Logo'
@@ -45,6 +44,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useProfileEditor } from './hooks/useProfileEditor'
 import { usePhotoStudio } from './hooks/usePhotoStudio'
 import { useReports } from './hooks/useReports'
+import { useModerationActions } from './hooks/useModerationActions'
 import { useToasts } from './hooks/useToasts'
 import { useEngagement } from './hooks/useEngagement'
 import { useAppSettings } from './hooks/useAppSettings'
@@ -74,10 +74,8 @@ import {
   backendSaveSelfProfile,
   backendSetLocalSelfProfile,
   backendResetLocalSelfProfile,
-  backendAddBlock,
   backendBackfillBlocks,
   backendRepairDiscoverableProfile,
-  backendSubmitReport,
   backendRecordSwipe,
   backendAdminSetProfileActive,
   backendDeleteSelfAccount,
@@ -114,7 +112,6 @@ import { canUsePassport, getActivePlan, setActivePlan as persistActivePlan } fro
 import { PERSONALITY_QUESTION_COUNT, type LikertAnswer } from './services/compatibility'
 import {
   SAFETY_CATEGORIES,
-  createSafetyReport,
   readBlockedProfileIds,
   readModerationQueue,
   saveBlockedProfileIds,
@@ -1952,124 +1949,37 @@ function App() {
   }
 
 
-  const closeReportProfileDialog = useCallback(() => {
-    setReportDraftProfile(null)
-    setReportDraftCategory('spam')
-    setReportDraftDetails('')
-  }, [setReportDraftCategory, setReportDraftDetails, setReportDraftProfile])
-
-  const reportProfile = (profile: Profile) => {
-    setReportDraftProfile(profile)
-    setReportDraftCategory('spam')
-    setReportDraftDetails('')
-  }
-
-  const submitProfileReport = () => {
-    if (!reportDraftProfile) {
-      return
-    }
-
-    const report = createSafetyReport({
-      profile: reportDraftProfile,
-      category: reportDraftCategory,
-      details: reportDraftDetails.trim(),
-      reporterEmail: userEmail || 'guest@prive-app.club',
-    })
-    setSafetyReports((current) => [report, ...current].slice(0, 200))
-    void (async () => {
-      const submission = await backendSubmitReport({
-        reportedProfileId: report.profileId,
-        reportedProfileName: report.profileName,
-        category: report.category,
-        details: report.details,
-        profileSnapshot: report.profileSnapshot,
-      })
-      if (!submission?.reportId) return
-      // Fire-and-forget triage. The Edge Function writes the verdict back
-      // to safety_reports via the service role; we also overlay it on the
-      // local queue so the operator sees AI summary immediately.
-      const verdict = await backendInvokeSafetyTriage({
-        reportId: submission.reportId,
-        category: report.category,
-        details: report.details,
-        profileSnapshot: {
-          name: report.profileName,
-          age: report.profileSnapshot.age,
-          city: report.profileSnapshot.city,
-          vibe: report.profileSnapshot.vibe,
-          bio: report.profileSnapshot.bio,
-          relationshipGoal: report.profileSnapshot.relationshipGoal,
-        },
-        language: appLanguage,
-      })
-      if (verdict) {
-        setSafetyReports((current) =>
-          current.map((item) =>
-            item.id === report.id
-              ? {
-                  ...item,
-                  aiRiskLevel: verdict.riskLevel,
-                  aiCategories: verdict.categories,
-                  aiSummary: verdict.summary,
-                }
-              : item,
-          ),
-        )
-      }
-    })()
-    pushNotification({
-      title: `Report submitted for ${reportDraftProfile.name}`,
-      body: `Category: ${reportDraftCategory}`,
-      category: 'safety',
-    })
-    pushToast(`Report submitted for ${reportDraftProfile.name}.`, 'success')
-    closeReportProfileDialog()
-  }
-
-  const updateReportStatus = (reportId: string, status: ModerationStatus) => {
-    setSafetyReports((current) =>
-      current.map((item) => {
-        if (item.id !== reportId) {
-          return item
-        }
-        return {
-          ...item,
-          status,
-          reviewedAt: status === 'open' ? null : Date.now(),
-          reviewerEmail: status === 'open' ? null : userEmail,
-        }
-      }),
-    )
-    pushToast(`Report moved to ${status}.`, 'info')
-  }
-
-  const blockProfileById = (profileId: number, profileName = 'Profile') => {
-    setBlockedProfileIds((current) => (current.includes(profileId) ? current : [...current, profileId]))
-    void backendAddBlock(profileId)
-    setChatThreads((current) => {
-      const clone = { ...current }
-      delete clone[profileId]
-      return clone
-    })
-    setUnreadChats((current) => {
-      const clone = { ...current }
-      delete clone[profileId]
-      return clone
-    })
-    setHistory((current) => ({
-      likedIds: current.likedIds.filter((id) => id !== profileId),
-      passedIds: current.passedIds.filter((id) => id !== profileId),
-      matchIds: current.matchIds.filter((id) => id !== profileId),
-    }))
-    if (activeChatId === profileId) {
-      setActiveChatId(null)
-    }
-    pushToast(`${profileName} blocked.`, 'info')
-  }
-
-  const blockProfile = (profile: Profile) => {
-    blockProfileById(profile.id, profile.name)
-  }
+  // Phase D — report/block moderation actions (7 handlers) live in
+  // useModerationActions. They consume the report-draft + safetyReports +
+  // blockedProfileIds slots owned by useReports, plus the cross-slice setters
+  // the block action prunes (chat threads, unread, swipe history, active chat).
+  const {
+    closeReportProfileDialog,
+    reportProfile,
+    submitProfileReport,
+    updateReportStatus,
+    blockProfileById,
+    blockProfile,
+    resolveAndBlockReport,
+  } = useModerationActions({
+    reportDraftProfile,
+    reportDraftCategory,
+    reportDraftDetails,
+    setReportDraftProfile,
+    setReportDraftCategory,
+    setReportDraftDetails,
+    setSafetyReports,
+    setBlockedProfileIds,
+    activeChatId,
+    setActiveChatId,
+    setChatThreads,
+    setUnreadChats,
+    setHistory,
+    userEmail,
+    appLanguage,
+    pushToast,
+    pushNotification,
+  })
 
   // D5 admin moderation: deactivate (or reactivate) a profile via the
   // admin_set_profile_active RPC. The server gates this on public.is_admin();
@@ -2109,16 +2019,6 @@ function App() {
     },
     [appLanguage, pushToast, closeProfileDetail, setAllProfiles],
   )
-
-  const resolveAndBlockReport = (report: SafetyReport) => {
-    updateReportStatus(report.id, 'resolved')
-    blockProfileById(report.profileId, report.profileName)
-    pushNotification({
-      title: `Resolved report for ${report.profileName}`,
-      body: 'Profile blocked and report marked as resolved.',
-      category: 'safety',
-    })
-  }
 
   const handlePointerDown = (event: React.PointerEvent<HTMLElement>) => {
     if (!topProfile || exitDirection || isResolvingSwipe) {
