@@ -35,6 +35,7 @@ import { useChatState } from './hooks/useChatState'
 import { useChatViews } from './hooks/useChatViews'
 import { useDiscoveryFilter } from './hooks/useDiscoveryFilter'
 import { useMatchInsights } from './hooks/useMatchInsights'
+import { useActivityProfiles } from './hooks/useActivityProfiles'
 import { useChatAiActions } from './hooks/useChatAiActions'
 import { useMatchScoring } from './hooks/useMatchScoring'
 import { useCallScreen } from './hooks/useCallScreen'
@@ -2545,19 +2546,7 @@ function App() {
   const showingDeckCompletion = !loadingProfiles && filteredProfiles.length > 0 && !topProfile
   const showingNoResults = !loadingProfiles && filteredProfiles.length === 0
 
-  const likedProfiles = useMemo(() => {
-    return history.likedIds
-      .map((id) => profileById.get(id))
-      .filter((profile): profile is Profile => Boolean(profile))
-      .reverse()
-  }, [history.likedIds, profileById])
-
-  const passedProfiles = useMemo(() => {
-    return history.passedIds
-      .map((id) => profileById.get(id))
-      .filter((profile): profile is Profile => Boolean(profile))
-      .reverse()
-  }, [history.passedIds, profileById])
+  const { likedProfiles, passedProfiles } = useActivityProfiles(history, profileById)
 
   const {
     chatPreviews,
