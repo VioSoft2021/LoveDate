@@ -45,6 +45,7 @@ import { useProfileEditor } from './hooks/useProfileEditor'
 import { usePhotoStudio } from './hooks/usePhotoStudio'
 import { useReports } from './hooks/useReports'
 import { useModerationActions } from './hooks/useModerationActions'
+import { useSocialConnections } from './hooks/useSocialConnections'
 import { useToasts } from './hooks/useToasts'
 import { useEngagement } from './hooks/useEngagement'
 import { useAppSettings } from './hooks/useAppSettings'
@@ -2195,86 +2196,18 @@ function App() {
     [appLanguage, selfProfile, saveSelfProfilePatch],
   )
 
-  const suggestSocialHandle = (platform: SocialPlatform): string => {
-    const baseFromName = selfProfile.name.toLowerCase().replace(/[^a-z0-9]+/g, '')
-    const fallback = baseFromName.length > 0 ? baseFromName : 'priveuser'
-    if (platform === 'instagram') {
-      return selfProfile.instagram.replace(/^@+/, '').trim() || fallback
-    }
-    if (platform === 'tiktok') {
-      return `@${fallback}`
-    }
-    if (platform === 'linkedin') {
-      return `in/${fallback}`
-    }
-    return fallback
-  }
-
-  const setSocialConnectionDecision = (platform: SocialPlatform, connect: boolean) => {
-    const currentEntry = selfProfile.socialConnections[platform]
-    const nextHandle = connect
-      ? currentEntry.handle.trim() || suggestSocialHandle(platform)
-      : currentEntry.handle
-    const nextProfile: SelfProfile = {
-      ...selfProfile,
-      socialConnections: {
-        ...selfProfile.socialConnections,
-        [platform]: {
-          connected: connect,
-          handle: nextHandle,
-        },
-      },
-    }
-    saveSelfProfilePatch(
-      nextProfile,
-      connect
-        ? `${SOCIAL_PLATFORM_META.find((item) => item.id === platform)?.label ?? 'Social'} enabled.`
-        : `${SOCIAL_PLATFORM_META.find((item) => item.id === platform)?.label ?? 'Social'} disabled.`,
-    )
-  }
-
-  const toggleSocialPromotionOptIn = (checked: boolean) => {
-    const nextProfile: SelfProfile = {
-      ...selfProfile,
-      socialPromotionOptIn: checked,
-    }
-    saveSelfProfilePatch(nextProfile, checked ? 'Social sharing prompts enabled.' : 'Social sharing prompts paused.')
-  }
-
-  const sharePriveOnPlatform = async (platform: SocialPlatform) => {
-    if (!selfProfile.socialPromotionOptIn) {
-      pushToast('Enable social sharing prompts first.', 'info')
-      return
-    }
-
-    const appUrl = 'https://prive-app.club'
-    const pitch = `I just joined Privé. Come find me there.`
-    const encodedPitch = encodeURIComponent(pitch)
-    const encodedUrl = encodeURIComponent(appUrl)
-
-    let shareUrl = ''
-    if (platform === 'x') {
-      shareUrl = `https://twitter.com/intent/tweet?text=${encodedPitch}&url=${encodedUrl}`
-    } else if (platform === 'facebook') {
-      shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedPitch}`
-    } else if (platform === 'linkedin') {
-      shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
-    }
-
-    if (shareUrl) {
-      window.open(shareUrl, '_blank', 'noopener,noreferrer')
-      pushToast('Share window opened.', 'success')
-      return
-    }
-
-    const caption = `${pitch} ${appUrl}`
-    try {
-      await navigator.clipboard.writeText(caption)
-      pushToast('Caption copied. Paste it into your Instagram/TikTok post.', 'success')
-    } catch {
-      pushToast('Copy failed. Please copy and share manually.', 'error')
-    }
-  }
+  // Phase D — social-graph handlers (connect/disconnect, promotion opt-in,
+  // external share) live in useSocialConnections. They persist via
+  // saveSelfProfilePatch and read the current selfProfile.
+  const {
+    setSocialConnectionDecision,
+    toggleSocialPromotionOptIn,
+    sharePriveOnPlatform,
+  } = useSocialConnections({
+    selfProfile,
+    saveSelfProfilePatch,
+    pushToast,
+  })
 
   // useCallback'd so ProfileScreen (React.memo'd) skips renders when only
   // unrelated parent state changes. Without this, every keystroke triggers
