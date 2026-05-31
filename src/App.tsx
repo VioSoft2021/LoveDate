@@ -16,7 +16,6 @@ import {
   backendInvokeSemanticFilter,
   type SemanticFilterResult,
 } from './services/ai/semanticFilter'
-import { enablePushNotifications, disablePushNotifications } from './services/push'
 import { FilterScreen } from './components/FilterScreen'
 import { Logo } from './components/Logo'
 import { BuildChip } from './components/BuildChip'
@@ -88,7 +87,6 @@ import {
   backendLoadSettings,
   backendLoadSwipeHistory,
   backendSavePreferences,
-  backendSaveSettings,
   backendUploadDataUrlPhotos,
   backendUploadProfilePhoto,
   purgeAllSelfProfileCaches,
@@ -430,12 +428,13 @@ function App() {
   // boostsLeft + rewindsLeft now in useEngagement.
 
   // App settings + language + save-status state moves into useAppSettings.
-  const appSettings = useAppSettings()
+  const appSettings = useAppSettings({ pushToast })
   const {
     settings, setSettings,
     settingsSaveStatus, setSettingsSaveStatus,
     preferenceSaveStatus, setPreferenceSaveStatus,
     appLanguage, setAppLanguage,
+    handleSettingsToggle,
   } = appSettings
 
   // Phase D2.1 — photo studio (refs, crop state, 11 handlers) lives in
@@ -2103,49 +2102,6 @@ function App() {
     swipeCard,
     undoSwipe,
   })
-
-  const handleSettingsToggle = (key: keyof SettingsPayload, checked: boolean) => {
-    const nextValue = {
-      ...settings,
-      [key]: checked,
-    }
-
-    setSettings(nextValue)
-    setSettingsSaveStatus('saving')
-    void backendSaveSettings(nextValue)
-      .then(() => {
-        setSettingsSaveStatus('saved')
-        pushToast('Settings saved.', 'success')
-      })
-      .catch(() => {
-        setSettingsSaveStatus('error')
-        pushToast('Settings failed to save.', 'error')
-      })
-
-    // Side effect: when the user flips Push Notifications on, request
-    // permission + subscribe. Reverting the local toggle if denied keeps
-    // the UI honest. Flipping off purges the subscription.
-    if (key === 'pushNotifications') {
-      if (checked) {
-        void enablePushNotifications().then((result) => {
-          if (!result.ok) {
-            setSettings((current) => ({ ...current, pushNotifications: false }))
-            const message =
-              result.reason === 'denied'
-                ? 'Browser blocked notifications. Enable them in site settings.'
-                : result.reason === 'unsupported'
-                  ? 'Push not supported on this browser/device.'
-                  : 'Could not enable push notifications.'
-            pushToast(message, 'error')
-          } else {
-            pushToast('Push notifications enabled.', 'success')
-          }
-        })
-      } else {
-        void disablePushNotifications()
-      }
-    }
-  }
 
   const socialConnectedCount = useMemo(
     () => SOCIAL_PLATFORM_META.filter((platform) => selfProfile.socialConnections[platform.id]?.connected).length,
