@@ -183,3 +183,105 @@ export const toProfileDraft = (profile: SelfProfile) => ({
   personalityAnswers: profile.personalityAnswers,
   lovePersonality: profile.lovePersonality,
 })
+
+/** The profile editor's draft shape — all-strings + CSV lists. */
+export type ProfileDraft = ReturnType<typeof toProfileDraft>
+
+/**
+ * Fields the profile editor never edits — carried through from the current
+ * saved profile so saving the form never wipes them. `voiceNoteUrl` is here
+ * deliberately: it's set via the separate voice-note recorder patch, and was
+ * previously dropped on every form save (a recorded clip vanished the next
+ * time the user edited their bio).
+ */
+type ProfileDraftCarry = Pick<
+  SelfProfile,
+  'socialConnections' | 'lovePersonality' | 'stabilityAnswers' | 'stabilityProfile' | 'voiceNoteUrl'
+>
+
+/**
+ * Forward transform — the all-strings profile editor draft back into a
+ * normalized SelfProfile. Inverse of {@link toProfileDraft}, and PURE:
+ * clamps age to [18, 99] and height to [130, 230], splits the comma-separated
+ * list fields (interests ≤ 6, languages ≤ 6, dealbreakers ≤ 8) and photos
+ * (≤ 9), and falls back to EMPTY_SELF_PROFILE for any blank field. The Likert
+ * personality answers are revalidated (length + 1-5 range) or dropped.
+ */
+export const buildSelfProfileFromDraft = (
+  draft: ProfileDraft,
+  carry: ProfileDraftCarry,
+): SelfProfile => {
+  const requestedAge = Number(draft.age)
+  const safeAge = Number.isFinite(requestedAge)
+    ? Math.min(99, Math.max(18, requestedAge))
+    : EMPTY_SELF_PROFILE.age
+  const requestedHeight = Number(draft.heightCm)
+  const safeHeight = Number.isFinite(requestedHeight)
+    ? Math.min(230, Math.max(130, requestedHeight))
+    : EMPTY_SELF_PROFILE.heightCm
+
+  const splitList = (value: string, cap: number): string[] =>
+    value
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0)
+      .slice(0, cap)
+
+  const interests = splitList(draft.interests, 6)
+  const languages = splitList(draft.languages, 6)
+  const dealbreakers = splitList(draft.dealbreakers, 8)
+  const photos = draft.photos.filter((value) => value.trim().length > 0).slice(0, 9)
+
+  const personalityAnswers =
+    Array.isArray(draft.personalityAnswers) &&
+    draft.personalityAnswers.length === PERSONALITY_QUESTION_COUNT &&
+    draft.personalityAnswers.every(
+      (v): v is LikertAnswer => v === 1 || v === 2 || v === 3 || v === 4 || v === 5,
+    )
+      ? (draft.personalityAnswers as LikertAnswer[])
+      : undefined
+
+  return {
+    name: draft.name.trim(),
+    age: safeAge,
+    city: draft.city.trim() || EMPTY_SELF_PROFILE.city,
+    vibe: draft.vibe.trim() || EMPTY_SELF_PROFILE.vibe,
+    bio: draft.bio.trim(),
+    interests: interests.length > 0 ? interests : EMPTY_SELF_PROFILE.interests,
+    pronouns: draft.pronouns.trim() || EMPTY_SELF_PROFILE.pronouns,
+    gender: draft.gender.trim() || EMPTY_SELF_PROFILE.gender,
+    orientation: draft.orientation.trim() || EMPTY_SELF_PROFILE.orientation,
+    lookingFor: draft.lookingFor.trim() || EMPTY_SELF_PROFILE.lookingFor,
+    relationshipIntent: draft.relationshipIntent.trim() || EMPTY_SELF_PROFILE.relationshipIntent,
+    heightCm: safeHeight,
+    jobTitle: draft.jobTitle.trim() || EMPTY_SELF_PROFILE.jobTitle,
+    company: draft.company.trim() || EMPTY_SELF_PROFILE.company,
+    education: draft.education.trim() || EMPTY_SELF_PROFILE.education,
+    hometown: draft.hometown.trim() || EMPTY_SELF_PROFILE.hometown,
+    languages: languages.length > 0 ? languages : EMPTY_SELF_PROFILE.languages,
+    drinking: draft.drinking.trim() || EMPTY_SELF_PROFILE.drinking,
+    smoking: draft.smoking.trim() || EMPTY_SELF_PROFILE.smoking,
+    workout: draft.workout.trim() || EMPTY_SELF_PROFILE.workout,
+    religion: draft.religion.trim() || EMPTY_SELF_PROFILE.religion,
+    politics: draft.politics.trim() || EMPTY_SELF_PROFILE.politics,
+    zodiac: draft.zodiac.trim() || EMPTY_SELF_PROFILE.zodiac,
+    childrenPlan: draft.childrenPlan.trim() || EMPTY_SELF_PROFILE.childrenPlan,
+    pets: draft.pets.trim() || EMPTY_SELF_PROFILE.pets,
+    promptOne: draft.promptOne.trim() || EMPTY_SELF_PROFILE.promptOne,
+    promptTwo: draft.promptTwo.trim() || EMPTY_SELF_PROFILE.promptTwo,
+    promptThree: draft.promptThree.trim() || EMPTY_SELF_PROFILE.promptThree,
+    dealbreakers: dealbreakers.length > 0 ? dealbreakers : EMPTY_SELF_PROFILE.dealbreakers,
+    instagram: draft.instagram.trim() || EMPTY_SELF_PROFILE.instagram,
+    anthem: draft.anthem.trim() || EMPTY_SELF_PROFILE.anthem,
+    socialConnections: carry.socialConnections,
+    socialPromotionOptIn: draft.socialPromotionOptIn,
+    travelMode: draft.travelMode,
+    photos: photos.length > 0 ? photos : EMPTY_SELF_PROFILE.photos,
+    personalityAnswers,
+    lovePersonality: carry.lovePersonality,
+    // Carried through — the profile form never edits these.
+    stabilityAnswers: carry.stabilityAnswers,
+    stabilityProfile: carry.stabilityProfile,
+    voiceNoteUrl: carry.voiceNoteUrl,
+  }
+}

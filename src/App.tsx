@@ -155,6 +155,7 @@ import {
   CALL_HISTORY_STORAGE_KEY,
   CHAT_THREADS_STORAGE_KEY,
   HISTORY_STORAGE_KEY,
+  buildSelfProfileFromDraft,
   normalizeSelfProfile,
   persistAppLanguage,
   readAppLanguage,
@@ -2418,38 +2419,10 @@ function App() {
   const saveMyProfile = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-      const requestedAge = Number(profileDraft.age)
-      const safeAge = Number.isFinite(requestedAge) ? Math.min(99, Math.max(18, requestedAge)) : EMPTY_SELF_PROFILE.age
-      const requestedHeight = Number(profileDraft.heightCm)
-      const safeHeight = Number.isFinite(requestedHeight) ? Math.min(230, Math.max(130, requestedHeight)) : EMPTY_SELF_PROFILE.heightCm
-    const interests = profileDraft.interests
-      .split(',')
-      .map((value) => value.trim())
-      .filter((value) => value.length > 0)
-      .slice(0, 6)
-    const languages = profileDraft.languages
-      .split(',')
-      .map((value) => value.trim())
-      .filter((value) => value.length > 0)
-      .slice(0, 6)
-    const dealbreakers = profileDraft.dealbreakers
-      .split(',')
-      .map((value) => value.trim())
-      .filter((value) => value.length > 0)
-      .slice(0, 8)
-    const photos = profileDraft.photos.filter((value) => value.trim().length > 0).slice(0, 9)
-    const personalityAnswers =
-      Array.isArray(profileDraft.personalityAnswers) &&
-      profileDraft.personalityAnswers.length === PERSONALITY_QUESTION_COUNT &&
-      profileDraft.personalityAnswers.every((v): v is LikertAnswer => v === 1 || v === 2 || v === 3 || v === 4 || v === 5)
-        ? (profileDraft.personalityAnswers as LikertAnswer[])
-        : undefined
-
     // Relaxed for beta. Onboarding required-fields flow is a future
     // conversation; for now just need a name so we have something to
     // identify the row by. Everything else can be filled in later.
-    const nameLen = profileDraft.name.trim().length
-    if (nameLen < 2) {
+    if (profileDraft.name.trim().length < 2) {
       setProfileSaveStatus('error')
       setProfileSaveErrors(['Name (need at least 2 characters)'])
       const sections = document.querySelectorAll<HTMLDetailsElement>('.profile-editor-section')
@@ -2459,49 +2432,18 @@ function App() {
     }
     setProfileSaveErrors([])
 
-    const nextProfile: SelfProfile = {
-      name: profileDraft.name.trim(),
-      age: safeAge,
-      city: profileDraft.city.trim() || EMPTY_SELF_PROFILE.city,
-      vibe: profileDraft.vibe.trim() || EMPTY_SELF_PROFILE.vibe,
-      bio: profileDraft.bio.trim(),
-      interests: interests.length > 0 ? interests : EMPTY_SELF_PROFILE.interests,
-      pronouns: profileDraft.pronouns.trim() || EMPTY_SELF_PROFILE.pronouns,
-      gender: profileDraft.gender.trim() || EMPTY_SELF_PROFILE.gender,
-      orientation: profileDraft.orientation.trim() || EMPTY_SELF_PROFILE.orientation,
-      lookingFor: profileDraft.lookingFor.trim() || EMPTY_SELF_PROFILE.lookingFor,
-      relationshipIntent: profileDraft.relationshipIntent.trim() || EMPTY_SELF_PROFILE.relationshipIntent,
-      heightCm: safeHeight,
-      jobTitle: profileDraft.jobTitle.trim() || EMPTY_SELF_PROFILE.jobTitle,
-      company: profileDraft.company.trim() || EMPTY_SELF_PROFILE.company,
-      education: profileDraft.education.trim() || EMPTY_SELF_PROFILE.education,
-      hometown: profileDraft.hometown.trim() || EMPTY_SELF_PROFILE.hometown,
-      languages: languages.length > 0 ? languages : EMPTY_SELF_PROFILE.languages,
-      drinking: profileDraft.drinking.trim() || EMPTY_SELF_PROFILE.drinking,
-      smoking: profileDraft.smoking.trim() || EMPTY_SELF_PROFILE.smoking,
-      workout: profileDraft.workout.trim() || EMPTY_SELF_PROFILE.workout,
-      religion: profileDraft.religion.trim() || EMPTY_SELF_PROFILE.religion,
-      politics: profileDraft.politics.trim() || EMPTY_SELF_PROFILE.politics,
-      zodiac: profileDraft.zodiac.trim() || EMPTY_SELF_PROFILE.zodiac,
-      childrenPlan: profileDraft.childrenPlan.trim() || EMPTY_SELF_PROFILE.childrenPlan,
-      pets: profileDraft.pets.trim() || EMPTY_SELF_PROFILE.pets,
-      promptOne: profileDraft.promptOne.trim() || EMPTY_SELF_PROFILE.promptOne,
-      promptTwo: profileDraft.promptTwo.trim() || EMPTY_SELF_PROFILE.promptTwo,
-      promptThree: profileDraft.promptThree.trim() || EMPTY_SELF_PROFILE.promptThree,
-      dealbreakers: dealbreakers.length > 0 ? dealbreakers : EMPTY_SELF_PROFILE.dealbreakers,
-      instagram: profileDraft.instagram.trim() || EMPTY_SELF_PROFILE.instagram,
-      anthem: profileDraft.anthem.trim() || EMPTY_SELF_PROFILE.anthem,
+    // ProfileDraft → SelfProfile normalization (clamps, CSV-splits, fallbacks)
+    // lives in persistence, pure + unit-tested in selfProfile.test.ts. Fields
+    // the editor never touches — social graph, personality/stability
+    // assessments, and the voice note — are carried through from the current
+    // profile so a form save never wipes them.
+    const nextProfile = buildSelfProfileFromDraft(profileDraft, {
       socialConnections: selfProfile.socialConnections,
-      socialPromotionOptIn: profileDraft.socialPromotionOptIn,
-      travelMode: profileDraft.travelMode,
-      photos: photos.length > 0 ? photos : EMPTY_SELF_PROFILE.photos,
-      personalityAnswers,
       lovePersonality: selfProfile.lovePersonality,
-      // Stability Assessment isn't edited via the profile form — carry it
-      // through untouched so saving the profile never wipes it.
       stabilityAnswers: selfProfile.stabilityAnswers,
       stabilityProfile: selfProfile.stabilityProfile,
-    }
+      voiceNoteUrl: selfProfile.voiceNoteUrl,
+    })
 
     setSelfProfile(nextProfile)
     if (!isGuest) {
