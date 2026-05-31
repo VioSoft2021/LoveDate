@@ -32,6 +32,7 @@ import { UpdateBanner } from './components/UpdateBanner'
 import { useAuth } from './hooks/useAuth'
 import { useDeck } from './hooks/useDeck'
 import { useChatState } from './hooks/useChatState'
+import { useChatViews } from './hooks/useChatViews'
 import { useChatAiActions } from './hooks/useChatAiActions'
 import { useMatchScoring } from './hooks/useMatchScoring'
 import { useCallScreen } from './hooks/useCallScreen'
@@ -218,7 +219,6 @@ export type { Filters }
 // PhotoStudio types now live in src/domain/photoStudio.ts (imported above via the domain barrel).
 
 // Storage keys live in src/persistence/keys.ts (imported via the persistence barrel).
-const CHAT_RENDER_WINDOW = 120
 
 // SOCIAL_PLATFORM_META, DEFAULT_SOCIAL_CONNECTIONS now in src/constants/profile.ts
 
@@ -2676,55 +2676,23 @@ function App() {
       .reverse()
   }, [history.passedIds, profileById])
 
-  const chatPreviews = useMemo(() => {
-    return matchedProfiles.map((profile) => {
-      const messages = chatThreads[profile.id] ?? []
-      const last = messages[messages.length - 1]
-      return {
-        profile,
-        lastText: last?.text ?? '',
-        lastTime: last ? formatShortTime(last.createdAt) : '',
-        unread: unreadChats[profile.id] ?? 0,
-      }
-    })
-  }, [matchedProfiles, chatThreads, unreadChats])
-
-  const filteredChatPreviews = useMemo(() => {
-    const query = chatSearch.trim().toLowerCase()
-    if (query.length === 0) {
-      return chatPreviews
-    }
-
-    return chatPreviews.filter(({ profile, lastText }) => {
-      return (
-        profile.name.toLowerCase().includes(query) ||
-        lastText.toLowerCase().includes(query)
-      )
-    })
-  }, [chatPreviews, chatSearch])
-
-  const selectedChatMessages = useMemo(() => {
-    if (!selectedChatProfile) {
-      return []
-    }
-    const messages = chatThreads[selectedChatProfile.id] ?? []
-    return showFullChatHistory ? messages : messages.slice(-CHAT_RENDER_WINDOW)
-  }, [selectedChatProfile, chatThreads, showFullChatHistory])
-
-  const selectedChatCallHistory = useMemo(() => {
-    if (!selectedChatProfile) {
-      return []
-    }
-    return callHistory.filter((entry) => entry.profileId === selectedChatProfile.id).slice(0, 4)
-  }, [selectedChatProfile, callHistory])
-
-  const hiddenChatMessageCount = useMemo(() => {
-    if (!selectedChatProfile || showFullChatHistory) {
-      return 0
-    }
-    const messages = chatThreads[selectedChatProfile.id] ?? []
-    return Math.max(0, messages.length - CHAT_RENDER_WINDOW)
-  }, [selectedChatProfile, chatThreads, showFullChatHistory])
+  const {
+    chatPreviews,
+    filteredChatPreviews,
+    selectedChatMessages,
+    selectedChatCallHistory,
+    hiddenChatMessageCount,
+    selectedChatChemistry,
+  } = useChatViews({
+    matchedProfiles,
+    chatThreads,
+    unreadChats,
+    chatSearch,
+    selectedChatProfile,
+    showFullChatHistory,
+    callHistory,
+    getChemistryInsights,
+  })
 
   useEffect(() => {
     const container = messagesContainerRef.current
@@ -2843,11 +2811,6 @@ function App() {
   const selectedDetailAttachment = selectedDetailProfile?.attachmentStyle ?? null
   const selectedChatBigFive = selectedChatProfile?.bigFive ?? null
   const selectedChatAttachment = selectedChatProfile?.attachmentStyle ?? null
-  const selectedChatChemistry = useMemo(
-    () => (selectedChatProfile ? getChemistryInsights(selectedChatProfile) : null),
-    [selectedChatProfile, getChemistryInsights],
-  )
-
   // Waitlist v2 magic-link reply page — wins over EVERYTHING, including
   // the auth gate and password recovery. It's a public token-only route
   // the applicant reaches from the link Master sends them.
