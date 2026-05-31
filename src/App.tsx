@@ -2251,17 +2251,11 @@ function App() {
   )
 
   const socialMotivationLine = useMemo(() => {
-    if (socialConnectedCount >= 4) {
-      return 'Ambassador status unlocked: your profile now has maximum social trust signals.'
-    }
-    if (socialConnectedCount >= 2) {
-      return 'Great momentum. Connect one more network to strengthen profile credibility.'
-    }
-    if (socialConnectedCount === 1) {
-      return 'Nice start. Add another social account to improve trust and discoverability.'
-    }
-    return 'Connect social accounts to build trust and help friends discover you faster on Privé.'
-  }, [socialConnectedCount])
+    if (socialConnectedCount >= 4) return copy.settings.socialMotivationAmbassador
+    if (socialConnectedCount >= 2) return copy.settings.socialMotivationMomentum
+    if (socialConnectedCount === 1) return copy.settings.socialMotivationStart
+    return copy.settings.socialMotivationEmpty
+  }, [socialConnectedCount, copy])
 
   const saveSelfProfilePatch = useCallback(
     (nextProfile: SelfProfile, successMessage?: string) => {

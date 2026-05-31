@@ -462,6 +462,14 @@ export const UI_TEXT = {
       socialNotConnected: 'Not connected',
       socialConnectAccount: 'Connect this account (Yes)',
       socialShare: 'Share Privé',
+      socialMotivationAmbassador:
+        'Ambassador status unlocked: your profile now has maximum social trust signals.',
+      socialMotivationMomentum:
+        'Great momentum. Connect one more network to strengthen profile credibility.',
+      socialMotivationStart:
+        'Nice start. Add another social account to improve trust and discoverability.',
+      socialMotivationEmpty:
+        'Connect social accounts to build trust and help friends discover you faster on Privé.',
       planTitle: 'Plan & Session',
       planLabel: 'Plan',
       planLikesUsed: 'Likes used',
@@ -1213,6 +1221,14 @@ export const UI_TEXT = {
       socialNotConnected: 'Neconectat',
       socialConnectAccount: 'Conectează acest cont (Da)',
       socialShare: 'Distribuie Privé',
+      socialMotivationAmbassador:
+        'Statut de ambasador deblocat: profilul tău are acum semnale maxime de încredere socială.',
+      socialMotivationMomentum:
+        'Impuls excelent. Mai conectează o rețea ca să întărești credibilitatea profilului.',
+      socialMotivationStart:
+        'Bun început. Adaugă încă un cont social pentru mai multă încredere și vizibilitate.',
+      socialMotivationEmpty:
+        'Conectează-ți conturile sociale ca să câștigi încredere și ca prietenii să te descopere mai repede pe Privé.',
       planTitle: 'Plan și sesiune',
       planLabel: 'Plan',
       planLikesUsed: 'Aprecieri folosite',
