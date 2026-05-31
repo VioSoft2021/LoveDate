@@ -34,6 +34,7 @@ import { useDeck } from './hooks/useDeck'
 import { useChatState } from './hooks/useChatState'
 import { useChatViews } from './hooks/useChatViews'
 import { useDiscoveryFilter } from './hooks/useDiscoveryFilter'
+import { useMatchInsights } from './hooks/useMatchInsights'
 import { useChatAiActions } from './hooks/useChatAiActions'
 import { useMatchScoring } from './hooks/useMatchScoring'
 import { useCallScreen } from './hooks/useCallScreen'
@@ -1508,42 +1509,11 @@ function App() {
   // merged. If the AI fetch hasn't landed yet, the user sees the pure
   // heuristic; once it resolves these memos recompute with the richer
   // payload.
-  const topProfileMatchAnalysis = useMemo(() => {
-    if (!topProfile) return null
-    const base = getMatchAnalysis(topProfile)
-    const ai = aiMatchScores[topProfile.id]
-    if (!ai) return base
-    return {
-      ...base,
-      score: ai.score,
-      reasons: ai.reasons,
-      caution: ai.redFlags.length > 0 ? ai.redFlags.join(' · ') : base.caution,
-      frictionPoints: ai.frictionPoints ?? [],
-      tips: ai.tips ?? [],
-    }
-  }, [topProfile, getMatchAnalysis, aiMatchScores])
-  const topProfileChemistry = useMemo(
-    () => (topProfile ? getChemistryInsights(topProfile) : null),
-    [topProfile, getChemistryInsights],
-  )
-  const selectedDetailMatchAnalysis = useMemo(() => {
-    if (!selectedDetailProfile) return null
-    const base = getMatchAnalysis(selectedDetailProfile)
-    const ai = aiMatchScores[selectedDetailProfile.id]
-    if (!ai) return base
-    return {
-      ...base,
-      score: ai.score,
-      reasons: ai.reasons,
-      caution: ai.redFlags.length > 0 ? ai.redFlags.join(' · ') : base.caution,
-      frictionPoints: ai.frictionPoints ?? [],
-      tips: ai.tips ?? [],
-    }
-  }, [selectedDetailProfile, getMatchAnalysis, aiMatchScores])
-  const selectedDetailChemistry = useMemo(
-    () => (selectedDetailProfile ? getChemistryInsights(selectedDetailProfile) : null),
-    [selectedDetailProfile, getChemistryInsights],
-  )
+  const matchInsightsDeps = { getMatchAnalysis, getChemistryInsights, aiMatchScores }
+  const { matchAnalysis: topProfileMatchAnalysis, chemistry: topProfileChemistry } =
+    useMatchInsights(topProfile, matchInsightsDeps)
+  const { matchAnalysis: selectedDetailMatchAnalysis, chemistry: selectedDetailChemistry } =
+    useMatchInsights(selectedDetailProfile, matchInsightsDeps)
 
   // Phase D2.2 — chat-AI surfaces (icebreaker + date planner generators
   // + reset effect). Consumes getChemistryInsights declared above.
