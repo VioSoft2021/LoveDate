@@ -420,6 +420,9 @@ function App() {
     activeModerationReportId, setActiveModerationReportId,
     moderationStatusFilter, setModerationStatusFilter,
     moderationSearchQuery, setModerationSearchQuery,
+    moderationReportsSorted,
+    moderationReportsFiltered,
+    selectedModerationReport,
   } = reports
   // notifications + toasts state now live in useToasts (above).
   // boostsLeft + rewindsLeft now in useEngagement.
@@ -2673,52 +2676,6 @@ function App() {
     { key: 'profile', label: copy.nav.profile },
     { key: 'settings', label: copy.nav.settings, badge: unreadNotificationCount },
   ]
-
-  const moderationReportsSorted = useMemo(() => {
-    // Sort: AI risk DESC (high → medium → low → untriaged), then createdAt DESC.
-    const riskRank: Record<string, number> = { high: 3, medium: 2, low: 1 }
-    return safetyReports.slice().sort((a, b) => {
-      const aRank = a.aiRiskLevel ? riskRank[a.aiRiskLevel] ?? 0 : 0
-      const bRank = b.aiRiskLevel ? riskRank[b.aiRiskLevel] ?? 0 : 0
-      if (aRank !== bRank) return bRank - aRank
-      return b.createdAt - a.createdAt
-    })
-  }, [safetyReports])
-  const moderationReportsFiltered = useMemo(() => {
-    const query = moderationSearchQuery.trim().toLowerCase()
-    return moderationReportsSorted.filter((report) => {
-      const statusMatches = moderationStatusFilter === 'all' || report.status === moderationStatusFilter
-      if (!statusMatches) {
-        return false
-      }
-      if (query.length === 0) {
-        return true
-      }
-      const searchableText = [
-        report.profileName,
-        report.profileSnapshot.city,
-        report.profileSnapshot.vibe,
-        report.category,
-        report.details,
-        report.reporterEmail,
-      ]
-        .join(' ')
-        .toLowerCase()
-      return searchableText.includes(query)
-    })
-  }, [moderationReportsSorted, moderationSearchQuery, moderationStatusFilter])
-  const selectedModerationReport = useMemo(() => {
-    if (moderationReportsFiltered.length === 0) {
-      return null
-    }
-    if (!activeModerationReportId) {
-      return moderationReportsFiltered[0]
-    }
-    return (
-      moderationReportsFiltered.find((report) => report.id === activeModerationReportId) ??
-      moderationReportsFiltered[0]
-    )
-  }, [activeModerationReportId, moderationReportsFiltered])
 
   // Tier A (2026-05-24) — old DMFR personality code is gone. Screens now consume
   // the LovePersonality object (Big Five + Attachment + optional Claude reveal).
