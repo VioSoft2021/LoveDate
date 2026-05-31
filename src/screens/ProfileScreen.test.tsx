@@ -76,6 +76,7 @@ const buildProps = (overrides: Partial<ProfileScreenProps> = {}): ProfileScreenP
     profileSaveErrors: [],
     selfLovePersonality: null,
     socialConnectedCount: 0,
+    onSaveVoiceNote: vi.fn(),
     onOpenPhotoStudio: vi.fn(),
     onOpenPersonalityGuide: vi.fn(),
     onOpenLovePersonality: vi.fn(),

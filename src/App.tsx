@@ -2279,6 +2279,21 @@ function App() {
     [isGuest, userEmail, pushToast, setProfileDraft, setSelfProfile],
   )
 
+  // Voice note (2026-05-31) — the recorder uploads the clip and hands back its
+  // public URL (or null to remove). Persist it like any other media patch.
+  const handleSaveVoiceNote = useCallback(
+    (url: string | null) => {
+      const ro = appLanguage === 'ro'
+      saveSelfProfilePatch(
+        { ...selfProfile, voiceNoteUrl: url ?? undefined },
+        url
+          ? ro ? 'Mesaj vocal salvat' : 'Voice note saved'
+          : ro ? 'Mesaj vocal eliminat' : 'Voice note removed',
+      )
+    },
+    [appLanguage, selfProfile, saveSelfProfilePatch],
+  )
+
   const suggestSocialHandle = (platform: SocialPlatform): string => {
     const baseFromName = selfProfile.name.toLowerCase().replace(/[^a-z0-9]+/g, '')
     const fallback = baseFromName.length > 0 ? baseFromName : 'priveuser'
@@ -2873,6 +2888,7 @@ function App() {
             profileSaveErrors={profileSaveErrors}
             selfLovePersonality={selfLovePersonality}
             socialConnectedCount={socialConnectedCount}
+            onSaveVoiceNote={handleSaveVoiceNote}
             onOpenPhotoStudio={() => navigate('photo-studio')}
             onOpenPersonalityGuide={() => navigate('personality-guide')}
             onOpenLovePersonality={() => navigate('love-personality')}

@@ -1,0 +1,81 @@
+/* VoiceNoteRecorder.css — profile voice-note control (2026-05-31). */
+
+.voice-note {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(201, 169, 97, 0.26);
+  background: rgba(13, 19, 46, 0.55);
+}
+
+.voice-note-head {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.voice-note-head strong {
+  color: #f1d089;
+  letter-spacing: 0.04em;
+}
+
+.voice-note-record {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  align-self: start;
+  padding: 0.6rem 1.05rem;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 169, 97, 0.45);
+  background: linear-gradient(180deg, rgba(37, 45, 92, 0.7), rgba(14, 20, 49, 0.85));
+  color: #fff4d2;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.voice-note-record:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.voice-note-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: #f2d18a;
+}
+
+.voice-note-record.is-recording .voice-note-dot {
+  background: #ff6b6b;
+  animation: voiceNotePulse 1.1s ease-in-out infinite;
+}
+
+.voice-note-player {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.voice-note-player audio {
+  width: 100%;
+  height: 2.4rem;
+}
+
+.voice-note-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.voice-note-status {
+  font-size: 0.84rem;
+  color: rgba(242, 209, 138, 0.9);
+}
+
+.voice-note-error {
+  color: #ff9d9d;
+}
+
+@keyframes voiceNotePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.82); }
+}

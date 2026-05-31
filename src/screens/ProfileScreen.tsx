@@ -1,5 +1,6 @@
 import React from 'react'
 import './ProfileScreen.css'
+import { VoiceNoteRecorder } from '../components/VoiceNoteRecorder'
 import {
   CHILDREN_PLAN_OPTIONS,
   DRINKING_OPTIONS,
@@ -47,6 +48,7 @@ export type ProfileScreenProps = {
   profileSaveErrors: string[]
   selfLovePersonality: LovePersonality | null
   socialConnectedCount: number
+  onSaveVoiceNote: (url: string | null) => void
   // Photo management now lives in a dedicated full-screen PhotoStudioScreen
   // (2026-05-28). ProfileScreen just opens it + shows a read-only strip.
   onOpenPhotoStudio: () => void
@@ -68,6 +70,7 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
   profileSaveErrors,
   selfLovePersonality,
   socialConnectedCount,
+  onSaveVoiceNote,
   onOpenPhotoStudio,
   onOpenPersonalityGuide,
   onOpenLovePersonality,
@@ -964,6 +967,12 @@ const ProfileScreenInner: React.FC<ProfileScreenProps> = ({
               {copy.profile.managePhotos}
             </button>
           </details>
+
+          <VoiceNoteRecorder
+            appLanguage={appLanguage}
+            value={selfProfile.voiceNoteUrl}
+            onChange={onSaveVoiceNote}
+          />
 
           {profileSaveErrors.length > 0 ? (
             <div className="profile-editor-errors" role="alert">

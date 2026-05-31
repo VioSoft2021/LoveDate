@@ -58,4 +58,8 @@ export type SelfProfile = {
   // projection that exposes it for matching is added in M3.
   stabilityAnswers?: LikertAnswer[]
   stabilityProfile?: StabilityProfile
+  // Profile voice note (2026-05-31) — a short audio intro (audio/webm) uploaded
+  // to the profile-photos bucket. Auto-persists in profile_data JSONB + locally;
+  // the discoverable projection that exposes it to matches is added via migration.
+  voiceNoteUrl?: string
 }

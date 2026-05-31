@@ -135,6 +135,7 @@ export const normalizeSelfProfile = (raw: unknown): SelfProfile => {
       lovePersonality: parsed.lovePersonality,
       stabilityAnswers: sanitizeStabilityAnswers(parsed.stabilityAnswers),
       stabilityProfile: parsed.stabilityProfile,
+      voiceNoteUrl: typeof parsed.voiceNoteUrl === 'string' ? parsed.voiceNoteUrl : undefined,
     }
   } catch {
     return EMPTY_SELF_PROFILE

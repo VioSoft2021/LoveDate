@@ -37,6 +37,9 @@ export type Profile = {
   // optional second assessment, in which case the stability lens stays
   // "pending" and matching falls back to personality-only.
   stabilityProfile?: StabilityProfile
+  // Profile voice note — present once sync_discoverable_profile exposes
+  // voice_note_url (migration). Undefined for profiles without one.
+  voiceNoteUrl?: string
 }
 
 const toHighResPhoto = (url: string): string => {
@@ -177,6 +180,7 @@ const mapProfileRow = (row: Record<string, unknown>): Profile | null => {
   // stability_profile jsonb column. Defensively validated; undefined when
   // absent or malformed.
   const stabilityProfile = parseStabilityProfile(row.stability_profile, isFiniteNum)
+  const voiceNoteUrl = typeof row.voice_note_url === 'string' ? row.voice_note_url : undefined
 
   return {
     id,
@@ -197,6 +201,7 @@ const mapProfileRow = (row: Record<string, unknown>): Profile | null => {
     bigFive,
     attachmentStyle,
     stabilityProfile,
+    voiceNoteUrl,
   }
 }
 

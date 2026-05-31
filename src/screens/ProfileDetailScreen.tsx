@@ -276,6 +276,12 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
         </p>
         <p>{selectedDetailProfile.vibe}</p>
         <p>{selectedDetailProfile.bio}</p>
+        {selectedDetailProfile.voiceNoteUrl ? (
+          <div className="detail-voice-note">
+            <span className="soft">{appLanguage === 'ro' ? '🎙 Mesaj vocal' : '🎙 Voice intro'}</span>
+            <audio controls src={selectedDetailProfile.voiceNoteUrl} preload="none" />
+          </div>
+        ) : null}
         <p>
           {selectedDetailProfile.gender} {'•'} {selectedDetailProfile.city} {'•'}{' '}
           {(() => {

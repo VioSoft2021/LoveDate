@@ -2,7 +2,7 @@
 // ./backend/* (split 2026-05-31); this preserves the public import path.
 
 export type { SettingsPayload } from './backend/profile'
-export { backendReadSelfProfile, backendFetchSelfProfile, backendSaveSelfProfile, backendSetLocalSelfProfile, backendResetLocalSelfProfile, purgeOtherSelfProfileCaches, purgeAllSelfProfileCaches, backendUploadProfilePhoto, backendUploadDataUrlPhotos, backendEnsureDiscoverableProfile, backendRepairDiscoverableProfile, backendSaveSettings, backendLoadSettings, backendLoadPreferences, backendSavePreferences } from './backend/profile'
+export { backendReadSelfProfile, backendFetchSelfProfile, backendSaveSelfProfile, backendSetLocalSelfProfile, backendResetLocalSelfProfile, purgeOtherSelfProfileCaches, purgeAllSelfProfileCaches, backendUploadProfilePhoto, backendUploadVoiceNote, backendUploadDataUrlPhotos, backendEnsureDiscoverableProfile, backendRepairDiscoverableProfile, backendSaveSettings, backendLoadSettings, backendLoadPreferences, backendSavePreferences } from './backend/profile'
 export { getBackendMode } from './backend/client'
 export { backendLogin, backendRegister, backendGuestLogin, backendSignOut, backendValidateInviteCode, backendDeleteSelfAccount } from './backend/auth'
 export type { VerificationStatus, AdminVerificationRequest } from './backend/verification'

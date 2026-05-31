@@ -170,6 +170,38 @@ export const backendUploadProfilePhoto = async (dataUrl: string): Promise<string
   const { data } = supabase.storage.from(PROFILE_PHOTOS_BUCKET).getPublicUrl(path)
   return data?.publicUrl ?? null
 }
+
+// Profile voice note (2026-05-31). Same pipeline as photos — uploads the
+// recorded audio/webm data URL to the profile-photos bucket and returns its
+// public URL. Returns null on any failure so callers keep the prior value.
+export const backendUploadVoiceNote = async (dataUrl: string): Promise<string | null> => {
+  if (!supabase) {
+    return null
+  }
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return null
+  }
+  const decoded = dataUrlToBlob(dataUrl)
+  if (!decoded) {
+    return null
+  }
+  const path = `${userId}/voice-${crypto.randomUUID()}.webm`
+  const { error: uploadError } = await supabase.storage
+    .from(PROFILE_PHOTOS_BUCKET)
+    .upload(path, decoded.blob, {
+      contentType: decoded.mimeType || 'audio/webm',
+      cacheControl: '3600',
+      upsert: false,
+    })
+  if (uploadError) {
+
+    console.warn('Voice note upload failed:', uploadError.message)
+    return null
+  }
+  const { data } = supabase.storage.from(PROFILE_PHOTOS_BUCKET).getPublicUrl(path)
+  return data?.publicUrl ?? null
+}
 export const backendUploadDataUrlPhotos = async (photos: string[]): Promise<string[]> => {
   const results: string[] = []
   for (const photo of photos) {
@@ -264,6 +296,9 @@ export const backendEnsureDiscoverableProfile = async (
           (v): v is number => typeof v === 'number' && v >= 1 && v <= 5,
         )
       : undefined,
+    // Forward-prep (2026-05-31): the matches'-view voice note activates once the
+    // migration teaches sync_discoverable_profile to read this key. Harmless now.
+    voiceNoteUrl: typeof profile.voiceNoteUrl === 'string' ? profile.voiceNoteUrl : undefined,
   }
 
   const { error } = await supabase.rpc('sync_discoverable_profile', {
