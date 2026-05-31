@@ -9,6 +9,9 @@ export type AiProfileSummary = {
   interests?: string[]
   relationshipGoal?: string
   zodiac?: string
+  // Optional Privé relationship-science signal — lets the coach tailor tone to
+  // the recipient's attachment style. Omitted for guests / pre-quiz users.
+  attachmentStyle?: string
 }
 
 export type AiChatTurn = { sender: 'me' | 'them'; text: string }
@@ -17,7 +20,7 @@ type CacheEntry = { openers: string[]; storedAt: number; v: number }
 
 const CACHE_KEY_PREFIX = 'lovedate:ai-icebreaker:'
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24
-const CACHE_VERSION = 2 // bumped: language parameter added; v=1 entries are stale
+const CACHE_VERSION = 3 // bumped: attachment/chemistry-aware coaching; v<=2 entries are stale
 
 const cacheKey = (
   selfName: string,
@@ -71,6 +74,7 @@ export const backendInvokeIcebreaker = async (input: {
   otherProfile: AiProfileSummary & { id: number }
   chatExcerpt?: AiChatTurn[]
   language?: 'en' | 'ro'
+  chemistryScore?: number
 }): Promise<string[] | null> => {
   const supabase = createSupabaseClient()
   if (!supabase) {
@@ -100,9 +104,11 @@ export const backendInvokeIcebreaker = async (input: {
             interests: input.otherProfile.interests,
             relationshipGoal: input.otherProfile.relationshipGoal,
             zodiac: input.otherProfile.zodiac,
+            attachmentStyle: input.otherProfile.attachmentStyle,
           },
           chatExcerpt: input.chatExcerpt ?? [],
           language,
+          chemistryScore: input.chemistryScore,
         },
       },
     )

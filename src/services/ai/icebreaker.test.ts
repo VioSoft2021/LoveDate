@@ -63,6 +63,20 @@ describe('backendInvokeIcebreaker', () => {
     expect(result).toBeNull()
   })
 
+  it('forwards attachment style + chemistry score into the function body', async () => {
+    mockInvoke.mockResolvedValue({ data: { openers: ['a', 'b', 'c'] }, error: null })
+    await backendInvokeIcebreaker({
+      selfProfile: { name: 'Alex', attachmentStyle: 'secure' },
+      otherProfile: { id: 42, name: 'Riley', attachmentStyle: 'anxious' },
+      chatExcerpt: [{ sender: 'them', text: 'hey' }],
+      chemistryScore: 78,
+    })
+    const body = mockInvoke.mock.calls[0][1].body
+    expect(body.otherProfile.attachmentStyle).toBe('anxious')
+    expect(body.selfProfile.attachmentStyle).toBe('secure')
+    expect(body.chemistryScore).toBe(78)
+  })
+
   it('hits cache on second call with same args + language', async () => {
     mockInvoke.mockResolvedValue({
       data: { openers: ['cached opener'] },

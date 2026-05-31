@@ -19,6 +19,10 @@ type ProfileSummary = {
   interests?: string[]
   relationshipGoal?: string
   zodiac?: string
+  // Privé relationship science (optional — absent for guests / users who
+  // haven't taken the Love Personality quiz). When present, the coach tailors
+  // tone to the recipient's attachment style. See buildSystemPrompt rubric.
+  attachmentStyle?: string
 }
 
 type ChatTurn = { sender: 'me' | 'them'; text: string }
@@ -28,6 +32,8 @@ type RequestBody = {
   otherProfile: ProfileSummary
   chatExcerpt?: ChatTurn[]
   language?: 'en' | 'ro'
+  // Estimated compatibility 0–100 (optional). A light signal, not a script.
+  chemistryScore?: number
 }
 
 const corsHeaders = {
@@ -46,6 +52,7 @@ const profileBlock = (label: string, p: ProfileSummary) => {
     p.relationshipGoal ? `looking for ${p.relationshipGoal}` : null,
     p.zodiac ? `${p.zodiac}` : null,
     p.interests?.length ? `interests: ${p.interests.slice(0, 6).join(', ')}` : null,
+    p.attachmentStyle ? `attachment style: ${p.attachmentStyle}` : null,
     p.bio?.trim() ? `bio: "${p.bio.trim().slice(0, 320)}"` : null,
   ]
     .filter(Boolean)
@@ -58,6 +65,9 @@ const buildUserPrompt = (body: RequestBody): string => {
     profileBlock('Sender', body.selfProfile),
     profileBlock('Recipient', body.otherProfile),
   ]
+  if (typeof body.chemistryScore === 'number') {
+    lines.push(`Estimated chemistry so far: ${Math.round(body.chemistryScore)}%.`)
+  }
   if (body.chatExcerpt?.length) {
     lines.push('Recent conversation (oldest first):')
     for (const turn of body.chatExcerpt.slice(-8)) {
@@ -87,7 +97,8 @@ Rules:
 - Vary the three: one warm/curious, one playful, one that proposes a next step (a question, a small plan, a vivid micro-detail).
 - Never invent facts about the Sender or Recipient. Never claim shared memories.
 - No emoji unless the Recipient used emoji first.
-- No greeting like "Hi" or "Hello" — start with substance.`
+- No greeting like "Hi" or "Hello" — start with substance.
+- Attachment-aware coaching: when a person's attachment style is given, subtly shape tone to fit the RECIPIENT — anxious: warm, clear and reassuring, no mixed signals; avoidant: light and low-pressure, respect their autonomy; secure: match their openness with a confident next step; disorganized: gentle, consistent and low-intensity. Never name the attachment style or use psychology jargon in the messages themselves.`
 
   if (language === 'ro') {
     return `${baseRules}

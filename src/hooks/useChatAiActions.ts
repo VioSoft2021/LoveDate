@@ -117,6 +117,7 @@ export const useChatAiActions = ({
             interests: selfProfile.interests,
             relationshipGoal: selfProfile.relationshipIntent,
             zodiac: selfProfile.zodiac,
+            attachmentStyle: selfProfile.lovePersonality?.attachment,
           },
           otherProfile: {
             id: target.id,
@@ -128,9 +129,11 @@ export const useChatAiActions = ({
             interests: target.interests,
             relationshipGoal: target.relationshipGoal,
             zodiac: target.zodiac,
+            attachmentStyle: target.attachmentStyle,
           },
           chatExcerpt: recent,
           language: appLanguage,
+          chemistryScore: getChemistryInsights(target).chemistryScore,
         })
         const next =
           aiSuggestions && aiSuggestions.length > 0
