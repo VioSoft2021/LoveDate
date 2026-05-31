@@ -728,9 +728,11 @@
 
 .discover-deck-column {
   display: grid;
-  grid-template-rows: auto;
+  /* Card, swipe actions, and status hint stack tightly (no forced 1fr row
+     that left a gap above a height-capped card). The card's height is set by
+     the .discover-deck rule below. 2026-05-31. */
   width: 100%;
-  gap: 0;
+  gap: 0.55rem;
   align-content: start;
   min-height: 0;
 }
@@ -738,8 +740,8 @@
 .discover-deck {
   width: 100%;
   margin: 0;
-  height: clamp(30rem, calc(100dvh - 16rem), 44rem);
-  max-height: 44rem;
+  /* NOTE: the effective deck height is set by the later .discover-deck rule
+     (search "clamp(26rem" below) — App.css redefines this several times. */
   justify-self: center;
   margin-bottom: 0;
 }
@@ -4859,21 +4861,37 @@ details.profile-settings.settings-card[open] > summary {
   display: block;
 }
 
-/* Desktop (2-column profile, ≥1025px): the left column makes the hero
-   roughly square, so a portrait headshot gets its top+bottom cropped
-   no matter the object-position — the chin gets cut. Give the hero a
-   true portrait aspect ratio (matches a headshot) so the whole face
-   shows. Mobile keeps its dvh-clamp sizing (tuned during the
-   friend-test; untouched here). 2026-05-27. */
-@media (min-width: 1025px) {
+/* Desktop + narrow-desktop (≥769px): cap the hero to a tasteful cover
+   height instead of a tall portrait. The old 4/5 portrait ballooned the
+   photo — a full-window giant in the single-column band (769–1024px) and
+   a column-dominating slab in the 2-column layout, which also starved the
+   editor column and left big empty space beside it. A capped cover height
+   keeps the face readable, shrinks the left column, and balances the page.
+   Phone (≤768px) keeps its dvh-clamp sizing in mobile.css. 2026-05-31. */
+@media (min-width: 769px) {
+  /* Contained portrait, not a full-bleed slab. The hero card shrinks to a
+     fixed portrait width and centres — so a close-up headshot shows the
+     whole face at a tasteful size in both the 2-column and single-column
+     layouts, instead of ballooning to a giant or slicing to the forehead
+     in a short banner. */
+  .profile-summary-card {
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+  }
   .profile-summary-hero {
     aspect-ratio: 4 / 5;
+    width: 21rem;
+    max-width: 100%;
     min-height: 0;
     max-height: none;
   }
   .profile-summary-hero img {
     min-height: 0;
-    object-position: center 30%;
+    /* Show the WHOLE photo inside the fixed frame (no crop) — the frame
+       keeps its 21rem 4/5 size; the image scales to fit entirely. 2026-05-31. */
+    object-fit: contain;
+    object-position: center;
   }
 }
 
@@ -4938,12 +4956,9 @@ details.profile-settings.settings-card[open] > summary {
   padding: 0.5rem 0.9rem;
 }
 
-@media (max-width: 1024px) {
-  .profile-summary-hero,
-  .profile-summary-hero img {
-    min-height: 24rem;
-  }
-}
+/* (Narrow-desktop hero sizing now handled by the min-width:769px cover-height
+   rule above; the old min-height:24rem here forced the giant full-width photo
+   in the 769–1024px single-column band. Phone sizing lives in mobile.css.) */
 
 .settings-screen .setting-row input[type='checkbox'] {
   accent-color: #d7b66a;
@@ -5004,7 +5019,10 @@ details.profile-settings.settings-card[open] > summary {
 }
 
 .discover-deck {
-  height: clamp(22rem, calc(100dvh - 24rem), 38rem);
+  /* Card sized so it + the swipe buttons beneath it fill the left column to
+     roughly the info-panel height (was capped 38rem, leaving a void). The
+     subtracted 18rem ≈ top bar + KPI row + buttons + gaps. 2026-05-31. */
+  height: clamp(26rem, calc(100dvh - 18rem), 48rem);
   max-height: none;
 }
 
@@ -5489,6 +5507,36 @@ details.profile-settings.settings-card[open] > summary {
   line-height: 1.45;
 }
 
+/* Wide-screen moderation workspace (2026-05-31) — was a 62rem strip (big
+   flanks) with an unbalanced right column. Now: widen the workspace, stretch
+   cells so the 2×2 grid (Queue | Report Details, Verifications | Crashes)
+   has equal-height rows, and centre the Report Details empty-state so the
+   "select a report" placeholder reads as intentional instead of a void. */
+.moderation-screen {
+  width: min(100%, 88rem);
+}
+/* Hard-pin the 2×2 on desktop so the four cards can't auto-flow into a tall
+   stranded layout: Queue | Report Details, Verifications | Crashes, with
+   equal-height rows. Mobile (≤1024px) keeps the single-column base. */
+@media (min-width: 1025px) {
+  .moderation-screen {
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+  .moderation-screen .moderation-list { grid-area: 1 / 1; }
+  .moderation-screen .moderation-detail { grid-area: 1 / 2; }
+  .moderation-screen .verification-queue { grid-area: 2 / 1; }
+  .moderation-screen .crash-inbox { grid-area: 2 / 2; }
+}
+/* Centre the "select a report" placeholder so the empty Report Details panel
+   reads as an intentional empty-state, not a void. */
+.moderation-screen .moderation-detail--empty {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 0.55rem;
+}
+
 .moderation-toolbar {
   display: grid;
   grid-template-columns: 10.5rem minmax(0, 1fr);
@@ -5671,9 +5719,13 @@ details.profile-settings.settings-card[open] > summary {
 }
 
 .settings-dashboard {
-  width: min(100%, 72rem);
+  /* Was a 72rem centered strip → big empty flanks + spacious "huge field"
+     rows on a wide window. Now fills up to 96rem with auto-fit columns:
+     2–3 columns of cards on desktop (tighter rows), collapsing to 1 on
+     narrow/phone. The hero spans all columns. 2026-05-31. */
+  width: min(100%, 96rem);
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(27rem, 1fr));
   gap: 1rem;
   align-items: start;
 }
@@ -5734,7 +5786,9 @@ details.profile-settings.settings-card[open] > summary {
   display: grid;
   gap: 0.8rem;
   align-content: start;
-  min-height: 100%;
+  /* min-height:100% removed 2026-05-31 — it stretched collapsed cards to
+     the tallest card in their grid row, creating empty space. Cards now
+     take their natural height in the auto-fit dashboard grid. */
   padding: 1.15rem 1.05rem;
 }
 
@@ -5748,9 +5802,9 @@ details.profile-settings.settings-card[open] > summary {
   margin-top: 0;
 }
 
-.settings-card--social {
-  grid-column: 1 / -1;
-}
+/* .settings-card--social no longer forced full-width (was grid-column:1/-1,
+   tuned for the old 2-col layout) — in the auto-fit dashboard grid it now
+   sits as a normal cell instead of stranding the cells beside it. 2026-05-31 */
 
 .settings-card .setting-row {
   margin-top: 0;

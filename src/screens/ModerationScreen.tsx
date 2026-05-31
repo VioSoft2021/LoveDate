@@ -163,7 +163,13 @@ export const ModerationScreen: React.FC<ModerationScreenProps> = ({
         )}
       </article>
 
-      <article className="profile-settings moderation-detail">
+      <article
+        className={
+          selectedModerationReport
+            ? 'profile-settings moderation-detail'
+            : 'profile-settings moderation-detail moderation-detail--empty'
+        }
+      >
         <h2>{ro ? 'Detalii raportare' : 'Report Details'}</h2>
         {selectedModerationReport ? (
           <>

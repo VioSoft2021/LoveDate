@@ -545,6 +545,49 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
                 )}
               </article>
             </section>
+            {/* Swipe actions sit directly under the deck card (2026-05-31) —
+                fills the left column and puts the controls right beneath the
+                photo (better UX) instead of stranded in the info panel. */}
+            <section
+              className="actions discover-action-cluster discover-primary-actions"
+              aria-label="Swipe actions"
+            >
+              <button
+                type="button"
+                className="ghost pass-action"
+                onClick={() => swipeCard('left')}
+                disabled={!topProfile || isResolvingSwipe}
+              >
+                {copy.discover.pass}
+              </button>
+              <button
+                type="button"
+                className="super super-action"
+                onClick={() => swipeCard('right', 'super-like')}
+                disabled={
+                  !topProfile || isResolvingSwipe || likeLimitReached || superLikeLimitReached
+                }
+              >
+                {copy.discover.superLike}
+              </button>
+              <button
+                type="button"
+                className="solid like-action"
+                onClick={() => swipeCard('right')}
+                disabled={!topProfile || isResolvingSwipe || likeLimitReached}
+              >
+                {copy.discover.like}
+              </button>
+            </section>
+            {(likeLimitReached || superLikeLimitReached || isResolvingSwipe) && (
+              <footer className="hint discover-hint">
+                {likeLimitReached && <p className="result">{copy.discover.likeLimitReached}</p>}
+                {superLikeLimitReached && (
+                  <p className="result">{copy.discover.superLikeLimitReached}</p>
+                )}
+                {isResolvingSwipe && <p className="result">{copy.discover.checkingMatch}</p>}
+              </footer>
+            )}
           </div>
           <aside className="discover-side-panel" aria-label="Profile insights and actions">
             <article className="discover-info-panel">
@@ -692,49 +735,6 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
                 {copy.discover.viewFullProfile}
               </button>
             </article>
-            <section
-              className="actions discover-action-cluster discover-primary-actions"
-              aria-label="Swipe actions"
-            >
-              <button
-                type="button"
-                className="ghost pass-action"
-                onClick={() => swipeCard('left')}
-                disabled={!topProfile || isResolvingSwipe}
-              >
-                {copy.discover.pass}
-              </button>
-              <button
-                type="button"
-                className="super super-action"
-                onClick={() => swipeCard('right', 'super-like')}
-                disabled={
-                  !topProfile || isResolvingSwipe || likeLimitReached || superLikeLimitReached
-                }
-              >
-                {copy.discover.superLike}
-              </button>
-              <button
-                type="button"
-                className="solid like-action"
-                onClick={() => swipeCard('right')}
-                disabled={!topProfile || isResolvingSwipe || likeLimitReached}
-              >
-                {copy.discover.like}
-              </button>
-            </section>
-            <footer className="hint discover-hint">
-              {/* Keyboard-shortcut hints + last-action readout removed
-                  2026-05-31 — useless on touch (no keyboard) and the raw
-                  intent was untranslated. The shortcuts still work on
-                  desktop; we just no longer advertise them. Functional
-                  status messages stay. */}
-              {likeLimitReached && <p className="result">{copy.discover.likeLimitReached}</p>}
-              {superLikeLimitReached && (
-                <p className="result">{copy.discover.superLikeLimitReached}</p>
-              )}
-              {isResolvingSwipe && <p className="result">{copy.discover.checkingMatch}</p>}
-            </footer>
           </aside>
         </section>
       )}

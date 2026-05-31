@@ -60,6 +60,12 @@ export default defineConfig({
     // Allow cloudflared quick tunnels (random *.trycloudflare.com hostnames)
     // so friends can hit the dev server through a public URL during testing.
     allowedHosts: ['.trycloudflare.com', '.vercel.app', '.netlify.app'],
+    // Don't watch the screenshots folder / loose screenshot PNGs — they're
+    // untracked dev noise (saved here during review), and a file lock while
+    // one is being written crashes Vite's watcher with EBUSY. 2026-05-31.
+    watch: {
+      ignored: ['**/screenshots/**', '**/Screenshot*.png'],
+    },
   },
   build: {
     rollupOptions: {

@@ -134,7 +134,7 @@ const SettingsScreenInner: React.FC<SettingsScreenProps> = ({
         </div>
       </article>
 
-      <details className="profile-settings settings-card settings-card--preferences" open>
+      <details className="profile-settings settings-card settings-card--preferences">
         <summary>{copy.settings.preferences}</summary>
         <label className="setting-row">
           {copy.settings.pushNotifications}
