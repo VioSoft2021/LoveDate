@@ -39,17 +39,26 @@ export const useDeck = () => {
   // origin and handlePointerMove/Up can read it without forcing a
   // re-render on every pixel.
   const dragStart = useRef<{ x: number; y: number } | null>(null)
+  const loadSeq = useRef(0)
 
   const loadProfiles = useCallback(async (options?: { isGuest?: boolean }) => {
+    // Sequence guard: on boot we fire loadProfiles({isGuest:false}) before
+    // guestLogin flips isGuest, so a guest gets TWO concurrent loads. The
+    // real-backend one 400s (no session) and, resolving LATE, used to clobber
+    // the demo profiles the guest load had already set — emptying the deck.
+    // Only the most-recently-started load may write state.
+    const seq = ++loadSeq.current
     try {
       setLoadingProfiles(true)
       const incoming = await getProfiles(options)
+      if (seq !== loadSeq.current) return
       setAllProfiles(incoming.map(normalizeProfilePhotos))
       setLoadError(null)
     } catch {
+      if (seq !== loadSeq.current) return
       setLoadError('Could not load profiles. Please retry.')
     } finally {
-      setLoadingProfiles(false)
+      if (seq === loadSeq.current) setLoadingProfiles(false)
     }
   }, [])
 
