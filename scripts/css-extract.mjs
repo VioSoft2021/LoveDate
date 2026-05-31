@@ -35,6 +35,7 @@ const SCREENS = {
   discover: { file: 'DiscoverScreen.css', re: /^discover/ },
   profile: { file: 'ProfileScreen.css', re: /^profile(?!-detail)/ },
   'photo-studio': { file: 'PhotoStudioScreen.css', re: /^photo-studio/ },
+  chat: { file: 'ChatScreen.css', re: /^(chat|msg|message|conversation|thread)/ },
 }
 
 const screen = process.argv[2]

@@ -278,6 +278,19 @@ const DEMO_PREVIEW_SELF: SelfProfile = {
   lovePersonality: DEMO_GUEST_LOVE_PERSONALITY,
   stabilityProfile: DEMO_GUEST_STABILITY,
 }
+// `?preview=chat-active` seeds a real DEMO_PROFILES match (Andra, 90001 — an id
+// that survives the deck's demo load) plus a fixed conversation, so the harness
+// covers the chat conversation pane (.chat-*, .msg-*, incl. a call-log chip).
+// Fixed ids + timestamps keep the render byte-stable across captures.
+const DEMO_PREVIEW_CHAT_ID = 90001
+const DEMO_PREVIEW_MESSAGES: ChatMessage[] = [
+  { id: 8000001, sender: 'them', text: 'Hi! I really liked your profile 😊', createdAt: 1717200000000, status: 'read' },
+  { id: 8000002, sender: 'me', text: 'Thank you! Yours too — what are you reading these days?', createdAt: 1717200600000, status: 'read' },
+  { id: 8000003, sender: 'them', text: 'Just finished a detective novel. You?', createdAt: 1717201200000, status: 'read' },
+  { id: 8000004, sender: 'me', text: 'Same passion here. Want to grab a coffee this week?', createdAt: 1717201800000, status: 'read' },
+  { id: 8000005, sender: 'them', text: 'I would love that ✨', createdAt: 1717202400000, status: 'read' },
+  { id: 8000006, sender: 'me', text: '', createdAt: 1717203000000, status: 'read', callMeta: { type: 'video', roomId: 'demo', roomUrl: 'https://example.com/demo', event: 'ended' } },
+]
 
 function App() {
   // Phase D extraction (2026-05-30) — legacy orphan removal + one-time
@@ -960,7 +973,15 @@ function App() {
     if (PREVIEW_LANG === 'ro' || PREVIEW_LANG === 'en') setAppLanguage(PREVIEW_LANG)
     handleGuestLogin()
     setSelfProfile(DEMO_PREVIEW_SELF)
-    navigate(PREVIEW_SCREEN as AppScreen, { replace: true })
+    if (PREVIEW_SCREEN === 'chat-active') {
+      // Seed a match (Andra, 90001 — arrives with the deck's demo load) + a
+      // fixed conversation so the harness renders the chat conversation pane.
+      // The relaxed phone guard below lets activeChatId auto-select on mobile too.
+      setHistory((prev) => ({ ...prev, matchIds: [...prev.matchIds, DEMO_PREVIEW_CHAT_ID] }))
+      setChatThreads((prev) => ({ ...prev, [DEMO_PREVIEW_CHAT_ID]: DEMO_PREVIEW_MESSAGES }))
+      setActiveChatId(DEMO_PREVIEW_CHAT_ID)
+    }
+    navigate((PREVIEW_SCREEN === 'chat-active' ? 'chats' : PREVIEW_SCREEN) as AppScreen, { replace: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -1452,11 +1473,11 @@ function App() {
     const isPhone =
       typeof window !== 'undefined' &&
       window.matchMedia('(max-width: 768px)').matches
-    if (isPhone && activeChatId === null) return
+    if (isPhone && activeChatId === null && !PREVIEW_SCREEN) return
 
     const stillExists = matchedProfiles.some((profile) => profile.id === activeChatId)
     if (!stillExists) {
-      setActiveChatId(isPhone ? null : matchedProfiles[0].id)
+      setActiveChatId(isPhone && !PREVIEW_SCREEN ? null : matchedProfiles[0].id)
     }
   }, [matchedProfiles, activeChatId, setActiveChatId])
 
