@@ -1,3 +1,443 @@
+/*  ───────────────────────────────────────────────────────────
+   Moved from App.css (CSS split, 2026-05-31). Render-neutral:
+   scripts/css-regression.mjs --check reports zero computed-style
+   diffs across all screens at desktop + mobile.
+   ───────────────────────────────────────────────────────────  */
+
+@media (max-width: 900px) {
+  .profile-summary--enhanced {
+    max-height: none;
+    position: static;
+    padding-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .profile-hero {
+    min-height: 10rem;
+  }
+  .profile-hero img {
+    min-height: 10rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .profile-summary--enhanced {
+    padding-bottom: 0.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-hero,
+  .profile-hero img {
+    min-height: 6rem;
+  }
+}
+
+.profile-head {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.profile-summary--enhanced {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  display: grid;
+  gap: 0.65rem;
+  max-height: calc(100vh - 10.2rem);
+  overflow: auto;
+  padding-bottom: 0.7rem;
+}
+
+.profile-hero {
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(112, 130, 216, 0.4);
+  min-height: 16.5rem;
+}
+
+.profile-hero img {
+  width: 100%;
+  height: 100%;
+  min-height: 16.5rem;
+  object-fit: cover;
+  object-position: center 28%;
+  display: block;
+}
+
+.profile-hero-overlay {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.85rem 0.9rem 0.8rem;
+  background: linear-gradient(180deg, rgba(9, 14, 38, 0.08), rgba(9, 14, 38, 0.84) 45%, rgba(9, 14, 38, 0.96));
+}
+
+.profile-hero-overlay h2 {
+  margin: 0;
+  font-size: clamp(1.7rem, 2.4vw, 2.25rem);
+}
+
+.profile-presence-line {
+  margin: 0;
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(102, 223, 180, 0.44);
+  background: rgba(16, 26, 62, 0.64);
+  color: rgba(228, 241, 255, 0.94);
+  padding: 0.2rem 0.52rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.profile-status-dot {
+  width: 0.52rem;
+  height: 0.52rem;
+  border-radius: 999px;
+  background: #66dfb4;
+  box-shadow: 0 0 0 2px rgba(12, 18, 45, 0.86);
+}
+
+.profile-location {
+  font-weight: 600;
+  font-size: 0.98rem;
+  color: rgba(220, 234, 255, 0.94);
+}
+
+.profile-bio {
+  line-height: 1.5;
+  color: rgba(228, 240, 255, 0.9);
+}
+
+.profile-fact {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(112, 130, 216, 0.24);
+  background: rgba(30, 40, 92, 0.45);
+  padding: 0.5rem 0.62rem;
+  font-size: 0.92rem;
+}
+
+.profile-editor form {
+  margin-top: 0.65rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.profile-section {
+  border-radius: 0.82rem;
+  border: 1px solid rgba(112, 130, 216, 0.28);
+  background: rgba(21, 29, 69, 0.36);
+  padding: 0.3rem 0.45rem 0.4rem;
+}
+
+.profile-section summary {
+  list-style: none;
+  cursor: pointer;
+  margin: 0.1rem 0 0.15rem;
+  font-size: 0.88rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(229, 241, 255, 0.94);
+  padding: 0.42rem 0.6rem;
+  border-radius: 0.68rem;
+  border: 1px solid rgba(112, 130, 216, 0.24);
+  background: rgba(31, 41, 95, 0.42);
+  font-weight: 700;
+}
+
+.profile-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.profile-section summary::after {
+  content: '+';
+  float: right;
+  font-size: 1rem;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+.profile-section[open] summary::after {
+  content: '-';
+}
+
+.profile-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.62rem;
+  padding: 0.22rem 0 0.35rem;
+}
+
+.profile-editor-section {
+  margin: 0.4rem 0;
+  border-radius: 0.78rem;
+  border: 1px solid rgba(112, 130, 216, 0.26);
+  background: rgba(21, 29, 69, 0.42);
+  overflow: hidden;
+}
+
+.profile-editor {
+  max-height: calc(100vh - 8rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(126, 223, 245, 0.55) rgba(21, 29, 69, 0.4);
+}
+
+.profile-editor::-webkit-scrollbar {
+  width: 8px;
+}
+
+.profile-editor::-webkit-scrollbar-track {
+  background: rgba(21, 29, 69, 0.4);
+  border-radius: 4px;
+}
+
+.profile-editor::-webkit-scrollbar-thumb {
+  background: rgba(126, 223, 245, 0.55);
+  border-radius: 4px;
+}
+
+.profile-editor::-webkit-scrollbar-thumb:hover {
+  background: rgba(126, 223, 245, 0.8);
+}
+
+.profile-editor-errors {
+  margin: 0.6rem 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(248, 113, 113, 0.55);
+  background: rgba(80, 17, 24, 0.55);
+  color: rgba(255, 220, 220, 0.96);
+  font-size: 0.86rem;
+}
+
+.profile-editor-errors strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  letter-spacing: 0.02em;
+}
+
+.profile-editor-errors ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.profile-editor-errors li {
+  margin: 0.15rem 0;
+}
+
+.profile-editor-section + .profile-editor-section {
+  margin-top: 0.55rem;
+}
+
+.profile-editor-section > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.78rem 0.95rem;
+  font-size: 0.86rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(229, 241, 255, 0.94);
+  background: rgba(31, 41, 95, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.profile-editor-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.profile-editor-section > summary::after {
+  content: '+';
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(229, 241, 255, 0.7);
+  transition: transform 180ms ease;
+}
+
+.profile-editor-section[open] > summary::after {
+  content: '−';
+}
+
+.profile-editor-section[open] > summary {
+  background: rgba(43, 56, 122, 0.62);
+  border-bottom: 1px solid rgba(112, 130, 216, 0.26);
+}
+
+.profile-editor-actions {
+  margin-top: 0.2rem;
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.profile-editor-actions--studio {
+  margin-top: 0.45rem;
+}
+
+.profile-editor-actions--primary {
+  position: static;
+  margin-top: 0.5rem;
+  padding: 0.62rem;
+  border-radius: 0.86rem;
+  border: 1px solid rgba(112, 130, 216, 0.32);
+  background: rgba(16, 23, 58, 0.74);
+}
+
+@media (max-width: 1024px) {
+
+  .profile-summary--enhanced {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .profile-editor-actions--primary {
+    position: static;
+    backdrop-filter: none;
+  }
+}
+
+@media (max-width: 760px) {
+
+  .profile-editor-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-left-column {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.profile-summary-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.profile-summary-hero {
+  position: relative;
+  width: 100%;
+  /* RESPONSIVE FIX 2026-05-21: was min-height 34rem / max-height 40rem
+     (=544–640px), which truncated the entire profile content on small
+     phones — the hero ate the whole viewport so users never saw the
+     editor below. Now scales with viewport height: 14rem floor for
+     readability, 34rem ceiling preserves desktop look, target 40dvh
+     (40% of dynamic viewport height). On iPhone SE (~600dvh) the hero
+     becomes ~240px, leaving room for the rest. Reported by Master's
+     friend during friend-test. */
+  min-height: clamp(14rem, 40dvh, 34rem);
+  max-height: clamp(18rem, 50dvh, 40rem);
+  overflow: hidden;
+}
+
+.profile-summary-hero img {
+  width: 100%;
+  height: 100%;
+  /* Was min-height:34rem + object-position 26% — on the wide web
+     layout that scaled the photo tall and anchored the view high,
+     cutting the chin. Lower min-height + a center-biased anchor show
+     more of the whole face (eyes through chin) on both web + mobile. */
+  min-height: 26rem;
+  object-fit: cover;
+  object-position: center 42%;
+  display: block;
+}
+
+@media (min-width: 769px) {
+  .profile-summary-card {
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+  .profile-summary-hero {
+    aspect-ratio: 4 / 5;
+    width: 21rem;
+    max-width: 100%;
+    min-height: 0;
+    max-height: none;
+  }
+  .profile-summary-hero img {
+    min-height: 0;
+    /* Show the WHOLE photo inside the fixed frame (no crop) — the frame
+       keeps its 21rem 4/5 size; the image scales to fit entirely. 2026-05-31. */
+    object-fit: contain;
+    object-position: center;
+  }
+}
+
+.profile-summary-overlay {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  gap: 0.22rem;
+  padding: 1rem 1rem 0.95rem;
+  background: linear-gradient(180deg, rgba(8, 12, 30, 0.04), rgba(8, 12, 30, 0.82) 48%, rgba(8, 12, 30, 0.96));
+}
+
+.profile-summary-overlay h3 {
+  margin: 0;
+  font-size: clamp(2.05rem, 2.8vw, 2.55rem);
+  letter-spacing: 0.02em;
+}
+
+.profile-summary-overlay p {
+  margin: 0;
+  color: rgba(232, 242, 255, 0.92);
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+}
+
+.profile-about-card,
+.profile-interests-card {
+  padding: 1.15rem 1rem;
+}
+
+.profile-about-card h3,
+.profile-interests-card h3 {
+  margin: 0 0 0.6rem;
+  font-size: 1.95rem;
+  letter-spacing: 0.01em;
+}
+
+.profile-about-card p {
+  margin: 0;
+  color: rgba(224, 234, 251, 0.86);
+  line-height: 1.72;
+  font-size: 1.02rem;
+}
+
+.profile-about-card .profile-about-meta {
+  margin-top: 0.72rem;
+  color: rgba(244, 220, 168, 0.9);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.profile-cognitive-list {
+  margin: 0.2rem 0 0;
+  padding-left: 1.05rem;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.profile-cognitive-list li {
+  color: rgba(231, 240, 255, 0.92);
+}
+
 /* ===========================================================
    Privé — Profile editor luxury redesign (2026-05-25)
    ===========================================================

@@ -1,3 +1,114 @@
+/*  ───────────────────────────────────────────────────────────
+   Moved from App.css (CSS split, 2026-05-31). Render-neutral:
+   scripts/css-regression.mjs --check reports zero computed-style
+   diffs across all screens at desktop + mobile.
+   ───────────────────────────────────────────────────────────  */
+
+@media (max-width: 700px) {
+  .activity-overview {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+}
+
+.activity-overview {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.activity-overview strong {
+  margin-left: 0.4rem;
+  font-size: 1.15rem;
+}
+
+.activity-item {
+  transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+}
+
+.activity-item:hover {
+  transform: translateY(-1px);
+}
+
+.activity-item-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.68rem;
+}
+
+.activity-avatar {
+  width: 2.9rem;
+  height: 2.9rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid rgba(112, 130, 216, 0.4);
+}
+
+.activity-avatar-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.activity-status-dot {
+  position: absolute;
+  right: 0.04rem;
+  bottom: 0.04rem;
+  width: 0.72rem;
+  height: 0.72rem;
+  border-radius: 999px;
+  border: 2px solid rgba(10, 15, 40, 0.9);
+}
+
+.activity-status-dot--match {
+  background: #66dfb4;
+}
+
+.activity-status-dot--liked {
+  background: #7fe4f7;
+}
+
+.activity-status-dot--passed {
+  background: #9ca8cc;
+}
+
+.activity-item-meta {
+  min-width: 0;
+  display: grid;
+  gap: 0.12rem;
+}
+
+.activity-item-meta strong,
+.activity-item-meta span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 760px) {
+
+  .activity-overview {
+    grid-template-columns: 1fr;
+  }
+}
+
+.activity-overview strong {
+  color: #f0ce87;
+}
+
+.activity-item {
+  border: 1px solid rgba(201, 169, 97, 0.22);
+  border-radius: 0.86rem;
+  background: rgba(24, 32, 76, 0.58);
+}
+
+.activity-item:hover {
+  border-color: rgba(201, 169, 97, 0.46);
+  background: rgba(31, 42, 98, 0.68);
+}
+
 /* ===========================================================
    Privé — Activity screen luxury redesign (2026-05-25)
    ===========================================================

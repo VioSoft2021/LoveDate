@@ -49,13 +49,66 @@ const TARGET = `src/screens/${cfg.file}`
 
 const root = postcss.parse(fs.readFileSync(APP, 'utf8'))
 
-// A rule is movable iff it has >=1 class token and EVERY class token in EVERY
-// comma-separated selector matches the screen prefix.
-const classTokens = (selector) => [...selector.matchAll(/\.([A-Za-z0-9_-]+)/g)].map((m) => m[1])
+const classTokens = (sel) => [...sel.matchAll(/\.([A-Za-z0-9_-]+)/g)].map((m) => m[1])
+const parts = (selector) => selector.split(',').map((s) => s.trim().replace(/\s+/g, ' '))
+
+// ── Build the KEEP-SET: screen-exclusive selectors that must NOT move because a
+// rule LEFT BEHIND in App.css competes with them at equal specificity. Two sources:
+//
+// (1) CSS grouping. A comma-part that is screen-exclusive but shares a rule with a
+//     foreign selector — e.g. line 113's `.discover-stage, .activity-layout,
+//     .profile-screen, .settings-screen, .profile-detail` mobile-collapse rule.
+//     That whole rule stays (it's multi-screen), so its `.activity-layout` decls
+//     stay; moving the standalone `.activity-layout` rules past it would flip them.
+const keep = new Set()
+root.walkRules((rule) => {
+  if (rule.parent && rule.parent.type === 'rule') return
+  const ps = parts(rule.selector)
+  const exclusiveParts = ps.filter((p) => {
+    const t = classTokens(p)
+    return t.length > 0 && t.every((x) => cfg.re.test(x))
+  })
+  const hasForeign = exclusiveParts.length < ps.length // some part isn't screen-exclusive
+  if (hasForeign) for (const p of exclusiveParts) keep.add(p)
+})
+
+// (2) JSX co-occurrence. A screen class applied (in className) to an element that
+//     ALSO carries a foreign class — e.g. <section class="settings-screen
+//     moderation-screen"> — competes with that foreign class's rules at equal
+//     specificity on the SAME element. Keep the bare `.class` so it can't move.
+const tsxFiles = []
+const walk = (dir) => {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = `${dir}/${e.name}`
+    if (e.isDirectory()) walk(full)
+    else if (e.name.endsWith('.tsx')) tsxFiles.push(full)
+  }
+}
+walk('src')
+for (const f of tsxFiles) {
+  const src = fs.readFileSync(f, 'utf8')
+  // every quoted string that looks like a class list (className="..." and the
+  // ternary branches inside className={...}); conservative — scans all string lits.
+  for (const m of src.matchAll(/(['"`])([A-Za-z0-9_\- ]+)\1/g)) {
+    const toks = m[2].trim().split(/\s+/).filter(Boolean)
+    if (toks.length < 2) continue
+    const mine = toks.filter((t) => cfg.re.test(t))
+    const foreign = toks.some((t) => !cfg.re.test(t))
+    if (mine.length && foreign) for (const t of mine) keep.add(`.${t}`)
+  }
+}
+
+// A rule is movable iff every class token matches the screen prefix AND none of its
+// comma-parts is in the keep-set AND none of its class tokens is a kept bare class.
+const keptBare = new Set([...keep].filter((k) => /^\.[A-Za-z0-9_-]+$/.test(k)).map((k) => k.slice(1)))
 const isMovable = (rule) => {
   const tokens = classTokens(rule.selector)
   if (tokens.length === 0) return false
-  return tokens.every((t) => cfg.re.test(t))
+  if (!tokens.every((t) => cfg.re.test(t))) return false
+  const ps = parts(rule.selector)
+  if (ps.some((p) => keep.has(p))) return false
+  if (tokens.some((t) => keptBare.has(t))) return false
+  return true
 }
 
 // atrule ancestor chain (outermost → direct parent), each as {name, params}.
