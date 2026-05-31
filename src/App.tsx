@@ -36,6 +36,7 @@ import { useChatViews } from './hooks/useChatViews'
 import { useDiscoveryFilter } from './hooks/useDiscoveryFilter'
 import { useMatchInsights } from './hooks/useMatchInsights'
 import { useActivityProfiles } from './hooks/useActivityProfiles'
+import { usePersistence } from './hooks/usePersistence'
 import { useChatAiActions } from './hooks/useChatAiActions'
 import { useMatchScoring } from './hooks/useMatchScoring'
 import { useCallScreen } from './hooks/useCallScreen'
@@ -681,32 +682,15 @@ function App() {
 
   }, [isAuthenticated, screen, isModerationAdmin, navigate])
 
-  useEffect(() => {
-    window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history))
-  }, [history])
-
-  useEffect(() => {
-    window.localStorage.setItem(
-      AUTH_STORAGE_KEY,
-      JSON.stringify({ isAuthenticated, email: userEmail }),
-    )
-  }, [isAuthenticated, userEmail])
-
-  useEffect(() => {
-    window.localStorage.setItem(CHAT_THREADS_STORAGE_KEY, JSON.stringify(chatThreads))
-  }, [chatThreads])
-
-  useEffect(() => {
-    window.localStorage.setItem(CALL_HISTORY_STORAGE_KEY, JSON.stringify(callHistory))
-  }, [callHistory])
-
-  useEffect(() => {
-    saveBlockedProfileIds(blockedProfileIds)
-  }, [blockedProfileIds])
-
-  useEffect(() => {
-    saveModerationQueue(safetyReports)
-  }, [safetyReports])
+  usePersistence({
+    history,
+    isAuthenticated,
+    userEmail,
+    chatThreads,
+    callHistory,
+    blockedProfileIds,
+    safetyReports,
+  })
 
   useEffect(() => {
     if (safetyReports.length === 0) {
