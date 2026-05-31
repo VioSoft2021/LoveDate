@@ -319,7 +319,6 @@ function App() {
     isDragging,
     isResolvingSwipe,
     exitDirection,
-    lastIntent,
     rightBadgeOpacity,
     leftBadgeOpacity,
     setAllProfiles,
@@ -2929,7 +2928,6 @@ function App() {
             isResolvingSwipe={isResolvingSwipe}
             likeLimitReached={likeLimitReached}
             superLikeLimitReached={superLikeLimitReached}
-            lastIntent={lastIntent}
             rightBadgeOpacity={rightBadgeOpacity}
             leftBadgeOpacity={leftBadgeOpacity}
             swipeCard={swipeCard}

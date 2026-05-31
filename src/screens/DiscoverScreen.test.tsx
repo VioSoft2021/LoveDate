@@ -92,7 +92,6 @@ const baseProps: DiscoverScreenProps = {
   isResolvingSwipe: false,
   likeLimitReached: false,
   superLikeLimitReached: false,
-  lastIntent: null,
   rightBadgeOpacity: 0,
   leftBadgeOpacity: 0,
   swipeCard: vi.fn(),

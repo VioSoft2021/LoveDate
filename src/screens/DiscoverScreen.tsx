@@ -47,7 +47,6 @@ export type DiscoverScreenProps = {
   isResolvingSwipe: boolean
   likeLimitReached: boolean
   superLikeLimitReached: boolean
-  lastIntent: SwipeIntent | null
   rightBadgeOpacity: number
   leftBadgeOpacity: number
   swipeCard: (direction: 'left' | 'right', intent?: SwipeIntent) => void
@@ -120,7 +119,6 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
   isResolvingSwipe,
   likeLimitReached,
   superLikeLimitReached,
-  lastIntent,
   rightBadgeOpacity,
   leftBadgeOpacity,
   swipeCard,
@@ -726,28 +724,16 @@ const DiscoverScreenInner: React.FC<DiscoverScreenProps> = ({
               </button>
             </section>
             <footer className="hint discover-hint">
-              <div className="discover-keymap" aria-label={copy.discover.keyboardShortcuts}>
-                <span>
-                  <b>{'←'}</b> {copy.discover.pass}
-                </span>
-                <span>
-                  <b>{'↑'}</b> {copy.discover.superLike}
-                </span>
-                <span>
-                  <b>{'→'}</b> {copy.discover.like}
-                </span>
-              </div>
-              <p>{copy.discover.undoHint}</p>
+              {/* Keyboard-shortcut hints + last-action readout removed
+                  2026-05-31 — useless on touch (no keyboard) and the raw
+                  intent was untranslated. The shortcuts still work on
+                  desktop; we just no longer advertise them. Functional
+                  status messages stay. */}
               {likeLimitReached && <p className="result">{copy.discover.likeLimitReached}</p>}
               {superLikeLimitReached && (
                 <p className="result">{copy.discover.superLikeLimitReached}</p>
               )}
               {isResolvingSwipe && <p className="result">{copy.discover.checkingMatch}</p>}
-              {lastIntent && (
-                <p className="result">
-                  {copy.discover.lastAction}: {lastIntent.replace('-', ' ')}
-                </p>
-              )}
             </footer>
           </aside>
         </section>
