@@ -1,3 +1,25 @@
+/*  ───────────────────────────────────────────────────────────
+   Moved from App.css (CSS split, 2026-05-31). Render-neutral:
+   scripts/css-regression.mjs --check reports zero computed-style
+   diffs across all screens at desktop + mobile.
+   ───────────────────────────────────────────────────────────  */
+
+.photo-studio-inline {
+  border-radius: 0.9rem;
+  border: 1px solid rgba(112, 130, 216, 0.32);
+  background: rgba(20, 25, 55, 0.52);
+  padding: 0.7rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.photo-studio-inline h4 {
+  margin: 0;
+  font-size: 0.88rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
 /* PhotoStudioScreen — dedicated full-screen photo manager (2026-05-28).
    Full viewport: sticky header, scrollable body, and (in the editor
    state) a sticky bottom action bar so Use/Cancel are always in thumb

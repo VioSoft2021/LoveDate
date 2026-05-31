@@ -1,3 +1,60 @@
+/*  ───────────────────────────────────────────────────────────
+   Moved from App.css (CSS split, 2026-05-31). Render-neutral:
+   scripts/css-regression.mjs --check reports zero computed-style
+   diffs across all screens at desktop + mobile.
+   ───────────────────────────────────────────────────────────  */
+
+.login-shell {
+  place-items: center;
+  padding: 1rem;
+}
+
+.login-card {
+  width: min(100%, 28rem);
+}
+
+.login-card h1 {
+  font-size: clamp(1.5rem, 4vw, 2.15rem);
+  margin-top: 0.45rem;
+}
+
+.login-card p {
+  margin: 0.6rem 0 0;
+  color: var(--theme-text-soft);
+}
+
+.login-form {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.login-language-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.15rem;
+}
+
+.login-language-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.32rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--theme-text-soft);
+}
+
+.login-actions {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.login-hero-logo {
+  margin-bottom: 0.25rem;
+}
+
 /* ===========================================================
    Privé — Login screen luxury redesign (Phase A, 2026-05-24)
    ===========================================================

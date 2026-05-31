@@ -93,3 +93,6 @@ android/.idea/
 notes/branding/video/*.mp3
 notes/branding/video/*.mp4
 notes/branding/video/New folder/
+
+# CSS-split regression harness output (local only)
+scripts/.css-baseline/
