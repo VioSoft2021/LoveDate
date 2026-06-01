@@ -2617,7 +2617,7 @@ function App() {
               }
               webrtcCalls.startCall({ peerId: peer.authUserId, peerName: peer.name, type })
             }}
-            callsEnabled={false}
+            callsEnabled={webrtcCalls.callsReady && Boolean((selectedChatProfile ?? null)?.authUserId)}
           />
         )}
         {screen === 'profile' && (

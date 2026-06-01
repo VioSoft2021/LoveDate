@@ -109,17 +109,27 @@ const updateSW = registerSW({
 const DevWebRtcHarness = import.meta.env.DEV
   ? lazy(() => import('./components/dev/WebRtcTestHarness'))
   : null
+const DevWebRtcCallHarness = import.meta.env.DEV
+  ? lazy(() => import('./components/dev/WebRtcCallHarness'))
+  : null
 const harnessParam =
   import.meta.env.DEV && typeof window !== 'undefined'
     ? new URLSearchParams(window.location.search).get('harness')
     : null
 
-createRoot(document.getElementById('root')!).render(
+const harnessNode =
   harnessParam === 'webrtc' && DevWebRtcHarness ? (
     <Suspense fallback={null}>
       <DevWebRtcHarness />
     </Suspense>
-  ) : (
+  ) : harnessParam === 'webrtc-call' && DevWebRtcCallHarness ? (
+    <Suspense fallback={null}>
+      <DevWebRtcCallHarness />
+    </Suspense>
+  ) : null
+
+createRoot(document.getElementById('root')!).render(
+  harnessNode ?? (
     <StrictMode>
       <ErrorBoundary>
         <App />

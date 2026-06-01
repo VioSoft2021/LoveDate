@@ -48,10 +48,14 @@ export const useWebRtcCalls = ({
   isAuthenticated,
   selfName,
   pushToast,
+  debugSelfId,
 }: {
   isAuthenticated: boolean
   selfName: string
   pushToast: Toast
+  /** DEV/test only: inject the auth id instead of resolving getCurrentUserId
+   *  (used by the ?harness=webrtc-call two-browser proof). */
+  debugSelfId?: string
 }) => {
   const [view, setView] = useState<WebRtcCallView>(IDLE_VIEW)
   const [localStream, setLocalStream] = useState<MediaStream | null>(null)
@@ -80,13 +84,13 @@ export const useWebRtcCalls = ({
   useEffect(() => {
     let cancelled = false
     void (async () => {
-      const id = isAuthenticated ? await getCurrentUserId() : null
+      const id = debugSelfId ?? (isAuthenticated ? await getCurrentUserId() : null)
       if (!cancelled) setSelfId(id)
     })()
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, debugSelfId])
 
   const resetCall = useCallback(() => {
     sessionRef.current = null
