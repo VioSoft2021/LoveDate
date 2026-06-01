@@ -33,6 +33,12 @@ const mocks = vi.hoisted(() => ({
       error: null,
     }),
   ),
+  resetPasswordForEmail: vi.fn(
+    async (): Promise<{ data: object | null; error: { message: string } | null }> => ({
+      data: {},
+      error: null,
+    }),
+  ),
 }))
 
 vi.mock('../services/initialHash', () => ({
@@ -51,6 +57,7 @@ vi.mock('../services/supabaseClient', () => ({
       updateUser: mocks.updateUser,
       getUser: mocks.getUser,
       onAuthStateChange: mocks.onAuthStateChange,
+      resetPasswordForEmail: mocks.resetPasswordForEmail,
     },
     functions: {
       invoke: mocks.invokeFunction,
@@ -101,6 +108,8 @@ beforeEach(() => {
   mocks.getUser.mockResolvedValue({ data: { user: { email: 'test@example.com' } } })
   mocks.invokeFunction.mockClear()
   mocks.invokeFunction.mockResolvedValue({ data: { ok: true }, error: null })
+  mocks.resetPasswordForEmail.mockClear()
+  mocks.resetPasswordForEmail.mockResolvedValue({ data: {}, error: null })
 })
 
 describe('useAuth — password-recovery detection from URL hash', () => {
@@ -194,15 +203,16 @@ describe('useAuth — completePasswordRecovery validation', () => {
   })
 })
 
-describe('useAuth — sendForgotPasswordEmail (admin-notify flow, 2026-05-26)', () => {
-  it('invokes the notify-admin-recovery Edge Function with the trimmed email (NOT supabase.auth.resetPasswordForEmail)', async () => {
+describe('useAuth — sendForgotPasswordEmail (auto-send via resetPasswordForEmail, 2026-06-01)', () => {
+  it('calls supabase.auth.resetPasswordForEmail with the trimmed email + Privé redirect (NOT the notify-admin-recovery relay)', async () => {
     const { result } = renderHook(() => useAuth(baseOptions()))
     await act(async () => {
       await result.current.sendForgotPasswordEmail('  me@example.com  ')
     })
-    expect(mocks.invokeFunction).toHaveBeenCalledWith('notify-admin-recovery', {
-      body: { email: 'me@example.com' },
+    expect(mocks.resetPasswordForEmail).toHaveBeenCalledWith('me@example.com', {
+      redirectTo: 'https://prive-app.club/',
     })
+    expect(mocks.invokeFunction).not.toHaveBeenCalled()
   })
 
   it('sets forgotPasswordStatus to "sent" on success', async () => {
@@ -213,8 +223,8 @@ describe('useAuth — sendForgotPasswordEmail (admin-notify flow, 2026-05-26)', 
     expect(result.current.forgotPasswordStatus).toBe('sent')
   })
 
-  it('sets forgotPasswordStatus to "error" when the Edge Function returns an error', async () => {
-    mocks.invokeFunction.mockResolvedValueOnce({ data: null, error: { message: 'bad' } })
+  it('sets forgotPasswordStatus to "error" when resetPasswordForEmail returns an error', async () => {
+    mocks.resetPasswordForEmail.mockResolvedValueOnce({ data: null, error: { message: 'bad' } })
     const { result } = renderHook(() => useAuth(baseOptions()))
     await act(async () => {
       await result.current.sendForgotPasswordEmail('me@example.com')
@@ -222,14 +232,14 @@ describe('useAuth — sendForgotPasswordEmail (admin-notify flow, 2026-05-26)', 
     expect(result.current.forgotPasswordStatus).toBe('error')
   })
 
-  it('rejects empty / whitespace-only emails (no Edge Function call)', async () => {
+  it('rejects empty / whitespace-only emails (no reset email sent)', async () => {
     const { result } = renderHook(() => useAuth(baseOptions()))
     let returned: boolean | undefined
     await act(async () => {
       returned = await result.current.sendForgotPasswordEmail('   ')
     })
     expect(returned).toBe(false)
-    expect(mocks.invokeFunction).not.toHaveBeenCalled()
+    expect(mocks.resetPasswordForEmail).not.toHaveBeenCalled()
     expect(result.current.forgotPasswordStatus).toBe('error')
   })
 })

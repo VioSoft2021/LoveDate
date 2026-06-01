@@ -278,17 +278,19 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
     [pushToast, onSignedIn, tCopy],
   )
 
-  // Forgot password (2026-05-26 admin-notify flow). The user types
-  // their email; we don't call supabase.auth.resetPasswordForEmail
-  // directly — Resend's free-tier shared sender blocks sends to
-  // non-account emails. Instead we invoke the notify-admin-recovery
-  // Edge Function which emails Master (admin@prive-app.club, a
-  // whitelisted recipient) with a "please generate a recovery link
-  // for this user" notification. Master then sends the link
-  // personally via the Supabase Dashboard. High-touch by design for
-  // the beta; swap back to resetPasswordForEmail once the
-  // prive-app.club domain is verified in Resend and real volume
-  // arrives.
+  // Forgot password (2026-06-01 — auto-send via Supabase Auth).
+  // Calls supabase.auth.resetPasswordForEmail directly: Supabase mints
+  // the recovery token and emails the user a branded reset link through
+  // the project's custom SMTP (Namecheap Private Email, admin@prive-app.club).
+  // This replaces the 2026-05-26 manual "notify-admin-recovery" relay,
+  // which only logged the link into the InviteAdmin inbox for Master to
+  // forward by hand — unnecessary friction for a member who just forgot
+  // their password. Now that there's a real sender that can mail any
+  // address, the link goes straight to the requester.
+  // resetPasswordForEmail resolves successfully regardless of whether the
+  // email is a known account, so it doubles as anti-enumeration. redirectTo
+  // lands the user on Privé, where services/initialHash.ts picks the
+  // recovery token out of the URL hash and shows the "Set a new password" card.
   const sendForgotPasswordEmail = useCallback(
     async (email: string): Promise<boolean> => {
       const trimmed = email.trim()
@@ -303,8 +305,8 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
       }
       setForgotPasswordSending(true)
       try {
-        const { error } = await supabase.functions.invoke('notify-admin-recovery', {
-          body: { email: trimmed },
+        const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
+          redirectTo: 'https://prive-app.club/',
         })
         if (error) {
           setForgotPasswordStatus('error')
