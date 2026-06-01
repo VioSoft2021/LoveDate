@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@700;800;900&family=Cormorant+Garamond:ital,wght@1,400;1,500&display=swap"
+  rel="stylesheet" />
+<style>
+  :root {
+    /* Exact brand gold gradient (App.css --prive-gold-grad) */
+    --gold: linear-gradient(180deg, #fceeb0 0%, #ead27a 22%, #d8b86d 48%, #b9974a 72%, #8b6b2c 100%);
+    --gold-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #0a0e27; }
+
+  /* Horizontal letterhead lockup: crest left, wordmark + slogan right. */
+  #banner {
+    width: 640px;
+    height: 176px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding: 0 46px;
+    position: relative;
+    background:
+      radial-gradient(ellipse at 26% -12%, rgba(124, 142, 214, 0.20) 0%, transparent 62%),
+      linear-gradient(135deg, #0a0e27 0%, #161c3e 52%, #070b1f 100%);
+  }
+  /* Thin gold rule along the bottom — a stamped-letterhead touch. */
+  #banner::after {
+    content: '';
+    position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+    background: var(--gold);
+    opacity: 0.85;
+  }
+
+  .crest {
+    height: 132px; width: auto; display: block; flex: 0 0 auto;
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
+  }
+
+  .lockup { display: flex; flex-direction: column; gap: 10px; }
+
+  /* Wordmark — copied from App.css .ld-logo-text */
+  .ld-logo-text {
+    font-family: 'Bodoni Moda', serif;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    font-size: 60px;
+    line-height: 0.9;
+    background: var(--gold);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    filter: drop-shadow(var(--gold-shadow));
+    display: inline-block;
+    position: relative;
+    isolation: isolate;
+  }
+  .ld-logo-text-e {
+    position: relative; display: inline-block;
+    background: var(--gold);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+  }
+  .ld-logo-text-e::before {
+    content: ''; position: absolute; top: -0.30em; left: -2%; width: 104%;
+    height: 0.07em; background: var(--gold); border-radius: 999px;
+    filter: drop-shadow(var(--gold-shadow)); z-index: -1;
+  }
+
+  /* Slogan — copied from App.css .ld-logo-slogan */
+  .ld-logo-slogan {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: rgba(232, 213, 178, 0.74);
+    font-size: 15.5px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    padding-left: 0.2em;
+  }
+</style>
+</head>
+<body>
+  <div id="banner">
+    <img class="crest" src="https://prive-app.club/crests/crest-3.png" alt="" />
+    <div class="lockup">
+      <span class="ld-logo-text"><span>PRIV</span><span class="ld-logo-text-e">E</span></span>
+      <span class="ld-logo-slogan">Members only · By design</span>
+    </div>
+  </div>
+</body>
+</html>
