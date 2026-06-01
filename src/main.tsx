@@ -8,7 +8,7 @@
 // own comment for the full diagnosis trail (2026-05-26).
 import './services/initialHash'
 
-import { StrictMode } from 'react'
+import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 // Layout tokens MUST come first — every other stylesheet references them.
 import './styles/tokens.css'
@@ -103,10 +103,27 @@ const updateSW = registerSW({
   },
 })
 
+// DEV-only P2P-call test harness (?harness=webrtc). Tree-shaken out of prod:
+// import.meta.env.DEV is statically false there, so the lazy import is dead.
+// Rendered OUTSIDE StrictMode so the call lifecycle isn't double-mounted.
+const DevWebRtcHarness = import.meta.env.DEV
+  ? lazy(() => import('./components/dev/WebRtcTestHarness'))
+  : null
+const harnessParam =
+  import.meta.env.DEV && typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('harness')
+    : null
+
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
-  </StrictMode>,
+  harnessParam === 'webrtc' && DevWebRtcHarness ? (
+    <Suspense fallback={null}>
+      <DevWebRtcHarness />
+    </Suspense>
+  ) : (
+    <StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </StrictMode>
+  ),
 )

@@ -1,0 +1,207 @@
+// src/services/webrtc/callSession.ts
+//
+// A framework-agnostic 1-on-1 WebRTC call session. Owns the RTCPeerConnection
+// + local media, and drives the offer/answer/ICE handshake over an injected
+// signaling transport (see ./signaling). Media flows peer-to-peer — nothing
+// passes through a server — so calls cost $0 per minute.
+//
+// Roles are fixed per call: the `isInitiator` peer creates the offer (once the
+// other peer is present), the responder answers. ICE candidates that arrive
+// before the remote description is set are buffered and flushed after.
+import type { SignalMessage, SignalingTransport, TransportFactory } from './signaling'
+
+export type CallSessionState =
+  | 'requesting-media'
+  | 'waiting-for-peer'
+  | 'connecting'
+  | 'connected'
+  | 'disconnected'
+  | 'failed'
+  | 'ended'
+
+// Free public STUN. TURN (for the ~10-20% behind strict NATs) can be appended
+// later via the `iceServers` option without touching this file.
+export const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
+  { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
+]
+
+export type CallSessionOptions = {
+  selfId: string
+  isInitiator: boolean
+  withVideo: boolean
+  createTransport: TransportFactory
+  iceServers?: RTCIceServer[]
+  onState: (state: CallSessionState) => void
+  onRemoteStream: (stream: MediaStream) => void
+  onLocalStream?: (stream: MediaStream) => void
+  onError?: (error: Error) => void
+}
+
+export type CallSession = {
+  start: () => Promise<void>
+  hangup: () => void
+  setMuted: (muted: boolean) => void
+  setVideoEnabled: (enabled: boolean) => void
+  getLocalStream: () => MediaStream | null
+}
+
+export const createCallSession = (opts: CallSessionOptions): CallSession => {
+  let pc: RTCPeerConnection | null = null
+  let transport: SignalingTransport | null = null
+  let localStream: MediaStream | null = null
+  let remoteStream: MediaStream | null = null
+  let ended = false
+  let offerSent = false
+  let remoteReady = false
+  const pendingIce: RTCIceCandidateInit[] = []
+
+  const toError = (value: unknown): Error =>
+    value instanceof Error ? value : new Error(String(value))
+
+  const fail = (error: Error) => {
+    opts.onError?.(error)
+    if (!ended) opts.onState('failed')
+  }
+
+  const flushIce = async () => {
+    if (!pc) return
+    while (pendingIce.length > 0) {
+      const candidate = pendingIce.shift()
+      if (candidate) {
+        try {
+          await pc.addIceCandidate(candidate)
+        } catch {
+          // A failed candidate is non-fatal; ICE tries the rest.
+        }
+      }
+    }
+  }
+
+  const sendOffer = async () => {
+    if (!pc || offerSent || ended) return
+    offerSent = true
+    try {
+      const offer = await pc.createOffer()
+      await pc.setLocalDescription(offer)
+      transport?.send({ kind: 'offer', from: opts.selfId, sdp: offer.sdp })
+      opts.onState('connecting')
+    } catch (error) {
+      fail(toError(error))
+    }
+  }
+
+  const handleSignal = async (message: SignalMessage) => {
+    if (!pc || ended) return
+    try {
+      if (message.kind === 'offer' && !opts.isInitiator && message.sdp) {
+        await pc.setRemoteDescription({ type: 'offer', sdp: message.sdp })
+        remoteReady = true
+        await flushIce()
+        const answer = await pc.createAnswer()
+        await pc.setLocalDescription(answer)
+        transport?.send({ kind: 'answer', from: opts.selfId, sdp: answer.sdp })
+        opts.onState('connecting')
+      } else if (message.kind === 'answer' && opts.isInitiator && message.sdp) {
+        await pc.setRemoteDescription({ type: 'answer', sdp: message.sdp })
+        remoteReady = true
+        await flushIce()
+      } else if (message.kind === 'ice') {
+        if (remoteReady) {
+          await pc.addIceCandidate(message.candidate)
+        } else {
+          pendingIce.push(message.candidate)
+        }
+      } else if (message.kind === 'bye') {
+        teardown('ended')
+      }
+    } catch (error) {
+      fail(toError(error))
+    }
+  }
+
+  const teardown = (finalState: CallSessionState) => {
+    if (ended) return
+    ended = true
+    localStream?.getTracks().forEach((track) => track.stop())
+    try {
+      pc?.close()
+    } catch {
+      // Closing an already-closed connection is harmless.
+    }
+    pc = null
+    transport?.close()
+    transport = null
+    opts.onState(finalState)
+  }
+
+  return {
+    start: async () => {
+      try {
+        opts.onState('requesting-media')
+        localStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: opts.withVideo,
+        })
+        if (ended) {
+          localStream.getTracks().forEach((track) => track.stop())
+          return
+        }
+        opts.onLocalStream?.(localStream)
+
+        pc = new RTCPeerConnection({ iceServers: opts.iceServers ?? DEFAULT_ICE_SERVERS })
+        remoteStream = new MediaStream()
+        localStream.getTracks().forEach((track) => pc?.addTrack(track, localStream as MediaStream))
+
+        pc.ontrack = (event) => {
+          const [stream] = event.streams
+          stream?.getTracks().forEach((track) => remoteStream?.addTrack(track))
+          if (remoteStream) opts.onRemoteStream(remoteStream)
+        }
+        pc.onicecandidate = (event) => {
+          if (event.candidate) {
+            transport?.send({
+              kind: 'ice',
+              from: opts.selfId,
+              candidate: event.candidate.toJSON(),
+            })
+          }
+        }
+        pc.onconnectionstatechange = () => {
+          if (ended) return
+          const state = pc?.connectionState
+          if (state === 'connected') opts.onState('connected')
+          else if (state === 'disconnected') opts.onState('disconnected')
+          else if (state === 'failed') opts.onState('failed')
+        }
+
+        transport = opts.createTransport({
+          onSignal: handleSignal,
+          onPeerReady: () => {
+            if (opts.isInitiator) void sendOffer()
+          },
+          onPeerLeft: () => {
+            if (!ended) opts.onState('disconnected')
+          },
+        })
+        opts.onState('waiting-for-peer')
+      } catch (error) {
+        fail(toError(error))
+      }
+    },
+    hangup: () => {
+      transport?.send({ kind: 'bye', from: opts.selfId })
+      teardown('ended')
+    },
+    setMuted: (muted) => {
+      localStream?.getAudioTracks().forEach((track) => {
+        track.enabled = !muted
+      })
+    },
+    setVideoEnabled: (enabled) => {
+      localStream?.getVideoTracks().forEach((track) => {
+        track.enabled = enabled
+      })
+    },
+    getLocalStream: () => localStream,
+  }
+}
