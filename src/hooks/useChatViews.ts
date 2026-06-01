@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { formatShortTime } from '../utils/format'
-import type { CallLogEntry, ChatMessage, ChemistryInsights } from '../domain'
+import type { ChatMessage, ChemistryInsights } from '../domain'
 import type { Profile } from '../services/priveApi'
 
 // Cap rendered messages per thread — older ones load on demand. Lives here
@@ -21,7 +21,6 @@ type UseChatViewsInput = {
   chatSearch: string
   selectedChatProfile: Profile | null
   showFullChatHistory: boolean
-  callHistory: CallLogEntry[]
   getChemistryInsights: (profile: Profile) => ChemistryInsights
 }
 
@@ -35,7 +34,6 @@ export const useChatViews = ({
   chatSearch,
   selectedChatProfile,
   showFullChatHistory,
-  callHistory,
   getChemistryInsights,
 }: UseChatViewsInput) => {
   const chatPreviews = useMemo<ChatPreview[]>(() => {
@@ -73,13 +71,6 @@ export const useChatViews = ({
     return showFullChatHistory ? messages : messages.slice(-CHAT_RENDER_WINDOW)
   }, [selectedChatProfile, chatThreads, showFullChatHistory])
 
-  const selectedChatCallHistory = useMemo(() => {
-    if (!selectedChatProfile) {
-      return []
-    }
-    return callHistory.filter((entry) => entry.profileId === selectedChatProfile.id).slice(0, 4)
-  }, [selectedChatProfile, callHistory])
-
   const hiddenChatMessageCount = useMemo(() => {
     if (!selectedChatProfile || showFullChatHistory) {
       return 0
@@ -97,7 +88,6 @@ export const useChatViews = ({
     chatPreviews,
     filteredChatPreviews,
     selectedChatMessages,
-    selectedChatCallHistory,
     hiddenChatMessageCount,
     selectedChatChemistry,
   }

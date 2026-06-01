@@ -46,11 +46,6 @@ export const runtimeConfig = {
   limits: {
     inviteAttemptsPer15Min: Number(import.meta.env.VITE_INVITE_ATTEMPTS_PER_15_MIN ?? 8),
   },
-  calls: {
-    jitsiDomain: (import.meta.env.VITE_JITSI_DOMAIN as string | undefined) ?? '',
-    jitsiAppId: (import.meta.env.VITE_JITSI_APP_ID as string | undefined) ?? '',
-    jitsiJwt: (import.meta.env.VITE_JITSI_JWT as string | undefined) ?? '',
-  },
 } as const
 
 export const isAllowedEmailDomain = (email: string): boolean => {

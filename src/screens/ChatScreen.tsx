@@ -1,10 +1,9 @@
 import React from 'react'
 import './ChatScreen.css'
 import { UI_TEXT, ZODIAC_EMOJI, getZodiacDescription } from '../constants'
-import { formatShortTime, formatUiText, getCallDurationLabel, getCallOutcomeLabel } from '../utils'
+import { formatShortTime, formatUiText } from '../utils'
 import type {
   AppLanguage,
-  CallLogEntry,
   ChatMessage,
   ChemistryInsights,
   DatePlan,
@@ -41,7 +40,6 @@ export type ChatScreenProps = {
   // takes the user to a populated Pair Dynamic section in ProfileDetail.
   selfLovePersonality: LovePersonality | null
   selectedChatMessages: ChatMessage[]
-  selectedChatCallHistory: CallLogEntry[]
   hiddenChatMessageCount: number
   revealOlderMessages: () => void
   messagesContainerRef: React.RefObject<HTMLDivElement | null>
@@ -63,7 +61,6 @@ export type ChatScreenProps = {
   isRecordingVoice: boolean
   startVoiceRecording: () => void | Promise<void>
   sendChatMessage: () => void
-  rejoinCallFromHistory: (entry: CallLogEntry) => void
   openProfileDetail: (profileId: number, source: 'chats' | 'activity') => void
   onStartCall: (type: 'audio' | 'video') => void
   /** Surfaces the audio/video call actions. Gated OFF until the free P2P
@@ -84,7 +81,6 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
   selectedChatAttachment,
   selfLovePersonality,
   selectedChatMessages,
-  selectedChatCallHistory,
   hiddenChatMessageCount,
   revealOlderMessages,
   messagesContainerRef,
@@ -106,7 +102,6 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
   isRecordingVoice,
   startVoiceRecording,
   sendChatMessage,
-  rejoinCallFromHistory,
   openProfileDetail,
   onStartCall,
   callsEnabled,
@@ -490,50 +485,6 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
                 <p className="soft">{copy.chats.plannerEmpty}</p>
               )}
             </section>
-            <section className="chat-call-history" aria-label={copy.chats.recentCalls}>
-              <div className="chat-call-history-head">
-                <p className="compatibility-score">{copy.chats.recentCalls}</p>
-              </div>
-              {selectedChatCallHistory.length > 0 ? (
-                <div className="chat-call-history-list">
-                  {selectedChatCallHistory.map((entry) => (
-                    <article key={entry.id} className={`chat-call-history-item ${entry.outcome}`}>
-                      <div>
-                        <strong>
-                          {entry.type === 'video' ? copy.chats.videoCallLabel : copy.chats.audioCallLabel}
-                        </strong>
-                        <p>
-                          {getCallOutcomeLabel(entry.outcome)} {'•'} {formatShortTime(entry.startedAt)}
-                          {entry.endedAt
-                            ? ` • ${getCallDurationLabel(entry.startedAt, entry.endedAt)}`
-                            : ''}
-                        </p>
-                      </div>
-                      <div className="summary-actions">
-                        <button
-                          type="button"
-                          className="ghost mini-btn"
-                          onClick={() => rejoinCallFromHistory(entry)}
-                        >
-                          {copy.chats.rejoin}
-                        </button>
-                        <button
-                          type="button"
-                          className="mini-btn"
-                          onClick={() =>
-                            window.open(entry.roomUrl, '_blank', 'noopener,noreferrer')
-                          }
-                        >
-                          {copy.chats.openRoom}
-                        </button>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <p className="soft">{copy.chats.noCallActivity}</p>
-              )}
-            </section>
             {hiddenChatMessageCount > 0 ? (
               <div className="messages-toolbar">
                 <button type="button" className="ghost mini-btn" onClick={revealOlderMessages}>
@@ -545,17 +496,6 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
               {selectedChatMessages.map((message) => (
                 <p key={message.id} className={`msg ${message.sender}`}>
                   {message.text}
-                  {message.callMeta
-                    ? (() => {
-                        const callMeta = message.callMeta
-                        return (
-                          <span className={`msg-call-chip ${callMeta.event}`}>
-                            {callMeta.type === 'video' ? copy.chats.videoCallLabel : copy.chats.audioCallLabel}{' '}
-                            {callMeta.event}
-                          </span>
-                        )
-                      })()
-                    : null}
                   {message.attachment?.kind === 'image' ? (
                     <img
                       className="msg-media"
@@ -571,44 +511,6 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
                   {message.attachment?.kind === 'audio' ? (
                     <audio className="msg-audio" src={message.attachment.url} controls />
                   ) : null}
-                  {message.callMeta && selectedChatProfile
-                    ? (() => {
-                        const callMeta = message.callMeta
-                        return (
-                          <div className="msg-call-actions">
-                            <button
-                              type="button"
-                              className="ghost mini-btn"
-                              onClick={() =>
-                                rejoinCallFromHistory({
-                                  id: `${message.id}-${callMeta.roomId}`,
-                                  profileId: selectedChatProfile.id,
-                                  profileName: selectedChatProfile.name,
-                                  type: callMeta.type,
-                                  roomId: callMeta.roomId,
-                                  roomUrl: callMeta.roomUrl,
-                                  startedAt: message.createdAt,
-                                  answeredAt: null,
-                                  endedAt: null,
-                                  outcome: 'initiated',
-                                })
-                              }
-                            >
-                              {copy.chats.joinCall}
-                            </button>
-                            <button
-                              type="button"
-                              className="ghost mini-btn"
-                              onClick={() =>
-                                window.open(callMeta.roomUrl, '_blank', 'noopener,noreferrer')
-                              }
-                            >
-                              {copy.chats.openExternally}
-                            </button>
-                          </div>
-                        )
-                      })()
-                    : null}
                   <span>
                     {formatShortTime(message.createdAt)}
                     {message.sender === 'me' ? ` | ${message.status ?? 'sent'}` : ''}

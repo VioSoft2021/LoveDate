@@ -9,12 +9,6 @@ export type ChatMessage = {
     url: string
     name: string
   }
-  callMeta?: {
-    type: 'audio' | 'video'
-    roomId: string
-    roomUrl: string
-    event: 'invite' | 'connected' | 'ended' | 'missed' | 'failed'
-  }
   status?: 'sending' | 'sent' | 'read'
 }
 

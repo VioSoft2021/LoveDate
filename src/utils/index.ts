@@ -1,5 +1,4 @@
 export * from './bootCleanup'
-export * from './call'
 export * from './discoverCard'
 export * from './format'
 export * from './image'

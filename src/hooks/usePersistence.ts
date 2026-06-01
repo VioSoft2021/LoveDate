@@ -1,19 +1,17 @@
 import { useEffect } from 'react'
 import {
   AUTH_STORAGE_KEY,
-  CALL_HISTORY_STORAGE_KEY,
   CHAT_THREADS_STORAGE_KEY,
   HISTORY_STORAGE_KEY,
 } from '../persistence/keys'
 import { saveBlockedProfileIds, saveModerationQueue, type SafetyReport } from '../services/moderation'
-import type { CallLogEntry, ChatMessage, SwipeHistory } from '../domain'
+import type { ChatMessage, SwipeHistory } from '../domain'
 
 type UsePersistenceInput = {
   history: SwipeHistory
   isAuthenticated: boolean
   userEmail: string
   chatThreads: Record<number, ChatMessage[]>
-  callHistory: CallLogEntry[]
   blockedProfileIds: number[]
   safetyReports: SafetyReport[]
 }
@@ -26,7 +24,6 @@ export const usePersistence = ({
   isAuthenticated,
   userEmail,
   chatThreads,
-  callHistory,
   blockedProfileIds,
   safetyReports,
 }: UsePersistenceInput) => {
@@ -44,10 +41,6 @@ export const usePersistence = ({
   useEffect(() => {
     window.localStorage.setItem(CHAT_THREADS_STORAGE_KEY, JSON.stringify(chatThreads))
   }, [chatThreads])
-
-  useEffect(() => {
-    window.localStorage.setItem(CALL_HISTORY_STORAGE_KEY, JSON.stringify(callHistory))
-  }, [callHistory])
 
   useEffect(() => {
     saveBlockedProfileIds(blockedProfileIds)

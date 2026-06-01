@@ -1,5 +1,4 @@
 export * from './auth'
-export * from './calls'
 export * from './chat'
 export * from './history'
 export * from './keys'

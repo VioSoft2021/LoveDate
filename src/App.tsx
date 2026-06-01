@@ -25,7 +25,6 @@ import { ToastStack } from './components/ToastStack'
 import { PhotoLightbox } from './components/PhotoLightbox'
 import { MatchCelebrationModal } from './components/MatchCelebrationModal'
 import { ReportProfileDialog } from './components/ReportProfileDialog'
-import { CallModal } from './components/CallModal'
 import { WebRtcCallModal } from './components/WebRtcCallModal'
 import { UpdateBanner } from './components/UpdateBanner'
 import { useAuth } from './hooks/useAuth'
@@ -38,7 +37,6 @@ import { useActivityProfiles } from './hooks/useActivityProfiles'
 import { usePersistence } from './hooks/usePersistence'
 import { useChatAiActions } from './hooks/useChatAiActions'
 import { useMatchScoring } from './hooks/useMatchScoring'
-import { useCallScreen } from './hooks/useCallScreen'
 import { useWebRtcCalls } from './hooks/useWebRtcCalls'
 import { useUiModals } from './hooks/useUiModals'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
@@ -98,7 +96,6 @@ import {
   getBackendMode,
   type SettingsPayload,
 } from './services/backendApi'
-import { runtimeConfig } from './services/runtimeConfig'
 import {
   canLikeNow,
   canSuperLikeNow,
@@ -125,8 +122,6 @@ import { PLAN_OPTIONS, type PlanTier } from './spec/priveConfig'
 import type {
   AppLanguage,
   AppScreen,
-  CallLogEntry,
-  CallState,
   ChatMessage,
   ChemistryInsights,
   DatePlan,
@@ -150,7 +145,6 @@ import type {
 } from './domain'
 import {
   AUTH_STORAGE_KEY,
-  CALL_HISTORY_STORAGE_KEY,
   CHAT_THREADS_STORAGE_KEY,
   HISTORY_STORAGE_KEY,
   buildSelfProfileFromDraft,
@@ -158,7 +152,6 @@ import {
   persistAppLanguage,
   readAppLanguage,
   readAuth,
-  readCallHistory,
   readChatThreads,
   readHistory,
   readSelfProfile,
@@ -193,12 +186,9 @@ import {
 import {
   analyzePhoto,
   bootCleanup,
-  buildCallRoom,
   buildHighResImageUrl,
   formatShortTime,
   formatUiText,
-  getCallDurationLabel,
-  getCallOutcomeLabel,
   getDiscoverCardBackground,
   getProfilePhotos,
   getProfilePrompts,
@@ -209,7 +199,6 @@ import {
   readFileAsDataUrl,
   readWaitlistReplyToken,
   renderEditedPhoto,
-  sanitizeRoomPart,
   toDataUrl,
   toGenderKey,
 } from './utils'
@@ -241,10 +230,9 @@ export type { Filters }
 
 // normalizeSelfProfile, readSelfProfile, toProfileDraft now live in src/persistence/selfProfile.ts.
 
-// readChatThreads, readCallHistory now live in src/persistence/.
+// readChatThreads now lives in src/persistence/.
 
-// formatShortTime, sanitizeRoomPart, buildCallRoom, getCallOutcomeLabel, getCallDurationLabel
-// now live in src/utils/ (call.ts / format.ts).
+// formatShortTime now lives in src/utils/format.ts.
 
 // readAppLanguage, persistAppLanguage now live in src/persistence/language.ts.
 
@@ -292,7 +280,6 @@ const DEMO_PREVIEW_MESSAGES: ChatMessage[] = [
   { id: 8000003, sender: 'them', text: 'Just finished a detective novel. You?', createdAt: 1717201200000, status: 'read' },
   { id: 8000004, sender: 'me', text: 'Same passion here. Want to grab a coffee this week?', createdAt: 1717201800000, status: 'read' },
   { id: 8000005, sender: 'them', text: 'I would love that ✨', createdAt: 1717202400000, status: 'read' },
-  { id: 8000006, sender: 'me', text: '', createdAt: 1717203000000, status: 'read', callMeta: { type: 'video', roomId: 'demo', roomUrl: 'https://example.com/demo', event: 'ended' } },
 ]
 
 function App() {
@@ -385,8 +372,7 @@ function App() {
   // useUiModals (D2.5).
   const [swipeLog, setSwipeLog] = useState<SwipeLog[]>([])
 
-  // Chat state moves into useChatState. callHistory stays in App.tsx
-  // for now (used by both chat + call modal coordination).
+  // Chat state moves into useChatState.
   const chat = useChatState()
   const {
     chatThreads, setChatThreads,
@@ -403,13 +389,8 @@ function App() {
     unreadChats, setUnreadChats,
     matchQueueIds, setMatchQueueIds,
   } = chat
-  const [callHistory, setCallHistory] = useState<CallLogEntry[]>(() => readCallHistory())
   // unreadChats / matchQueueIds / chatAttachmentDraft / showFullChatHistory /
   // isRecordingVoice now live in useChatState above.
-  //
-  // Phase D2.4 — callState, callStateRef, jitsiProvider, and all 9
-  // call handlers moved into useCallScreen. The hook is constructed
-  // below alongside the other late hooks.
 
   // Reports / moderation state moves into useReports.
   const reports = useReports()
@@ -531,7 +512,6 @@ function App() {
   const attachmentInputRef = useRef<HTMLInputElement | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const recordedChunksRef = useRef<Blob[]>([])
-  // activeCallLogIdRef + callStateRef moved into useCallScreen (D2.4).
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
   const preserveScrollOnExpandRef = useRef<{ top: number; height: number } | null>(null)
   const shouldStickToBottomRef = useRef(true)
@@ -564,8 +544,6 @@ function App() {
         .catch(() => {})
     }
   }, [])
-
-  // callStateRef sync effect moved into useCallScreen (D2.4).
 
   useEffect(() => {
     persistAppLanguage(appLanguage)
@@ -610,8 +588,8 @@ function App() {
     onSignedOut: () => {
       setActiveMatch(null)
       setActiveChatId(null)
-      // useCallScreen watches isAuthenticated and resets call state
-      // itself when it drops to false — no inline reset needed here.
+      // useWebRtcCalls watches isAuthenticated and tears down any live
+      // call itself when it drops to false — no inline reset needed here.
     },
   })
   const {
@@ -687,7 +665,6 @@ function App() {
     isAuthenticated,
     userEmail,
     chatThreads,
-    callHistory,
     blockedProfileIds,
     safetyReports,
   })
@@ -971,29 +948,10 @@ function App() {
       setChatThreads((prev) => ({ ...prev, [DEMO_PREVIEW_CHAT_ID]: DEMO_PREVIEW_MESSAGES }))
       setActiveChatId(DEMO_PREVIEW_CHAT_ID)
     }
-    const previewTarget = PREVIEW_SCREEN === 'chat-active' || PREVIEW_SCREEN === 'call-active' ? 'chats' : PREVIEW_SCREEN
+    const previewTarget = PREVIEW_SCREEN === 'chat-active' ? 'chats' : PREVIEW_SCREEN
     navigate(previewTarget as AppScreen, { replace: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  // Dev-only: seed an active video call for ?preview=call-active so the harness
-  // renders the call overlay (.call-*). Keyed on isAuthenticated (not mount) so
-  // it lands AFTER guestLogin — otherwise useCallScreen's reset-on-signed-out
-  // effect, which runs later in the tree, clobbers the seed back to idle.
-  // roomUrl is set so EmbeddedCallStage mounts its chrome; the Jitsi script is
-  // cross-origin → blocked by the harness, and fails gracefully.
-  useEffect(() => {
-    // Positive import.meta.env.DEV guard so `false && …` dead-code-eliminates
-    // the whole block in prod (a `!==` early-return would leave the body in).
-    if (import.meta.env.DEV && PREVIEW_SCREEN === 'call-active' && isAuthenticated) {
-      setCallState({
-        active: true, type: 'video', status: 'connecting', startedAt: 1717203000000,
-        targetProfileId: DEMO_PREVIEW_CHAT_ID, muted: false, cameraOff: false,
-        roomId: 'demo-room', roomUrl: 'https://meet.example.com/demo-room',
-      })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated])
 
   // Cloud-backed match list. Run on every authed mount so matches survive
   // reinstall — the local history state starts empty after a wipe, but the
@@ -1434,37 +1392,9 @@ function App() {
     return profileById.get(activeChatId) ?? null
   }, [activeChatId, profileById])
 
-  // Phase D2.4 — call/Jitsi lifecycle (callState + ref + 9 handlers).
-  // Watches isAuthenticated and resets itself on sign-out.
-  const {
-    callState,
-    jitsiProvider,
-    markCallConnected,
-    markCallFailed,
-    setCallMuted,
-    setCallCameraOff,
-    endCall,
-    openCallRoom,
-    copyCallInvite,
-    rejoinCallFromHistory,
-    setCallState,
-  } = useCallScreen({
-    isAuthenticated,
-    selectedChatProfile,
-    userEmail,
-    runtimeCalls: {
-      jitsiDomain: runtimeConfig.calls.jitsiDomain,
-      jitsiAppId: runtimeConfig.calls.jitsiAppId,
-      jitsiJwt: runtimeConfig.calls.jitsiJwt,
-    },
-    setCallHistory,
-    setChatThreads,
-    pushToast,
-    appLanguage,
-  })
-
-  // Free P2P calling (WebRTC over Supabase Realtime) — replaces the paid Jitsi
-  // path for the chat call buttons. Owns ringing + the live call session.
+  // Free P2P calling (WebRTC over Supabase Realtime) backing the chat call
+  // buttons. Owns ringing + the live call session, and watches
+  // isAuthenticated to tear itself down on sign-out.
   const webrtcCalls = useWebRtcCalls({
     isAuthenticated,
     selfName: selfProfile.name || userEmail.split('@')[0] || 'Privé',
@@ -2285,7 +2215,6 @@ function App() {
     chatPreviews,
     filteredChatPreviews,
     selectedChatMessages,
-    selectedChatCallHistory,
     hiddenChatMessageCount,
     selectedChatChemistry,
   } = useChatViews({
@@ -2295,7 +2224,6 @@ function App() {
     chatSearch,
     selectedChatProfile,
     showFullChatHistory,
-    callHistory,
     getChemistryInsights,
   })
 
@@ -2580,7 +2508,6 @@ function App() {
             selectedChatAttachment={selectedChatAttachment}
             selfLovePersonality={selfLovePersonality}
             selectedChatMessages={selectedChatMessages}
-            selectedChatCallHistory={selectedChatCallHistory}
             hiddenChatMessageCount={hiddenChatMessageCount}
             revealOlderMessages={revealOlderMessages}
             messagesContainerRef={messagesContainerRef}
@@ -2602,7 +2529,6 @@ function App() {
             isRecordingVoice={isRecordingVoice}
             startVoiceRecording={startVoiceRecording}
             sendChatMessage={sendChatMessage}
-            rejoinCallFromHistory={rejoinCallFromHistory}
             openProfileDetail={openProfileDetail}
             onStartCall={(type) => {
               const peer = selectedChatProfile ?? null
@@ -2821,27 +2747,6 @@ function App() {
           setActiveMatch(null)
           navigate('chats')
         }}
-      />
-      <CallModal
-        callState={callState}
-        appLanguage={appLanguage}
-        videoCallLabel={copy.chats.videoCallLabel}
-        audioCallLabel={copy.chats.audioCallLabel}
-        matchName={
-          callState.targetProfileId
-            ? profileById.get(callState.targetProfileId)?.name ??
-              (appLanguage === 'ro' ? 'Potrivire' : 'Match')
-            : appLanguage === 'ro' ? 'Potrivire' : 'Match'
-        }
-        displayName={selfProfile.name || userEmail.split('@')[0] || 'Privé guest'}
-        jitsiProvider={jitsiProvider}
-        onConnected={markCallConnected}
-        onEnded={endCall}
-        onFailed={markCallFailed}
-        setMuted={setCallMuted}
-        setCameraOff={setCallCameraOff}
-        onCopyInvite={() => void copyCallInvite()}
-        onOpenRoom={openCallRoom}
       />
       <WebRtcCallModal
         view={webrtcCalls.view}

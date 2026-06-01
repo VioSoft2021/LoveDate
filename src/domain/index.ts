@@ -1,4 +1,3 @@
-export * from './call'
 export * from './chat'
 export * from './discovery'
 export * from './match'
