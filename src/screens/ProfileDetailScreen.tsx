@@ -279,7 +279,12 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
         {selectedDetailProfile.voiceNoteUrl ? (
           <div className="detail-voice-note">
             <span className="soft">{appLanguage === 'ro' ? '🎙 Mesaj vocal' : '🎙 Voice intro'}</span>
-            <audio controls src={selectedDetailProfile.voiceNoteUrl} preload="none" />
+            <audio
+              controls
+              controlsList="nodownload noplaybackrate noremoteplayback"
+              src={selectedDetailProfile.voiceNoteUrl}
+              preload="none"
+            />
           </div>
         ) : null}
         <p>

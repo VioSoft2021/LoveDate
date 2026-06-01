@@ -506,10 +506,21 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
                     />
                   ) : null}
                   {message.attachment?.kind === 'video' ? (
-                    <video className="msg-media" src={message.attachment.url} controls />
+                    <video
+                      className="msg-media"
+                      src={message.attachment.url}
+                      controls
+                      controlsList="nodownload noplaybackrate noremoteplayback"
+                      disablePictureInPicture
+                    />
                   ) : null}
                   {message.attachment?.kind === 'audio' ? (
-                    <audio className="msg-audio" src={message.attachment.url} controls />
+                    <audio
+                      className="msg-audio"
+                      src={message.attachment.url}
+                      controls
+                      controlsList="nodownload noplaybackrate noremoteplayback"
+                    />
                   ) : null}
                   <span>
                     {formatShortTime(message.createdAt)}
