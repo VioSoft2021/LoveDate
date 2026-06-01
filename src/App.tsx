@@ -2596,6 +2596,7 @@ function App() {
             rejoinCallFromHistory={rejoinCallFromHistory}
             openProfileDetail={openProfileDetail}
             onStartCall={startCall}
+            callsEnabled={false}
           />
         )}
         {screen === 'profile' && (

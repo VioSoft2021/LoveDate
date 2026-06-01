@@ -66,6 +66,9 @@ export type ChatScreenProps = {
   rejoinCallFromHistory: (entry: CallLogEntry) => void
   openProfileDetail: (profileId: number, source: 'chats' | 'activity') => void
   onStartCall: (type: 'audio' | 'video') => void
+  /** Surfaces the audio/video call actions. Gated OFF until the free P2P
+   *  WebRTC call flow is wired in (Phase 2) so users don't hit a broken call. */
+  callsEnabled: boolean
 }
 
 const ChatScreenInner: React.FC<ChatScreenProps> = ({
@@ -106,6 +109,7 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
   rejoinCallFromHistory,
   openProfileDetail,
   onStartCall,
+  callsEnabled,
 }) => {
   const copy = UI_TEXT[appLanguage]
   const composerInputRef = React.useRef<HTMLInputElement | null>(null)
@@ -297,35 +301,39 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
                         </svg>
                         {copy.discover.viewFullProfile}
                       </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className="chat-header-menu-item"
-                        onClick={() => {
-                          setHeaderMenuOpen(false)
-                          onStartCall('audio')
-                        }}
-                      >
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                          <path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.7 21 3 13.3 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1l-2.2 2.2z" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinejoin="round" />
-                        </svg>
-                        {copy.chats.audioCallLabel}
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className="chat-header-menu-item"
-                        onClick={() => {
-                          setHeaderMenuOpen(false)
-                          onStartCall('video')
-                        }}
-                      >
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                          <rect x="3" y="7" width="12" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                          <path d="M15 11l5-3v8l-5-3z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
-                        </svg>
-                        {copy.chats.videoCallLabel}
-                      </button>
+                      {callsEnabled ? (
+                        <>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="chat-header-menu-item"
+                            onClick={() => {
+                              setHeaderMenuOpen(false)
+                              onStartCall('audio')
+                            }}
+                          >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                              <path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.7 21 3 13.3 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1l-2.2 2.2z" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinejoin="round" />
+                            </svg>
+                            {copy.chats.audioCallLabel}
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="chat-header-menu-item"
+                            onClick={() => {
+                              setHeaderMenuOpen(false)
+                              onStartCall('video')
+                            }}
+                          >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                              <rect x="3" y="7" width="12" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                              <path d="M15 11l5-3v8l-5-3z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
+                            </svg>
+                            {copy.chats.videoCallLabel}
+                          </button>
+                        </>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>

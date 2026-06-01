@@ -83,6 +83,7 @@ const baseProps: ChatScreenProps = {
   rejoinCallFromHistory: vi.fn(),
   openProfileDetail: vi.fn(),
   onStartCall: vi.fn(),
+  callsEnabled: true,
 }
 
 describe('ChatScreen — list panel (no active chat)', () => {
@@ -351,5 +352,13 @@ describe('ChatScreen — header overflow menu (2026-06-01)', () => {
     fireEvent.click(screen.getByRole('button', { name: /more options/i }))
     fireEvent.click(screen.getByRole('menuitem', { name: /view full profile/i }))
     expect(openProfileDetail).toHaveBeenCalledWith(7, 'chats')
+  })
+
+  it('hides the call actions when callsEnabled is false (keeps View profile)', () => {
+    render(<ChatScreen {...activeProps} callsEnabled={false} />)
+    fireEvent.click(screen.getByRole('button', { name: /more options/i }))
+    expect(screen.getByRole('menuitem', { name: /view full profile/i })).toBeInTheDocument()
+    expect(screen.queryByRole('menuitem', { name: /audio call/i })).toBeNull()
+    expect(screen.queryByRole('menuitem', { name: /video call/i })).toBeNull()
   })
 })
