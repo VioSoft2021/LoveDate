@@ -1,34 +1,26 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { type SupabaseClient } from '@supabase/supabase-js'
+import { supabase } from './backend/client'
 
-// Re-export so existing callers can keep importing INITIAL_URL_HASH
-// from this module. The actual snapshot lives in services/initialHash
-// (imported first in main.tsx) so it runs BEFORE backendApi.ts
-// creates its own Supabase client and clears the URL fragment.
+// Re-export so existing callers can keep importing INITIAL_URL_HASH from
+// here. The actual snapshot lives in services/initialHash (imported FIRST in
+// main.tsx) so it runs BEFORE the Supabase client is created and clears the
+// URL fragment.
 export { INITIAL_URL_HASH } from './initialHash'
 
-const supabaseUrl =
-  (import.meta.env.VITE_SUPABASE_URL as string | undefined) ??
-  (import.meta.env.NEXT_PUBLIC_SUPABASE_URL as string | undefined)
-
-const supabaseKey =
-  (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ??
-  (import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY as string | undefined)
-
 /**
- * Singleton Supabase client. Earlier versions of this module created
- * a NEW client on every call, which meant each consumer of the auth
- * API had its own auth state — events fired on one instance didn't
- * reach subscribers on another. Caching the instance gives all
- * callers a consistent auth state + event stream.
+ * Single app-wide Supabase client.
+ *
+ * 2026-06-01 — UNIFIED to ONE client. This module used to create its OWN
+ * client, separate from backend/client.ts's. The two had independent auth
+ * state, and the recovery token in the URL was consumed by whichever client
+ * was created first — the eager backend one (imported app-wide) — which then
+ * cleared the hash. useAuth's lazily-created client therefore never saw the
+ * session. Result: password recovery's "set a new password" card appeared
+ * (driven by the INITIAL_URL_HASH snapshot) but updateUser() ran on the
+ * session-less client and failed with "Couldn't update your password."
+ *
+ * Returning the backend client here means auth + backend share ONE session,
+ * so recovery — and every other auth-state read — runs on the same instance
+ * that actually processed the URL.
  */
-let cachedClient: SupabaseClient | null = null
-
-export const createSupabaseClient = (): SupabaseClient | null => {
-  if (!supabaseUrl || !supabaseKey) {
-    return null
-  }
-  if (!cachedClient) {
-    cachedClient = createClient(supabaseUrl, supabaseKey)
-  }
-  return cachedClient
-}
+export const createSupabaseClient = (): SupabaseClient | null => supabase
