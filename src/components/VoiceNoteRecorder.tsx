@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './VoiceNoteRecorder.css'
+import { AudioPlayer } from './AudioPlayer'
 import type { AppLanguage } from '../domain'
 import { backendUploadVoiceNote } from '../services/backendApi'
 import { useVoiceRecorder } from '../hooks/useVoiceRecorder'
@@ -74,12 +75,7 @@ export const VoiceNoteRecorder = ({ appLanguage, value, onChange }: VoiceNoteRec
       </div>
       {value ? (
         <div className="voice-note-player">
-          <audio
-            controls
-            controlsList="nodownload noplaybackrate noremoteplayback"
-            src={value}
-            preload="none"
-          />
+          <AudioPlayer src={value} />
           <div className="voice-note-actions">
             <button type="button" className="ghost" onClick={record} disabled={saving}>
               {isRecording ? t.stop : t.rerecord}

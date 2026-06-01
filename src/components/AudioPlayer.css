@@ -1,0 +1,82 @@
+/* AudioPlayer — custom voice-message player (no native controls, no native
+   overflow menu). Privé navy + gold. */
+.audio-player {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 17rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(16, 24, 60, 0.55);
+  border: 1px solid rgba(216, 184, 109, 0.3);
+}
+.audio-player-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #0e1534;
+  background: radial-gradient(circle at 35% 30%, #f6e4ad, #d8b86d 75%);
+  box-shadow: 0 2px 10px rgba(216, 184, 109, 0.3);
+  transition: transform 0.12s ease;
+}
+.audio-player-btn:hover {
+  transform: translateY(-1px);
+}
+.audio-player-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(216, 184, 109, 0.4);
+}
+.audio-player-btn svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: currentColor;
+}
+.audio-player-seek {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  min-width: 3rem;
+  height: 4px;
+  border-radius: 999px;
+  cursor: pointer;
+  background: linear-gradient(
+    to right,
+    #d8b86d 0,
+    #d8b86d var(--pct, 0%),
+    rgba(232, 242, 255, 0.18) var(--pct, 0%),
+    rgba(232, 242, 255, 0.18) 100%
+  );
+}
+.audio-player-seek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 0;
+  background: #f4dca8;
+  cursor: pointer;
+}
+.audio-player-seek::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 0;
+  background: #f4dca8;
+  cursor: pointer;
+}
+.audio-player-time {
+  flex: none;
+  font-size: 0.72rem;
+  color: rgba(232, 242, 255, 0.6);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

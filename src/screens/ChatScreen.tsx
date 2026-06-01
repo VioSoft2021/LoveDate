@@ -1,5 +1,6 @@
 import React from 'react'
 import './ChatScreen.css'
+import { AudioPlayer } from '../components/AudioPlayer'
 import { UI_TEXT, ZODIAC_EMOJI, getZodiacDescription } from '../constants'
 import { formatShortTime, formatUiText } from '../utils'
 import type {
@@ -515,12 +516,7 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
                     />
                   ) : null}
                   {message.attachment?.kind === 'audio' ? (
-                    <audio
-                      className="msg-audio"
-                      src={message.attachment.url}
-                      controls
-                      controlsList="nodownload noplaybackrate noremoteplayback"
-                    />
+                    <AudioPlayer src={message.attachment.url} />
                   ) : null}
                   <span>
                     {formatShortTime(message.createdAt)}

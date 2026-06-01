@@ -1,5 +1,6 @@
 import React from 'react'
 import './ProfileDetailScreen.css'
+import { AudioPlayer } from '../components/AudioPlayer'
 import {
   UI_TEXT,
   getZodiacDeepDive,
@@ -279,12 +280,7 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({
         {selectedDetailProfile.voiceNoteUrl ? (
           <div className="detail-voice-note">
             <span className="soft">{appLanguage === 'ro' ? '🎙 Mesaj vocal' : '🎙 Voice intro'}</span>
-            <audio
-              controls
-              controlsList="nodownload noplaybackrate noremoteplayback"
-              src={selectedDetailProfile.voiceNoteUrl}
-              preload="none"
-            />
+            <AudioPlayer src={selectedDetailProfile.voiceNoteUrl} />
           </div>
         ) : null}
         <p>
