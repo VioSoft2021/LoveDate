@@ -65,6 +65,7 @@ export type ChatScreenProps = {
   sendChatMessage: () => void
   rejoinCallFromHistory: (entry: CallLogEntry) => void
   openProfileDetail: (profileId: number, source: 'chats' | 'activity') => void
+  onStartCall: (type: 'audio' | 'video') => void
 }
 
 const ChatScreenInner: React.FC<ChatScreenProps> = ({
@@ -104,6 +105,7 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
   sendChatMessage,
   rejoinCallFromHistory,
   openProfileDetail,
+  onStartCall,
 }) => {
   const copy = UI_TEXT[appLanguage]
   const composerInputRef = React.useRef<HTMLInputElement | null>(null)
@@ -111,6 +113,30 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
   React.useEffect(() => {
     setChatToolsOpen(false)
   }, [activeChatId])
+
+  // Header overflow menu (View profile / Audio call / Video call).
+  const [headerMenuOpen, setHeaderMenuOpen] = React.useState(false)
+  const headerMenuRef = React.useRef<HTMLDivElement | null>(null)
+  React.useEffect(() => {
+    setHeaderMenuOpen(false)
+  }, [activeChatId])
+  React.useEffect(() => {
+    if (!headerMenuOpen) return
+    const onPointerDown = (event: MouseEvent) => {
+      if (headerMenuRef.current && !headerMenuRef.current.contains(event.target as Node)) {
+        setHeaderMenuOpen(false)
+      }
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setHeaderMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [headerMenuOpen])
 
   // Phone-vs-desktop detection for layout. On phone we render ONLY the
   // active pane (list OR thread, never both) so the back button works
@@ -223,32 +249,86 @@ const ChatScreenInner: React.FC<ChatScreenProps> = ({
                 </div>
               </div>
               <div className="chat-header-actions">
-                <button
-                  type="button"
-                  className={`chat-icon-btn chat-tools-toggle${chatToolsOpen ? ' is-active' : ''}`}
-                  aria-label={copy.a11y.toggleAiTools}
-                  aria-pressed={chatToolsOpen}
-                  onClick={() => setChatToolsOpen((open) => !open)}
-                  title={copy.a11y.toggleAiTools}
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-                    <circle cx="12" cy="12" r="3.4" stroke="currentColor" strokeWidth="1.6" fill="none" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  className="chat-icon-btn chat-more-options"
-                  aria-label={copy.chats.moreOptions}
-                  onClick={() => openProfileDetail(selectedChatProfile.id, 'chats')}
-                  title={copy.discover.viewFullProfile}
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="5" r="1.8" fill="currentColor" />
-                    <circle cx="12" cy="12" r="1.8" fill="currentColor" />
-                    <circle cx="12" cy="19" r="1.8" fill="currentColor" />
-                  </svg>
-                </button>
+                {isPhone ? (
+                  <button
+                    type="button"
+                    className={`chat-icon-btn chat-tools-toggle${chatToolsOpen ? ' is-active' : ''}`}
+                    aria-label={copy.a11y.toggleAiTools}
+                    aria-pressed={chatToolsOpen}
+                    onClick={() => setChatToolsOpen((open) => !open)}
+                    title={copy.a11y.toggleAiTools}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+                      <circle cx="12" cy="12" r="3.4" stroke="currentColor" strokeWidth="1.6" fill="none" />
+                    </svg>
+                  </button>
+                ) : null}
+                <div className="chat-header-menu-wrap" ref={headerMenuRef}>
+                  <button
+                    type="button"
+                    className={`chat-icon-btn chat-more-options${headerMenuOpen ? ' is-active' : ''}`}
+                    aria-label={copy.chats.moreOptions}
+                    aria-haspopup="menu"
+                    aria-expanded={headerMenuOpen}
+                    onClick={() => setHeaderMenuOpen((open) => !open)}
+                    title={copy.chats.moreOptions}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <circle cx="12" cy="5" r="1.8" fill="currentColor" />
+                      <circle cx="12" cy="12" r="1.8" fill="currentColor" />
+                      <circle cx="12" cy="19" r="1.8" fill="currentColor" />
+                    </svg>
+                  </button>
+                  {headerMenuOpen ? (
+                    <div className="chat-header-menu" role="menu">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="chat-header-menu-item"
+                        onClick={() => {
+                          setHeaderMenuOpen(false)
+                          openProfileDetail(selectedChatProfile.id, 'chats')
+                        }}
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <circle cx="12" cy="8" r="3.4" stroke="currentColor" strokeWidth="1.6" fill="none" />
+                          <path d="M5.5 19.5c0-3.3 2.9-5.6 6.5-5.6s6.5 2.3 6.5 5.6" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+                        </svg>
+                        {copy.discover.viewFullProfile}
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="chat-header-menu-item"
+                        onClick={() => {
+                          setHeaderMenuOpen(false)
+                          onStartCall('audio')
+                        }}
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.7 21 3 13.3 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1l-2.2 2.2z" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinejoin="round" />
+                        </svg>
+                        {copy.chats.audioCallLabel}
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="chat-header-menu-item"
+                        onClick={() => {
+                          setHeaderMenuOpen(false)
+                          onStartCall('video')
+                        }}
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <rect x="3" y="7" width="12" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                          <path d="M15 11l5-3v8l-5-3z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
+                        </svg>
+                        {copy.chats.videoCallLabel}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </header>
             <section className="chat-compatibility-panel" aria-label={copy.chats.compatibility}>

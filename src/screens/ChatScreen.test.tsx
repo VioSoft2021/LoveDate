@@ -82,6 +82,7 @@ const baseProps: ChatScreenProps = {
   sendChatMessage: vi.fn(),
   rejoinCallFromHistory: vi.fn(),
   openProfileDetail: vi.fn(),
+  onStartCall: vi.fn(),
 }
 
 describe('ChatScreen — list panel (no active chat)', () => {
@@ -312,5 +313,43 @@ describe('ChatScreen — attachment preview', () => {
     expect(screen.getByText('sunset.jpg')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /Remove/i }))
     expect(setChatAttachmentDraft).toHaveBeenCalledWith(null)
+  })
+})
+
+describe('ChatScreen — header overflow menu (2026-06-01)', () => {
+  const menuProfile = buildProfile({ id: 7, name: 'Mira' })
+  const activeProps: ChatScreenProps = {
+    ...baseProps,
+    activeChatId: 7,
+    selectedChatProfile: menuProfile,
+  }
+
+  it('keeps the menu (and its call actions) closed until the ⋮ button is clicked', () => {
+    render(<ChatScreen {...activeProps} />)
+    expect(screen.queryByRole('menuitem', { name: /audio call/i })).toBeNull()
+  })
+
+  it('opens the menu and starts an audio call', () => {
+    const onStartCall = vi.fn()
+    render(<ChatScreen {...activeProps} onStartCall={onStartCall} />)
+    fireEvent.click(screen.getByRole('button', { name: /more options/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /audio call/i }))
+    expect(onStartCall).toHaveBeenCalledWith('audio')
+  })
+
+  it('starts a video call from the menu', () => {
+    const onStartCall = vi.fn()
+    render(<ChatScreen {...activeProps} onStartCall={onStartCall} />)
+    fireEvent.click(screen.getByRole('button', { name: /more options/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /video call/i }))
+    expect(onStartCall).toHaveBeenCalledWith('video')
+  })
+
+  it('opens the full profile from the menu', () => {
+    const openProfileDetail = vi.fn()
+    render(<ChatScreen {...activeProps} openProfileDetail={openProfileDetail} />)
+    fireEvent.click(screen.getByRole('button', { name: /more options/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /view full profile/i }))
+    expect(openProfileDetail).toHaveBeenCalledWith(7, 'chats')
   })
 })

@@ -2595,6 +2595,7 @@ function App() {
             sendChatMessage={sendChatMessage}
             rejoinCallFromHistory={rejoinCallFromHistory}
             openProfileDetail={openProfileDetail}
+            onStartCall={startCall}
           />
         )}
         {screen === 'profile' && (
