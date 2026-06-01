@@ -26,6 +26,7 @@ import { PhotoLightbox } from './components/PhotoLightbox'
 import { MatchCelebrationModal } from './components/MatchCelebrationModal'
 import { ReportProfileDialog } from './components/ReportProfileDialog'
 import { CallModal } from './components/CallModal'
+import { WebRtcCallModal } from './components/WebRtcCallModal'
 import { UpdateBanner } from './components/UpdateBanner'
 import { useAuth } from './hooks/useAuth'
 import { useDeck } from './hooks/useDeck'
@@ -38,6 +39,7 @@ import { usePersistence } from './hooks/usePersistence'
 import { useChatAiActions } from './hooks/useChatAiActions'
 import { useMatchScoring } from './hooks/useMatchScoring'
 import { useCallScreen } from './hooks/useCallScreen'
+import { useWebRtcCalls } from './hooks/useWebRtcCalls'
 import { useUiModals } from './hooks/useUiModals'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useProfileEditor } from './hooks/useProfileEditor'
@@ -1437,7 +1439,6 @@ function App() {
   const {
     callState,
     jitsiProvider,
-    startCall,
     markCallConnected,
     markCallFailed,
     setCallMuted,
@@ -1460,6 +1461,14 @@ function App() {
     setChatThreads,
     pushToast,
     appLanguage,
+  })
+
+  // Free P2P calling (WebRTC over Supabase Realtime) — replaces the paid Jitsi
+  // path for the chat call buttons. Owns ringing + the live call session.
+  const webrtcCalls = useWebRtcCalls({
+    isAuthenticated,
+    selfName: selfProfile.name || userEmail.split('@')[0] || 'Privé',
+    pushToast,
   })
 
   const selectedDetailProfile = useMemo(() => {
@@ -2595,7 +2604,19 @@ function App() {
             sendChatMessage={sendChatMessage}
             rejoinCallFromHistory={rejoinCallFromHistory}
             openProfileDetail={openProfileDetail}
-            onStartCall={startCall}
+            onStartCall={(type) => {
+              const peer = selectedChatProfile ?? null
+              if (!peer?.authUserId) {
+                pushToast(
+                  appLanguage === 'ro'
+                    ? 'Apelurile nu sunt încă disponibile pentru acest profil.'
+                    : 'Calls aren’t available for this profile yet.',
+                  'info',
+                )
+                return
+              }
+              webrtcCalls.startCall({ peerId: peer.authUserId, peerName: peer.name, type })
+            }}
             callsEnabled={false}
           />
         )}
@@ -2821,6 +2842,19 @@ function App() {
         setCameraOff={setCallCameraOff}
         onCopyInvite={() => void copyCallInvite()}
         onOpenRoom={openCallRoom}
+      />
+      <WebRtcCallModal
+        view={webrtcCalls.view}
+        localStream={webrtcCalls.localStream}
+        remoteStream={webrtcCalls.remoteStream}
+        appLanguage={appLanguage}
+        audioCallLabel={copy.chats.audioCallLabel}
+        videoCallLabel={copy.chats.videoCallLabel}
+        onAccept={webrtcCalls.acceptCall}
+        onDecline={webrtcCalls.declineCall}
+        onHangup={webrtcCalls.hangup}
+        onToggleMute={() => webrtcCalls.setMuted(!webrtcCalls.view.muted)}
+        onToggleCamera={() => webrtcCalls.setCameraOff(!webrtcCalls.view.cameraOff)}
       />
       <ReportProfileDialog
         profile={reportDraftProfile}
