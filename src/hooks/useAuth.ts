@@ -43,6 +43,30 @@ export type UseAuthOptions = {
   onSignedOut?: () => void
 }
 
+/** Pull the access + refresh tokens out of a recovery URL-hash snapshot.
+ *  Supabase's implicit-flow recovery redirect lands as
+ *  `#access_token=…&refresh_token=…&type=recovery`. Returns null when either
+ *  token is absent — e.g. an already-used one-time link redirects with an
+ *  `#error=…` hash that carries no tokens. */
+const parseRecoveryTokens = (
+  hash: string,
+): { accessToken: string; refreshToken: string } | null => {
+  if (!hash) return null
+  const raw = hash.startsWith('#') ? hash.slice(1) : hash
+  const params = new URLSearchParams(raw)
+  const accessToken = params.get('access_token')
+  const refreshToken = params.get('refresh_token')
+  if (!accessToken || !refreshToken) return null
+  return { accessToken, refreshToken }
+}
+
+/** Append the backend's real message to our friendly copy, so a failed
+ *  recovery is diagnosable instead of an opaque "try again". */
+const describeRecoveryError = (base: string, detail: string | null | undefined): string => {
+  const trimmed = detail?.trim()
+  return trimmed ? `${base} (${trimmed})` : base
+}
+
 export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: UseAuthOptions) => {
   const tAuth = UI_TEXT[appLanguage].authToasts
   const tCopy = UI_TEXT[appLanguage].auth
@@ -245,9 +269,38 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
       setPasswordRecoveryLoading(true)
       setPasswordRecoveryError(null)
       try {
+        // Guarantee THIS client holds the recovery session before changing
+        // the password. We can't assume detectSessionInUrl already set it:
+        // an older cached bundle, a second Supabase client, Gmail's link
+        // scanner, or a double-click can all leave us showing the card with
+        // no live session — which is exactly the "Couldn't update your
+        // password" failure. So we explicitly (re)establish the session from
+        // the tokens snapshotted out of the URL at load (INITIAL_URL_HASH).
+        const { data: existing } = await supabase.auth.getSession()
+        if (!existing.session) {
+          const tokens = parseRecoveryTokens(INITIAL_URL_HASH)
+          if (!tokens) {
+            setPasswordRecoveryError(tCopy.recoveryExpired)
+            return false
+          }
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: tokens.accessToken,
+            refresh_token: tokens.refreshToken,
+          })
+          if (sessionError) {
+            setPasswordRecoveryError(
+              describeRecoveryError(tCopy.recoveryExpired, sessionError.message),
+            )
+            return false
+          }
+        }
+
         const { error } = await supabase.auth.updateUser({ password: newPassword })
         if (error) {
-          setPasswordRecoveryError(tCopy.recoveryFailed)
+          // Surface the backend's real reason. "New password should be
+          // different…", weak-password, rate-limit and missing-session all
+          // landed here before and were indistinguishable to user and dev.
+          setPasswordRecoveryError(describeRecoveryError(tCopy.recoveryFailed, error.message))
           return false
         }
         const { data: userResult } = await supabase.auth.getUser()
@@ -268,8 +321,10 @@ export const useAuth = ({ pushToast, appLanguage, onSignedIn, onSignedOut }: Use
           onSignedIn?.(email)
         }
         return true
-      } catch {
-        setPasswordRecoveryError(tCopy.recoveryFailed)
+      } catch (caught) {
+        setPasswordRecoveryError(
+          describeRecoveryError(tCopy.recoveryFailed, caught instanceof Error ? caught.message : null),
+        )
         return false
       } finally {
         setPasswordRecoveryLoading(false)

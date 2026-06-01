@@ -39,6 +39,12 @@ const mocks = vi.hoisted(() => ({
       error: null,
     }),
   ),
+  getSession: vi.fn(
+    async (): Promise<{ data: { session: { user: { email: string } } | null } }> => ({
+      data: { session: { user: { email: 'test@example.com' } } },
+    }),
+  ),
+  setSession: vi.fn(async (): Promise<{ error: { message: string } | null }> => ({ error: null })),
 }))
 
 vi.mock('../services/initialHash', () => ({
@@ -58,6 +64,8 @@ vi.mock('../services/supabaseClient', () => ({
       getUser: mocks.getUser,
       onAuthStateChange: mocks.onAuthStateChange,
       resetPasswordForEmail: mocks.resetPasswordForEmail,
+      getSession: mocks.getSession,
+      setSession: mocks.setSession,
     },
     functions: {
       invoke: mocks.invokeFunction,
@@ -110,6 +118,10 @@ beforeEach(() => {
   mocks.invokeFunction.mockResolvedValue({ data: { ok: true }, error: null })
   mocks.resetPasswordForEmail.mockClear()
   mocks.resetPasswordForEmail.mockResolvedValue({ data: {}, error: null })
+  mocks.getSession.mockClear()
+  mocks.getSession.mockResolvedValue({ data: { session: { user: { email: 'test@example.com' } } } })
+  mocks.setSession.mockClear()
+  mocks.setSession.mockResolvedValue({ error: null })
 })
 
 describe('useAuth — password-recovery detection from URL hash', () => {
@@ -200,6 +212,48 @@ describe('useAuth — completePasswordRecovery validation', () => {
     })
     expect(returned).toBe(false)
     expect(result.current.passwordRecoveryError).toBeTruthy()
+  })
+
+  // 2026-06-01 — the recovery card shows on a URL string-match alone, so the
+  // session may not be live when the user taps "Update password". These cover
+  // the explicit session-from-token recovery + diagnosable error surfacing.
+  it('establishes the session from the recovery link tokens when the client has none', async () => {
+    mocks.getSession.mockResolvedValue({ data: { session: null } })
+    mocks.initialHash = '#access_token=AT123&refresh_token=RT456&type=recovery'
+    const { result } = renderHook(() => useAuth(baseOptions()))
+    await act(async () => {
+      await result.current.completePasswordRecovery('StrongPass1!', 'StrongPass1!')
+    })
+    expect(mocks.setSession).toHaveBeenCalledWith({
+      access_token: 'AT123',
+      refresh_token: 'RT456',
+    })
+    expect(mocks.updateUser).toHaveBeenCalledWith({ password: 'StrongPass1!' })
+  })
+
+  it('shows the expired-link error (and skips updateUser) when there is no session and no usable token', async () => {
+    mocks.getSession.mockResolvedValue({ data: { session: null } })
+    mocks.initialHash = '#error=access_denied&error_code=otp_expired'
+    const { result } = renderHook(() => useAuth(baseOptions()))
+    let returned: boolean | undefined
+    await act(async () => {
+      returned = await result.current.completePasswordRecovery('StrongPass1!', 'StrongPass1!')
+    })
+    expect(returned).toBe(false)
+    expect(mocks.setSession).not.toHaveBeenCalled()
+    expect(mocks.updateUser).not.toHaveBeenCalled()
+    expect(result.current.passwordRecoveryError).toMatch(/expired|already used/i)
+  })
+
+  it('surfaces the backend real reason when updateUser fails', async () => {
+    mocks.updateUser.mockResolvedValueOnce({
+      error: { message: 'New password should be different from the old password.' },
+    })
+    const { result } = renderHook(() => useAuth(baseOptions()))
+    await act(async () => {
+      await result.current.completePasswordRecovery('StrongPass1!', 'StrongPass1!')
+    })
+    expect(result.current.passwordRecoveryError).toMatch(/different from the old password/i)
   })
 })
 
