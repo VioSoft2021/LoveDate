@@ -62,15 +62,10 @@ export const initNativePush = async (): Promise<void> => {
   if (initialized || !Capacitor.isNativePlatform()) return
   initialized = true
   try {
-    let perm = await PushNotifications.checkPermissions()
-    if (perm.receive === 'prompt' || perm.receive === 'prompt-with-rationale') {
-      perm = await PushNotifications.requestPermissions()
-    }
-    if (perm.receive !== 'granted') {
-      initialized = false // allow a later retry (e.g. user enables it in Settings)
-      return
-    }
-
+    // Attach ALL listeners FIRST, before anything else — so the FCM `registration`
+    // event (which can fire as soon as register() runs) is never missed. (An earlier
+    // bug returned from a permission check before these were attached, so the token
+    // fired into the void — "No listeners found for event registration".)
     await PushNotifications.addListener('registration', (token) => {
       void (async () => {
         const userId = await getCurrentUserId()
@@ -94,10 +89,16 @@ export const initNativePush = async (): Promise<void> => {
       if (call) emitIncoming(call)
     })
 
+    // Ask for the DISPLAY permission (so notifications can show), but do NOT block
+    // token registration on it — the token is still valid for receiving the push.
+    const perm = await PushNotifications.checkPermissions()
+    if (perm.receive !== 'granted' && perm.receive !== 'denied') {
+      await PushNotifications.requestPermissions()
+    }
+
+    // Register for FCM regardless — this fetches + emits the token.
     await PushNotifications.register()
   } catch {
-    // FCM not configured yet (no google-services.json) or registration failed —
-    // online Realtime + Web Push still cover their cases.
     initialized = false
   }
 }

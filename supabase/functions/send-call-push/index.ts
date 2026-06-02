@@ -28,7 +28,7 @@ type Body = {
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, content-type, apikey',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
@@ -181,10 +181,11 @@ Deno.serve(async (req: Request) => {
                       token: row.token,
                       notification: { title: callTitle, body: callBody },
                       data: dataPayload,
-                      android: {
-                        priority: 'high',
-                        notification: { channel_id: 'calls', sound: 'default' },
-                      },
+                      // No custom channel_id — the app hasn't created a "calls"
+                      // channel, and Android silently drops notifications posted to
+                      // a non-existent channel. Omitting it uses the FCM fallback
+                      // channel (proven to display in the direct test).
+                      android: { priority: 'high' },
                     },
                   }),
                 },
