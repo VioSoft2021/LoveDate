@@ -6,80 +6,121 @@ the code reads.
 
 ---
 
-## 1. TURN relay (coturn) — so strict-NAT / mobile-CGNAT users can connect
+## 1. TURN relay — self-hosted coturn on Oracle Cloud "Always Free" (€0)
 
 Calls connect peer-to-peer for ~80–90% of people via free STUN. The rest (symmetric
-NAT, office firewalls, Romanian mobile CGNAT) need a TURN relay. We're self-hosting
-coturn — flat ~$5/mo, never per-call.
+NAT, office firewalls, Romanian mobile CGNAT) need a TURN relay. We self-host coturn on
+an Oracle **Always Free** VM — yours to own, €0/month, forever.
 
-### 1a. Get a VPS
-- Any small Linux VPS with a **static public IP**: Hetzner (CX22 ~€4), DigitalOcean,
-  Contabo, etc. Ubuntu 22.04 or 24.04.
-- Note its **public IP** (call it `YOUR_VPS_IP` below).
+> **Oracle has TWO traps that sink most first-timers. Both are handled below — don't skip them:**
+> 1. **Two firewalls.** Oracle blocks ports in the cloud console (VCN Security List)
+>    AND again inside the VM (iptables). Open the ports in **BOTH** (steps 1c + 1e).
+> 2. **NAT.** The VM sees a *private* IP (`10.x.x.x`) but the world reaches it on a
+>    *public* IP. coturn must be told both: `external-ip=PUBLIC/PRIVATE` (step 1f).
 
-### 1b. Install coturn (run on the VPS over SSH)
+### 1a. Create the Oracle account
+- https://www.oracle.com/cloud/free/ → **Start for free.**
+- Needs email, phone (SMS code), and a card for **identity verification only** —
+  Always Free resources never charge it. Look for the green **"Always Free"** labels.
+- **Home Region is permanent — pick the closest to your users.** For Romania:
+  **Frankfurt** or **Amsterdam** (lowest call latency).
+
+### 1b. Create the VM
+Console → ☰ menu → **Compute → Instances → Create instance.**
+- **Image:** Canonical **Ubuntu 22.04** (or 24.04).
+- **Shape:** *Change shape* → **Ampere (VM.Standard.A1.Flex)**, 1 OCPU / 6 GB if offered.
+  If it says *"out of host capacity"*, pick **VM.Standard.E2.1.Micro** (AMD, always
+  available, 1 GB — plenty for coturn).
+- **SSH keys:** **Save the private key** (download it — you need it to log in).
+- **Networking:** keep the default new VCN; ensure **"Assign a public IPv4 address" = Yes**.
+- **Create** → wait for *Running* → copy the **Public IP address** (call it `PUBLIC_IP`).
+
+### 1c. Open ports in the cloud firewall (VCN — trap #1, layer 1)
+Instance page → click its **Subnet** → click the **Default Security List** → **Add
+Ingress Rules**. Add these three, each with Source CIDR `0.0.0.0/0`:
+
+| IP Protocol | Destination Port Range |
+|---|---|
+| UDP | 3478 |
+| TCP | 3478 |
+| UDP | 49152-49200 |
+
+### 1d. SSH in
+From your PC, using the key you downloaded:
+```
+ssh -i path\to\your-key.key ubuntu@PUBLIC_IP
+```
+(Ubuntu image → user is `ubuntu`. If Windows refuses the key as "too open": right-click
+the key file → Properties → Security → Advanced → Disable inheritance → leave only your
+own user with Read.)
+
+### 1e. Open the same ports INSIDE the VM (iptables — trap #1, layer 2)
+Oracle's Ubuntu image blocks everything but SSH at the OS level. Insert ACCEPT rules
+*above* its default REJECT, then persist:
+```bash
+sudo iptables -I INPUT -p udp --dport 3478 -j ACCEPT
+sudo iptables -I INPUT -p tcp --dport 3478 -j ACCEPT
+sudo iptables -I INPUT -p udp --dport 49152:49200 -j ACCEPT
+sudo netfilter-persistent save
+```
+(If `netfilter-persistent` isn't found: `sudo apt install -y iptables-persistent` first.)
+
+### 1f. Install + configure coturn
 ```bash
 sudo apt update && sudo apt install -y coturn
 ```
-Enable the service: edit `/etc/default/coturn` and uncomment the line:
-```
-TURNSERVER_ENABLED=1
-```
+Enable it: `sudo nano /etc/default/coturn` → uncomment `TURNSERVER_ENABLED=1`.
 
-### 1c. Configure it
-Replace `/etc/turnserver.conf` with (set your own strong password + your IP):
+Get the VM's **private** IP (the `10.x.x.x`):
+```bash
+hostname -I
+```
+Edit `sudo nano /etc/turnserver.conf` — set your password + your two IPs:
 ```
 listening-port=3478
 lt-cred-mech
 user=prive:CHOOSE_A_STRONG_PASSWORD
 realm=prive-app.club
-external-ip=YOUR_VPS_IP
-min-port=49160
+# Trap #2 — Oracle puts the VM behind 1:1 NAT, so map PUBLIC/PRIVATE:
+external-ip=PUBLIC_IP/PRIVATE_IP
+min-port=49152
 max-port=49200
 no-tls
 no-dtls
 log-file=/var/log/turnserver.log
 ```
-
-### 1d. Open the firewall (VPS firewall + provider panel)
-```bash
-sudo ufw allow 3478
-sudo ufw allow 49160:49200/udp
-```
-(If the provider has its own firewall panel, open the same ports there too.)
-
-### 1e. Start it
+Start it:
 ```bash
 sudo systemctl enable coturn
 sudo systemctl restart coturn
 ```
 
-### 1f. Verify (before touching the app)
-Open the WebRTC Trickle-ICE test page:
-https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/
-- Add server: `turn:YOUR_VPS_IP:3478`, username `prive`, credential your password.
-- Remove the default Google STUN row so only TURN is tested.
-- Click **Gather candidates** → you should see at least one candidate of type **`relay`**.
-  If you see `relay`, TURN works. If not, re-check the firewall/external-ip.
+### 1g. Verify (before touching the app)
+WebRTC Trickle-ICE: https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/
+- Remove the default Google STUN row.
+- Add: `turn:PUBLIC_IP:3478`, username `prive`, credential your password.
+- **Gather candidates** → you must see a candidate of type **`relay`**. If you do, TURN
+  works. If not, paste me the output — it's almost always one of the two firewalls or
+  the `external-ip` line, and I'll tell you which.
 
-### 1g. Point the app at it
-Add to `.env.local` (and on any machine that builds the app):
+### 1h. Point the app at it
+Add to `.env.local` (on each build machine):
 ```
-VITE_TURN_URL=turn:YOUR_VPS_IP:3478
+VITE_TURN_URL=turn:PUBLIC_IP:3478
 VITE_TURN_USERNAME=prive
 VITE_TURN_CREDENTIAL=CHOOSE_A_STRONG_PASSWORD
 ```
-Then rebuild: web (`npm run build`, push to deploy) and the APK (`npm run build` →
-`npx cap sync android` → assemble/install). The call code already appends this relay
-to its ICE servers automatically.
+Rebuild: web (`npm run build`, push to deploy) + APK (`npm run build` → `npx cap sync
+android` → assemble/install). The call code appends this relay to its ICE servers
+automatically.
 
 ### Security note (fine to defer past beta)
-`VITE_*` vars are baked into the public client bundle, so this TURN password is
-visible to anyone who inspects the app. For a beta the only risk is someone using
-your relay's bandwidth. To harden later: switch coturn to `use-auth-secret` (a shared
-secret) and have a tiny edge function hand out **time-limited** TURN credentials per
-call; also add TLS (`turns:5349` + a Let's Encrypt cert) so calls survive networks
-that block plain UDP. Ask me when you want this — it's a small follow-up.
+`VITE_*` vars are baked into the public client bundle, so this TURN password ships
+visible in the app. For a beta the only risk is someone using your relay's bandwidth
+(and Always Free includes 10 TB/month outbound). To harden later: switch coturn to
+`use-auth-secret` and hand out **time-limited** credentials from a tiny edge function;
+add TLS (`turns:5349` + a Let's Encrypt cert) for networks that block plain UDP. Ask me
+when you want this.
 
 ---
 
