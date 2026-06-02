@@ -15,6 +15,7 @@ import {
 import { createSupabaseSignaling } from '../services/webrtc/signaling'
 import { subscribeToCallInbox, sendCallMessage } from '../services/webrtc/callInvites'
 import { getCurrentUserId } from '../services/backend/client'
+import type { AppLanguage } from '../domain'
 
 export type WebRtcCallPhase = 'idle' | 'outgoing' | 'incoming' | 'active'
 
@@ -44,14 +45,28 @@ export type StartCallArgs = { peerId: string; peerName: string; type: 'audio' | 
 
 type Toast = (message: string, tone?: 'info' | 'success' | 'error') => void
 
+// getUserMedia rejects with these when the OS won't hand over the mic — either
+// the user denied the permission (NotAllowedError) or it's stuck in Android's
+// silent-deny state (NotReadableError "Could not start audio source"). Both are
+// fixed the same way: the user re-enables microphone access in Settings — so we
+// show that guidance instead of a blank "Call failed."
+const isMicAccessError = (error: Error | null): boolean =>
+  !!error &&
+  (error.name === 'NotAllowedError' ||
+    error.name === 'NotReadableError' ||
+    error.name === 'NotFoundError' ||
+    /audio source|permission|microphone/i.test(error.message))
+
 export const useWebRtcCalls = ({
   isAuthenticated,
   selfName,
+  appLanguage,
   pushToast,
   debugSelfId,
 }: {
   isAuthenticated: boolean
   selfName: string
+  appLanguage: AppLanguage
   pushToast: Toast
   /** DEV/test only: inject the auth id instead of resolving getCurrentUserId
    *  (used by the ?harness=webrtc-call two-browser proof). */
@@ -71,6 +86,9 @@ export const useWebRtcCalls = ({
     fromId: string
     fromName: string
   } | null>(null)
+  // The most recent session error, captured by onError so the 'failed' state
+  // handler can tailor the toast (mic-permission vs generic).
+  const lastErrorRef = useRef<Error | null>(null)
 
   useEffect(() => {
     viewRef.current = view
@@ -116,25 +134,45 @@ export const useWebRtcCalls = ({
             phase: state === 'connected' ? 'active' : current.phase,
           }))
           if (state === 'failed' || state === 'ended') {
-            if (state === 'failed') pushToast('Call failed.', 'error')
+            if (state === 'failed') {
+              const micError = isMicAccessError(lastErrorRef.current)
+              pushToast(
+                micError
+                  ? appLanguage === 'ro'
+                    ? 'Privé are nevoie de acces la microfon pentru apeluri. Activează microfonul din Setări → Aplicații → Privé → Permisiuni.'
+                    : 'Privé needs microphone access for calls. Turn it on in Settings → Apps → Privé → Permissions.'
+                  : appLanguage === 'ro'
+                    ? 'Apelul a eșuat.'
+                    : 'Call failed.',
+                'error',
+              )
+            }
+            lastErrorRef.current = null
             resetCall()
           }
         },
         onLocalStream: setLocalStream,
         onRemoteStream: setRemoteStream,
-        onError: () => pushToast('Call failed.', 'error'),
+        onError: (error) => {
+          lastErrorRef.current = error
+        },
       })
       sessionRef.current = session
       void session.start()
     },
-    [pushToast, resetCall],
+    [appLanguage, pushToast, resetCall],
   )
 
   const startCall = useCallback(
     ({ peerId, peerName, type }: StartCallArgs) => {
       const myId = selfIdRef.current
       if (!myId) {
-        pushToast('Calling is not ready yet — try again in a moment.', 'error')
+        pushToast(
+          appLanguage === 'ro'
+            ? 'Apelul nu e gata încă — încearcă din nou într-o clipă.'
+            : 'Calling is not ready yet — try again in a moment.',
+          'error',
+        )
         return
       }
       if (viewRef.current.phase !== 'idle') return
@@ -158,7 +196,7 @@ export const useWebRtcCalls = ({
       })
       beginSession(roomId, type, true)
     },
-    [pushToast, selfName, beginSession],
+    [appLanguage, pushToast, selfName, beginSession],
   )
 
   const acceptCall = useCallback(() => {
@@ -260,7 +298,12 @@ export const useWebRtcCalls = ({
       } else if (message.kind === 'decline') {
         if (viewRef.current.roomId === message.roomId) {
           sessionRef.current?.hangup()
-          pushToast(`${viewRef.current.peerName || 'They'} declined the call.`, 'info')
+          const who =
+            viewRef.current.peerName || (appLanguage === 'ro' ? 'Cealaltă persoană' : 'They')
+          pushToast(
+            appLanguage === 'ro' ? `${who} a refuzat apelul.` : `${who} declined the call.`,
+            'info',
+          )
           resetCall()
         }
       } else if (message.kind === 'cancel') {
@@ -275,7 +318,7 @@ export const useWebRtcCalls = ({
       }
     })
     return unsubscribe
-  }, [isAuthenticated, selfId, pushToast, resetCall])
+  }, [isAuthenticated, selfId, appLanguage, pushToast, resetCall])
 
   return {
     view,

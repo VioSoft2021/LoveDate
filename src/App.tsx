@@ -1398,6 +1398,7 @@ function App() {
   const webrtcCalls = useWebRtcCalls({
     isAuthenticated,
     selfName: selfProfile.name || userEmail.split('@')[0] || 'Privé',
+    appLanguage,
     pushToast,
   })
 

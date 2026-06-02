@@ -25,6 +25,10 @@ export const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
 ]
 
+// Give up if we never reach 'connected' — so a stuck/abandoned call can't sit
+// forever holding the microphone open.
+const CONNECT_TIMEOUT_MS = 30000
+
 export type CallSessionOptions = {
   selfId: string
   isInitiator: boolean
@@ -54,13 +58,16 @@ export const createCallSession = (opts: CallSessionOptions): CallSession => {
   let offerSent = false
   let remoteReady = false
   const pendingIce: RTCIceCandidateInit[] = []
+  let connectTimer: ReturnType<typeof setTimeout> | null = null
 
   const toError = (value: unknown): Error =>
     value instanceof Error ? value : new Error(String(value))
 
   const fail = (error: Error) => {
     opts.onError?.(error)
-    if (!ended) opts.onState('failed')
+    // teardown() releases the mic + closes the connection. Always do it on
+    // failure so a dead/abandoned attempt can't keep the microphone locked.
+    teardown('failed')
   }
 
   const flushIce = async () => {
@@ -122,6 +129,10 @@ export const createCallSession = (opts: CallSessionOptions): CallSession => {
   const teardown = (finalState: CallSessionState) => {
     if (ended) return
     ended = true
+    if (connectTimer) {
+      clearTimeout(connectTimer)
+      connectTimer = null
+    }
     localStream?.getTracks().forEach((track) => track.stop())
     try {
       pc?.close()
@@ -138,10 +149,35 @@ export const createCallSession = (opts: CallSessionOptions): CallSession => {
     start: async () => {
       try {
         opts.onState('requesting-media')
-        localStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: opts.withVideo,
-        })
+        // Some Android WebViews (notably Samsung) reject the default mic request
+        // with "NotReadableError: Could not start audio source": Chromium opens
+        // the mic in echo-cancellation / communication mode and that hardware
+        // audio source fails to start, even though a plain mic works. Try the
+        // normal request, then fall back to a plain mic with audio processing
+        // disabled, then audio-only. First one that starts wins; if all fail we
+        // surface the error so the UI can prompt for microphone access.
+        const audioAttempts: MediaStreamConstraints[] = [
+          { audio: true, video: opts.withVideo },
+          {
+            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+            video: opts.withVideo,
+          },
+          { audio: true, video: false },
+        ]
+        let acquired: MediaStream | null = null
+        let lastMediaError: unknown = null
+        for (const constraints of audioAttempts) {
+          try {
+            acquired = await navigator.mediaDevices.getUserMedia(constraints)
+            break
+          } catch (mediaError) {
+            lastMediaError = mediaError
+          }
+        }
+        if (!acquired) {
+          throw lastMediaError instanceof Error ? lastMediaError : new Error('getUserMedia failed')
+        }
+        localStream = acquired
         if (ended) {
           localStream.getTracks().forEach((track) => track.stop())
           return
@@ -169,9 +205,17 @@ export const createCallSession = (opts: CallSessionOptions): CallSession => {
         pc.onconnectionstatechange = () => {
           if (ended) return
           const state = pc?.connectionState
-          if (state === 'connected') opts.onState('connected')
-          else if (state === 'disconnected') opts.onState('disconnected')
-          else if (state === 'failed') opts.onState('failed')
+          if (state === 'connected') {
+            if (connectTimer) {
+              clearTimeout(connectTimer)
+              connectTimer = null
+            }
+            opts.onState('connected')
+          } else if (state === 'failed') {
+            teardown('failed')
+          } else if (state === 'disconnected') {
+            opts.onState('disconnected')
+          }
         }
 
         transport = opts.createTransport({
@@ -184,6 +228,11 @@ export const createCallSession = (opts: CallSessionOptions): CallSession => {
           },
         })
         opts.onState('waiting-for-peer')
+        connectTimer = setTimeout(() => {
+          if (!ended && pc?.connectionState !== 'connected') {
+            fail(new Error('Connection timed out'))
+          }
+        }, CONNECT_TIMEOUT_MS)
       } catch (error) {
         fail(toError(error))
       }

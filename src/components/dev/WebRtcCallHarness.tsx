@@ -20,6 +20,7 @@ export default function WebRtcCallHarness() {
   const calls = useWebRtcCalls({
     isAuthenticated: true,
     selfName: selfId,
+    appLanguage: 'en',
     pushToast: () => {},
     debugSelfId: selfId,
   })
