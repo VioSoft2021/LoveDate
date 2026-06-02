@@ -86,6 +86,10 @@ android-studio*.exe
 # Android IDE metadata that's per-developer
 android/.idea/
 
+# Firebase Cloud Messaging config — per-machine like .env.local. Keep it off
+# git and drop a copy on each build machine (android/app/google-services.json).
+android/app/google-services.json
+
 # Welcome/investor video binaries — recorded MP4s, voiceover MP3s, music
 # tracks. They live alongside the HTML for the build pipeline but are too
 # large to commit (multi-MB each). Re-generate via ElevenLabs + the

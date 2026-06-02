@@ -57,14 +57,56 @@ registerRoute(
 
 // --- Push handling ---
 
+type PushData = {
+  title?: string
+  body?: string
+  senderId?: string
+  messageId?: string
+  // Incoming-call pushes (from send-call-push):
+  type?: string
+  roomId?: string
+  callerId?: string
+  callType?: string
+  callerName?: string
+}
+
 self.addEventListener('push', (event) => {
-  let data: { title?: string; body?: string; senderId?: string; messageId?: string } = {}
+  let data: PushData = {}
   if (event.data) {
     try {
       data = event.data.json()
     } catch {
       data = { title: 'Privé', body: event.data.text() }
     }
+  }
+
+  // Incoming call — ring with a sticky notification carrying the call coords.
+  if (data.type === 'incoming_call') {
+    const title = data.callerName || data.title || 'Privé'
+    const options: NotificationOptions = {
+      body: data.callType === 'video' ? 'Incoming video call' : 'Incoming call',
+      icon: 'pwa-icon-192.png',
+      badge: 'pwa-icon-192.png',
+      tag: 'call-' + (data.roomId ?? ''),
+      data: {
+        type: 'incoming_call',
+        roomId: data.roomId,
+        callerId: data.callerId,
+        callType: data.callType,
+        callerName: data.callerName,
+      },
+      requireInteraction: true,
+    }
+    event.waitUntil(
+      (async () => {
+        // If a tab is already focused, the live Realtime path is ringing in-app
+        // already — skip the duplicate system notification.
+        const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+        const focused = clients.some((client) => (client as WindowClient).focused)
+        if (!focused) await self.registration.showNotification(title, options)
+      })(),
+    )
+    return
   }
 
   const title = data.title ?? 'Privé'
@@ -82,7 +124,19 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  const url = self.registration.scope + '#/chats'
+  const nd = (event.notification.data ?? {}) as PushData
+  let url = self.registration.scope + '#/chats'
+  // For an incoming call, carry the coords in the query string so the app can
+  // ring on open (picked up in useWebRtcCalls).
+  if (nd.type === 'incoming_call' && nd.roomId && nd.callerId) {
+    const params = new URLSearchParams({
+      incomingCall: nd.roomId,
+      from: nd.callerId,
+      ctype: nd.callType === 'video' ? 'video' : 'audio',
+      cname: nd.callerName ?? 'Privé',
+    })
+    url = self.registration.scope + '?' + params.toString()
+  }
   event.waitUntil(
     self.clients.matchAll({ type: 'window' }).then((clients) => {
       // Focus an existing tab if there is one.

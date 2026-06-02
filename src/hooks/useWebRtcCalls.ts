@@ -16,6 +16,8 @@ import {
 import { createSupabaseSignaling } from '../services/webrtc/signaling'
 import { subscribeToCallInbox, sendCallMessage } from '../services/webrtc/callInvites'
 import { getCurrentUserId } from '../services/backend/client'
+import { initNativePush, setIncomingCallPushHandler } from '../services/nativePush'
+import { sendCallPush } from '../services/webrtc/callPush'
 import type { AppLanguage } from '../domain'
 
 export type WebRtcCallPhase = 'idle' | 'outgoing' | 'incoming' | 'active'
@@ -196,6 +198,9 @@ export const useWebRtcCalls = ({
         fromId: myId,
         fromName: selfName,
       })
+      // Also push (FCM to the phone / Web Push to browsers) so the callee rings
+      // even if their app is closed — Realtime only reaches them when online.
+      void sendCallPush({ calleeId: peerId, roomId, callType: type, callerName: selfName })
       beginSession(roomId, type, true)
     },
     [appLanguage, pushToast, selfName, beginSession],
@@ -265,37 +270,53 @@ export const useWebRtcCalls = ({
     setView((current) => ({ ...current, cameraOff }))
   }, [])
 
+  // Present an incoming call (from either the Realtime inbox or an offline
+  // push). Deduped by roomId so the online invite + the push don't double-ring;
+  // auto-declines if we're already busy with a different call.
+  const presentIncoming = useCallback(
+    (invite: { roomId: string; callType: 'audio' | 'video'; fromId: string; fromName: string }) => {
+      const myId = selfIdRef.current
+      if (!myId) return
+      if (viewRef.current.roomId === invite.roomId) return
+      if (viewRef.current.phase !== 'idle') {
+        void sendCallMessage(invite.fromId, {
+          kind: 'decline',
+          roomId: invite.roomId,
+          fromId: myId,
+        })
+        return
+      }
+      pendingIncomingRef.current = {
+        roomId: invite.roomId,
+        type: invite.callType,
+        fromId: invite.fromId,
+        fromName: invite.fromName,
+      }
+      setView({
+        phase: 'incoming',
+        callType: invite.callType,
+        peerId: invite.fromId,
+        peerName: invite.fromName,
+        roomId: invite.roomId,
+        sessionState: null,
+        muted: false,
+        cameraOff: invite.callType === 'audio',
+      })
+    },
+    [],
+  )
+
   // The per-user call inbox: rings, accepts, declines, cancels.
   useEffect(() => {
     if (!isAuthenticated || !selfId) return
     const unsubscribe = subscribeToCallInbox(selfId, (message) => {
-      const myId = selfIdRef.current
-      if (!myId) return
+      if (!selfIdRef.current) return
       if (message.kind === 'invite') {
-        // Already busy → auto-decline so the caller isn't left ringing.
-        if (viewRef.current.phase !== 'idle') {
-          void sendCallMessage(message.fromId, {
-            kind: 'decline',
-            roomId: message.roomId,
-            fromId: myId,
-          })
-          return
-        }
-        pendingIncomingRef.current = {
+        presentIncoming({
           roomId: message.roomId,
-          type: message.callType,
+          callType: message.callType,
           fromId: message.fromId,
           fromName: message.fromName,
-        }
-        setView({
-          phase: 'incoming',
-          callType: message.callType,
-          peerId: message.fromId,
-          peerName: message.fromName,
-          roomId: message.roomId,
-          sessionState: null,
-          muted: false,
-          cameraOff: message.callType === 'audio',
         })
       } else if (message.kind === 'decline') {
         if (viewRef.current.roomId === message.roomId) {
@@ -320,7 +341,43 @@ export const useWebRtcCalls = ({
       }
     })
     return unsubscribe
-  }, [isAuthenticated, selfId, appLanguage, pushToast, resetCall])
+  }, [isAuthenticated, selfId, appLanguage, pushToast, resetCall, presentIncoming])
+
+  // Native (installed-app) offline ringing: register for FCM and route an
+  // incoming-call push into the same ringing UI as the Realtime inbox above.
+  useEffect(() => {
+    if (!isAuthenticated || !selfId) return
+    void initNativePush()
+    setIncomingCallPushHandler((call) =>
+      presentIncoming({
+        roomId: call.roomId,
+        callType: call.callType,
+        fromId: call.callerId,
+        fromName: call.callerName,
+      }),
+    )
+    return () => setIncomingCallPushHandler(null)
+  }, [isAuthenticated, selfId, presentIncoming])
+
+  // Web/PWA: when the app is opened from an incoming-call notification, the SW
+  // puts the call coords in the query string. Pick them up, ring, then strip
+  // them so a refresh doesn't re-trigger.
+  useEffect(() => {
+    if (!isAuthenticated || !selfId) return
+    const params = new URLSearchParams(window.location.search)
+    const roomId = params.get('incomingCall')
+    const from = params.get('from')
+    if (!roomId || !from) return
+    const callType: 'audio' | 'video' = params.get('ctype') === 'video' ? 'video' : 'audio'
+    const fromName = params.get('cname') || 'Privé'
+    // Strip the params first so a refresh can't re-trigger the ring.
+    window.history.replaceState({}, '', window.location.pathname + window.location.hash)
+    // Defer the ring out of the effect body (avoids synchronous setState).
+    const timer = window.setTimeout(() => {
+      presentIncoming({ roomId, callType, fromId: from, fromName })
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [isAuthenticated, selfId, presentIncoming])
 
   return {
     view,
