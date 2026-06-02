@@ -27,6 +27,8 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // Register custom plugins before the bridge initializes.
+        registerPlugin(AppSettingsPlugin.class);
         super.onCreate(savedInstanceState);
 
         // Solid brand-colored system bars with white icons.

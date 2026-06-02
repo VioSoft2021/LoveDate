@@ -56,6 +56,21 @@ describe('useToasts — toasts auto-dismiss after 2.6s', () => {
     })
     expect(result.current.toasts).toHaveLength(0)
   })
+
+  it('an actionable toast stores the action and lingers (8s, not 2.6s)', () => {
+    const { result } = renderHook(() => useToasts())
+    const onClick = vi.fn()
+    act(() => result.current.pushToast('Mic off', 'error', { label: 'Open Settings', onClick }))
+    expect(result.current.toasts[0].action?.label).toBe('Open Settings')
+    act(() => {
+      vi.advanceTimersByTime(2600)
+    })
+    expect(result.current.toasts).toHaveLength(1) // still there past the normal window
+    act(() => {
+      vi.advanceTimersByTime(5400)
+    })
+    expect(result.current.toasts).toHaveLength(0) // gone by 8s
+  })
 })
 
 describe('useToasts — notifications (persistent)', () => {

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { ToastStack } from './ToastStack'
 import type { Toast } from '../domain'
 
@@ -37,5 +37,15 @@ describe('ToastStack', () => {
     const { container } = render(<ToastStack toasts={toasts} />)
     const stack = container.querySelector('.toast-stack')
     expect(stack?.getAttribute('aria-live')).toBe('polite')
+  })
+
+  it('renders an action button that fires its onClick', () => {
+    const onClick = vi.fn()
+    const toasts: Toast[] = [
+      { id: 1, message: 'Mic off', tone: 'error', action: { label: 'Open Settings', onClick } },
+    ]
+    render(<ToastStack toasts={toasts} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Open Settings' }))
+    expect(onClick).toHaveBeenCalledTimes(1)
   })
 })

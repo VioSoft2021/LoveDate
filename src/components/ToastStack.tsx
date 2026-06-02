@@ -16,6 +16,26 @@ export const ToastStack: React.FC<ToastStackProps> = ({ toasts }) => {
       {toasts.map((toast) => (
         <p key={toast.id} className={`toast ${toast.tone}`}>
           {toast.message}
+          {toast.action ? (
+            <button
+              type="button"
+              className="toast-action"
+              onClick={toast.action.onClick}
+              style={{
+                marginLeft: 12,
+                background: 'transparent',
+                border: '1px solid currentColor',
+                color: 'inherit',
+                borderRadius: 999,
+                padding: '2px 10px',
+                font: 'inherit',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              {toast.action.label}
+            </button>
+          ) : null}
         </p>
       ))}
     </div>

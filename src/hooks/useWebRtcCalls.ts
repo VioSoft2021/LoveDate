@@ -18,6 +18,7 @@ import { subscribeToCallInbox, sendCallMessage } from '../services/webrtc/callIn
 import { getCurrentUserId } from '../services/backend/client'
 import { initNativePush, setIncomingCallPushHandler } from '../services/nativePush'
 import { sendCallPush } from '../services/webrtc/callPush'
+import { openAppSettings, canOpenAppSettings } from '../services/appSettings'
 import type { AppLanguage } from '../domain'
 
 export type WebRtcCallPhase = 'idle' | 'outgoing' | 'incoming' | 'active'
@@ -46,7 +47,11 @@ const IDLE_VIEW: WebRtcCallView = {
 
 export type StartCallArgs = { peerId: string; peerName: string; type: 'audio' | 'video' }
 
-type Toast = (message: string, tone?: 'info' | 'success' | 'error') => void
+type Toast = (
+  message: string,
+  tone?: 'info' | 'success' | 'error',
+  action?: { label: string; onClick: () => void },
+) => void
 
 // getUserMedia rejects with these when the OS won't hand over the mic — either
 // the user denied the permission (NotAllowedError) or it's stuck in Android's
@@ -149,6 +154,12 @@ export const useWebRtcCalls = ({
                     ? 'Apelul a eșuat.'
                     : 'Call failed.',
                 'error',
+                micError && canOpenAppSettings()
+                  ? {
+                      label: appLanguage === 'ro' ? 'Deschide Setări' : 'Open Settings',
+                      onClick: () => void openAppSettings(),
+                    }
+                  : undefined,
               )
             }
             lastErrorRef.current = null

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import type { NotificationItem, Toast } from '../domain'
+import type { NotificationItem, Toast, ToastAction } from '../domain'
 
 // Phase D1.6 — useToasts
 //
@@ -13,12 +13,16 @@ export const useToasts = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
 
   const pushToast = useCallback(
-    (message: string, tone: Toast['tone'] = 'info') => {
+    (message: string, tone: Toast['tone'] = 'info', action?: ToastAction) => {
       const id = Date.now() + Math.floor(Math.random() * 1000)
-      setToasts((current) => [...current, { id, message, tone }])
-      window.setTimeout(() => {
-        setToasts((current) => current.filter((toast) => toast.id !== id))
-      }, 2600)
+      setToasts((current) => [...current, { id, message, tone, action }])
+      // Actionable toasts linger so they can be tapped; plain ones auto-dismiss.
+      window.setTimeout(
+        () => {
+          setToasts((current) => current.filter((toast) => toast.id !== id))
+        },
+        action ? 8000 : 2600,
+      )
     },
     [],
   )
