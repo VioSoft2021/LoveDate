@@ -19,11 +19,36 @@ export type CallSessionState =
   | 'failed'
   | 'ended'
 
-// Free public STUN. TURN (for the ~10-20% behind strict NATs) can be appended
-// later via the `iceServers` option without touching this file.
+// Free public STUN — enough for the ~80-90% of calls that connect peer-to-peer.
 export const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
 ]
+
+// Build the ICE server list for a call: always STUN, plus a TURN relay when one
+// is configured. TURN is what lets the ~10-20% behind strict/symmetric NAT or
+// carrier CGNAT (common on Romanian mobile data) connect by relaying media
+// instead of failing outright. Its address + credentials live in env so the
+// relay can change without a code edit (and STUN-only behaviour is the default
+// when unset):
+//   VITE_TURN_URL=turn:turn.example.com:3478[,turns:turn.example.com:5349]
+//   VITE_TURN_USERNAME=...
+//   VITE_TURN_CREDENTIAL=...
+export const buildIceServers = (): RTCIceServer[] => {
+  const servers: RTCIceServer[] = [...DEFAULT_ICE_SERVERS]
+  const env = import.meta.env as unknown as Record<string, string | undefined>
+  const turnUrl = env.VITE_TURN_URL?.trim()
+  if (turnUrl) {
+    servers.push({
+      urls: turnUrl
+        .split(',')
+        .map((url) => url.trim())
+        .filter(Boolean),
+      username: env.VITE_TURN_USERNAME,
+      credential: env.VITE_TURN_CREDENTIAL,
+    })
+  }
+  return servers
+}
 
 // Give up if we never reach 'connected' — so a stuck/abandoned call can't sit
 // forever holding the microphone open.

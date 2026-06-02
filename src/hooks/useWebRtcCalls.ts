@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   createCallSession,
+  buildIceServers,
   type CallSession,
   type CallSessionState,
 } from '../services/webrtc/callSession'
@@ -126,6 +127,7 @@ export const useWebRtcCalls = ({
         selfId: myId,
         isInitiator,
         withVideo: type === 'video',
+        iceServers: buildIceServers(),
         createTransport: createSupabaseSignaling(roomId, myId),
         onState: (state) => {
           setView((current) => ({
