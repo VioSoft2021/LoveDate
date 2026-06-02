@@ -99,7 +99,42 @@ project). FCM is the only way the installed APK/Play app can ring when closed. F
 4. Put it at: `android/app/google-services.json` (or just hand it to me and I'll place
    it). This file is safe to keep out of git — I'll gitignore it.
 
-That's all I need from you to start the FCM build. Later (for the server to *send*
-the pushes) I'll also need a **service-account key** from the same project — I'll give
-you those exact steps when I get to the edge-function part, so we don't do it out of
-order.
+That's all I need from you to start the FCM build.
+
+---
+
+## 3. Activate offline ringing (once the Firebase project from §2 exists)
+
+All the app/server code is already shipped; these steps turn it on.
+
+### 3a. Drop in google-services.json + rebuild the APK
+Place the file from §2a at `android/app/google-services.json` (it's gitignored — keep a
+copy on each build machine, like `.env.local`). Then rebuild:
+`npm run build` → `npx cap sync android` → assemble + install the APK.
+
+### 3b. Apply the database migration
+In the Supabase SQL editor, run **`scripts/calls_push_setup.sql`** (creates the
+`device_push_tokens` table the phones register into).
+
+### 3c. Firebase service-account key (lets the server SEND pushes)
+1. Firebase console → ⚙ **Project settings → Service accounts → Generate new private
+   key** → downloads a JSON file.
+2. Supabase dashboard → **Edge Functions → Secrets** → add a secret named
+   **`FCM_SERVICE_ACCOUNT`** whose value is the **entire contents** of that JSON.
+   (Pasting in the dashboard avoids shell-quoting the multi-line private key.)
+   - The Web-Push secrets (`VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT`)
+     already exist from the message-push function and are reused automatically.
+3. **Delete the downloaded JSON locally afterwards — it's a real secret. Never commit it.**
+
+### 3d. Deploy the Edge Function
+```bash
+npx supabase functions deploy send-call-push
+```
+(JWT verification stays ON, so only a signed-in user can ring — and only as themselves.)
+
+### 3e. Test (on the phone — I'll read the logs)
+- Sign in on the phone, then **fully close** the app.
+- From the other matched account (desktop/web), place a call to the phone.
+- The phone should show an **"Incoming call"** notification even though the app is
+  closed; tapping it opens Privé ringing. Ping me and I'll confirm the FCM path from
+  the device logs.
